@@ -2,26 +2,36 @@
 
 | Component | Technology | Status |
 |---|---|---|
-| Language | TypeScript | Validated |
-| UI framework | React | Validated |
-| Build tool | Vite | Validated |
-| Web platform | PWA | Validated |
-| Mobile runtime | Capacitor | Validated |
-| Map engine | MapLibre GL JS | Validated |
-| Basemap / vector tiles | OpenFreeMap | Validated |
-| Map style | Custom MapLibre Style JSON | Validated |
-| Geocoding | Nominatim via backend | Validated |
-| Routing | TBD | To decide |
-| Data fetching / server state | TBD | To decide |
+| Language | TypeScript | OK |
+| UI framework | React | OK |
+| Build tool | Vite | OK |
+| Web platform | PWA | OK |
+| PWA integration | vite-plugin-pwa | OK |
+| Mobile runtime | Capacitor | OK |
+| App routing | React Router | OK |
+| HTTP client | Fetch API | OK |
+| Data fetching / server state | TanStack Query | OK |
+| Map engine | MapLibre GL JS | OK |
+| Basemap / vector tiles | OpenFreeMap | OK |
+| Map style | Custom MapLibre Style JSON | OK |
+| Geocoding | Nominatim via backend | OK |
 
 ## Overall frontend architecture
 
-A React/TypeScript application is built with Vite. It is deployed as a PWA and run in a mobile application through Capacitor when the target is Android or iOS.
+A React/TypeScript single-page application is built with Vite.
+
+The application is deployed as a Progressive Web App (PWA). The PWA manifest and service worker are managed using `vite-plugin-pwa`.
+
+For Android and iOS targets, the same web application can be packaged and executed through Capacitor. Native device capabilities can be accessed through Capacitor plugins when necessary.
+
+React Router handles client-side navigation between the main application screens.
+
+TanStack Query manages server state, including API queries, mutations, caching and cache invalidation. HTTP requests are performed using the native Fetch API.
 
 ## Mapping
 
-MapLibre GL JS displays OpenFreeMap vector tiles using a custom MapLibre JSON style. Geocoding is handled through the backend via Nominatim.
+MapLibre GL JS renders the interactive map using vector tiles provided by OpenFreeMap.
 
-## Open decisions
+The visual appearance of the map is controlled through a custom MapLibre Style JSON.
 
-The routing engine and the data fetching / server state solution still need to be selected.
+Geocoding requests are sent from the frontend to the backend. The backend queries Nominatim and returns the relevant location data to the frontend. The frontend therefore never communicates directly with Nominatim.
