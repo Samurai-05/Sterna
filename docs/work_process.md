@@ -82,8 +82,58 @@ least valuable items rather than delivering everything half-finished.
 
 At the beginning of each sprint, the team selects from the backlog the items
 that constitute the sprint scope. During the sprint, items move across the board
-as they progress, and no item is considered finished until it has been reviewed
-by a member of the team other than its author.
+as they progress, and no item is considered finished until the corresponding
+pull request has been reviewed and merged.
+
+## Git workflow
+
+The source code is hosted on GitHub and every change goes through the same path,
+which keeps the history readable and makes it possible to trace any line of code
+back to the item that motivated it.
+
+The `main` branch always reflects the state that is deployed. It is protected,
+so nobody pushes to it directly. Every unit of work starts from an issue on the
+board, and each issue gets its own branch, created from `main` and named after
+the issue it implements.
+
+When the work on a branch is ready, its author opens a pull request describing
+what was done and referencing the issue it closes. The pull request must be
+approved by two other members of the team before it can be merged, which means
+every change is seen by a majority of the team. Reviews cover correctness,
+readability and consistency with the rest of the code base, and comments are
+resolved on the branch rather than in a follow-up commit on `main`. The
+automated pipeline also runs on every pull request, so a branch that breaks the
+build or the tests cannot be merged.
+
+Once approved, the branch is merged into `main` and deleted. A merge into `main`
+triggers the deployment pipeline, so the reviewed change reaches the running
+environment without any further manual step.
+
+## Work distribution
+
+The team is made of four people and everyone contributes to the code. On top of
+that, each member owns one area of the project. Owning an area does not mean
+being the only one to work on it. It means being the person who takes the
+decisions in that area, who reviews the changes touching it in priority, and who
+is accountable for the corresponding part of the deliverables.
+
+The areas we identified are the following:
+
+- **Frontend**: user interface, client-side logic, mockups and landing page.
+- **Backend**: API, business logic, integration with the storage services.
+- **Database**: schema, migrations, spatial queries and data model.
+- **DevOps and infrastructure**: CI/CD pipeline, containerisation, deployment
+  environment, monitoring.
+- **Documentation and project management**: report, contribution and deployment
+  instructions, backlog upkeep, presentations.
+
+Since the team has four members and the last two areas are lighter than the
+others in terms of implementation work, they are combined with the ones that are
+closest to them. The exact assignment of each person to each area is still being
+adjusted as we discover the real weight of each part of the system, and it will
+be fixed at the latest at the beginning of Sprint 1. During Sprint 0, work is
+allocated according to what is needed to bring the walking skeleton up, without
+regard to these areas.
 
 ## Coordination
 
