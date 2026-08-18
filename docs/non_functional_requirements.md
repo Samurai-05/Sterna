@@ -19,7 +19,7 @@ La PWA doit fonctionner sur les versions récentes des principaux navigateurs mo
 ## 2. Utilisabilité
 
 ### NFR-05 - Ajout rapide d'une observation
-Le nombre d'étapes nécessaires entre la sélection d'une photo et son enregistrement doit être réduit au minimum.
+Le nombre d'étapes nécessaires entre la sélection d'une photo et son enregistrement doit être inférieur ou égal a 3 intéractions.
 
 ### NFR-06 - Catégories non bloquantes
 La sélection d'une catégorie ne doit jamais empêcher l'enregistrement d'une observation.
@@ -28,23 +28,23 @@ La sélection d'une catégorie ne doit jamais empêcher l'enregistrement d'une o
 L'utilisateur doit pouvoir corriger facilement une localisation proposée automatiquement.
 
 ### NFR-08 - Interface tactile
-Les éléments interactifs principaux doivent être suffisamment grands et espacés pour une utilisation tactile sur smartphone.
+Les éléments interactifs principaux doivent être suffisamment grands et espacés pour une utilisation tactile sur smartphone. Un espacement d’au moins 8 px CSS entre deux zones interactives doit être respecté.
 
 ---
 
 ## 3. Performance
 
 ### NFR-09 - Chargement initial
-La page principale doit rester suffisamment légère pour être utilisable sur une connexion mobile classique.
+La page principale doit être suffisamment légère pour être utilisable sur une connexion mobile classique. Elle doit devenir utilisable en moins de 3 secondes sur une connexion 4G standard, avec un temps de chargement maximal toléré de 5 secondes dans des conditions réseau dégradées.
 
 ### NFR-10 - Chargement des images
-Les images affichées sur la carte ne doivent pas nécessiter systématiquement le téléchargement de leur version originale en pleine résolution.
+Les images affichées ne doivent pas nécessiter systématiquement le téléchargement de leur version originale en pleine résolution.
 
 ### NFR-11 - Chargement progressif
 Les photos et observations devraient être chargées progressivement lorsque cela est pertinent afin d'éviter de charger inutilement toutes les données d'un utilisateur ou d'un groupe.
 
 ### NFR-12 - Carte fluide
-Le déplacement et le zoom sur la carte doivent rester fluides pour un nombre raisonnable d'observations correspondant au périmètre du MVP.
+Le déplacement et le zoom sur la carte doivent rester fluides pour un nombre raisonnable d'observations.
 
 ---
 
@@ -81,7 +81,7 @@ Un utilisateur ne doit pas pouvoir accéder aux données d'un groupe dont il n'e
 Un utilisateur ne doit pas pouvoir modifier ou supprimer une observation appartenant à un autre utilisateur sans règle explicite l'y autorisant.
 
 ### NFR-19 - Validation des fichiers
-Le backend doit vérifier les fichiers envoyés afin de limiter l'upload à des formats d'image acceptés et à une taille raisonnable.
+Le backend doit vérifier les fichiers envoyés avant leur stockage. Seuls les formats d’image JPEG/JPG, PNG et WebP sont acceptés. La taille maximale autorisée pour une image est de 10 MB. Tout fichier dépassant cette taille ou utilisant un format non supporté doit être refusé avec un message d’erreur explicite.
 
 ### NFR-20 - Gestion des secrets
 Les mots de passe, clés API et autres secrets ne doivent pas être stockés directement dans le code source ou dans le dépôt Git.
@@ -168,7 +168,7 @@ L'architecture doit permettre d'ajouter ultérieurement des fonctionnalités tel
 
 - grille d'exploration plus précise ;
 - recommandations personalisées ;
-- défis ;
+- défis avancés ;
 - reconnaissance automatique des catégories ;
 - statistiques avancées ;
 - fonctionnalités sociales supplémentaires.

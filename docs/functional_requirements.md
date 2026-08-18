@@ -4,9 +4,9 @@
 
 Les exigences utilisent les priorités suivantes :
 
-- **MUST** : nécessaire au MVP ;
-- **SHOULD** : souhaitable si le temps le permet ;
-- **COULD** : extension optionnelle.
+* **MUST** : nécessaire au MVP ;
+* **SHOULD** : souhaitable si le temps le permet ;
+* **COULD** : extension optionnelle.
 
 ---
 
@@ -52,11 +52,11 @@ L'utilisateur doit pouvoir prendre une photo depuis l'application lorsque le nav
 
 Une photo enregistrée doit pouvoir être transformée en observation contenant au minimum :
 
-- la photo ;
-- la latitude ;
-- la longitude ;
-- la date ;
-- l'utilisateur ayant créé l'observation.
+* la photo ;
+* la latitude ;
+* la longitude ;
+* la date ;
+* l'utilisateur ayant créé l'observation.
 
 ### FR-07 - Lecture des coordonnées GPS
 
@@ -82,25 +82,25 @@ Lors de la sélection manuelle d'une localisation, l'utilisateur devrait pouvoir
 
 Le système devrait enregistrer l'origine de la localisation :
 
-- `exif` ;
-- `current_gps` ;
-- `manual`.
+* `exif` ;
+* `current_gps` ;
+* `manual`.
 
 ### FR-11 - Catégorie facultative
 
 **Priorité : MUST**
 
-Lors de la création d'une observation, l'utilisateur doit pouvoir sélectionner facultativement une catégorie en une seule action.
+Lors de la création d'une observation, l'utilisateur peut sélectionner facultativement une catégorie en une seule action. Si aucune catégorie n'est sélectionnée, l'observation est enregistrée comme « Non catégorisée ».
 
-Catégories initiales :
+Catégories proposées :
 
-- Faune ;
-- Flore ;
-- Gastronomie ;
-- Patrimoine ;
-- Paysages ;
-- Culture ;
-- Autre.
+* Paysages ;
+* Monuments ;
+* Gastronomie ;
+* Faune ;
+* Flore ;
+* Culture ;
+* Autre.
 
 ### FR-12 - Informations facultatives
 
@@ -116,7 +116,7 @@ L'utilisateur devrait pouvoir supprimer une observation qu'il a créée.
 
 ---
 
-## 4. Carte personnelle
+## 4. Carte
 
 ### FR-14 - Affichage de la carte
 
@@ -136,16 +136,16 @@ Les observations doivent être visibles sous forme de marqueurs sur la carte.
 
 Un clic ou un toucher sur un marqueur doit permettre d'afficher au minimum :
 
-- la photo ;
-- l'auteur ;
-- la date ;
-- la catégorie si elle existe.
+* la photo ;
+* l'auteur ;
+* la date ;
+* la catégorie.
 
 ### FR-17 - Pays visités
 
 **Priorité : MUST**
 
-Lorsqu’un utilisateur ajoute une observation dans un pays, ce pays doit être considéré comme visité et être marqué visuellement sur la carte.
+Lorsqu'un utilisateur ajoute une observation dans un pays, ce pays doit être considéré comme visité et être marqué visuellement sur la carte.
 
 Une seule observation dans un pays suffit à le considérer comme visité dans le cadre du MVP.
 
@@ -165,29 +165,30 @@ L'utilisateur devrait pouvoir filtrer les observations affichées selon leur cat
 
 ## 5. Exploration et gamification
 
-### FR-21 - Statistiques d'exploration
+### FR-20 - Statistiques d'exploration
 
 **Priorité : SHOULD**
 
 Le système devrait afficher des statistiques simples, par exemple :
 
-- nombre de découvertes ;
-- nombre de pays visités ;
-- nombre de découvertes par catégorie ;
+* nombre de découvertes ;
+* nombre de pays visités ;
+* nombre de points d'intérêt visités ;
+* nombre de découvertes par catégorie.
 
-### FR-22 - Progression d'exploration
+### FR-21 - Progression d'exploration
 
 **Priorité : SHOULD**
 
 Le système devrait fournir une représentation simple de la progression d'exploration de l'utilisateur.
 
-### FR-23 - Badges
+### FR-22 - Badges
 
-**Priorité : COULD**
+**Priorité : SHOULD**
 
-Le système pourrait attribuer quelques badges simples lorsque certains objectifs sont atteints.
+Le système devrait attribuer quelques badges simples lorsque certains objectifs sont atteints.
 
-### FR-24 - Défis
+### FR-23 - Défis
 
 **Priorité : COULD**
 
@@ -197,61 +198,79 @@ Le système pourrait proposer des défis incitant l'utilisateur à découvrir de
 
 ## 6. Gestion des groupes
 
-### FR-25 - Création d'un groupe
+### FR-24 - Création d'un groupe
 
 **Priorité : MUST**
 
 Un utilisateur doit pouvoir créer un groupe et lui attribuer un nom.
 
-### FR-26 - Invitation
+### FR-25 - Invitation
 
 **Priorité : MUST**
 
 Le créateur d'un groupe doit pouvoir inviter d'autres utilisateurs via un code ou un lien d'invitation.
 
-### FR-27 - Rejoindre un groupe
+### FR-26 - Rejoindre un groupe
 
 **Priorité : MUST**
 
 Un utilisateur doit pouvoir rejoindre un groupe à partir d'une invitation valide.
 
+### FR-27 - Contexte de carte actif
+
+**Priorité : MUST**
+
+L'application doit maintenir un contexte de carte actif, correspondant soit à la carte personnelle de l'utilisateur, soit à la carte d'un des groupes auxquels il appartient.
+
 ### FR-28 - Liste des groupes
 
 **Priorité : MUST**
 
-L'utilisateur doit pouvoir consulter la liste des groupes auxquels il appartient.
+L'utilisateur doit pouvoir consulter la liste des groupes auxquels il appartient, identifier le groupe actuellement actif et sélectionner un groupe afin d'en faire la carte active.
 
-### FR-29 - Liste des membres
+### FR-29 - Synchronisation du groupe actif
+
+**Priorité : MUST**
+
+Lorsqu'un utilisateur sélectionne une carte via l'écran des groupes, la Map doit automatiquement afficher les observations et les pays visités correspondants.
+
+### FR-30 - Changement de carte depuis l'écran Map
+
+**Priorité : MUST**
+
+L'utilisateur doit pouvoir changer directement de carte depuis l'écran principal Map via un sélecteur, sans devoir passer par l'écran des groupes.
+
+### FR-31 - Liste des membres
 
 **Priorité : SHOULD**
 
 Les membres d'un groupe devraient pouvoir consulter la liste des utilisateurs appartenant au groupe.
 
-### FR-30 - Carte de groupe
+### FR-32 - Carte de groupe
 
 **Priorité : MUST**
 
 Chaque groupe doit disposer d'une carte commune affichant les observations associées au groupe.
 
-### FR-31 - Ajout à une carte de groupe
+### FR-33 - Ajout à une carte de groupe
 
 **Priorité : MUST**
 
 Un membre doit pouvoir ajouter une observation à la carte d'un groupe auquel il appartient.
 
-### FR-32 - Auteur d'une observation
+### FR-34 - Destination lors de l'ajout d'une observation
+
+**Priorité : MUST**
+
+Lors de l'ajout d'une observation, l'application doit indiquer dans quelle carte elle sera enregistrée. L'utilisateur doit pouvoir modifier cette destination avant l'enregistrement.
+
+### FR-35 - Auteur d'une observation
 
 **Priorité : MUST**
 
 Une observation de groupe doit conserver et afficher l'identité de son auteur.
 
-### FR-33 - Carte personnelle distincte
-
-**Priorité : MUST**
-
-L'application doit distinguer les observations personnelles des observations associées à un groupe.
-
-### FR-34 - Quitter un groupe
+### FR-36 - Quitter un groupe
 
 **Priorité : SHOULD**
 
@@ -261,19 +280,19 @@ Un utilisateur devrait pouvoir quitter un groupe.
 
 ## 7. Stockage et accès aux médias
 
-### FR-35 - Stockage des photos
+### FR-37 - Stockage des photos
 
 **Priorité : MUST**
 
 Les photos doivent être stockées dans un espace accessible au backend afin qu'elles puissent être affichées sur les cartes personnelles et de groupe.
 
-### FR-36 - Référence des médias
+### FR-38 - Référence des médias
 
 **Priorité : MUST**
 
 La base de données doit stocker une référence vers le fichier photo plutôt que dépendre du fichier local du téléphone de l'utilisateur.
 
-### FR-37 - Optimisation des images
+### FR-39 - Optimisation des images
 
 **Priorité : SHOULD**
 
@@ -283,20 +302,20 @@ Les photos devraient être redimensionnées ou compressées afin de limiter l'es
 
 ## 8. Recherche et navigation
 
-### FR-38 - Recherche géographique
+### FR-40 - Recherche géographique
 
 **Priorité : SHOULD**
 
 L'utilisateur devrait pouvoir rechercher un lieu depuis l'écran de carte.
 
-### FR-39 - Navigation principale
+### FR-41 - Navigation principale
 
 **Priorité : MUST**
 
 La PWA doit proposer un accès clair aux sections principales :
 
-- Carte ;
-- Explorer ;
-- Ajouter ;
-- Groupes ;
-- Profil.
+* Carte ;
+* Explorer ;
+* Ajouter ;
+* Groupes ;
+* Profil.
