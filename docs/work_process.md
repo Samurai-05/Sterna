@@ -98,7 +98,7 @@ the issue it implements.
 
 When the work on a branch is ready, its author opens a pull request describing
 what was done and referencing the issue it closes. The pull request must be
-approved by two other members of the team before it can be merged, which means
+approved by at least one other member of the team before it can be merged, which means
 every change is seen by a majority of the team. Reviews cover correctness,
 readability and consistency with the rest of the code base, and comments are
 resolved on the branch rather than in a follow-up commit on `main`. The
