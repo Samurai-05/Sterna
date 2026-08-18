@@ -11,7 +11,7 @@ cp .env.example .env
 docker compose up
 ```
 
-The app is available at http://localhost:<TBD>, the API at http://localhost:<TBD>.
+The app is available at http://localhost:\<TBD\>, the API at http://localhost:\<TBD\>.
 
 ## Workflow
 
