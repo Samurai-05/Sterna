@@ -6,17 +6,17 @@ Accepted
 
 ## Context
 
-La carte est un composant central de Sterna. La solution doit permettre :
+The map is a core component of Sterna. The solution must support:
 
-- l'affichage d'une carte interactive ;
-- la distinction entre zones explorées et non explorées ;
-- l'affichage d'observations et de photos ;
-- l'affichage de POI ;
-- l'affichage de la position de l'utilisateur ;
-- une personnalisation visuelle importante ;
-- une évolution vers des régions, cellules ou grilles d'exploration.
+- displaying an interactive map;
+- distinguishing between explored and unexplored areas;
+- displaying observations and photos;
+- displaying POIs;
+- displaying the user's location;
+- extensive visual customization;
+- future evolution toward exploration regions, cells, or grids.
 
-La stack doit séparer clairement le moteur de rendu, le fournisseur de fond cartographique et les données propres à Sterna.
+The stack must clearly separate the rendering engine, basemap provider, and Sterna-specific data.
 
 ## Decision
 
@@ -29,14 +29,14 @@ La stack doit séparer clairement le moteur de rendu, le fournisseur de fond car
 | Geocoding | Nominatim via Sterna backend |
 | Sterna geographical data | Sterna backend / database |
 
-Les rôles sont distincts :
+The roles are distinct:
 
-- OpenStreetMap fournit principalement les données cartographiques ;
-- OpenFreeMap fournit les vector tiles et le basemap ;
-- MapLibre GL JS affiche la carte dans le frontend ;
-- le fichier `style.json` personnalisé définit l'apparence visuelle de Sterna ;
-- Nominatim sert à rechercher des lieux et à faire du geocoding ;
-- les observations, POI, zones explorées et autres données Sterna restent gérés par notre propre backend et notre base de données.
+- OpenStreetMap primarily provides the map data;
+- OpenFreeMap provides the vector tiles and basemap;
+- MapLibre GL JS displays the map in the frontend;
+- the custom `style.json` file defines Sterna's visual appearance;
+- Nominatim is used to search for places and perform geocoding;
+- observations, POIs, explored areas, and other Sterna data remain managed by our own backend and database.
 
 ```text
 OpenStreetMap data
@@ -58,33 +58,32 @@ OpenStreetMap data
 
 ## Alternatives considered
 
-| Alternative | Avantages | Inconvénients |
+| Alternative | Advantages | Disadvantages |
 |---|---|---|
-| Mapbox | Plateforme intégrée et nombreux services | Dépendance à un fournisseur propriétaire et contraintes de tarification |
-| MapTiler | Services cartographiques intégrés et styles disponibles | Dépendance à un fournisseur externe ; personnalisation et coûts à vérifier selon l'usage |
-| Leaflet | API simple, légère et largement connue | Moteur principalement raster/DOM ; moins adapté aux vector tiles et à une personnalisation cartographique avancée |
+| Mapbox | Integrated platform and numerous services | Dependency on a proprietary provider and pricing constraints |
+| MapTiler | Integrated mapping services and available styles | Dependency on an external provider; customization and costs must be checked based on usage |
+| Leaflet | Simple, lightweight, and widely known API | Primarily a raster/DOM engine; less suited to vector tiles and advanced map customization |
 
 ## Consequences
 
-### Positives
+### Positive
 
-- forte personnalisation de l'apparence de la carte ;
-- séparation entre moteur, fournisseur de tiles et données Sterna ;
-- possibilité de changer de fournisseur de tiles plus tard ;
-- intégration adaptée aux layers géographiques spécifiques de Sterna.
+- extensive customization of the map's appearance;
+- separation between the engine, tile provider, and Sterna data;
+- the option to change tile providers later;
+- integration suited to Sterna's specific geographic layers.
 
-### Négatives
+### Negative
 
-- plusieurs briques doivent être intégrées et maintenues ;
-- l'instance publique de Nominatim a des limitations d'usage et de capacité ;
-- OpenFreeMap ne fournit pas tous les services cartographiques, qui restent à compléter côté Sterna ou via d'autres services.
+- several building blocks must be integrated and maintained;
+- the public Nominatim instance has usage and capacity limitations;
+- OpenFreeMap does not provide every mapping service, which must be supplemented by Sterna or other services.
 
 ## Future evolution
 
-Les évolutions possibles sont :
+Possible future developments include:
 
-- utiliser PostGIS pour les requêtes et traitements géographiques ;
-- produire des vector tiles propres aux données Sterna ;
-- étudier PMTiles et un mode offline éventuel ;
-- représenter la progression avec une grille d'exploration plus précise.
-
+- using PostGIS for geographic queries and processing;
+- producing vector tiles for Sterna data;
+- investigating PMTiles and a potential offline mode;
+- representing progress with a more precise exploration grid.

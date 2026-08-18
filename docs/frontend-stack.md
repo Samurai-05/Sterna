@@ -14,14 +14,14 @@
 | Routing | TBD | To decide |
 | Data fetching / server state | TBD | To decide |
 
-## Architecture frontend globale
+## Overall frontend architecture
 
-Une application React/TypeScript est buildée par Vite. Elle est déployée comme PWA et exécutée dans une application mobile via Capacitor lorsque la cible est Android ou iOS.
+A React/TypeScript application is built with Vite. It is deployed as a PWA and run in a mobile application through Capacitor when the target is Android or iOS.
 
-## Cartographie
+## Mapping
 
-MapLibre GL JS affiche les fonds vectoriels OpenFreeMap à partir d'un style MapLibre JSON personnalisé. Le géocodage passe par le backend via Nominatim.
+MapLibre GL JS displays OpenFreeMap vector tiles using a custom MapLibre JSON style. Geocoding is handled through the backend via Nominatim.
 
-## Décisions encore ouvertes
+## Open decisions
 
-Le moteur de routing et la solution de fetching / server state restent à choisir.
+The routing engine and the data fetching / server state solution still need to be selected.

@@ -6,53 +6,52 @@ Accepted
 
 ## Context
 
-Sterna doit cibler le web et les appareils mobiles avec une base de code largement partagée. L'interface doit rester adaptée à une application interactive, tout en pouvant accéder à certaines capacités natives comme la géolocalisation, l'appareil photo et les permissions.
+Sterna must target the web and mobile devices with a largely shared codebase. The interface must remain suitable for an interactive application while still being able to access certain native capabilities such as geolocation, the camera, and permissions.
 
-Le projet cherche un compromis entre partage de code, vitesse d'itération, qualité de l'expérience web et accès aux plateformes mobiles. Une solution mobile entièrement native maximiserait le contrôle, mais augmenterait fortement le coût de développement et de maintenance.
+The project seeks a balance between code sharing, iteration speed, web experience quality, and access to mobile platforms. A fully native mobile solution would maximize control, but would substantially increase development and maintenance costs.
 
 ## Decision
 
-La plateforme frontend retenue est composée de :
+The selected frontend platform consists of:
 
-- React pour l'interface et le modèle de composants ;
-- TypeScript pour le typage statique ;
-- Vite pour le développement et le build web ;
-- PWA comme cible web installable ;
-- Capacitor pour empaqueter l'application web sur mobile et accéder aux capacités natives.
+- React for the interface and component model;
+- TypeScript for static typing;
+- Vite for web development and builds;
+- PWA as an installable web target;
+- Capacitor to package the web application for mobile and access native capabilities.
 
-### Raisonnement et compromis
+### Rationale and trade-offs
 
-React fournit un modèle de composants adapté à une interface riche et interactive. Son écosystème est mature, notamment pour les interfaces web et la cartographie. En contrepartie, les briques complémentaires — navigation, gestion des données, formulaires et intégration native — doivent être choisies et maintenues séparément.
+React provides a component model suited to a rich, interactive interface. Its ecosystem is mature, particularly for web interfaces and mapping. In return, complementary building blocks — navigation, data management, forms, and native integration — must be selected and maintained separately.
 
-TypeScript rend les contrats entre composants, données géographiques et appels backend plus explicites. Il réduit certaines erreurs lors de l'évolution du projet, au prix d'une configuration supplémentaire et d'un effort de maintenance des types.
+TypeScript makes the contracts between components, geographic data, and backend calls more explicit. It reduces certain errors as the project evolves, at the cost of additional configuration and type maintenance.
 
-Vite offre un démarrage rapide en développement et une chaîne de build simple pour React et TypeScript. Le projet doit toutefois configurer lui-même des aspects comme le service worker, le déploiement et l'intégration Capacitor.
+Vite offers a fast development startup and a simple build pipeline for React and TypeScript. However, the project must configure aspects such as the service worker, deployment, and Capacitor integration itself.
 
-La PWA fournit une cible web installable et partage la même base de code entre desktop et mobile. Une PWA seule ne garantit cependant pas un accès homogène aux fonctions natives ni une distribution mobile équivalente à celle d'une application de store.
+The PWA provides an installable web target and shares the same codebase between desktop and mobile. A PWA alone does not guarantee consistent access to native features or mobile distribution equivalent to that of a store app.
 
-Capacitor conserve l'interface et la logique web dans une application mobile et fournit un pont vers les API natives. Le compromis est un rendu dans une WebView, ainsi que la maintenance des plugins, des configurations Android/iOS et des tests sur appareils réels.
+Capacitor keeps the web interface and logic in a mobile application and provides a bridge to native APIs. The trade-off is rendering in a WebView, along with maintaining plugins, Android/iOS configurations, and tests on real devices.
 
 ## Alternatives considered
 
-| Approche | Avantages | Inconvénients |
+| Approach | Advantages | Disadvantages |
 |---|---|---|
-| PWA seule | Base de code et déploiement simples ; accès immédiat depuis le web | Accès plus limité ou variable aux fonctions natives ; distribution mobile moins complète |
-| Expo / React Native | Expérience mobile plus proche du natif ; accès mobile bien intégré | Partage moindre avec la cible web ; adaptations nécessaires pour le rendu web et la cartographie |
-| Développement natif Android/iOS | Contrôle maximal des plateformes et des performances | Deux implémentations à maintenir ; coût plus élevé ; faible partage de code |
+| PWA only | Simple codebase and deployment; immediate access from the web | More limited or inconsistent access to native features; less complete mobile distribution |
+| Expo / React Native | More native-like mobile experience; well-integrated mobile access | Less sharing with the web target; adaptations required for web rendering and mapping |
+| Native Android/iOS development | Maximum platform control and performance | Two implementations to maintain; higher cost; limited code sharing |
 
 ## Consequences
 
-### Positives
+### Positive
 
-- une interface et une logique principalement partagées entre le web et le mobile ;
-- une vitesse d'itération adaptée à un projet étudiant ;
-- une cible web installable via la PWA ;
-- un accès aux capacités mobiles nécessaires sans réécrire l'interface en natif.
+- an interface and logic shared primarily between web and mobile;
+- an iteration speed suited to a student project;
+- an installable web target through the PWA;
+- access to the required mobile capabilities without rewriting the interface natively.
 
-### Négatives
+### Negative
 
-- les performances et l'accès aux API natives sont moins directs qu'en développement natif ;
-- les plugins et configurations des plateformes mobiles doivent être maintenus ;
-- la chaîne frontend doit intégrer plusieurs briques plutôt qu'un framework mobile unique ;
-- cette décision devra être réévaluée si les performances cartographiques ou les exigences des stores deviennent incompatibles avec une WebView.
-
+- performance and access to native APIs are less direct than with native development;
+- mobile platform plugins and configurations must be maintained;
+- the frontend stack must integrate several building blocks rather than a single mobile framework;
+- this decision must be revisited if mapping performance or store requirements become incompatible with a WebView.
