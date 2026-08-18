@@ -151,8 +151,8 @@ L'absence de coordonnées GPS ou le refus de l'accès à la localisation ne doit
 ### NFR-33 - Lisibilité
 Les textes, icônes et informations importantes doivent présenter un contraste suffisant et rester lisibles sur smartphone.
 
-### NFR-34 - Information non dépendante uniquement de la couleur
-L'état d'une observation ou d'une catégorie ne doit pas être communiqué uniquement par une couleur lorsque cette information est essentielle.
+### NFR-34 - Identification du groupe actif
+Dans la liste des groupes et sur l’écran de la Map, le groupe actuellement actif doit être clairement identifiable visuellement.
 
 ---
 
