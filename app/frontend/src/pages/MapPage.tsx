@@ -43,19 +43,22 @@ export default function MapPage() {
         timeout: 10_000,
         maximumAge: 0,
       })
-      const coordinates: [number, number] = [
-        position.coords.longitude,
-        position.coords.latitude,
-      ]
+      const latitude = position.coords.latitude
+      const longitude = position.coords.longitude
+      const coordinates: [number, number] = [longitude, latitude]
+      const map = mapRef.current
 
-      if (!markerRef.current) {
-        markerRef.current = new maplibregl.Marker().addTo(mapRef.current!)
+      if (!map) {
+        setLocationMessage('Map is still initializing. Please try again.')
+        return
       }
 
-      markerRef.current.setLngLat(coordinates)
-      mapRef.current?.flyTo({ center: coordinates, zoom: 14 })
+      const marker = markerRef.current ?? new maplibregl.Marker().addTo(map)
+      markerRef.current = marker
+      marker.setLngLat(coordinates)
+      map.flyTo({ center: coordinates, zoom: 14 })
       setLocationMessage(
-        `Location: ${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)} (±${Math.round(position.coords.accuracy)} m)`,
+        `Location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (±${Math.round(position.coords.accuracy)} m)`,
       )
     } catch (error) {
       setLocationMessage(
