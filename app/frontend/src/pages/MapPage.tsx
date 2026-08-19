@@ -1,9 +1,12 @@
 import { Geolocation } from '@capacitor/geolocation'
 import * as maplibregl from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
 
 const defaultCenter: [number, number] = [6.9275, 46.4142]
+
+maplibregl.setWorkerUrl(workerUrl)
 
 export default function MapPage() {
   const containerRef = useRef<HTMLDivElement>(null)
