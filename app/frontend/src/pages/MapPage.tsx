@@ -53,9 +53,15 @@ export default function MapPage() {
         return
       }
 
-      const marker = markerRef.current ?? new maplibregl.Marker().addTo(map)
-      markerRef.current = marker
-      marker.setLngLat(coordinates)
+      let marker = markerRef.current
+
+      if (!marker) {
+        marker = new maplibregl.Marker().setLngLat(coordinates).addTo(map)
+        markerRef.current = marker
+      } else {
+        marker.setLngLat(coordinates)
+      }
+
       map.flyTo({ center: coordinates, zoom: 14 })
       setLocationMessage(
         `Location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (±${Math.round(position.coords.accuracy)} m)`,
