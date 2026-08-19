@@ -5,8 +5,8 @@
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
-  --primary: #FC5200;
-  --primary-accent: #e94b00;
+  --primary: #2D5A3D;
+  --primary-accent: #244B33;
   --foreground-accent: #5f5f5f;
   --hero-background: #ffffff;
 }
@@ -18,13 +18,11 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Source Sans 3", sans-serif;
-  font-optical-sizing: auto;
   font-style: normal;
 }
 
 ::selection {
-  background: rgba(252, 82, 0, 0.18);
+  background: rgba(45, 90, 61, 0.18);
   color: #0a0a0a;
 }
 
@@ -32,23 +30,6 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-}
-
-.manrope {
-  font-family: "Manrope", sans-serif;
-  font-optical-sizing: auto;
-  font-style: normal;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: "Manrope", sans-serif;
-  font-optical-sizing: auto;
-  font-style: normal;
 }
 
 @keyframes memory-enter {
@@ -115,8 +96,8 @@ h6 {
     height: 8px;
     border-radius: 999px;
     background: #ffffff;
-    border: 1.5px solid #FC5200;
-    box-shadow: 0 0 0 3px rgb(252 82 0 / 0.10);
+    border: 1.5px solid #2D5A3D;
+    box-shadow: 0 0 0 3px rgb(45 90 61 / 0.10);
   }
 
   .marker-connection {
@@ -125,7 +106,7 @@ h6 {
     top: 0;
     width: var(--line-length);
     height: 1px;
-    background: linear-gradient(90deg, rgb(252 82 0 / 0.58) 0%, rgb(252 82 0 / 0.18) 88%, transparent 100%);
+    background: linear-gradient(90deg, rgb(45 90 61 / 0.58) 0%, rgb(45 90 61 / 0.18) 88%, transparent 100%);
     transform-origin: left center;
     transform: rotate(var(--line-angle));
   }

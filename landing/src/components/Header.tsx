@@ -7,11 +7,12 @@ export default function Header() {
     <header className="absolute inset-x-0 top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6 sm:px-6 md:py-8">
         <Link href="/" className="group inline-flex items-center gap-2.5" aria-label="Sterna home">
-          <span className="relative h-7 w-7 overflow-hidden rounded-full bg-primary shadow-[0_5px_16px_rgba(252,82,0,0.22)]">
-            <span className="absolute inset-[6px] rounded-full border border-white/85" />
-            <span className="absolute left-1/2 top-[5px] h-[18px] w-px -translate-x-1/2 bg-white/55" />
-            <span className="absolute left-[5px] top-1/2 h-px w-[18px] -translate-y-1/2 bg-white/55" />
-          </span>
+          <img
+            src="/sterna-logo.svg"
+            alt=""
+            aria-hidden="true"
+            className="h-9 w-9 object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+          />
           <span className="text-sm font-extrabold uppercase tracking-[0.16em] text-black">
             Sterna
           </span>

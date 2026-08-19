@@ -26,7 +26,7 @@ export default function Hero() {
               href={githubUrl}
               target="_blank"
               rel="noreferrer"
-              className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(252,82,0,0.22)] transition-all hover:-translate-y-0.5 hover:bg-primary-accent hover:shadow-[0_14px_34px_rgba(252,82,0,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(45,90,61,0.20)] transition-all hover:-translate-y-0.5 hover:bg-primary-accent hover:shadow-[0_14px_34px_rgba(45,90,61,0.26)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2"
             >
               <FaGithub className="h-4 w-4" aria-hidden="true" />
               Star us on GitHub
@@ -35,7 +35,7 @@ export default function Hero() {
         </div>
 
         <div className="relative mx-auto -mb-[1%] max-w-[1080px]">
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[48%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(252,82,0,0.08)] blur-[90px]" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[48%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(45,90,61,0.08)] blur-[90px]" />
           <GlobePolaroids />
           <p className="relative -mt-2 pb-5 text-center text-xs font-medium tracking-[0.02em] text-black/40">
             Drag to explore

@@ -65,9 +65,6 @@ export default function Team() {
     <section id="team" className="border-t border-black/10 bg-white py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 sm:px-6">
         <div className="mb-10 md:mb-14">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-            The team
-          </p>
           <h2 className="max-w-xl text-3xl font-bold tracking-[-0.03em] text-black md:text-4xl">
             Built by four students at HEIG-VD.
           </h2>
@@ -114,9 +111,6 @@ export default function Team() {
                 >
                   <FaGithub className="h-[17px] w-[17px] shrink-0 text-black/75" aria-hidden="true" />
                   <span>{member.githubHandle}</span>
-                  <span className="ml-auto text-black/30 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">
-                    ↗
-                  </span>
                 </a>
               </div>
             </article>
