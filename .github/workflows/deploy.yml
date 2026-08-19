@@ -32,31 +32,21 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: read
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy compose file to VM
-        uses: appleboy/scp-action@v0.1.7
+      - uses: docker/login-action@v3
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.yml"
-          target: "~/sterna"
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull and restart on VM
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            cd ~/sterna
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+      - name: Pull and restart
+        run: |
+          docker compose pull
+          docker compose up -d
+          docker image prune -f
