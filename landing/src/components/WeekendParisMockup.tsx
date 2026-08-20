@@ -45,14 +45,14 @@ export default function WeekendParisMockup() {
 
         <div className="relative flex min-h-[560px] items-center justify-center md:min-h-[640px] md:justify-end lg:min-h-[700px]">
           <img
-            src="/images/mockups/weekend-paris-phone.svg?v=20260819-5"
+            src="/mockups/weekend-paris.png"
             alt="Sterna mobile app showing the Weekend Paris map"
-            width="430"
-            height="932"
+            width="1024"
+            height="1536"
             loading="eager"
-            decoding="sync"
+            decoding="async"
             draggable="false"
-            className="block h-auto w-[300px] rotate-[24deg] select-none drop-shadow-[0_26px_34px_rgba(0,0,0,0.16)] sm:w-[340px] md:-mr-6 md:w-[380px] lg:-mr-8 lg:w-[410px]"
+            className="block h-auto w-[340px] select-none object-contain drop-shadow-[0_26px_34px_rgba(0,0,0,0.16)] sm:w-[380px] md:-mr-6 md:w-[420px] lg:-mr-8 lg:w-[460px]"
           />
         </div>
       </div>

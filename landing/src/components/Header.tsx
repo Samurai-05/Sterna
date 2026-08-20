@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import logo from '../../assets/sterna-logo-green.svg';
+
 const githubUrl = 'https://github.com/Samurai-05/Sterna';
 
 export default function Header() {
@@ -8,14 +10,11 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6 sm:px-6 md:py-8">
         <Link href="/" className="group inline-flex items-center gap-2.5" aria-label="Sterna home">
           <img
-            src="/sterna-logo.svg"
+            src={logo.src}
             alt=""
             aria-hidden="true"
             className="h-9 w-9 object-contain transition-transform duration-200 group-hover:scale-[1.03]"
           />
-          <span className="text-sm font-extrabold uppercase tracking-[0.16em] text-black">
-            Sterna
-          </span>
         </Link>
 
         <a

@@ -19,6 +19,7 @@ type Feature = {
   label: string;
   title: string;
   description: string;
+  image: string;
 };
 
 const features: Feature[] = [
@@ -28,6 +29,7 @@ const features: Feature[] = [
     title: "See where you've been.",
     description:
       'Your discoveries live on an interactive map, while visited countries gradually reveal your exploration of the world.',
+    image: '/mockups/alpes-adventure.png',
   },
   {
     id: 'explore',
@@ -35,6 +37,7 @@ const features: Feature[] = [
     title: 'Find your next discovery.',
     description:
       'Browse places and points of interest around the map, then keep moving toward what you have not explored yet.',
+    image: '/mockups/collection.png',
   },
   {
     id: 'add',
@@ -42,6 +45,7 @@ const features: Feature[] = [
     title: 'Save a moment in seconds.',
     description:
       'Take or import a photo, confirm its location and turn it into a geolocated discovery without a long form to complete.',
+    image: '/mockups/new-discovery.png',
   },
   {
     id: 'groups',
@@ -49,6 +53,7 @@ const features: Feature[] = [
     title: 'Explore together.',
     description:
       'Create a shared map with friends and bring everyone’s discoveries from the same trip into one place.',
+    image: '/mockups/groups.png',
   },
   {
     id: 'profile',
@@ -56,6 +61,7 @@ const features: Feature[] = [
     title: 'Track your journey.',
     description:
       'Follow your visited countries, discoveries and simple exploration statistics as your map grows over time.',
+    image: '/mockups/profile.png',
   },
 ];
 
@@ -221,36 +227,19 @@ function ProfileScreen() {
   );
 }
 
-function PhonePreview({ active }: { active: FeatureId }) {
+function PhonePreview({ feature }: { feature: Feature }) {
   return (
     <div className="relative mx-auto w-full max-w-[520px] py-3 md:py-8">
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.12] blur-[70px]" />
-      <div className="relative mx-auto w-[250px] rounded-[36px] border border-black/10 bg-[#111] p-[6px] shadow-[0_24px_70px_rgba(0,0,0,0.16)] sm:w-[280px]">
-        <div className="relative aspect-[9/18.8] overflow-hidden rounded-[30px] bg-[#f7f8f6]">
-          <div className="absolute left-1/2 top-2 z-20 h-4 w-16 -translate-x-1/2 rounded-full bg-black" />
-          <div className="absolute inset-x-0 bottom-[58px] top-0 pt-6">
-            {active === 'map' && <MapScreen />}
-            {active === 'explore' && <ExploreScreen />}
-            {active === 'add' && <AddScreen />}
-            {active === 'groups' && <GroupsScreen />}
-            {active === 'profile' && <ProfileScreen />}
-          </div>
-
-          <nav className="absolute inset-x-0 bottom-0 z-30 grid h-[58px] grid-cols-5 border-t border-black/[0.06] bg-white/95 px-1 backdrop-blur">
-            {navItems.map(({ id, label, icon: Icon }) => {
-              const isActive = active === id;
-              return (
-                <div key={id} className={`flex flex-col items-center justify-center gap-1 text-[8px] font-medium ${isActive ? 'text-primary' : 'text-black/30'}`}>
-                  <span className={id === 'add' ? 'flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white' : ''}>
-                    <Icon className={id === 'add' ? 'h-3 w-3' : 'h-3.5 w-3.5'} aria-hidden="true" />
-                  </span>
-                  {id !== 'add' && <span>{label}</span>}
-                </div>
-              );
-            })}
-          </nav>
-        </div>
-      </div>
+      <img
+        src={feature.image}
+        alt={`Sterna ${feature.label} screen`}
+        width="971"
+        height="1619"
+        loading="lazy"
+        decoding="async"
+        className="relative mx-auto block h-auto w-full max-w-[430px] object-contain drop-shadow-[0_24px_50px_rgba(0,0,0,0.16)]"
+      />
     </div>
   );
 }
@@ -293,7 +282,7 @@ export default function ProductShowcase() {
           </div>
 
           <div className="overflow-hidden rounded-[26px] border border-black/[0.06] bg-[#f1f5f0] px-4 sm:px-8">
-            <PhonePreview active={activeId} />
+            <PhonePreview feature={activeFeature} />
           </div>
         </div>
       </div>
