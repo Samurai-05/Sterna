@@ -11,7 +11,7 @@ export default function Hero() {
 
       <div className="relative mx-auto max-w-6xl px-5 sm:px-6">
         <div className="mx-auto max-w-4xl pb-4 text-center md:pb-8">
-          <h1 className="text-balance text-5xl font-extrabold leading-[0.94] tracking-[-0.055em] text-black sm:text-6xl md:text-7xl lg:text-[88px]">
+          <h1 className="font-display text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.065em] text-black sm:text-6xl md:text-7xl lg:text-[88px]">
             Explore the world
             <br />
             with <span className="text-primary">Sterna.</span>
@@ -35,7 +35,6 @@ export default function Hero() {
         </div>
 
         <div className="relative mx-auto -mb-[1%] max-w-[1080px]">
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[48%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(45,90,61,0.08)] blur-[90px]" />
           <GlobePolaroids />
           <p className="relative -mt-2 pb-5 text-center text-xs font-medium tracking-[0.02em] text-black/40">
             Drag to explore

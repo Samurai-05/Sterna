@@ -27,6 +27,10 @@ body {
 }
 
 @layer utilities {
+  .font-display {
+    font-family: var(--font-sora), sans-serif;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

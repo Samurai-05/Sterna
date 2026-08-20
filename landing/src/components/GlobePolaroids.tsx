@@ -370,8 +370,7 @@ export function GlobePolaroids() {
       mapBrightness: 9,
       baseColor: [1, 1, 1],
       markerColor: [0.1764705882, 0.3529411765, 0.2392156863],
-      // Sterna green (#2D5A3D), kept subtle by the globe's own glow rendering.
-      glowColor: [0.1764705882, 0.3529411765, 0.2392156863],
+      glowColor: [1, 1, 1],
       markerElevation: 0,
       markers: buildCobeMarkers(selectedIds),
       arcs: [],
@@ -510,6 +509,7 @@ export function GlobePolaroids() {
 
   return (
     <div ref={wrapperRef} className="cobe-polaroids">
+      <div className="globe-glow" aria-hidden="true" />
       <canvas
         ref={canvasRef}
         className="cobe-polaroids-canvas"
@@ -563,7 +563,23 @@ export function GlobePolaroids() {
           contain: layout style;
         }
 
+        .globe-glow {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 79%;
+          height: 79%;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background: #ffffff;
+          box-shadow:
+            0 0 24px 2px rgba(45, 90, 61, 0.12),
+            0 0 48px 8px rgba(45, 90, 61, 0.05);
+          pointer-events: none;
+        }
+
         .cobe-polaroids-canvas {
+          position: relative;
           width: 100%;
           height: 100%;
           cursor: grab;

@@ -62,10 +62,10 @@ function HeigMark() {
 
 export default function Team() {
   return (
-    <section id="team" className="border-t border-black/10 bg-white py-20 md:py-28">
+    <section id="team" className="border-t border-black/10 bg-white py-16 md:py-20">
       <div className="mx-auto max-w-6xl px-5 sm:px-6">
-        <div className="mb-10 md:mb-14">
-          <h2 className="max-w-xl text-3xl font-bold tracking-[-0.03em] text-black md:text-4xl">
+        <div className="mb-8 md:mb-10">
+          <h2 className="font-display max-w-xl text-4xl font-semibold tracking-[-0.055em] text-black md:text-5xl">
             Built by four students at HEIG-VD.
           </h2>
         </div>
