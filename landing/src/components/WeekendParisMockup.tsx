@@ -1,49 +1,20 @@
-const details = [
-  ['Capture', 'Save a place with a photo and its location.'],
-  ['Remember', 'Keep every discovery attached to the trip where it happened.'],
-  ['Explore', 'Watch your personal map grow as you keep moving.'],
-];
-
 export default function WeekendParisMockup() {
   return (
-    <section aria-label="Sterna app preview" className="overflow-hidden bg-white py-20 md:py-28 lg:py-32">
+    <section aria-label="Weekend in Paris example" className="overflow-hidden border-y border-black/[0.08] bg-[#f8faf8] py-20 md:py-28 lg:py-32">
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 sm:px-6 md:grid-cols-[0.95fr_1.05fr] md:gap-8 lg:gap-16">
         <div className="relative z-10 max-w-xl md:py-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-            Your trips, remembered
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Weekend in Paris</p>
 
           <h2 className="mt-5 text-balance text-4xl font-bold leading-[0.98] tracking-[-0.055em] text-black sm:text-5xl lg:text-6xl">
-            Every place becomes part of your story.
+            One weekend. One map. Every discovery in its place.
           </h2>
 
           <p className="mt-6 max-w-lg text-base leading-7 text-black/50 sm:text-lg sm:leading-8">
-            Sterna turns the places you visit into a visual travel memory. Add a discovery, place it on the map,
-            and come back to the moments that made the trip yours.
+            See a trip as a collection of moments, each one tied to the place where it happened.
           </p>
-
-          <div className="mt-9 border-t border-black/[0.08]">
-            {details.map(([title, description]) => (
-              <div
-                key={title}
-                className="grid grid-cols-[88px_1fr] gap-4 border-b border-black/[0.08] py-4 sm:grid-cols-[100px_1fr]"
-              >
-                <p className="text-sm font-semibold text-black">{title}</p>
-                <p className="text-sm leading-6 text-black/45">{description}</p>
-              </div>
-            ))}
-          </div>
-
-          <a
-            href="#inside-sterna"
-            className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-4"
-          >
-            Explore the app
-            <span aria-hidden="true">→</span>
-          </a>
         </div>
 
-        <div className="relative flex min-h-[560px] items-center justify-center md:min-h-[640px] md:justify-end lg:min-h-[700px]">
+        <div className="relative flex min-h-[520px] items-center justify-center md:min-h-[620px] md:justify-end lg:min-h-[680px]">
           <img
             src="/mockups/weekend-paris.png"
             alt="Sterna mobile app showing the Weekend Paris map"
@@ -52,7 +23,7 @@ export default function WeekendParisMockup() {
             loading="eager"
             decoding="async"
             draggable="false"
-            className="block h-auto w-[340px] select-none object-contain drop-shadow-[0_26px_34px_rgba(0,0,0,0.16)] sm:w-[380px] md:-mr-6 md:w-[420px] lg:-mr-8 lg:w-[460px]"
+            className="block h-auto w-[330px] select-none object-contain drop-shadow-[0_26px_40px_rgba(0,0,0,0.16)] sm:w-[370px] md:-mr-6 md:w-[410px] lg:-mr-8 lg:w-[450px]"
           />
         </div>
       </div>

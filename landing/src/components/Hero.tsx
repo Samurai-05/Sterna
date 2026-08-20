@@ -18,7 +18,7 @@ export default function Hero() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-black/55 sm:text-lg">
-            Save the places you visit and watch your map reveal itself, one exploration at a time.
+            Turn the places you visit into a map of your exploration.
           </p>
 
           <div className="mt-7 flex justify-center">

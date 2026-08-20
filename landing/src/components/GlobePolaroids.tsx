@@ -370,7 +370,8 @@ export function GlobePolaroids() {
       mapBrightness: 9,
       baseColor: [1, 1, 1],
       markerColor: [0.1764705882, 0.3529411765, 0.2392156863],
-      glowColor: [0.93, 0.97, 0.94],
+      // Sterna green (#2D5A3D), kept subtle by the globe's own glow rendering.
+      glowColor: [0.1764705882, 0.3529411765, 0.2392156863],
       markerElevation: 0,
       markers: buildCobeMarkers(selectedIds),
       arcs: [],
