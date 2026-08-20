@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import styles from './ProductShowcase.module.css';
 
 type ScreenId = 'map' | 'explore' | 'add' | 'groups' | 'profile';
 
@@ -12,11 +13,9 @@ type Screen = {
 };
 
 type TransitionDirection = 'up' | 'down';
+type ProgressPhase = 'fill' | 'countdown';
 
-const MOCKUP_TRANSITION_DURATION = 360;
-const PROGRESS_FILL_DURATION = 400;
-const PROGRESS_COUNTDOWN_DURATION = 4000;
-const PROGRESS_CYCLE_DURATION = PROGRESS_FILL_DURATION + PROGRESS_COUNTDOWN_DURATION;
+const MOCKUP_TRANSITION_DURATION = 320;
 
 const screens: Screen[] = [
   {
@@ -55,6 +54,8 @@ export default function ProductShowcase() {
   const [activeId, setActiveId] = useState<ScreenId>('map');
   const [previousId, setPreviousId] = useState<ScreenId | null>(null);
   const [transitionDirection, setTransitionDirection] = useState<TransitionDirection>('up');
+  const [progressPhase, setProgressPhase] = useState<ProgressPhase>('fill');
+  const [isProgressReady, setIsProgressReady] = useState(false);
   const activeScreen = screens.find((screen) => screen.id === activeId) ?? screens[0];
   const activeIndex = screens.findIndex((screen) => screen.id === activeScreen.id);
   const previousScreen = previousId ? screens.find((screen) => screen.id === previousId) : null;
@@ -67,24 +68,15 @@ export default function ProductShowcase() {
   }, []);
 
   useEffect(() => {
+    setIsProgressReady(true);
+  }, []);
+
+  useEffect(() => {
     if (!previousId) return;
 
     const timeoutId = window.setTimeout(() => setPreviousId(null), MOCKUP_TRANSITION_DURATION);
     return () => window.clearTimeout(timeoutId);
   }, [previousId]);
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const timeoutId = window.setTimeout(() => {
-      const nextIndex = (activeIndex + 1) % screens.length;
-      setPreviousId(activeId);
-      setTransitionDirection('up');
-      setActiveId(screens[nextIndex].id);
-    }, PROGRESS_CYCLE_DURATION);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [activeId, activeIndex]);
 
   const selectScreen = (id: ScreenId) => {
     if (id === activeId) return;
@@ -92,6 +84,7 @@ export default function ProductShowcase() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setPreviousId(null);
       setActiveId(id);
+      setProgressPhase('fill');
       return;
     }
 
@@ -99,6 +92,20 @@ export default function ProductShowcase() {
     setPreviousId(activeId);
     setTransitionDirection(nextIndex > activeIndex ? 'up' : 'down');
     setActiveId(id);
+    setProgressPhase('fill');
+  };
+
+  const handleProgressAnimationEnd = () => {
+    if (progressPhase === 'fill') {
+      setProgressPhase('countdown');
+      return;
+    }
+
+    const nextIndex = (activeIndex + 1) % screens.length;
+    setPreviousId(activeId);
+    setTransitionDirection('up');
+    setActiveId(screens[nextIndex].id);
+    setProgressPhase('fill');
   };
 
   return (
@@ -151,15 +158,19 @@ export default function ProductShowcase() {
             aria-label="Sterna app screens"
             aria-orientation="vertical"
           >
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-px bg-black/[0.1]" aria-hidden="true" />
+            <span className="pointer-events-none absolute inset-y-0 left-0 z-0 w-px bg-black/[0.1]" aria-hidden="true" />
             <span
-              className="pointer-events-none absolute left-0 h-1/5 w-0.5"
+              className="pointer-events-none absolute left-0 top-0 z-20 h-[20%] w-[2px]"
               style={{ transform: `translateY(${activeIndex * 100}%)` }}
               aria-hidden="true"
             >
-              <span key={activeId} className="tab-progress absolute inset-0 bg-primary">
-                <span className="tab-progress-countdown absolute inset-0 bg-primary" />
-              </span>
+              {isProgressReady && (
+                <span
+                  key={`${activeId}-${progressPhase}`}
+                  className={progressPhase === 'fill' ? styles.progressFill : styles.progressCountdown}
+                  onAnimationEnd={handleProgressAnimationEnd}
+                />
+              )}
             </span>
             {screens.map((screen) => {
               const isActive = activeId === screen.id;
@@ -189,60 +200,30 @@ export default function ProductShowcase() {
       </div>
 
       <style jsx>{`
-        .tab-progress {
-          animation: tab-progress-fill ${PROGRESS_FILL_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1) both;
-          transform-origin: top;
-        }
-
-        .tab-progress-countdown {
-          animation: tab-progress-countdown ${PROGRESS_COUNTDOWN_DURATION}ms linear ${PROGRESS_FILL_DURATION}ms both;
-          transform-origin: bottom;
-        }
-
-        @keyframes tab-progress-fill {
-          from {
-            transform: scaleY(0);
-          }
-
-          to {
-            transform: scaleY(1);
-          }
-        }
-
-        @keyframes tab-progress-countdown {
-          from {
-            transform: scaleY(1);
-          }
-
-          to {
-            transform: scaleY(0);
-          }
-        }
-
         .phone-mockup--static {
           transform: translateX(-50%);
         }
 
         .phone-mockup--enter-up {
-          animation: mockup-enter-up ${MOCKUP_TRANSITION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: mockup-enter-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         .phone-mockup--exit-up {
-          animation: mockup-exit-up ${MOCKUP_TRANSITION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: mockup-exit-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         .phone-mockup--enter-down {
-          animation: mockup-enter-down ${MOCKUP_TRANSITION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: mockup-enter-down 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         .phone-mockup--exit-down {
-          animation: mockup-exit-down ${MOCKUP_TRANSITION_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: mockup-exit-down 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         @keyframes mockup-enter-up {
           from {
             opacity: 0;
-            transform: translate(-50%, 16px);
+            transform: translate(-50%, 12px);
           }
 
           to {
@@ -259,14 +240,14 @@ export default function ProductShowcase() {
 
           to {
             opacity: 0;
-            transform: translate(-50%, -16px);
+            transform: translate(-50%, -12px);
           }
         }
 
         @keyframes mockup-enter-down {
           from {
             opacity: 0;
-            transform: translate(-50%, -16px);
+            transform: translate(-50%, -12px);
           }
 
           to {
@@ -283,16 +264,11 @@ export default function ProductShowcase() {
 
           to {
             opacity: 0;
-            transform: translate(-50%, 16px);
+            transform: translate(-50%, 12px);
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .tab-progress,
-          .tab-progress-countdown {
-            animation: none;
-          }
-
           .phone-mockup--enter-up,
           .phone-mockup--exit-up,
           .phone-mockup--enter-down,

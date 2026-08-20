@@ -1,0 +1,44 @@
+.progressFill,
+.progressCountdown {
+  position: absolute;
+  inset: 0;
+  background: #2d5a3d;
+}
+
+.progressFill {
+  transform-origin: top;
+  animation: progress-fill 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.progressCountdown {
+  transform-origin: bottom;
+  animation: progress-countdown 4000ms linear both;
+}
+
+@keyframes progress-fill {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes progress-countdown {
+  from {
+    transform: scaleY(1);
+  }
+
+  to {
+    transform: scaleY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressFill,
+  .progressCountdown {
+    animation: none;
+    transform: scaleY(1);
+  }
+}
