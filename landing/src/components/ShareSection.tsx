@@ -16,7 +16,7 @@ export default function ShareSection() {
         </div>
 
         <div className="order-1 max-w-lg md:order-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Shared exploration</p>
+          <p className="font-display text-sm font-medium tracking-[-0.01em] text-primary">Shared exploration</p>
           <h2 className="font-display mt-4 text-balance text-[2.75rem] font-semibold leading-[0.95] tracking-[-0.065em] text-black sm:text-6xl">
             Exploring together? Build the map together.
           </h2>

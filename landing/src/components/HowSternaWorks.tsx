@@ -27,18 +27,29 @@ export default function HowSternaWorks() {
     <section id="how-it-works" className="bg-white py-14 md:py-20 lg:py-24">
       <div className="mx-auto max-w-6xl px-5 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">How Sterna works</p>
+          <p className="font-display text-sm font-medium tracking-[-0.01em] text-primary">How Sterna works</p>
           <h2 className="font-display mt-4 text-balance text-[2.75rem] font-semibold leading-[0.95] tracking-[-0.065em] text-black sm:text-6xl md:text-7xl">
             From a moment to a place on your map.
           </h2>
         </div>
 
-        <div className="relative mx-auto mt-10 max-w-6xl md:mt-12">
-          <div className="absolute left-[16.7%] right-[16.7%] top-5 hidden h-px bg-black/[0.1] md:block" />
-          <div className="grid gap-10 md:grid-cols-3 md:gap-8">
-            {steps.map((step) => (
-              <article key={step.title} className="relative flex flex-col items-center text-center md:items-start md:text-left">
+        <div className="mx-auto mt-10 max-w-6xl md:mt-12">
+          <div className="hidden grid-cols-3 md:grid" aria-hidden="true">
+            {steps.map((step, index) => (
+              <div key={step.number} className="relative flex h-10 items-center justify-center">
+                {index > 0 && <span className="absolute left-0 top-1/2 h-px w-1/2 -translate-y-1/2 bg-black/[0.1]" />}
+                {index < steps.length - 1 && <span className="absolute right-0 top-1/2 h-px w-1/2 -translate-y-1/2 bg-black/[0.1]" />}
                 <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-white text-xs font-bold text-primary shadow-sm">
+                  {step.number}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-10 md:grid-cols-3 md:gap-0">
+            {steps.map((step) => (
+              <article key={step.title} className="relative flex flex-col items-center text-center md:px-4 md:items-start md:text-left">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-white text-xs font-bold text-primary shadow-sm md:hidden">
                   {step.number}
                 </span>
                 <h3 className="font-display mt-4 text-3xl font-semibold tracking-[-0.055em] text-black sm:text-4xl">{step.title}</h3>

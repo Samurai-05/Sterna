@@ -3,7 +3,7 @@ export default function Problem() {
     <section id="why-sterna" className="border-t border-black/[0.08] bg-[#f8faf8] py-14 md:py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-6 md:grid-cols-[0.9fr_1.1fr] md:gap-12">
         <div className="max-w-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Why Sterna</p>
+          <p className="font-display text-sm font-medium tracking-[-0.01em] text-primary">Why Sterna</p>
           <h2 className="font-display mt-4 text-balance text-[2.75rem] font-semibold leading-[0.95] tracking-[-0.065em] text-black sm:text-6xl lg:text-[68px]">
             Your travel memories are scattered across your camera roll.
           </h2>

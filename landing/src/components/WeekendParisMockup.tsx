@@ -3,7 +3,7 @@ export default function WeekendParisMockup() {
     <section aria-label="Weekend in Paris example" className="overflow-hidden border-y border-black/[0.08] bg-[#f8faf8] py-14 md:py-20 lg:py-24">
       <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-6 md:grid-cols-[0.95fr_1.05fr] md:gap-10 lg:gap-12">
         <div className="relative z-10 max-w-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Weekend in Paris</p>
+          <p className="font-display text-sm font-medium tracking-[-0.01em] text-primary">Weekend in Paris</p>
 
           <h2 className="font-display mt-4 text-balance text-[2.75rem] font-semibold leading-[0.95] tracking-[-0.065em] text-black sm:text-6xl lg:text-7xl">
             One weekend. One map. Every discovery in its place.
