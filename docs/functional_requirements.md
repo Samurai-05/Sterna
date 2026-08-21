@@ -1,321 +1,347 @@
-# Requirements fonctionnels
+# Functional Requirements
 
-## 1. Priorités
+## 1. Priorities
 
-Les exigences utilisent les priorités suivantes :
+The requirements use the following priorities:
 
-* **MUST** : nécessaire au MVP ;
-* **SHOULD** : souhaitable si le temps le permet ;
-* **COULD** : extension optionnelle.
+* **MUST**: required for the MVP;
 
----
+* **SHOULD**: desirable if time allows;
 
-## 2. Gestion des utilisateurs
-
-### FR-01 - Création de compte
-
-**Priorité : MUST**
-
-Le système doit permettre à un utilisateur de créer un compte.
-
-### FR-02 - Authentification
-
-**Priorité : MUST**
-
-Le système doit permettre à un utilisateur de se connecter et de se déconnecter.
-
-### FR-03 - Profil
-
-**Priorité : SHOULD**
-
-Le système devrait afficher un profil contenant au minimum les principales statistiques d'exploration de l'utilisateur.
+* **COULD**: optional extension.
 
 ---
 
-## 3. Gestion des photos et observations
+## 2. User Management
 
-### FR-04 - Import depuis la galerie
+### FR-01 - Account Creation
 
-**Priorité : MUST**
+**Priority: MUST**
 
-L'utilisateur doit pouvoir sélectionner une photo depuis la galerie de son téléphone ou depuis le système de fichiers de son appareil directement depuis la PWA.
+The system must allow a user to create an account.
 
-### FR-05 - Prise de photo
+### FR-02 - Authentication
 
-**Priorité : MUST**
+**Priority: MUST**
 
-L'utilisateur doit pouvoir prendre une photo depuis l'application lorsque le navigateur et l'appareil le permettent.
+The system must allow a user to log in and log out.
 
-### FR-06 - Création d'une observation
+### FR-03 - Profile
 
-**Priorité : MUST**
+**Priority: SHOULD**
 
-Une photo enregistrée doit pouvoir être transformée en observation contenant au minimum :
-
-* la photo ;
-* la latitude ;
-* la longitude ;
-* la date ;
-* l'utilisateur ayant créé l'observation.
-
-### FR-07 - Lecture des coordonnées GPS
-
-**Priorité : MUST**
-
-Lorsqu'une photo contient des coordonnées GPS exploitables dans ses métadonnées, l'application doit tenter de les utiliser pour proposer automatiquement la localisation de l'observation.
-
-### FR-08 - Localisation manuelle
-
-**Priorité : MUST**
-
-Si aucune position GPS n'est disponible, ou si l'utilisateur souhaite la corriger, il doit pouvoir sélectionner manuellement une position sur la carte.
-
-### FR-09 - Recherche d'un lieu
-
-**Priorité : SHOULD**
-
-Lors de la sélection manuelle d'une localisation, l'utilisateur devrait pouvoir rechercher une ville, une région ou un lieu afin de positionner plus facilement le marqueur.
-
-### FR-10 - Source de la localisation
-
-**Priorité : SHOULD**
-
-Le système devrait enregistrer l'origine de la localisation :
-
-* `exif` ;
-* `current_gps` ;
-* `manual`.
-
-### FR-11 - Catégorie facultative
-
-**Priorité : MUST**
-
-Lors de la création d'une observation, l'utilisateur peut sélectionner facultativement une catégorie en une seule action. Si aucune catégorie n'est sélectionnée, l'observation est enregistrée comme « Non catégorisée ».
-
-Catégories proposées :
-
-* Paysages ;
-* Monuments ;
-* Gastronomie ;
-* Faune ;
-* Flore ;
-* Culture ;
-* Autre.
-
-### FR-12 - Informations facultatives
-
-**Priorité : SHOULD**
-
-L'utilisateur devrait pouvoir ajouter un titre et une courte description à une observation.
-
-### FR-13 - Suppression d'une observation
-
-**Priorité : SHOULD**
-
-L'utilisateur devrait pouvoir supprimer une observation qu'il a créée.
+The system should provide a user profile displaying the main exploration statistics.
 
 ---
 
-## 4. Carte
+## 3. Discovery Management
 
-### FR-14 - Affichage de la carte
+### FR-04 - Photo Selection
 
-**Priorité : MUST**
+**Priority: MUST**
 
-L'application doit proposer une carte interactive constituant l'écran principal.
+The user must be able to add a photo either by:
 
-### FR-15 - Affichage des observations
+* selecting an existing photo from the device;
 
-**Priorité : MUST**
+* taking a new photo directly from the application.
 
-Les observations doivent être visibles sous forme de marqueurs sur la carte.
+### FR-05 - Discovery Creation
 
-### FR-16 - Consultation d'une observation
+**Priority: MUST**
 
-**Priorité : MUST**
+The user must be able to create a discovery containing at least:
 
-Un clic ou un toucher sur un marqueur doit permettre d'afficher au minimum :
+* a photo;
 
-* la photo ;
-* l'auteur ;
-* la date ;
-* la catégorie.
+* a latitude;
 
-### FR-17 - Pays visités
+* a longitude;
 
-**Priorité : MUST**
+* a date;
 
-Lorsqu'un utilisateur ajoute une observation dans un pays, ce pays doit être considéré comme visité et être marqué visuellement sur la carte.
+* a title;
 
-Une seule observation dans un pays suffit à le considérer comme visité dans le cadre du MVP.
+* a category;
 
-### FR-18 - Recentrage sur la position actuelle
+* an author.
 
-**Priorité : SHOULD**
+A discovery may also contain a description.
 
-L'utilisateur devrait pouvoir recentrer la carte sur sa position actuelle.
+### FR-06 - Automatic Location
 
-### FR-19 - Filtrage par catégorie
+**Priority: MUST**
 
-**Priorité : SHOULD**
+When a selected photo contains usable GPS coordinates, the application must use them to automatically propose the location of the discovery.
 
-L'utilisateur devrait pouvoir filtrer les observations affichées selon leur catégorie.
+### FR-07 - Manual Location
+
+**Priority: MUST**
+
+If no GPS location is available or if the proposed location is incorrect, the user must be able to manually select a location on the map.
+
+### FR-08 - Location Search
+
+**Priority: SHOULD**
+
+When manually selecting a location, the user should be able to search for a city, region, or place.
+
+### FR-09 - Discovery Category
+
+**Priority: MUST**
+
+The user must be able to select one of the following predefined categories:
+
+* Landscape;
+
+* Monument;
+
+* Food;
+
+* Animal;
+
+* Plant;
+
+* Culture;
+
+* Other.
+
+If no category is selected, **Other** must be assigned automatically.
+
+### FR-10 - Edit a Discovery
+
+**Priority: SHOULD**
+
+The user should be able to edit a discovery they created, including its title, category, description, and location.
+
+### FR-11 - Delete a Discovery
+
+**Priority: SHOULD**
+
+The user should be able to delete a discovery they created.
 
 ---
 
-## 5. Exploration et gamification
+## 4. Map and Exploration
 
-### FR-20 - Statistiques d'exploration
+### FR-12 - Interactive Map
 
-**Priorité : SHOULD**
+**Priority: MUST**
 
-Le système devrait afficher des statistiques simples, par exemple :
+The application must provide an interactive map as its main screen.
 
-* nombre de découvertes ;
-* nombre de pays visités ;
-* nombre de points d'intérêt visités ;
-* nombre de découvertes par catégorie.
+### FR-13 - Display and View Discoveries
 
-### FR-21 - Progression d'exploration
+**Priority: MUST**
 
-**Priorité : SHOULD**
+Discoveries belonging to the active map must be displayed as markers when the zoom level allows it.
 
-Le système devrait fournir une représentation simple de la progression d'exploration de l'utilisateur.
+Selecting a discovery must display at least:
 
-### FR-22 - Badges
+* the photo;
 
-**Priorité : SHOULD**
+* the title;
 
-Le système devrait attribuer quelques badges simples lorsque certains objectifs sont atteints.
+* the author;
 
-### FR-23 - Défis
+* the date;
 
-**Priorité : COULD**
+* the category;
 
-Le système pourrait proposer des défis incitant l'utilisateur à découvrir de nouveaux lieux ou de nouvelles catégories.
+* the description, if available.
 
----
+### FR-14 - Explored Countries
 
-## 6. Gestion des groupes
+**Priority: MUST**
 
-### FR-24 - Création d'un groupe
+At the global level, the application must allow the user to visualize explored countries.
 
-**Priorité : MUST**
+A country containing at least one discovery in the active map must be considered explored.
 
-Un utilisateur doit pouvoir créer un groupe et lui attribuer un nom.
+For the MVP, one discovery is sufficient for the entire country to be considered explored.
 
-### FR-25 - Invitation
+### FR-15 - Active Map Content
 
-**Priorité : MUST**
+**Priority: MUST**
 
-Le créateur d'un groupe doit pouvoir inviter d'autres utilisateurs via un code ou un lien d'invitation.
+The discoveries, explored countries, and discovered points of interest displayed on the map must correspond only to the currently active map.
 
-### FR-26 - Rejoindre un groupe
+### FR-16 - Current Location
 
-**Priorité : MUST**
+**Priority: SHOULD**
 
-Un utilisateur doit pouvoir rejoindre un groupe à partir d'une invitation valide.
+The user should be able to recenter the map on their current location.
 
-### FR-27 - Contexte de carte actif
+### FR-17 - Category Filtering
 
-**Priorité : MUST**
+**Priority: SHOULD**
 
-L'application doit maintenir un contexte de carte actif, correspondant soit à la carte personnelle de l'utilisateur, soit à la carte d'un des groupes auxquels il appartient.
+The user should be able to filter the discoveries displayed on the map by category.
 
-### FR-28 - Liste des groupes
+### FR-18 - Geographic Search
 
-**Priorité : MUST**
+**Priority: SHOULD**
 
-L'utilisateur doit pouvoir consulter la liste des groupes auxquels il appartient, identifier le groupe actuellement actif et sélectionner un groupe afin d'en faire la carte active.
-
-### FR-29 - Synchronisation du groupe actif
-
-**Priorité : MUST**
-
-Lorsqu'un utilisateur sélectionne une carte via l'écran des groupes, la Map doit automatiquement afficher les observations et les pays visités correspondants.
-
-### FR-30 - Changement de carte depuis l'écran Map
-
-**Priorité : MUST**
-
-L'utilisateur doit pouvoir changer directement de carte depuis l'écran principal Map via un sélecteur, sans devoir passer par l'écran des groupes.
-
-### FR-31 - Liste des membres
-
-**Priorité : SHOULD**
-
-Les membres d'un groupe devraient pouvoir consulter la liste des utilisateurs appartenant au groupe.
-
-### FR-32 - Carte de groupe
-
-**Priorité : MUST**
-
-Chaque groupe doit disposer d'une carte commune affichant les observations associées au groupe.
-
-### FR-33 - Ajout à une carte de groupe
-
-**Priorité : MUST**
-
-Un membre doit pouvoir ajouter une observation à la carte d'un groupe auquel il appartient.
-
-### FR-34 - Destination lors de l'ajout d'une observation
-
-**Priorité : MUST**
-
-Lors de l'ajout d'une observation, l'application doit indiquer dans quelle carte elle sera enregistrée. L'utilisateur doit pouvoir modifier cette destination avant l'enregistrement.
-
-### FR-35 - Auteur d'une observation
-
-**Priorité : MUST**
-
-Une observation de groupe doit conserver et afficher l'identité de son auteur.
-
-### FR-36 - Quitter un groupe
-
-**Priorité : SHOULD**
-
-Un utilisateur devrait pouvoir quitter un groupe.
+The user should be able to search for a location from the Map screen and center the map on the selected result.
 
 ---
 
-## 7. Stockage et accès aux médias
+## 5. Points of Interest and Gamification
 
-### FR-37 - Stockage des photos
+### FR-19 - Predefined Points of Interest
 
-**Priorité : MUST**
+**Priority: MUST**
 
-Les photos doivent être stockées dans un espace accessible au backend afin qu'elles puissent être affichées sur les cartes personnelles et de groupe.
+The system must contain a limited selection of predefined points of interest representing iconic places.
 
-### FR-38 - Référence des médias
+A point of interest must contain the information required for its location and consultation.
 
-**Priorité : MUST**
+### FR-20 - Point of Interest Discovery
 
-La base de données doit stocker une référence vers le fichier photo plutôt que dépendre du fichier local du téléphone de l'utilisateur.
+**Priority: MUST**
 
-### FR-39 - Optimisation des images
+When a discovery is recorded within the defined discovery radius of a point of interest, that point of interest must be considered discovered in the corresponding map.
 
-**Priorité : SHOULD**
+A point of interest must not be considered discovered in another map automatically.
 
-Les photos devraient être redimensionnées ou compressées afin de limiter l'espace de stockage et le trafic réseau.
+### FR-21 - Point of Interest Display and Consultation
+
+**Priority: SHOULD**
+
+Once discovered, a point of interest should appear on the corresponding map and the user should be able to view its information.
+
+### FR-22 - Exploration Statistics
+
+**Priority: SHOULD**
+
+The system should display simple exploration statistics, including:
+
+* number of discoveries;
+
+* number of countries visited;
+
+* number of points of interest discovered;
+
+* number of discoveries per category.
+
+The system should also provide a simple representation of exploration progress.
+
+### FR-23 - Badges
+
+**Priority: COULD**
+
+The system could award badges when specific exploration objectives are reached.
+
+### FR-24 - Challenges
+
+**Priority: COULD**
+
+The system could provide challenges encouraging users to discover new places or categories.
 
 ---
 
-## 8. Recherche et navigation
+## 6. Groups and Active Map
 
-### FR-40 - Recherche géographique
+### FR-25 - Group Creation
 
-**Priorité : SHOULD**
+**Priority: MUST**
 
-L'utilisateur devrait pouvoir rechercher un lieu depuis l'écran de carte.
+A user must be able to create a group and assign it a name.
 
-### FR-41 - Navigation principale
+### FR-26 - Join and Invite Users
 
-**Priorité : MUST**
+**Priority: MUST**
 
-La PWA doit proposer un accès clair aux sections principales :
+Users must be able to invite other users to a group using an invitation code or link.
 
-* Carte ;
-* Explorer ;
-* Ajouter ;
-* Groupes ;
-* Profil.
+A user must be able to join a group using a valid invitation.
+
+### FR-27 - Active Map
+
+**Priority: MUST**
+
+The application must maintain one active map at a time.
+
+The active map can be:
+
+* the user's personal map;
+
+* the map of a group the user belongs to.
+
+The user must be able to identify the currently active map.
+
+### FR-28 - Change Active Map
+
+**Priority: MUST**
+
+The user must be able to change the active map:
+
+* directly from the Map screen;
+
+* from the Groups screen.
+
+The user must be able to select either their personal map or one of their groups.
+
+### FR-29 - Group Map
+
+**Priority: MUST**
+
+Each group must have a shared map containing the discoveries recorded by its members.
+
+The group's exploration progress must be based on the discoveries belonging to this map.
+
+### FR-30 - Discovery Destination
+
+**Priority: MUST**
+
+A new discovery must be recorded only in the active map.
+
+During discovery creation, the application must clearly indicate the destination map and allow the user to change it before saving.
+
+If another destination is selected, it becomes the active map.
+
+### FR-31 - Discovery Author
+
+**Priority: MUST**
+
+Each discovery must retain the identity of the user who created it.
+
+For group discoveries, the author must be visible when viewing the discovery.
+
+### FR-32 - Group Members
+
+**Priority: SHOULD**
+
+Users should be able to view the members of a group they belong to.
+
+### FR-33 - Leave a Group
+
+**Priority: SHOULD**
+
+A user should be able to leave a group.
+
+If the group being left is the active map, the user's personal map must become the new active map.
+
+---
+
+## 7. Main Navigation
+
+### FR-34 - Main Navigation
+
+**Priority: MUST**
+
+The application must provide access to the following five main sections:
+
+* Map;
+
+* Collection;
+
+* Add;
+
+* Groups;
+
+* Profile.
+
+The **Add** section must provide access to discovery creation.
+
+The **Collection** section must allow the user to browse discoveries in a list or collection view in addition to the map.
