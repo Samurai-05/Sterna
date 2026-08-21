@@ -16,7 +16,7 @@ and keeps Sprint 0 infrastructure work to a single deployable unit.
 
 ## Component diagram
 
-![Architecture diagram](architecture.png)
+![alt text](markdown-images/image.png)
 
 Source: [`architecture.puml`](architecture.puml).
 
