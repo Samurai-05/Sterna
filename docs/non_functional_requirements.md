@@ -1,174 +1,465 @@
-# Requirements non fonctionnels
+# Non-Functional Requirements
 
-## 1. Plateforme et compatibilité
+## 1. Priorities
 
-### NFR-01 - Progressive Web App
-L'application doit être développée sous forme de **PWA**.
+The requirements use the following priorities:
 
-### NFR-02 - Mobile-first
-L'interface doit être conçue prioritairement pour une utilisation sur smartphone.
+* **MUST**: required for the MVP;
 
-### NFR-03 - Responsive design
-L'application doit rester utilisable sur différentes tailles d'écran, notamment smartphone, tablette et ordinateur.
+* **SHOULD**: desirable if time allows;
 
-### NFR-04 - Navigateurs modernes
-La PWA doit fonctionner sur les versions récentes des principaux navigateurs modernes compatibles avec les fonctionnalités nécessaires.
+* **COULD**: optional or lower-priority quality requirement.
 
 ---
 
-## 2. Utilisabilité
+## 2. Platform and Compatibility
 
-### NFR-05 - Ajout rapide d'une observation
-Le nombre d'étapes nécessaires entre la sélection d'une photo et son enregistrement doit être inférieur ou égal a 3 intéractions.
+### NFR-01 - Android Application
 
-### NFR-06 - Catégories non bloquantes
-La sélection d'une catégorie ne doit jamais empêcher l'enregistrement d'une observation.
+**Priority: MUST**
 
-### NFR-07 - Correction de localisation
-L'utilisateur doit pouvoir corriger facilement une localisation proposée automatiquement.
+The application must be distributable and installable as an **APK** file.
 
-### NFR-08 - Interface tactile
-Les éléments interactifs principaux doivent être suffisamment grands et espacés pour une utilisation tactile sur smartphone. Un espacement d’au moins 8 px CSS entre deux zones interactives doit être respecté.
+It must:
 
----
+* be installable on **Android 10 or later**;
 
-## 3. Performance
+* be launchable from Android like a standard application;
 
-### NFR-09 - Chargement initial
-La page principale doit être suffisamment légère pour être utilisable sur une connexion mobile classique. Elle doit devenir utilisable en moins de 3 secondes sur une connexion 4G standard, avec un temps de chargement maximal toléré de 5 secondes dans des conditions réseau dégradées.
+* not require an external browser to be opened for use.
 
-### NFR-10 - Chargement des images
-Les images affichées ne doivent pas nécessiter systématiquement le téléchargement de leur version originale en pleine résolution.
+### NFR-02 - Mobile-First Interface
 
-### NFR-11 - Chargement progressif
-Les photos et observations devraient être chargées progressivement lorsque cela est pertinent afin d'éviter de charger inutilement toutes les données d'un utilisateur ou d'un groupe.
+**Priority: MUST**
 
-### NFR-12 - Carte fluide
-Le déplacement et le zoom sur la carte doivent rester fluides pour un nombre raisonnable d'observations.
+The interface must be designed primarily for use on Android smartphones.
 
----
+All MVP features must be usable on screen widths between **360 px and 430 px CSS**, without global horizontal scrolling.
 
-## 4. Stockage des données
+### NFR-03 - Responsive Design
 
-### NFR-13 - Séparation des médias et des métadonnées
-Les fichiers photo doivent être séparés des données structurées des observations.
+**Priority: SHOULD**
 
-La base relationnelle peut par exemple conserver une URL, un chemin ou un identifiant vers le média.
+The application should remain usable on different smartphone and tablet screen sizes.
 
-### NFR-14 - Indépendance vis-à-vis du cloud
-L'architecture ne doit pas imposer l'utilisation d'un fournisseur cloud.
-
-Le stockage des photos doit pouvoir être réalisé :
-
-- sur le système de fichiers du serveur ;
-- dans un object storage auto-hébergé ;
-- ou dans un service cloud si nécessaire.
-
-### NFR-15 - Données géographiques
-Le système de persistance doit permettre de stocker proprement des coordonnées géographiques et d'effectuer les traitements nécessaires à la carte.
+Between **360 px and 1280 px CSS in width**, no main feature should become inaccessible and no global horizontal scrolling should be required.
 
 ---
 
-## 5. Sécurité
+## 3. Usability
 
-### NFR-16 - Authentification
-Les routes et données privées doivent être accessibles uniquement aux utilisateurs authentifiés lorsque cela est nécessaire.
+### NFR-04 - Fast Discovery Creation
 
-### NFR-17 - Autorisation des groupes
-Un utilisateur ne doit pas pouvoir accéder aux données d'un groupe dont il n'est pas membre.
+**Priority: MUST**
 
-### NFR-18 - Modification des observations
-Un utilisateur ne doit pas pouvoir modifier ou supprimer une observation appartenant à un autre utilisateur sans règle explicite l'y autorisant.
+When a photo contains valid GPS coordinates, the user must be able to save a discovery in a **maximum of 3 navigation or validation actions** after selecting the photo.
 
-### NFR-19 - Validation des fichiers
-Le backend doit vérifier les fichiers envoyés avant leur stockage. Seuls les formats d’image JPEG/JPG, PNG et WebP sont acceptés. La taille maximale autorisée pour une image est de 10 MB. Tout fichier dépassant cette taille ou utilisant un format non supporté doit être refusé avec un message d’erreur explicite.
+### NFR-05 - Non-Blocking Category
 
-### NFR-20 - Gestion des secrets
-Les mots de passe, clés API et autres secrets ne doivent pas être stockés directement dans le code source ou dans le dépôt Git.
+**Priority: MUST**
 
----
+Not manually selecting a category must never prevent a discovery from being saved.
 
-## 6. Protection des données et vie privée
+If no category is selected, the **Other** category must be assigned automatically in **100% of cases**.
 
-### NFR-21 - Données de localisation
-Les coordonnées GPS doivent être considérées comme des données potentiellement sensibles.
+### NFR-06 - Touch Interface
 
-### NFR-22 - Contrôle de la visibilité
-Une observation personnelle ne doit pas être rendue accessible à d'autres utilisateurs par défaut.
+**Priority: MUST**
 
-### NFR-23 - Partage volontaire
-Une observation ne doit apparaître sur une carte de groupe que si elle a été explicitement associée à ce groupe.
+Main interactive areas must measure at least **44 × 44 CSS px**.
 
-### NFR-24 - Métadonnées des images
-Les métadonnées EXIF non nécessaires au fonctionnement de l'application devraient être supprimées ou ignorées lors du stockage final.
+A spacing of at least **8 CSS px** must be maintained between two distinct interactive areas when their proximity could lead to a selection error.
 
----
+### NFR-07 - Fast Active Context Switching
 
-## 7. Maintenabilité
+**Priority: SHOULD**
 
-### NFR-25 - Séparation des responsabilités
-L'application doit séparer clairement :
+From the Map, the user should be able to switch between their personal map and one of their group maps in a **maximum of 2 interactions**.
 
-- le frontend ;
-- l'API/backend ;
-- la base de données ;
-- le stockage des photos.
+### NFR-08 - Terminology Consistency
 
-### NFR-26 - API
-Les principales opérations de l'application doivent être accessibles au frontend via une API clairement définie.
+**Priority: SHOULD**
 
-### NFR-27 - Versionnement
-Le code source doit être versionné avec Git.
+The same terms should be used throughout the interface to refer to the main concepts.
 
-### NFR-28 - Documentation
-Le dépôt doit contenir une documentation permettant au minimum :
+The following terms should be used consistently:
 
-- d'installer le projet ;
-- de configurer les dépendances ;
-- de lancer l'application ;
-- de comprendre l'architecture générale.
+* discovery;
 
-### NFR-29 - Configuration externe
-Les paramètres dépendant de l'environnement doivent pouvoir être configurés sans modifier le code source.
+* group;
+
+* active map;
+
+* point of interest;
+
+* category.
 
 ---
 
-## 8. Fiabilité
+## 4. Performance
 
-### NFR-30 - Cohérence entre média et observation
-Le système doit éviter qu'une observation référence une photo inexistante ou qu'un fichier inutilisé reste stocké après une opération échouée.
+### NFR-09 - Initial Loading
 
-### NFR-31 - Gestion des erreurs d'upload
-Une erreur lors de l'envoi d'une photo doit être signalée clairement à l'utilisateur sans créer une observation incomplète.
+**Priority: SHOULD**
 
-### NFR-32 - Erreur de géolocalisation
-L'absence de coordonnées GPS ou le refus de l'accès à la localisation ne doit pas empêcher l'utilisateur d'ajouter une observation grâce à la sélection manuelle du lieu.
+The application should become usable in less than **3 seconds** on a simulated standard 4G connection.
+
+The maximum tolerated loading time should be **5 seconds** under degraded network conditions.
+
+### NFR-10 - Image Loading
+
+**Priority: SHOULD**
+
+Displaying a thumbnail or preview should not systematically require loading the original full-resolution image.
+
+### NFR-11 - Progressive Loading
+
+**Priority: SHOULD**
+
+Images corresponding to discoveries that are not visible on screen should not be loaded before they are needed.
+
+This behavior must be verifiable through a network test of the application.
+
+### NFR-12 - Map Fluidity
+
+**Priority: SHOULD**
+
+Map panning and zooming interactions should maintain an average frame rate of at least **30 frames per second** with up to **500 loaded discoveries**.
+
+### NFR-13 - Context Switching
+
+**Priority: SHOULD**
+
+After selecting a new active context, the map should display the corresponding data in less than **2 seconds** on a standard 4G connection, for a context containing up to **500 discoveries**.
 
 ---
 
-## 9. Accessibilité
+## 5. Data Management and Consistency
 
-### NFR-33 - Lisibilité
-Les textes, icônes et informations importantes doivent présenter un contraste suffisant et rester lisibles sur smartphone.
+### NFR-14 - Geographic Data
 
-### NFR-34 - Identification du groupe actif
-Dans la liste des groupes et sur l’écran de la Map, le groupe actuellement actif doit être clairement identifiable visuellement.
+**Priority: MUST**
+
+The coordinates of a discovery must be stored with sufficient precision to distinguish two positions approximately **10 meters apart**.
+
+The system must also be able to determine whether a discovery is located within the defined radius around a point of interest.
+
+### NFR-15 - Association With a Single Context
+
+**Priority: MUST**
+
+Each discovery must be associated with **one single context** when it is saved:
+
+* the user's personal map;
+
+* or a group map.
+
+A discovery must never be automatically saved in multiple contexts simultaneously.
+
+### NFR-16 - Data Persistence
+
+**Priority: MUST**
+
+After a discovery has been successfully saved, it must remain available after the application is closed and reopened.
+
+### NFR-17 - Data Consistency
+
+**Priority: MUST**
+
+A saved discovery must always contain all mandatory information:
+
+* photo;
+
+* location;
+
+* date;
+
+* title;
+
+* category;
+
+* author.
+
+No incomplete discovery must be retained.
 
 ---
 
-## 10. Contraintes de projet
+## 6. Security
 
-### NFR-35 - Périmètre maîtrisé
-La première version doit rester réalisable dans le temps disponible pour le projet.
+### NFR-18 - Authentication
 
-Les fonctionnalités avancées doivent être conçues comme des extensions et ne doivent pas compromettre le fonctionnement du cœur du MVP.
+**Priority: MUST**
 
-### NFR-36 - Architecture extensible
-L'architecture doit permettre d'ajouter ultérieurement des fonctionnalités telles que :
+All features requiring a user account must be inaccessible to unauthenticated users.
 
-- grille d'exploration plus précise ;
-- recommandations personalisées ;
-- défis avancés ;
-- reconnaissance automatique des catégories ;
-- statistiques avancées ;
-- fonctionnalités sociales supplémentaires.
+During a test without authentication, no private data must be accessible.
+
+### NFR-19 - Group Authorization
+
+**Priority: MUST**
+
+A user must only be able to access groups they belong to.
+
+When attempting to access another group:
+
+* no group data must be displayed;
+
+* no modification must be possible.
+
+### NFR-20 - Discovery Modification
+
+**Priority: SHOULD**
+
+A user should not be able to modify or delete a discovery belonging to another user unless an explicit functional rule allows it.
+
+An unauthorized attempt must not result in any data modification.
+
+### NFR-21 - File Validation
+
+**Priority: MUST**
+
+Uploaded files must be validated before being saved.
+
+Only the following formats must be accepted:
+
+* JPEG/JPG;
+
+* PNG;
+
+* WebP.
+
+The maximum allowed size is **10 MB per image**.
+
+Any file exceeding this size or using an unsupported format must be rejected with an explicit error message.
+
+### NFR-22 - Secret Management
+
+**Priority: MUST**
+
+No password, token, API key, or other secret used by the application must be stored in plain text in the Git repository.
+
+### NFR-23 - Secure Communications
+
+**Priority: MUST**
+
+In the production environment, all communications containing private data or authentication information must use **HTTPS**.
+
+None of this data must be transmitted over an unencrypted HTTP connection.
+
+---
+
+## 7. Data Protection and Privacy
+
+### NFR-24 - Visibility of Personal Discoveries
+
+**Priority: MUST**
+
+A discovery saved on a user's personal map must not be accessible to any other user by default.
+
+A second user must not be able to display or retrieve this discovery.
+
+### NFR-25 - Isolation Between Groups
+
+**Priority: MUST**
+
+A discovery must only appear on a group map if it was saved in that group.
+
+No personal discovery must be automatically added to or displayed in a group.
+
+### NFR-26 - Point of Interest Isolation
+
+**Priority: MUST**
+
+The discovery of a point of interest must be specific to the context in which it occurred.
+
+A point of interest discovered in a group must not automatically be considered discovered:
+
+* on a member's personal map;
+
+* on another group's map.
+
+### NFR-27 - Image Metadata
+
+**Priority: SHOULD**
+
+Image metadata that is not required for the operation of the application should not be accessible to other users after the discovery has been saved.
+
+---
+
+## 8. Maintainability
+
+### NFR-28 - Version Control
+
+**Priority: MUST**
+
+The entire project source code must be versioned using Git.
+
+Any modification integrated into the main branch must be associated with an identifiable commit.
+
+### NFR-29 - Documentation
+
+**Priority: MUST**
+
+The repository must contain documentation allowing a new developer to:
+
+* install the project;
+
+* install the dependencies;
+
+* configure the required settings;
+
+* run the application;
+
+* understand the general organization of the project.
+
+These five elements must be included in the delivered documentation.
+
+### NFR-30 - Continuous Integration
+
+**Priority: MUST**
+
+Each Pull Request targeting the main branch must automatically trigger a verification pipeline.
+
+The pipeline must at least verify:
+
+* that the project can be built;
+
+* that automated tests pass;
+
+* that the quality checks defined by the project pass.
+
+A Pull Request whose pipeline fails must not be considered ready for integration.
+
+### NFR-31 - Automated Tests
+
+**Priority: SHOULD**
+
+Automated tests should cover at least the following critical behaviors:
+
+* authentication;
+
+* discovery creation;
+
+* access to a group;
+
+* rejection of unauthorized access to a group;
+
+* association of a discovery with the active context;
+
+* active context switching.
+
+---
+
+## 9. Reliability and Consistency
+
+### NFR-32 - Photo and Discovery Consistency
+
+**Priority: MUST**
+
+No saved discovery must reference a non-existent photo.
+
+If saving the photo fails, the corresponding discovery must not be created.
+
+### NFR-33 - Missing Geolocation
+
+**Priority: MUST**
+
+The absence of GPS coordinates in a photo or the inability to automatically obtain a location must not prevent the user from adding a discovery.
+
+In **100% of these cases**, the user must be able to manually select a position on the map.
+
+### NFR-34 - Active Context Consistency
+
+**Priority: MUST**
+
+Only one context must be active at any given time.
+
+After switching context:
+
+* no discovery from the previous context must remain displayed;
+
+* explored countries must correspond to the new context;
+
+* discovered points of interest must correspond to the new context;
+
+* any new discovery must be saved in the new context.
+
+### NFR-35 - Progress Update
+
+**Priority: SHOULD**
+
+After a discovery has been successfully saved, the affected progress elements should be updated in less than **2 seconds**.
+
+This includes in particular:
+
+* explored countries;
+
+* discovered points of interest;
+
+* statistics associated with the context.
+
+A failed creation must not cause any change in progress.
+
+---
+
+## 10. Accessibility
+
+### NFR-36 - Readability
+
+**Priority: SHOULD**
+
+Normal-sized text should have a contrast ratio of at least **4.5:1** against its background.
+
+Large text and essential graphical elements should have a contrast ratio of at least **3:1**.
+
+### NFR-37 - Active Map Identification
+
+**Priority: MUST**
+
+The currently active context must be clearly identifiable:
+
+* in the group list;
+
+* on the Map screen.
+
+Its identification must not rely solely on a difference in color.
+
+The name of the active context must be displayed as text on the Map.
+
+### NFR-38 - Interactive Elements
+
+**Priority: SHOULD**
+
+All buttons and icons corresponding to the main MVP actions should have a visible label or an accessible name that identifies their function.
+
+---
+
+## 11. Project Constraints
+
+### NFR-39 - Controlled Scope
+
+**Priority: MUST**
+
+No feature defined as outside the MVP scope must be required for the operation of a mandatory MVP feature.
+
+The MVP must be installable, usable, and demonstrable without implementing features considered as extensions.
+
+### NFR-40 - Extensibility
+
+**Priority: SHOULD**
+
+Future additions of features identified as extensions should not require a complete rewrite of the application.
+
+This includes in particular:
+
+* more precise geographic exploration;
+
+* adding new points of interest;
+
+* additional statistics;
+
+* recommendations;
+
+* challenges or badges;
+
+* additional social features.
