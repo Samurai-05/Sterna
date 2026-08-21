@@ -1,0 +1,52 @@
+@startuml architecture
+title Application architecture (preliminary)
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultTextAlignment center
+
+actor "User" as user
+
+node "Client device" as client {
+  component "PWA\n(frontend stack TBD)" as pwa
+  component "Service worker" as sw
+  database "Local cache\n(IndexedDB)" as local
+}
+
+cloud "Basemap tile provider\n(TBD)" as tiles
+
+node "Application VM" as vm {
+  component "Nginx\n(TLS termination, routing)" as rp
+  component "Static asset serving" as static
+  component "API service\n(Node.js, framework TBD)" as api
+  database "PostgreSQL + PostGIS" as db
+  component "MinIO\n(photo storage)" as storage
+}
+
+note bottom of vm
+  All services run as containers
+  orchestrated by Docker Compose
+end note
+
+cloud "CI/CD platform" as cicd {
+  component "Pipeline runner" as ci
+  component "Container registry" as registry
+}
+
+user --> pwa
+pwa --> sw
+sw --> local : cache app shell\nand visited regions
+pwa --> tiles : basemap tiles
+pwa --> rp : HTTPS
+
+rp --> static : app bundle
+rp --> api : API and photo requests
+
+api --> db : SQL and spatial queries\n(point in polygon on visit)
+api --> storage : store and retrieve photos
+
+ci --> registry : push images
+ci --> vm : trigger deployment\n(SSH)
+vm --> registry : pull images
+
+@enduml
