@@ -1,178 +1,351 @@
-# Description du projet
+# Project Description
 
-## 1. Problématique
+## 1. Problem Statement
 
-Lors de voyages ou de sorties, les utilisateurs prennent de nombreuses photos de paysages, monuments, plats animaux ou plantes. Cependant, ces photos sont généralement stockées dans une galerie sans réelle mise en contexte géographique et deviennent difficiles à retrouver ou à visualiser selon les endroits visités.
+During trips or outings, users take many photos. However, these photos are usually stored in a standard gallery, without any real connection to the place where they were taken. Over time, these memories become difficult to find, contextualize, and connect with one another.
 
-Les solutions existantes permettent souvent de consulter les photos individuellement ou de les classer chronologiquement, mais elles mettent peu en valeur la notion d’exploration géographique. Il est également difficile de visualiser simplement les régions déjà découvertes, de conserver une trace collective d’un voyage entre amis ou d’être encouragé à explorer de nouveaux endroits.
+This loss of context is even more significant when a trip is made with several people. Photos are then scattered across the devices of the different participants, without a shared view of the experience. It becomes difficult to easily reconstruct an overall record of the trip or visualize the collective exploration.
 
-## 2. Solution proposée
+This is precisely where the project stands out: the concept of a **collaborative group** is at the core of the experience. The application is not limited to individual use, but also provides a shared space in which several users build a living map of their discoveries together.
 
-Le projet consiste à développer une application mobile permettant aux utilisateurs de conserver, visualiser et partager leurs découvertes sur une carte interactive.
+## 2. Proposed Solution
 
-L'utilisateur peut prendre une photo directement depuis l'application ou importer une photo depuis la galerie de son téléphone. Chaque photo est associée à une position géographique et apparaît ensuite sur une carte.
+The project consists of developing a mobile application that allows users to save, visualize, and share their discoveries on an interactive map.
 
-L'application transforme ainsi les photos en découvertes géolocalisées. Les zones visitées sont mises en évidence sur la carte afin de visualiser progressivement son exploration du monde. Une dimension ludique encourage également l'utilisateur à découvrir de nouvelles régions.
+The user can take a photo directly from the application or import a photo from their phone gallery. Each photo is associated with a geographical position and becomes an observation visible on the map.
 
-Enfin, les utilisateurs peuvent créer des groupes afin de disposer d'une carte commune regroupant les découvertes réalisées lors d'un voyage ou d'une activité partagée.
+The application therefore transforms photos into geolocated discoveries. Countries in which observations have been made are highlighted in order to progressively visualize the areas that have been explored.
 
-## 3. Objectifs
+The user has their own personal map, but can also create or join groups. Each group has a shared map containing the discoveries made by its members. This approach transforms a simple collection of photos into a contextualized, collaborative, and memorable experience.
 
-Les objectifs principaux du projet sont :
+A gamification aspect complements the application by progressively revealing iconic places and allowing users to track their exploration progress.
 
-- permettre à un utilisateur de construire une carte personnelle de ses découvertes ;
-- permettre l'ajout de photos depuis l'appareil photo ou la galerie ;
-- géolocaliser automatiquement une photo lorsque des coordonnées GPS sont disponibles ;
-- permettre à l'utilisateur de choisir manuellement le lieu lorsque la géolocalisation est absente ou incorrecte ;
-- visualiser les zones déjà explorées directement sur la carte ;
-- permettre à l'utilisateur de classer les découvertes dans des catégories simples ;
-- permettre à plusieurs utilisateurs de créer une carte collaborative via des groupes ;
-- ajouter une dimension ludique afin d'encourager l'exploration de nouvelles régions.
+## 3. Objectives
 
-## 4. Concepts principaux
+The main objectives of the project are:
 
-### Observations
+* allow a user to build a personal map of their discoveries;
 
-Une **observation** correspond à une découverte enregistrée par un utilisateur.
+* allow several users to build a shared map during a trip or shared activity;
 
-Une observation contient au minimum :
+* allow users to easily switch between their personal map and the maps of their different groups;
 
-- une photo ;
-- une latitude ;
-- une longitude ;
-- une date ;
-- un auteur.
+* allow photos to be added from the camera or gallery;
 
-Elle peut également contenir :
+* automatically geolocate a photo when GPS coordinates are available;
 
-- une catégorie ;
-- un titre ;
-- une description ;
-- une appartenance à un groupe.
+* allow the user to manually select a location when geolocation is missing or incorrect;
 
-### Catégories
+* visualize already explored countries directly on the map;
 
-Les catégories sont facultatives et doivent pouvoir être sélectionnées en un clic :
+* allow users to classify discoveries into simple categories;
 
-- Faune ;
-- Flore ;
-- Gastronomie ;
-- Patrimoine ;
-- Paysages ;
-- Culture ;
-- Autre.
+* add a gamification aspect to encourage the exploration of new regions and new places.
 
-L'utilisateur peut ainsi enregistrer rapidement une photo sans être obligé de compléter plusieurs champs.
+## 4. Main Concepts
 
-## 5. Carte et exploration
+### Discoveries
 
-La carte constitue l’écran principal de l’application.
+A **discovery** corresponds to an observation recorded by a user.
 
-Chaque observation y est représentée par un marqueur. Lorsqu’un utilisateur ajoute une observation dans un pays, ce pays est considéré comme visité et est coloré sur la carte.
+A discovery contains at least:
 
-Pour le MVP, une seule observation suffit donc à marquer l’ensemble du pays comme exploré.
+* a photo;
 
-À terme, cette représentation pourra évoluer vers un système plus précis, basé par exemple sur les régions visitées ou un découpage en cellules.
+* a location;
 
-## 6. Dimension ludique
+* a date;
 
-L'application a pour but d'encourager l'utilisateur à découvrir de nouveaux lieux plutôt qu'à simplement accumuler des photos.
+* a title;
 
-Pour renforcer cette dimension ludique, l'application affiche sur la carte une sélection de points d’intérêt emblématiques prédéfinis. Ces lieux servent d’objectifs de découverte visibles directement sur la carte.
+* a category;
 
-Lorsqu’un utilisateur ajoute une observation suffisamment proche d’un point d’intérêt, celui-ci peut être considéré comme visité et contribuer à sa progression.
+* an author.
 
-La première version pourra notamment afficher dans le profil de l’utilisateur les statistiques suivantes :
+It may also contain:
 
-- le nombre de pays visités ;
-- le nombre de points d’intérêt visités ;
-- le nombre de découvertes par catégorie ;
-- une progression globale d’exploration ;
-- quelques badges simples.
+* a description.
 
-Pour le MVP, seule une sélection limitée de points d’intérêt connus sera intégrée. Cette liste pourra être enrichie ultérieurement.
+A discovery belongs either to the user's personal map or to a group selected when the discovery is added.
 
-Les défis, recommandations, classements avancés ou collections spécifiques à une région sont considérés comme des extensions possibles.
+### Categories
 
-## 7. Gestion des groupes
+Categories are used to classify discoveries in order to make them easier to visualize and search. They must be quick to select.
 
-Un utilisateur peut créer ou rejoindre un groupe afin de partager une carte avec plusieurs personnes.
+There are seven predefined categories:
 
-Chaque membre du groupe peut ajouter des observations à la carte commune. Une observation conserve son auteur afin de savoir qui l'a ajoutée.
+* Landscape;
 
-Les fonctionnalités de groupe prévues pour le MVP sont :
+* Monument;
 
-- création d'un groupe ;
-- invitation via un lien ou un code ;
-- rejoindre un groupe ;
-- afficher les membres ;
-- ajouter une observation sur la carte du groupe ;
-- visualiser les observations des autres membres ;
-- quitter un groupe.
+* Food;
 
-Les fonctionnalités de réseau social telles que commentaires, likes ou notifications ne font pas partie du MVP.
+* Animal;
 
-## 8. Parcours utilisateur principal
+* Plant;
 
-### Ajouter une découverte
+* Culture;
 
-1. L'utilisateur ouvre une carte.
-2. Il sélectionne **Ajouter**.
-3. Il choisit entre :
-   - prendre une photo ;
-   - importer une photo depuis sa galerie.
-4. L'application tente de récupérer les coordonnées GPS de la photo.
-5. Si les coordonnées sont disponibles, elles sont proposées à l'utilisateur.
-6. Si elles sont absentes ou incorrectes, l'utilisateur sélectionne manuellement le lieu sur la carte.
-7. Il peut éventuellement choisir une catégorie.
-8. Il enregistre l'observation.
-9. La photo apparaît sur la carte personnelle ou sur la carte du groupe sélectionné.
+* Other.
 
-### Consulter une découverte
+If the user does not select a category, the **Other** category is automatically assigned.
 
-1. L'utilisateur ouvre une carte.
-2. Il sélectionne un marqueur.
-3. L'application affiche la photo et les principales informations de l'observation.
+This allows the user to quickly save a photo without being required to complete several fields.
 
-## 9. Interface utilisateur
+### Groups
 
-Une barre de navigation regroupant les principales fonctionnalités de l’application permettra à l’utilisateur d’accéder rapidement aux différents espaces :
+A group represents a shared exploration space between several users.
 
-- Carte ;
-- Explorer ;
-- Ajouter ;
-- Groupes ;
-- Profil.
+Each group has:
 
-Sur la carte, des actions contextuelles peuvent également être proposées :
+* its own members;
 
-- recherche d'un lieu ;
-- filtres par catégorie ;
-- recentrage sur la position actuelle.
+* its own map;
 
-## 10. Périmètre du MVP
+* its own discoveries;
 
-Le MVP doit prioritairement permettre :
+* its own exploration progress.
 
-- authentification des utilisateurs ;
-- ajout et stockage de photos ;
-- récupération ou saisie manuelle de la localisation ;
-- affichage des observations sur une carte ;
-- visualisation des zones explorées ;
-- catégories facultatives ;
-- carte personnelle ;
-- création et utilisation d'une carte de groupe ;
-- statistiques simples d'exploration.
+A discovery added to a group remains associated with its author so that users can see who added it.
 
-## 11. Hors périmètre du MVP
+### Active Map
 
-Les éléments suivants sont volontairement exclus de la première version :
+A user can belong to several groups, but only one context is displayed on the map at a time.
 
-- exploration plus détaillée de la carte (basée sur les régions) ;
-- recommandations personnalisées ;
-- défis avancés ;
-- reconnaissance automatique détaillée des catégories ;
-- réseau social public ;
-- commentaires et likes ;
-- fonctionnement hors ligne complet ;
-- application mobile native distribuée sur les stores ;
+The user can select:
+
+* their personal map;
+
+* one of their groups.
+
+The selected context becomes the active map. It determines the discoveries, explored countries, and discovered places displayed on the map. Any new discovery is recorded only in the active context.
+
+The active map can be changed directly from the map screen.
+
+## 5. Map and Exploration
+
+The map is the main screen of the application.
+
+It can be viewed at different zoom levels.
+
+At the global scale, the map is represented as a globe, allowing users to quickly visualize explored areas around the world.
+
+Countries are displayed differently depending on their status:
+
+* a country containing at least one discovery in the active context is considered explored and appears in color;
+
+* a country containing no discovery appears greyed out.
+
+For the MVP, a single discovery is therefore sufficient for the entire country to be considered explored.
+
+When the user zooms in on the map, discoveries are represented by markers, allowing their locations to be viewed more precisely.
+
+In the future, this representation could evolve towards a more precise system based on visited regions or a geographical grid divided into cells.
+
+## 6. Points of Interest & Gamification
+
+The application aims to encourage users to discover new places rather than simply accumulate photos.
+
+A selection of **iconic points of interest** is defined in the application. These points may, for example, correspond to monuments or well-known places that users can discover.
+
+Unlike on a traditional tourist map, points of interest are not displayed before they are explored.
+
+When a discovery is recorded sufficiently close to a point of interest, that point of interest is considered explored.
+
+Once explored, the point of interest can appear on the map of the active context.
+
+The first version may notably display the following statistics in the user's profile:
+
+* number of countries visited;
+
+* number of points of interest explored;
+
+* number of discoveries per category;
+
+* overall exploration progress.
+
+For the MVP, only a limited selection of well-known points of interest will be included.
+
+Challenges, badges, recommendations, advanced rankings, or region-specific collections are considered possible future extensions.
+
+## 7. Group Management
+
+A user can create or join a group in order to share a map with several people.
+
+The group features planned for the MVP are:
+
+* create a group;
+
+* invite users via a link or code;
+
+* join a group;
+
+* display group members;
+
+* select a group as the active group;
+
+* change the active group from the map;
+
+* add a discovery to the active group's map;
+
+* view discoveries added by other group members;
+
+* view the group's own exploration progress;
+
+* leave a group.
+
+Social-network features such as comments, likes, or notifications are not part of the MVP.
+
+## 8. Main User Flows
+
+### Add a Discovery
+
+1. The user opens the map.
+
+2. They check or select the context in which they want to add their discovery.
+
+3. They select **Add**.
+
+4. They choose between:
+
+   * taking a photo;
+
+   * importing a photo from their gallery.
+
+5. They choose a title for the discovery.
+
+6. The application attempts to retrieve the GPS coordinates of the photo.
+
+7. If coordinates are available, they are proposed to the user.
+
+8. If they are missing or incorrect, the user manually selects the location on the map.
+
+9. They may optionally choose a category and add a description.
+
+10. They save the discovery.
+
+11. The photo appears on the map of the active context.
+
+12. If the discovery results in the exploration of a new country or point of interest, the progress of the relevant context is updated.
+
+### View a Discovery
+
+1. The user opens the map.
+
+2. They select their personal map or a group.
+
+3. They navigate on the map to a discovery.
+
+4. They select the marker.
+
+5. The application displays the photo and the main information about the discovery, including its author and title.
+
+### Change Group
+
+The user can change context in two ways:
+
+#### From the Map
+
+1. They open the **Map** tab.
+
+2. They select the currently active context.
+
+3. They choose their personal map or one of their groups.
+
+4. The map is immediately updated with the discoveries and progress of the newly active context.
+
+#### From the Groups Screen
+
+1. They open the **Groups** tab.
+
+2. They select one of the groups they belong to.
+
+3. They choose to activate it.
+
+4. The group becomes the active context, and the main map then displays its discoveries and progress.
+
+## 9. User Interface
+
+A navigation bar grouping the application's main features allows the user to quickly access the different sections:
+
+* Map;
+
+* Collection;
+
+* Add;
+
+* Groups;
+
+* Profile.
+
+The map is the central interface of the application.
+
+From this screen, the user can notably:
+
+* identify the currently active context;
+
+* change the active group;
+
+* search for a location;
+
+* filter discoveries by category;
+
+* recenter the map on their current location;
+
+* view discoveries;
+
+* navigate between a global view and more detailed zoom levels;
+
+* visualize explored countries.
+
+## 10. MVP Scope
+
+The MVP must primarily support:
+
+* user authentication;
+
+* adding and storing photos;
+
+* retrieving or manually entering a location;
+
+* displaying discoveries on a map;
+
+* visualizing explored countries;
+
+* filtering by categories;
+
+* personal map;
+
+* creating and using group maps;
+
+* membership in multiple groups;
+
+* selecting and changing the active group;
+
+* displaying discoveries and progress specific to the active context;
+
+* discovering a limited selection of points of interest;
+
+* simple exploration statistics.
+
+## 11. Out of MVP Scope
+
+The following elements are intentionally excluded from the first version:
+
+* more detailed map exploration based on regions or geographical cells;
+
+* personalized recommendations;
+
+* advanced challenges;
+
+* detailed automatic recognition of photo content;
+
+* public social network;
+
+* comments and likes;
+
+* advanced rankings between users or groups;
+
+* full offline functionality;
+
+* native mobile application distributed through app stores.
