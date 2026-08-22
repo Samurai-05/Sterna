@@ -1,4 +1,4 @@
-# ADR-002 — Mapping Stack
+# ADR-002 - Mapping Stack
 
 ## Status
 
