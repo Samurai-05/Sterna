@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function Problem() {
   return (
     <section id="why-sterna" className="border-t border-black/[0.08] bg-[#f8faf8] py-14 md:py-20">
@@ -15,20 +17,20 @@ export default function Problem() {
 
         <div className="relative mx-auto h-[400px] w-full max-w-[460px] sm:h-[500px]">
           <div className="absolute inset-x-[8%] bottom-[8%] top-[8%] rounded-[32px] bg-primary/[0.08]" />
-          <img
-            src="/mockups/alpes-adventure.png"
+          <Image
+            src="/assets/mockups/map.webp"
             alt="Sterna map with saved discoveries"
-            width="971"
-            height="1619"
+            width={1024}
+            height={1536}
             loading="lazy"
             decoding="async"
             className="absolute bottom-0 left-0 z-10 h-auto w-[60%] -rotate-[7deg] select-none drop-shadow-[0_22px_38px_rgba(0,0,0,0.14)]"
           />
-          <img
-            src="/mockups/location.png"
+          <Image
+            src="/assets/mockups/location.webp"
             alt="A travel photo saved as a Sterna discovery"
-            width="971"
-            height="1619"
+            width="720"
+            height="1200"
             loading="lazy"
             decoding="async"
             className="absolute right-0 top-0 z-20 h-auto w-[64%] rotate-[6deg] select-none drop-shadow-[0_26px_44px_rgba(0,0,0,0.16)]"

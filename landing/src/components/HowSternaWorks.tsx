@@ -1,23 +1,25 @@
+import NextImage from 'next/image';
+
 const steps = [
   {
     number: '01',
     title: 'Capture',
     description: 'Take a photo or choose one from your gallery when you find a place worth remembering.',
-    image: '/mockups/new-discovery.png',
+    image: '/assets/mockups/new-discovery.webp',
     alt: 'Sterna screen for creating a new discovery',
   },
   {
     number: '02',
     title: 'Locate',
     description: 'Confirm where it happened, then adjust the place when the photo needs a little help.',
-    image: '/mockups/location.png',
+    image: '/assets/mockups/location.webp',
     alt: 'Sterna location screen for a saved discovery',
   },
   {
     number: '03',
     title: 'Reveal',
     description: 'Save the discovery to your trip and see it become part of your personal map.',
-    image: '/mockups/alpes-adventure.png',
+    image: '/assets/mockups/map.webp',
     alt: 'Sterna map showing saved discoveries',
   },
 ];
@@ -54,11 +56,11 @@ export default function HowSternaWorks() {
                 </span>
                 <h3 className="font-display mt-4 text-3xl font-semibold tracking-[-0.055em] text-black sm:text-4xl">{step.title}</h3>
                 <p className="mt-3 max-w-sm text-base leading-7 text-black/50">{step.description}</p>
-                <img
+                <NextImage
                   src={step.image}
                   alt={step.alt}
-                  width="971"
-                  height="1619"
+                  width={1024}
+                  height={1536}
                   loading="lazy"
                   decoding="async"
                   className="mt-6 h-auto w-full max-w-[300px] select-none drop-shadow-[0_24px_46px_rgba(0,0,0,0.14)]"
