@@ -60,7 +60,7 @@ docker compose down -v
 ## Notes
 
 - PostGIS is used for geospatial queries (country detection, distance
-  to points of interest). See `postgres/init/001-init-extensions.sql`.
-- See `minio/README.md` for object storage conventions.
+  to points of interest). See the [PostGIS initialization script](../../infra/postgres/init/001-init-extensions.sql).
+- See [`minio.md`](minio.md) for object storage conventions.
 - No real secrets are committed — only `.env.example`. Copy it to
   `.env` locally (already in `.gitignore`).

@@ -24,7 +24,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: ./deploy/placeholder
+          context: ./infra/web
           push: true
           tags: |
             ${{ env.IMAGE }}:latest

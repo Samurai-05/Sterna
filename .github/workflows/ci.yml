@@ -13,5 +13,5 @@ jobs:
       - name: Build web image
         uses: docker/build-push-action@v6
         with:
-          context: ./deploy/placeholder
+          context: ./infra/web
           push: false

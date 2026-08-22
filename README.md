@@ -69,27 +69,30 @@ npm run start
 
 ### Docker Compose
 
-The root Compose configuration currently builds the Nginx deployment placeholder. The default port is `8080` and can be changed through `WEB_PORT`:
+The root Compose configuration currently builds the temporary Nginx web image from `infra/web`. The default port is `8080` and can be changed through `WEB_PORT`:
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-The placeholder is available at [http://localhost:8080](http://localhost:8080) with the default configuration.
+The web image is available at [http://localhost:8080](http://localhost:8080) with the default configuration.
 
 The application frontend does not currently have a tracked `package.json` or source tree in this checkout, so no separate application run command is documented here.
 
 ## Documentation
 
-- [Project description](docs/project_description.md)
-- [Functional requirements](docs/functional_requirements.md)
-- [Non-functional requirements](docs/non_functional_requirements.md)
-- [Frontend stack](docs/frontend-stack.md)
+- [Documentation index](docs/README.md)
+- [Project description](docs/product/project_description.md)
+- [Functional requirements](docs/product/functional_requirements.md)
+- [Non-functional requirements](docs/product/non_functional_requirements.md)
+- [Frontend stack](docs/architecture/frontend-stack.md)
 - [ADR-001 — Frontend platform](docs/decisions/ADR-001-frontend-platform.md)
 - [ADR-002 — Mapping stack](docs/decisions/ADR-002-mapping-stack.md)
-- [Contributing guide](docs/CONTRIBUTING.md)
-- [Work process](docs/work_process.md)
+- [Landing page design](docs/design/landing-page-design.md)
+- [Infrastructure setup](docs/infrastructure/README.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Work process](docs/process/work_process.md)
 
 ## Team
 

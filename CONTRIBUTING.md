@@ -17,7 +17,7 @@ The app is available at http://localhost:\<TBD\>, the API at http://localhost:\<
 
 We use **GitHub Flow**: `main` is always deployable, all work goes through a branch and a pull request.
 
-1. Create or pick up an issue on the [board]().
+1. Create or pick up an issue on the [project board](https://github.com/Samurai-05/Sterna/projects).
 2. Create a branch from `main`.
 3. Develop, commit, push.
 4. Open a pull request linked to the issue.

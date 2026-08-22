@@ -1,6 +1,6 @@
 services:
   web:
-    build: ./deploy/placeholder
+    build: ./infra/web
     image: ghcr.io/samurai-05/sterna-web:latest
     ports:
       - "${WEB_PORT:-8080}:80"
