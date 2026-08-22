@@ -17,4 +17,7 @@ The site is served at [http://localhost:3000](http://localhost:3000).
 
 - `src/components` contains the Sterna landing sections.
 - `src/data/siteDetails.ts` holds the site metadata.
-- `public/images/mockups/weekend-paris-phone.svg` is the mobile-app mockup used on the page.
+- `src/assets/brand` contains imported logos and brand assets.
+- `public/assets/globe` contains local imagery used by the globe experience.
+- `public/assets/mockups` contains the WebP mockups used by the landing page.
+- `design-assets/source` stores original exports and generated variants that are not served directly.
