@@ -1,4 +1,4 @@
-# ADR-001 — Frontend Platform
+# ADR-001 - Frontend Platform
 
 ## Status
 
