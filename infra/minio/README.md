@@ -3,7 +3,7 @@
 ## Purpose
 
 MinIO stores photo files (originals and/or compressed versions).
-PostgreSQL never stores binary data — only a reference (object key)
+PostgreSQL + PostGIS never stores binary data — only metadata and a reference (object key)
 to the file stored here.
 
 ## Bucket

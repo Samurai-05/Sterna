@@ -43,7 +43,8 @@ The MVP also defines simple discovery categories, including Landscape, Monument,
 
 The following choices are supported by the accepted architecture decisions, the current landing page configuration, or the repository's deployment configuration.
 
-- **Application frontend:** React, TypeScript, Vite, PWA with `vite-plugin-pwa`, Capacitor, React Router, TanStack Query, and the native Fetch API.
+- **Application frontend:** a shared React/TypeScript application built with Vite, targeting the web as a PWA with `vite-plugin-pwa` and mobile platforms through Capacitor, along with React Router, TanStack Query, and the native Fetch API.
+- **Backend and data:** Node.js/TypeScript API, PostgreSQL + PostGIS for relational and spatial data, and MinIO for photo object storage.
 - **Mapping:** MapLibre GL JS, OpenFreeMap vector tiles, primarily OpenStreetMap data, a custom MapLibre Style JSON, and Nominatim accessed through the Sterna backend.
 - **Landing page:** Next.js, React, TypeScript, and Tailwind CSS.
 - **Container and deployment configuration:** Docker Compose and Nginx.

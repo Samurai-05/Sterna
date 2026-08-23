@@ -26,7 +26,7 @@ MinIO will run as a self-hosted container and expose an **S3-compatible API**.
 
 The backend is responsible for communicating with MinIO.
 
-PostgreSQL stores only the metadata associated with a photo, including information such as:
+PostgreSQL + PostGIS stores only the metadata associated with a photo, including information such as:
 
 - the discovery identifier;
 - the owner;

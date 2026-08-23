@@ -5,7 +5,7 @@
 | Language | TypeScript | OK |
 | UI framework | React | OK |
 | Build tool | Vite | OK |
-| Web platform | PWA | OK |
+| Web target | PWA | OK |
 | PWA integration | vite-plugin-pwa | OK |
 | Mobile runtime | Capacitor | OK |
 | App routing | React Router | OK |
@@ -20,9 +20,21 @@
 
 A React/TypeScript single-page application is built with Vite.
 
-The application is deployed as a Progressive Web App (PWA). The PWA manifest and service worker are managed using `vite-plugin-pwa`.
+The shared application targets the web as a Progressive Web App (PWA). The PWA manifest and service worker are managed using `vite-plugin-pwa`.
 
-For Android and iOS targets, the same web application can be packaged and executed through Capacitor. Native device capabilities can be accessed through Capacitor plugins when necessary.
+For mobile targets, the same application is packaged and executed through Capacitor. Native device capabilities can be accessed through Capacitor plugins when necessary.
+
+```text
+                         Sterna frontend
+                  React / TypeScript / Vite
+                           /          \
+                          /            \
+                       PWA          Capacitor
+                       Web            Mobile
+                          \            /
+                           \          /
+                            HTTPS API
+```
 
 React Router handles client-side navigation between the main application screens.
 
