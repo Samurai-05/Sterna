@@ -10,7 +10,9 @@ This is precisely where the project stands out: the concept of a **collaborative
 
 ## 2. Proposed Solution
 
-The project consists of developing a mobile application that allows users to save, visualize, and share their discoveries on an interactive map.
+The project consists of developing a multiplatform frontend application that allows users to save, visualize, and share their discoveries on an interactive map.
+
+Sterna uses a shared React/TypeScript frontend built with Vite. The application targets the web as an installable PWA and mobile platforms through Capacitor, which packages the same frontend and provides access to native capabilities when necessary.
 
 The user can take a photo directly from the application or import a photo from their phone gallery. Each photo is associated with a geographical position and becomes an observation visible on the map.
 
@@ -348,4 +350,4 @@ The following elements are intentionally excluded from the first version:
 
 * full offline functionality;
 
-* native mobile application distributed through app stores.
+* a separately developed native mobile application in Kotlin or Swift, distributed through app stores; the Capacitor-based mobile target remains part of the selected architecture.

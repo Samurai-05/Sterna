@@ -27,7 +27,7 @@ The stack must clearly separate the rendering engine, basemap provider, and Ster
 | Basemap data | Primarily OpenStreetMap |
 | Map styling | Custom MapLibre Style JSON |
 | Geocoding | Nominatim via Sterna backend |
-| Sterna geographical data | Sterna backend / database |
+| Sterna geographical data and spatial processing | PostgreSQL + PostGIS via Sterna backend |
 
 The roles are distinct:
 
@@ -36,7 +36,8 @@ The roles are distinct:
 - MapLibre GL JS displays the map in the frontend;
 - the custom `style.json` file defines Sterna's visual appearance;
 - Nominatim is used to search for places and perform geocoding;
-- observations, POIs, explored areas, and other Sterna data remain managed by our own backend and database.
+- observations, POIs, explored areas, and other Sterna data remain managed by our own backend and database;
+- PostgreSQL + PostGIS stores Sterna's geographical data and performs spatial queries, while the backend remains responsible for orchestration and business rules.
 
 ```text
 OpenStreetMap data
@@ -83,7 +84,6 @@ OpenStreetMap data
 
 Possible future developments include:
 
-- using PostGIS for geographic queries and processing;
 - producing vector tiles for Sterna data;
 - investigating PMTiles and a potential offline mode;
 - representing progress with a more precise exploration grid.

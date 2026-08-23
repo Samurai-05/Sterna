@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Sterna requires a backend to manage application data, business logic, photo storage, user and group access, and geographical processing.
+Sterna requires a backend to manage application data, business logic, photo storage, user and group access, and geographical data workflows.
 
 The project is developed by a small team over a limited period of time. The backend architecture must therefore remain simple to develop, test, deploy, and maintain while keeping responsibilities clearly separated.
 
@@ -21,14 +21,16 @@ The API service is responsible for:
 - exposing the application API to the frontend;
 - implementing business logic;
 - validating incoming data;
-- accessing PostgreSQL;
+- accessing PostgreSQL + PostGIS;
 - accessing MinIO for photo storage;
-- performing server-side geographical processing;
+- orchestrating spatial queries executed by PostGIS and interpreting their results;
 - enforcing authorization rules for users and groups.
 
 The frontend communicates exclusively with the API for Sterna application data.
 
-PostgreSQL and MinIO are not directly accessible from the client.
+PostgreSQL + PostGIS and MinIO are not directly accessible from the client.
+
+Node.js remains responsible for workflow orchestration, validation, authorization, and business decisions. PostGIS performs spatial operations on geographical data persisted in PostgreSQL, including containment and proximity queries when required.
 
 The specific Node.js web framework is not defined by this ADR and may be selected independently.
 
@@ -40,7 +42,7 @@ A single API service keeps deployment and development simple while still allowin
 - discoveries;
 - groups;
 - POIs;
-- geographical processing;
+- geographical workflows and PostGIS query orchestration;
 - photo management.
 
 This architecture avoids the operational overhead of microservices while maintaining clear internal boundaries.
@@ -63,7 +65,7 @@ The trade-off is that the API service becomes a central component of the system.
 
 - simple development and deployment model;
 - centralized business logic and authorization;
-- PostgreSQL and MinIO credentials remain server-side;
+- PostgreSQL + PostGIS and MinIO credentials remain server-side;
 - easier integration testing;
 - suitable complexity for the project duration and team size.
 

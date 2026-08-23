@@ -28,7 +28,7 @@ TypeScript makes the contracts between components, geographic data, and backend 
 
 Vite offers a fast development startup and a simple build pipeline for React and TypeScript. However, the project must configure aspects such as the service worker, deployment, and Capacitor integration itself.
 
-The PWA provides an installable web target and shares the same codebase between desktop and mobile. A PWA alone does not guarantee consistent access to native features or mobile distribution equivalent to that of a store app.
+The shared frontend provides an installable web target through the PWA and can also be packaged for mobile through Capacitor. This gives the web and mobile targets a common codebase. A PWA alone does not guarantee consistent access to native features or mobile distribution equivalent to that of a store app.
 
 Capacitor keeps the web interface and logic in a mobile application and provides a bridge to native APIs. The trade-off is rendering in a WebView, along with maintaining plugins, Android/iOS configurations, and tests on real devices.
 

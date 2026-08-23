@@ -14,11 +14,13 @@ The requirements use the following priorities:
 
 ## 2. Platform and Compatibility
 
-### NFR-01 - Android Application
+### NFR-01 - Shared Frontend and Android Target
 
 **Priority: MUST**
 
-The application must be distributable and installable as an **APK** file.
+The application must use a shared React/TypeScript frontend built with Vite, targeting the web as an installable PWA and mobile platforms through Capacitor.
+
+For the MVP, the mobile target must be distributable and installable as an **APK** file.
 
 It must:
 

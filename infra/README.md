@@ -1,6 +1,6 @@
-# Infrastructure — PostgreSQL & MinIO
+# Infrastructure — PostgreSQL + PostGIS & MinIO
 
-Local development setup for the database (PostgreSQL + PostGIS) and
+Local development setup for the relational and spatial database (PostgreSQL + PostGIS) and
 object storage (MinIO) services, via Docker Compose.
 
 ## Prerequisites
@@ -32,7 +32,7 @@ object storage (MinIO) services, via Docker Compose.
 
 | Service  | Purpose                          | Port(s)      |
 |----------|-----------------------------------|--------------|
-| postgres | Relational DB + PostGIS extension | 5432         |
+| postgres | Relational database with PostGIS spatial extension | 5432         |
 | minio    | S3-compatible object storage      | 9000 (API), 9001 (console) |
 
 ## Connection details (from the backend)
@@ -59,8 +59,12 @@ docker compose down -v
 
 ## Notes
 
-- PostGIS is used for geospatial queries (country detection, distance
-  to points of interest). See `postgres/init/001-init-extensions.sql`.
+- PostgreSQL + PostGIS provides relational storage, geographical data storage,
+  and spatial queries such as country detection and distance to points of
+  interest. See `postgres/init/001-init-extensions.sql`.
+- The Node.js backend is the only component that accesses PostgreSQL + PostGIS.
+- MinIO remains exclusively responsible for photo object storage; PostgreSQL +
+  PostGIS stores the associated structured and geographical metadata.
 - See `minio/README.md` for object storage conventions.
 - No real secrets are committed — only `.env.example`. Copy it to
   `.env` locally (already in `.gitignore`).

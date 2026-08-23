@@ -10,9 +10,9 @@ Sterna must be deployed in a reproducible environment for development, integrati
 
 The application consists of several infrastructure components:
 
-- the frontend web application;
+- the frontend web target of the shared application;
 - the Node.js API;
-- PostgreSQL;
+- PostgreSQL + PostGIS;
 - MinIO.
 
 The project is developed by a small team over three weeks and is deployed on a VM provided by the school.
@@ -34,28 +34,33 @@ Its responsibilities include:
 - routing API requests to the Node.js API container;
 - preventing internal infrastructure services from being directly exposed to the public network.
 
-The API, PostgreSQL, and MinIO communicate through the internal Docker Compose network.
+The API, PostgreSQL + PostGIS, and MinIO communicate through the internal Docker Compose network.
+
+The mobile target contains the same frontend packaged through Capacitor and reaches the Node.js API through Nginx over HTTPS.
 
 ```text
                      Internet
-                         |
-                       HTTPS
-                         |
+                    /        \
+                   /          \
+          Web browser       Capacitor mobile
+           (PWA target)    (packaged frontend)
+                 | HTTPS          | HTTPS API
+                 \                /
+                  \              /
                        Nginx
                     /         \
-                   /           \
-          Frontend bundle     /api/*
+          Frontend web target  /api/*
                                 |
                                 v
                            Node.js API
                            /          \
                           v            v
-                    PostgreSQL       MinIO
+              PostgreSQL + PostGIS   MinIO
 
                 Docker Compose — School VM
 ```
 
-PostgreSQL and MinIO are not directly exposed to the Internet.
+PostgreSQL + PostGIS and MinIO are not directly exposed to the Internet.
 
 ### Rationale and trade-offs
 
@@ -101,7 +106,7 @@ This architecture is intentionally optimized for simplicity rather than high ava
 
 Persistent volumes must be configured for:
 
-- PostgreSQL;
+- PostgreSQL + PostGIS;
 - MinIO.
 
 Configuration must be provided through environment variables rather than hard-coded addresses or credentials.
@@ -112,13 +117,13 @@ Particular attention must be given to:
 - persistence after container or VM restarts;
 - TLS configuration;
 - secrets and environment variables;
-- backup of PostgreSQL and MinIO data.
+- backup of PostgreSQL + PostGIS and MinIO data.
 
 ## Future evolution
 
 If Sterna grows beyond the capabilities of a single VM, the architecture may evolve toward:
 
-- managed PostgreSQL;
+- managed PostgreSQL service with PostGIS support;
 - managed S3-compatible object storage;
 - multiple application instances;
 - container orchestration or managed deployment platforms;
