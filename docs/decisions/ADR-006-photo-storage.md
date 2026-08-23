@@ -38,9 +38,9 @@ The binary image itself is stored exclusively in MinIO.
 ```text
 Discovery
    |
-   +-- metadata -----> PostgreSQL
+   +-- metadata ----------> PostgreSQL
    |
-   +-- photo --------> MinIO
+   +-- photo -------------> MinIO
 ```
 
 Photo buckets are not intended to be publicly accessible.
@@ -88,9 +88,11 @@ The trade-off is that Sterna becomes responsible for operating and persisting th
 - one additional service must be deployed and maintained;
 - MinIO data volumes must be persisted correctly;
 - available VM disk space limits total photo storage;
+- backups must include both PostgreSQL and MinIO data.
 
 ## Future evolution
 
 MinIO may later be replaced by a managed S3-compatible service if storage volume, availability, or operational requirements increase.
 
 Because the application uses the S3 API, this migration should require limited changes to the backend.
+

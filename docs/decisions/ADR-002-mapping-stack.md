@@ -10,7 +10,7 @@ The map is a core component of Sterna. The solution must support:
 
 - displaying an interactive map;
 - distinguishing between explored and unexplored areas;
-- displaying observations and photos;
+- displaying discoveries and photos;
 - displaying POIs;
 - displaying the user's location;
 - extensive visual customization;
@@ -27,7 +27,7 @@ The stack must clearly separate the rendering engine, basemap provider, and Ster
 | Basemap data | Primarily OpenStreetMap |
 | Map styling | Custom MapLibre Style JSON |
 | Geocoding | Nominatim via Sterna backend |
-| Sterna geographical data | Sterna backend / database |
+| Sterna geographical data | Sterna backend / PostgreSQL + PostGIS |
 
 The roles are distinct:
 
@@ -36,7 +36,7 @@ The roles are distinct:
 - MapLibre GL JS displays the map in the frontend;
 - the custom `style.json` file defines Sterna's visual appearance;
 - Nominatim is used to search for places and perform geocoding;
-- observations, POIs, explored areas, and other Sterna data remain managed by our own backend and database.
+- discoveries, POIs, explored areas, country boundaries, and other Sterna geographical data remain managed by our own backend and PostgreSQL/PostGIS database.
 
 ```text
 OpenStreetMap data
@@ -50,10 +50,15 @@ OpenStreetMap data
  Custom Sterna style
         |
  + Sterna layers
-   - visits
+   - discoveries
    - POIs
    - explored areas
    - future exploration grid
+        ^
+        |
+ Sterna backend
+        |
+ PostgreSQL + PostGIS
 ```
 
 ## Alternatives considered
@@ -69,21 +74,24 @@ OpenStreetMap data
 ### Positive
 
 - extensive customization of the map's appearance;
-- separation between the engine, tile provider, and Sterna data;
+- separation between the rendering engine, tile provider, and Sterna data;
 - the option to change tile providers later;
-- integration suited to Sterna's specific geographic layers.
+- integration suited to Sterna's specific geographical layers;
+- spatial data and queries can be handled consistently through PostGIS.
 
 ### Negative
 
 - several building blocks must be integrated and maintained;
 - the public Nominatim instance has usage and capacity limitations;
-- OpenFreeMap does not provide every mapping service, which must be supplemented by Sterna or other services.
+- OpenFreeMap does not provide every mapping service, which must be supplemented by Sterna or other services;
+- spatial data must be modeled and maintained in PostgreSQL/PostGIS.
 
 ## Future evolution
 
 Possible future developments include:
 
-- using PostGIS for geographic queries and processing;
+- extending the use of PostGIS for more advanced spatial queries and exploration-region processing;
 - producing vector tiles for Sterna data;
 - investigating PMTiles and a potential offline mode;
 - representing progress with a more precise exploration grid.
+

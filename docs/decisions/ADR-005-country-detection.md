@@ -10,26 +10,28 @@ Each Sterna discovery contains geographical coordinates.
 
 When a discovery is created or its location is updated, the application must determine the country associated with the latitude and longitude.
 
-For the MVP, country detection must:
+Country detection must:
 
-- work without relying on an external network request for every discovery;
-- respect country borders;
-- remain simple to implement and maintain;
-- integrate with the existing Node.js backend;
-- avoid introducing unnecessary database complexity.
+- respect country boundaries;
+- be performed consistently for all clients;
+- avoid relying on an external network request for every discovery;
+- integrate with the selected PostgreSQL/PostGIS database;
+- remain extensible for future spatial features.
 
 ## Decision
 
-Country detection will be performed in the **Node.js backend** using:
+Country detection will be performed using **PostGIS**.
 
-- a static GeoJSON dataset containing country boundaries;
-- `turf.js`, in particular `@turf/boolean-point-in-polygon`, for point-in-polygon calculations.
+A country-boundary dataset, such as Natural Earth or another suitable GeoJSON source, is imported into PostgreSQL/PostGIS.
 
-The GeoJSON dataset is loaded by the backend.
+When a discovery is created or its position is updated:
 
-When a discovery is created or its position is modified, the backend checks which country polygon contains the geographical point.
+1. the frontend sends the latitude and longitude to the Sterna backend;
+2. the backend creates or submits the corresponding spatial point;
+3. PostGIS performs a point-in-polygon query against the stored country boundaries;
+4. the backend associates the detected country with the discovery.
 
-The detected country identifier may then be stored in PostgreSQL as derived metadata associated with the discovery.
+PostGIS functions such as `ST_Contains` or `ST_Covers` are used as appropriate for the selected boundary dataset and expected border behavior.
 
 ```text
 Latitude / Longitude
@@ -37,61 +39,65 @@ Latitude / Longitude
         v
    Sterna Backend
         |
-        +-- Country boundaries (GeoJSON)
+        v
+ PostgreSQL + PostGIS
         |
-        +-- turf.js
+        +-- Discovery point
+        |
+        +-- Country boundaries
+        |
+        +-- Point-in-polygon query
         |
         v
   Detected country
-        |
-        v
-    PostgreSQL
 ```
+
+The country identifier may be stored with the discovery as derived metadata to avoid repeating the same lookup unnecessarily.
 
 ### Rationale and trade-offs
 
-Country detection is a relatively simple spatial operation and does not require a full spatial database extension for the MVP.
+Country detection is a spatial database operation and fits naturally with PostGIS.
 
-Using a local GeoJSON dataset provides deterministic results and avoids depending on an external service during discovery creation.
+Keeping country boundaries in the database avoids a network dependency on an external reverse-geocoding service and centralizes geographical logic in one place.
 
-`turf.js` provides established geometry operations in JavaScript and integrates directly with the Node.js backend.
+PostGIS provides tested spatial functions and spatial indexing, which is more robust and extensible than maintaining point-in-polygon logic directly in Node.js.
 
-The main trade-off is that the backend must load and process the country boundary dataset itself. This approach may become less suitable if Sterna later requires more advanced or high-volume spatial processing.
+The trade-off is that country-boundary data must be imported and maintained in the database and the team must handle spatial types correctly.
 
 ## Alternatives considered
 
 | Approach | Advantages | Disadvantages |
 |---|---|---|
-| PostgreSQL + PostGIS | Native point-in-polygon queries and spatial indexing | Adds database complexity that is unnecessary for the current MVP |
-| External reverse-geocoding service | Simple application-side implementation | Network dependency, usage limits, latency and possible service unavailability |
-| Nominatim reverse geocoding | Uses OpenStreetMap data and can return country information | Public service usage limitations and unnecessary network dependency for this operation |
-| Overpass API | Access to OpenStreetMap geographical data | More complex than required for simple country detection |
-| Client-side detection | Reduces backend processing | Requires sending geographical data to the client and makes consistent validation harder |
+| Static GeoJSON + `turf.js` in the backend | No PostGIS dependency; simple JavaScript integration | Geometry logic and dataset loading remain in application code; weaker foundation for additional spatial queries |
+| External reverse-geocoding service | Minimal local geographical data | Network dependency, latency, usage limits and possible service unavailability |
+| Nominatim reverse geocoding | Uses OpenStreetMap data and can return country information | Public service usage limitations and unnecessary external dependency for a deterministic operation |
+| Overpass API | Access to OpenStreetMap geographical data | More complex than required for country detection |
+| Client-side detection | Reduces backend/database work | Requires geographical data on the client and makes validation harder to enforce consistently |
 
 ## Consequences
 
 ### Positive
 
 - no external request is required for country detection;
-- country borders are evaluated directly from polygon data;
-- the logic remains centralized in the backend;
-- no PostGIS dependency is required;
-- results remain available even if external geocoding services are unavailable.
+- country detection uses native spatial database functions;
+- country boundaries and spatial queries are centralized;
+- spatial indexes can improve performance;
+- the same approach can support future geographical features.
 
 ### Negative
 
-- the GeoJSON dataset must be bundled and maintained;
-- geometry calculations consume backend resources;
-- accuracy depends on the selected country boundary dataset;
-- the approach is not optimized for large-scale spatial processing.
+- country-boundary data must be imported and updated when necessary;
+- PostGIS becomes required in all database environments;
+- accuracy depends on the selected boundary dataset;
+- exact points located on disputed or shared boundaries may require a defined application rule.
 
 ## Future evolution
 
-This decision should be revisited if country detection or other spatial operations become significantly more complex or frequent.
+The same PostGIS foundation may later support:
 
-Possible future alternatives include:
+- proximity detection for POIs;
+- explored-area calculations;
+- spatial statistics;
+- region intersections;
+- more detailed administrative-area detection.
 
-- introducing PostGIS;
-- using spatial indexes;
-- replacing the static dataset with another authoritative geographical source;
-- using a dedicated geospatial service where appropriate.

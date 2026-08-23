@@ -15,69 +15,66 @@ Sterna requires persistent storage for structured application data such as:
 - progression data;
 - photo metadata.
 
-The data model is primarily relational, with clear relationships between users, discoveries, groups, and associated metadata.
+Geographical data is central to the application. Discoveries contain coordinates, countries are represented by geographical boundaries, and future features may require operations such as distance checks, region intersections, and exploration-area calculations.
 
-Although the application handles geographical coordinates, the MVP does not require advanced database-side spatial processing. Geographical calculations such as country detection are handled separately in the backend.
+The database must therefore support both relational application data and spatial queries while remaining compatible with the existing deployment model.
 
 ## Decision
 
-Sterna will use **PostgreSQL without PostGIS** as its relational database.
+Sterna will use **PostgreSQL with the PostGIS extension** as its database.
 
-Geographical coordinates are stored as regular numeric latitude and longitude values.
+PostgreSQL is responsible for relational application data, while PostGIS provides spatial data types, functions, and indexes.
 
-PostgreSQL is responsible for storing structured application data and enforcing relational constraints.
+PostGIS is used for spatial operations including:
 
-Spatial processing is not part of the database responsibility for the MVP and is handled by the backend when required.
+- point-in-polygon queries;
+- country detection from GPS coordinates;
+- distance queries where required;
+- future geographical operations related to POIs and explored areas.
+
+Spatial indexes may be added to geographical columns where useful for query performance.
 
 ### Rationale and trade-offs
 
-PostgreSQL provides a mature and reliable relational model that fits Sterna's application data well.
+PostgreSQL provides a mature relational model that fits Sterna's users, discoveries, groups, memberships, and metadata.
 
-It supports:
+PostGIS extends PostgreSQL with established geographical capabilities instead of requiring geometry operations to be reimplemented in application code.
 
-- relational integrity;
-- transactions;
-- indexing;
-- constraints;
-- structured queries;
-- straightforward integration with Node.js.
+This keeps spatial data and spatial queries in the same persistence layer and provides a better foundation for future mapping features.
 
-Using PostgreSQL without PostGIS keeps the database setup simpler and avoids introducing a spatial extension that is not required for the current MVP.
-
-The trade-off is that advanced spatial operations are not available directly in the database. If the project later requires large-scale spatial queries, spatial indexing, or more complex geographical relationships, this decision may need to be revisited.
+The additional complexity of enabling and modeling data with PostGIS is considered acceptable because geographical processing is a core part of Sterna rather than an isolated edge case.
 
 ## Alternatives considered
 
 | Approach | Advantages | Disadvantages |
 |---|---|---|
-| PostgreSQL + PostGIS | Native spatial types, spatial indexing and advanced geographical queries | Additional complexity not required for the current MVP |
-| MySQL / MariaDB | Mature relational databases with broad ecosystem support | Less aligned with the team's selected stack and no clear advantage for the project |
-| NoSQL database | Flexible schema and simple horizontal scaling | Less suitable for strongly relational data such as users, groups, memberships and discoveries |
+| PostgreSQL without PostGIS + `turf.js` | Simpler database setup; geometry handled in JavaScript | Spatial logic moves into application code; no native spatial indexing; less suitable as geographical requirements grow |
+| MySQL / MariaDB | Mature relational databases with spatial capabilities | No clear advantage over PostgreSQL/PostGIS for the selected stack |
+| NoSQL database | Flexible schema and simple horizontal scaling | Less suitable for strongly relational data and no clear benefit for Sterna's spatial model |
 
 ## Consequences
 
 ### Positive
 
-- mature and widely supported relational database;
-- simple deployment and local development;
-- strong support for relational constraints and transactions;
-- no additional PostGIS dependency;
-- straightforward integration with the Node.js backend.
+- relational and geographical data are managed in one database;
+- native point-in-polygon and distance operations;
+- support for spatial indexes;
+- less custom geometry logic in the backend;
+- stronger foundation for future exploration-region and POI features;
+- PostgreSQL remains the underlying database technology.
 
 ### Negative
 
-- no native spatial types or spatial indexes;
-- advanced geographical queries must be implemented outside the database;
-- future spatial requirements may require a database migration or the addition of PostGIS.
+- database setup and schema are slightly more complex;
+- spatial queries require careful handling of coordinate systems and SRIDs;
+- database migrations must account for PostGIS-specific schema elements.
 
 ## Future evolution
 
-This decision should be revisited if Sterna requires advanced spatial capabilities such as:
+PostGIS can support more advanced features if Sterna grows, including:
 
-- large-scale distance queries;
-- spatial indexing;
-- intersections between geographical objects;
-- complex region queries;
-- server-side geographical aggregation.
-
-If such requirements emerge, PostgreSQL can be extended with PostGIS without replacing the underlying database technology.
+- exploration-region intersections;
+- proximity queries around POIs;
+- spatial aggregation;
+- more precise exploration grids;
+- generation or preparation of geographical data for vector tiles.

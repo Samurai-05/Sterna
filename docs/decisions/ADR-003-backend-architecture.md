@@ -23,7 +23,7 @@ The API service is responsible for:
 - validating incoming data;
 - accessing PostgreSQL;
 - accessing MinIO for photo storage;
-- performing server-side geographical processing;
+- requesting spatial operations from PostGIS;
 - enforcing authorization rules for users and groups.
 
 The frontend communicates exclusively with the API for Sterna application data.
@@ -47,6 +47,8 @@ This architecture avoids the operational overhead of microservices while maintai
 
 Centralizing database and object-storage access in the API also prevents credentials and authorization logic from being exposed to the client.
 
+Spatial operations remain initiated and controlled by the backend, while PostGIS provides the database-side geographical processing.
+
 The trade-off is that the API service becomes a central component of the system. As the application grows, care must be taken to keep modules sufficiently separated and prevent the codebase from becoming tightly coupled.
 
 ## Alternatives considered
@@ -63,7 +65,8 @@ The trade-off is that the API service becomes a central component of the system.
 
 - simple development and deployment model;
 - centralized business logic and authorization;
-- PostgreSQL and MinIO credentials remain server-side;
+- PostgreSQL/PostGIS and MinIO credentials remain server-side;
+- spatial queries are handled by a dedicated spatial database extension;
 - easier integration testing;
 - suitable complexity for the project duration and team size.
 
@@ -71,8 +74,10 @@ The trade-off is that the API service becomes a central component of the system.
 
 - the API service is a central dependency;
 - poor internal modularity could make the backend harder to maintain as it grows;
-- individual backend domains cannot be deployed or scaled independently.
+- individual backend domains cannot be deployed or scaled independently;
+- the backend must correctly translate application needs into PostGIS queries.
 
 ## Future evolution
 
 The modular structure should allow individual responsibilities to be extracted into separate services if future scale or operational requirements justify it.
+
