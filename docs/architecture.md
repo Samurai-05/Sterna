@@ -20,7 +20,7 @@ and keeps Sprint 0 infrastructure work to a single deployable unit.
 
 Source: [`architecture.puml`](architecture.puml).
 
-- **PWA** (frontend stack not yet chosen): runs in the browser, registers a
+- **PWA**: runs in the browser, registers a
   service worker for offline support.
 - **Service worker / IndexedDB**: caches the app shell and the regions the
   user has already visited, so the map stays usable offline.
