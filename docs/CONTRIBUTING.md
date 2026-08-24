@@ -11,7 +11,7 @@ cp .env.example .env
 docker compose up
 ```
 
-The app is available at http://localhost:\<TBD\>, the API at http://localhost:\<TBD\>.
+As of Sprint 0, `docker compose up` starts the Nginx deployment placeholder, PostgreSQL, and MinIO. The placeholder is available at http://localhost:8080 (default, configurable via `WEB_PORT` in `.env`). The application frontend and API are not yet part of this checkout, so a dedicated app/API URL is not documented here — this section will be updated once the Nginx routing layer described in `docs/architecture.md` is provisioned in Sprint 1.
 
 ## Workflow
 

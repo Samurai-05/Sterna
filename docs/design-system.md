@@ -255,11 +255,11 @@ Do not assign a full brand-like palette to observation categories.
 
 Initial categories:
 
-- Fauna;
-- Flora;
-- Gastronomy;
-- Heritage;
-- Landscapes;
+- Landscape;
+- Monument;
+- Food;
+- Animal;
+- Plant;
 - Culture;
 - Other.
 

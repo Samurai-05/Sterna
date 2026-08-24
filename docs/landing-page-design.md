@@ -36,9 +36,9 @@ Keep the visual language already established in the landing page:
 
 - white background;
 - primary green `#2D5A3D`;
-- dark green accent `#244B33`;
+- dark green accent `#244A32` (`green-700`, see `docs/design-system.md`);
 - black / muted-grey typography;
-- Manrope;
+- Manrope — a deliberate exception to `docs/design-system.md`, whose scope is the application UI (Outfit/Fraunces); the marketing landing page uses Manrope instead;
 - large typography and generous whitespace;
 - rounded product mockups;
 - very limited decorative effects;
