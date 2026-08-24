@@ -8,7 +8,8 @@ MapLibre GL JS, une PWA et les outils de qualité.
 
 - Node.js 22 ou plus récent
 - npm
-- Android Studio, uniquement pour ouvrir ou exécuter le projet Android
+- JDK 21 et Android SDK (API 36) pour produire l’APK Android
+- Android Studio, uniquement pour ouvrir le projet Android (facultatif pour le build)
 
 ## Commandes
 
@@ -43,6 +44,17 @@ Produire le build web et synchroniser les assets vers Android :
 npm run build
 npx cap sync android
 ```
+
+Produire un APK debug depuis WSL ou un environnement sans Android Studio :
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+L’APK est généré dans `android/app/build/outputs/apk/debug/app-debug.apk`.
+Le fichier `android/local.properties`, qui configure le chemin local du SDK, est
+ignoré par Git et ne doit pas être ajouté au dépôt.
 
 Ouvrir le projet Android dans Android Studio :
 
