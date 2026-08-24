@@ -22,31 +22,31 @@ const screens: Screen[] = [
     id: 'map',
     label: 'Map',
     description: 'Places, mapped.',
-    image: '/mockups/alpes-adventure.png',
+    image: '/assets/mockups/map.webp',
   },
   {
     id: 'explore',
     label: 'Explore',
     description: 'Saved places.',
-    image: '/mockups/collection.png',
+    image: '/assets/mockups/collection.webp',
   },
   {
     id: 'add',
     label: 'Add',
     description: 'Save a photo.',
-    image: '/mockups/new-discovery.png',
+    image: '/assets/mockups/new-discovery.webp',
   },
   {
     id: 'groups',
     label: 'Groups',
     description: 'Travel together.',
-    image: '/mockups/groups.png',
+    image: '/assets/mockups/groups.webp',
   },
   {
     id: 'profile',
     label: 'Profile',
     description: 'Your travel record.',
-    image: '/mockups/profile.png',
+    image: '/assets/mockups/profile.webp',
   },
 ];
 
@@ -62,7 +62,7 @@ export default function ProductShowcase() {
 
   useEffect(() => {
     screens.forEach((screen) => {
-      const image = new Image();
+      const image = new window.Image();
       image.src = screen.image;
     });
   }, []);
@@ -133,8 +133,8 @@ export default function ProductShowcase() {
               <img
                 src={previousScreen.image}
                 alt=""
-                width="971"
-                height="1619"
+                width={1024}
+                height={1536}
                 decoding="async"
                 aria-hidden="true"
                 className={`phone-mockup phone-mockup--exit-${transitionDirection} absolute bottom-0 left-1/2 z-10 h-auto w-full max-w-[310px] select-none drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-w-[335px] md:max-w-[350px]`}
@@ -144,8 +144,8 @@ export default function ProductShowcase() {
               key={activeScreen.id}
               src={activeScreen.image}
               alt={`Sterna ${activeScreen.label} screen`}
-              width="971"
-              height="1619"
+              width={1024}
+              height={1536}
               loading="lazy"
               decoding="async"
               className={`phone-mockup ${previousScreen ? `phone-mockup--enter-${transitionDirection}` : 'phone-mockup--static'} absolute bottom-0 left-1/2 z-20 h-auto w-full max-w-[310px] select-none drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-w-[335px] md:max-w-[350px]`}

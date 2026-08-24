@@ -1,14 +1,16 @@
+import Image from 'next/image';
+
 export default function ShareSection() {
   return (
     <section id="share" className="bg-white py-14 md:py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-6 md:grid-cols-[1.1fr_0.9fr] md:gap-12">
         <div className="relative order-2 flex justify-center md:order-1 md:justify-start">
           <div className="absolute inset-x-[18%] bottom-[8%] top-[8%] rounded-[32px] bg-primary/[0.07]" />
-          <img
-            src="/mockups/groups.png"
+          <Image
+            src="/assets/mockups/groups.webp"
             alt="Sterna groups screen with shared trip maps"
-            width="971"
-            height="1619"
+            width={1024}
+            height={1536}
             loading="lazy"
             decoding="async"
             className="relative h-auto w-full max-w-[430px] select-none drop-shadow-[0_24px_46px_rgba(0,0,0,0.15)]"

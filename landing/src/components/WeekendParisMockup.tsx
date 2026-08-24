@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function WeekendParisMockup() {
   return (
     <section aria-label="Weekend in Paris example" className="overflow-hidden border-y border-black/[0.08] bg-[#f8faf8] py-14 md:py-20 lg:py-24">
@@ -15,11 +17,11 @@ export default function WeekendParisMockup() {
         </div>
 
         <div className="relative flex min-h-[470px] items-center justify-center md:min-h-[540px] md:justify-end lg:min-h-[620px]">
-          <img
-            src="/mockups/weekend-paris.png"
+          <Image
+            src="/assets/mockups/weekend-paris.webp"
             alt="Sterna mobile app showing the Weekend Paris map"
-            width="1024"
-            height="1536"
+            width={1024}
+            height={1536}
             loading="eager"
             decoding="async"
             draggable="false"
