@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="landing/assets/sterna-logo-green-filled.svg" alt="Sterna logo" width="96" />
+  <img src="C:\Users\abram\HEIG\PDG\Sterna\landing\src\assets\brand\sterna-logo-green-filled.svg" alt="Sterna logo" width="96" />
   <h1>Sterna</h1>
   <p>A mobile-first application for turning geolocated photos into a personal and shared map of discoveries.</p>
   <p><a href="https://www.sterna-app.ch/">Website</a></p>
@@ -7,7 +7,7 @@
 
 <div align="center">
   <a href="https://www.sterna-app.ch/">
-    <img src="landing/public/mockups/optimized/location-720.webp" alt="Sterna discovery location screen" width="360" />
+    <img src="C:\Users\abram\HEIG\PDG\Sterna\landing\design-assets\source\mockups\optimized\weekend-paris-720.webp" alt="Sterna discovery location screen" width="360" />
   </a>
 </div>
 
