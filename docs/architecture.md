@@ -14,6 +14,13 @@ VM behind an Nginx reverse proxy, orchestrated with Docker Compose. This
 matches the `docker compose up` workflow described in `docs/CONTRIBUTING.md`
 and keeps Sprint 0 infrastructure work to a single deployable unit.
 
+**Current implementation status (end of Sprint 0):** the CI/CD pipeline itself
+is in place and running. The Nginx reverse proxy / single-VM deployment
+described below is the target architecture and is not yet stood up; PostgreSQL
+and MinIO are containerized and covered by the pipeline, but the Nginx layer
+and its VM provisioning are still in progress and tracked as follow-up work
+early in Sprint 1.
+
 ## Component diagram
 
 ![alt text](markdown-images/image.png)
@@ -71,7 +78,9 @@ Source: [`architecture.puml`](architecture.puml).
 - **Nginx as the single reverse proxy / TLS termination point.** It is the
   only container exposed to the outside network; the API, database and MinIO
   are only reachable from inside the Compose network. That limits the attack
-  surface and puts TLS certificate handling in one place.
+  surface and puts TLS certificate handling in one place. *(Not yet
+  provisioned — see status note above; PostgreSQL and MinIO are containerized
+  today without Nginx in front of them.)*
 - **The API is the sole gateway to PostgreSQL and MinIO.** The client never
   holds database or MinIO credentials. Authorization logic lives in one place instead of being
   duplicated or bypassed on the client.
@@ -80,16 +89,26 @@ Source: [`architecture.puml`](architecture.puml).
   shell and already-visited regions keeps the app usable without a network
   connection, and it works without an app-store install.
 
+## Decisions made since the first draft
+
+- **Frontend framework**: React (TypeScript, Vite), targeting the web as a
+  PWA (`vite-plugin-pwa`) and mobile via Capacitor. See
+  `docs/frontend-stack.md` (ADR-001).
+- **Basemap tile provider**: OpenFreeMap vector tiles with a custom MapLibre
+  Style JSON, geocoding proxied through the backend to Nominatim. See
+  `docs/frontend-stack.md` (ADR-002).
+
 ## Open decisions
 
-These will be resolved during Sprint 0/1 as the corresponding area owner (see
+Still to be resolved, as the corresponding area owner (see
 `docs/work_process.md`) makes the call:
 
-- **Frontend framework** for the PWA (React, SvelteKit, Vue, or other).
 - **Node.js API framework** (Express, Fastify, or NestJS).
-- **Basemap tile provider** (e.g. a hosted OSM-based provider vs. self-hosting
-  tiles).
+
+## Deployment and CI/CD
 
 CI/CD (pipeline, container registry, deployment automation) is out of scope
-for this document; it belongs to the separate CI/CD pipeline work tracked for
-Sprint 0.
+for this document; it is described in `docs/ci_cd.md`. As noted above, the
+Nginx / single-VM deployment layer described in this document is the target
+end state and has not been provisioned yet — PostgreSQL and MinIO are
+currently containerized and pipeline-covered without it.
