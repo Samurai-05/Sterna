@@ -56,16 +56,13 @@ Source: [`architecture.puml`](architecture.puml).
 
 ## Key choices and why
 
-- **Single VM + Docker Compose, not a multi-node/orchestrated setup.** The
+- **Single VM + Docker Compose.** The
   project runs for three weeks with a four-person team; a Kubernetes-style
-  setup would add operational overhead with no benefit at this scale. A single
-  VM with Compose is what `docs/CONTRIBUTING.md` already assumes for local
-  development, so the deployed environment mirrors dev.
-- **PostgreSQL + PostGIS for the database.** The core interaction of the app,
-  "did this visit fall inside this region", is a spatial query. PostGIS gives
+  setup would add operational overhead with no benefit at this scale.
+- **PostgreSQL + PostGIS for the database.** The core interaction of the app is a spatial query. PostGIS gives
   us that natively (point-in-polygon, distance queries) instead of us
   reimplementing geometry checks in application code.
-- **MinIO for photo storage, not the filesystem or a third-party bucket.**
+- **MinIO for photo storage.**
   Photos are large, user-generated files and don't belong in the relational
   database. MinIO exposes the S3 API, so the API service is written against a
   standard interface and could be pointed at a managed S3-compatible bucket
@@ -76,8 +73,7 @@ Source: [`architecture.puml`](architecture.puml).
   are only reachable from inside the Compose network. That limits the attack
   surface and puts TLS certificate handling in one place.
 - **The API is the sole gateway to PostgreSQL and MinIO.** The client never
-  holds database or MinIO credentials. Authorization logic (e.g. "can this
-  user see this group's photos") lives in one place instead of being
+  holds database or MinIO credentials. Authorization logic lives in one place instead of being
   duplicated or bypassed on the client.
 - **PWA with an offline-capable service worker.** The map/visit-recording use
   case happens outdoors, where connectivity is unreliable. Caching the app
