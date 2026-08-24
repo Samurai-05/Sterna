@@ -1,32 +1,61 @@
-# React + TypeScript + Vite
+# Sterna frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Base technique React, TypeScript et Vite pour Sterna. Elle comprend le routing
+temporaire, TanStack Query, Tailwind CSS v4, shadcn/ui, Capacitor Android,
+MapLibre GL JS, une PWA et les outils de qualité.
 
-Currently, two official plugins are available:
+## Prérequis
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 22 ou plus récent
+- npm
+- Android Studio, uniquement pour ouvrir ou exécuter le projet Android
 
-## React Compiler
+## Commandes
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Installer les dépendances :
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Démarrer le frontend :
+
+```bash
+npm run dev
+```
+
+Exécuter les tests :
+
+```bash
+npm run test
+```
+
+Linter le code et appliquer le formatage :
+
+```bash
+npm run lint
+npm run format
+```
+
+Produire le build web et synchroniser les assets vers Android :
+
+```bash
+npm run build
+npx cap sync android
+```
+
+Ouvrir le projet Android dans Android Studio :
+
+```bash
+npx cap open android
+```
+
+## Smoke tests techniques
+
+- `/`, `/map` et `/profile` vérifient l’intégration de React Router.
+- `/map` affiche une carte MapLibre avec le style public OpenFreeMap Liberty.
+- Le `QueryClientProvider` est installé à la racine, sans API de démonstration.
+- Le manifeste et le service worker sont générés pendant `npm run build`.
+
+Ces routes et la carte sont volontaires et temporaires : elles ne constituent pas
+les écrans ni les fonctionnalités métier de Sterna.
