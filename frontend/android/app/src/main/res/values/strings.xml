@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sterna</string>
+    <string name="title_activity_main">Sterna</string>
+    <string name="package_name">com.sterna.app</string>
+    <string name="custom_url_scheme">com.sterna.app</string>
+</resources>
