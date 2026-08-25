@@ -23,9 +23,7 @@ export function GroupDetailPage() {
                 <UsersRound className="size-4" />
                 Group map
               </p>
-              <h1 className="mt-2 font-display text-[30px] font-semibold">
-                {group.name}
-              </h1>
+              <h1 className="sterna-screen-title mt-2">{group.name}</h1>
             </div>
             <Button
               size="icon"
@@ -59,9 +57,7 @@ export function GroupDetailPage() {
           </Link>
         </Button>
         <section>
-          <h2 className="mb-3 font-display text-[22px] font-semibold">
-            Recent discoveries
-          </h2>
+          <h2 className="sterna-section-title mb-3">Recent discoveries</h2>
           <div className="grid grid-cols-2 gap-3">
             {groupDiscoveries.map((discovery) => (
               <DiscoveryCard key={discovery.id} discovery={discovery} />

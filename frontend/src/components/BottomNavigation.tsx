@@ -32,7 +32,7 @@ export function BottomNavigation() {
         <Link
           to="/add"
           aria-label="Add discovery"
-          className="-mt-7 flex min-h-14 flex-col items-center justify-end gap-1 text-[11px] font-semibold text-primary"
+          className="-mt-7 flex min-h-14 flex-col items-center justify-end gap-1 text-xs font-semibold text-primary"
         >
           <span className="flex size-14 items-center justify-center rounded-full border-4 border-card bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(45,90,61,0.35)]">
             <Plus className="size-6" strokeWidth={2.5} />
@@ -69,7 +69,7 @@ function NavigationLink({
     <Link
       to={to}
       className={cn(
-        'flex min-h-11 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors',
+        'flex min-h-11 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors',
         active ? 'text-primary' : 'text-muted-foreground',
       )}
     >

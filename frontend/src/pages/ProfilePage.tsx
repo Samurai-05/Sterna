@@ -24,13 +24,11 @@ export function ProfilePage() {
       />
       <div className="space-y-7 px-5">
         <section className="flex items-center gap-4">
-          <span className="flex size-20 items-center justify-center rounded-full bg-[#fbf1ec] font-display text-3xl font-semibold text-[#b8572b]">
+          <span className="flex size-20 items-center justify-center rounded-full bg-[#fbf1ec] text-3xl font-semibold text-[#b8572b]">
             E
           </span>
           <div>
-            <h2 className="font-display text-[26px] font-semibold">
-              Emma Barret
-            </h2>
+            <h2 className="sterna-section-title">Emma Barret</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Explorer · Since March 2023
             </p>
@@ -51,7 +49,7 @@ export function ProfilePage() {
         </section>
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-[22px] font-semibold">Recent</h2>
+            <h2 className="sterna-section-title">Recent</h2>
             <Link
               to="/collection"
               className="text-sm font-semibold text-primary"
@@ -94,10 +92,8 @@ function Stat({
   return (
     <div className="px-2">
       <span className="mx-auto mb-1 block size-4 text-primary">{icon}</span>
-      <strong className="block font-display text-xl font-semibold">
-        {value}
-      </strong>
-      <span className="text-[11px] text-muted-foreground">{label}</span>
+      <strong className="sterna-heading block">{value}</strong>
+      <span className="sterna-caption text-muted-foreground">{label}</span>
     </div>
   )
 }

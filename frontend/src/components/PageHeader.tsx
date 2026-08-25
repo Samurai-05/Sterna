@@ -30,9 +30,7 @@ export function PageHeader({
       ) : (
         <span className="size-11" aria-hidden="true" />
       )}
-      <h1 className="font-display text-[22px] font-semibold leading-7 text-foreground">
-        {title}
-      </h1>
+      <h1 className="sterna-section-title text-foreground">{title}</h1>
       <span className="flex min-w-11 justify-end">{action}</span>
     </header>
   )
