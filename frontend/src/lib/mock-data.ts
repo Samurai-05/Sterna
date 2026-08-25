@@ -12,6 +12,7 @@ export interface Discovery {
   initials: string
   relativeDate: string
   coordinates: [number, number]
+  countryCode: string
 }
 
 export interface Group {
@@ -59,6 +60,7 @@ export const discoveries: Discovery[] = [
     initials: 'E',
     relativeDate: '2h ago',
     coordinates: [2.3622, 48.8586],
+    countryCode: 'FRA',
   },
   {
     id: 2,
@@ -72,6 +74,7 @@ export const discoveries: Discovery[] = [
     initials: 'M',
     relativeDate: '4h ago',
     coordinates: [2.3608, 48.8598],
+    countryCode: 'FRA',
   },
   {
     id: 3,
@@ -84,6 +87,7 @@ export const discoveries: Discovery[] = [
     initials: 'E',
     relativeDate: '6h ago',
     coordinates: [2.3364, 48.8606],
+    countryCode: 'FRA',
   },
   {
     id: 4,
@@ -97,6 +101,7 @@ export const discoveries: Discovery[] = [
     initials: 'L',
     relativeDate: '1d ago',
     coordinates: [2.3431, 48.8867],
+    countryCode: 'FRA',
   },
   {
     id: 5,
@@ -109,6 +114,7 @@ export const discoveries: Discovery[] = [
     initials: 'E',
     relativeDate: '1d ago',
     coordinates: [2.3364, 48.8462],
+    countryCode: 'FRA',
   },
   {
     id: 6,
@@ -121,7 +127,12 @@ export const discoveries: Discovery[] = [
     initials: 'L',
     relativeDate: '2d ago',
     coordinates: [2.2431, 48.8637],
+    countryCode: 'FRA',
   },
+]
+
+export const exploredCountryCodes = [
+  ...new Set(discoveries.map((discovery) => discovery.countryCode)),
 ]
 
 export const groups: Group[] = [
