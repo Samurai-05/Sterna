@@ -37,7 +37,7 @@ export function MapPage() {
   )
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#e8e3d9] pb-24">
+    <main className="relative min-h-dvh overflow-hidden bg-[#e8e3d9]">
       <h1 className="sr-only">Explore Paris</h1>
       <MapCanvas
         ref={mapRef}

@@ -14,7 +14,7 @@ export function AddDiscoveryPage() {
   const [photoSelected, setPhotoSelected] = useState(false)
 
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader title="New discovery" backTo="/" />
       <form
         onSubmit={(event) => {

@@ -3,12 +3,22 @@ import { Link } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { categoryLabel, imageUrl, type Discovery } from '@/lib/mock-data'
+import { cn } from '@/lib/utils'
 
-export function DiscoveryCard({ discovery }: { discovery: Discovery }) {
+export function DiscoveryCard({
+  discovery,
+  className,
+}: {
+  discovery: Discovery
+  className?: string
+}) {
   return (
     <Link
       to={`/discoveries/${discovery.id}`}
-      className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99]"
+      className={cn(
+        'group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99]',
+        className,
+      )}
     >
       <img
         src={imageUrl(discovery.imageId, 560)}

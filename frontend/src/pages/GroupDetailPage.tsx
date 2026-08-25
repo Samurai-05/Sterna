@@ -13,7 +13,7 @@ export function GroupDetailPage() {
     group.discoveryIds.includes(item.id),
   )
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader title="Group" backTo="/groups" />
       <div className="space-y-6 px-5">
         <section className="rounded-2xl border border-border bg-card p-5">

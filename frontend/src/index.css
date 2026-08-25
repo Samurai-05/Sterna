@@ -32,6 +32,22 @@
   --input: #e7e5e0;
   --ring: #5f936f;
   --radius: 0.75rem;
+  --sterna-safe-area-top: max(
+    env(safe-area-inset-top, 0px),
+    var(--safe-area-inset-top, 0px)
+  );
+  --sterna-safe-area-right: max(
+    env(safe-area-inset-right, 0px),
+    var(--safe-area-inset-right, 0px)
+  );
+  --sterna-safe-area-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    var(--safe-area-inset-bottom, 0px)
+  );
+  --sterna-safe-area-left: max(
+    env(safe-area-inset-left, 0px),
+    var(--safe-area-inset-left, 0px)
+  );
 }
 
 * {
@@ -40,7 +56,7 @@
 
 body {
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
 }
 
@@ -191,4 +207,29 @@ input:-webkit-autofill:focus {
       rgba(191, 216, 223, 0.75),
       transparent 23%
     );
+}
+
+.sterna-app-shell > main {
+  padding-right: var(--sterna-safe-area-right);
+  padding-bottom: calc(2rem + var(--sterna-safe-area-bottom));
+  padding-left: var(--sterna-safe-area-left);
+}
+
+.sterna-app-shell--with-bottom-navigation > main {
+  padding-bottom: calc(4.5rem + var(--sterna-safe-area-bottom));
+}
+
+.sterna-page-header {
+  padding-top: calc(0.75rem + var(--sterna-safe-area-top));
+}
+
+.sterna-map-controls,
+.sterna-profile-hero {
+  padding-top: calc(1rem + var(--sterna-safe-area-top));
+}
+
+.sterna-bottom-navigation {
+  padding-right: max(0.75rem, var(--sterna-safe-area-right));
+  padding-bottom: max(0.75rem, var(--sterna-safe-area-bottom));
+  padding-left: max(0.75rem, var(--sterna-safe-area-left));
 }

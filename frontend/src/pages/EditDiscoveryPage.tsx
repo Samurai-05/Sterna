@@ -13,7 +13,7 @@ export function EditDiscoveryPage() {
   const [title, setTitle] = useState(discovery.name)
   const navigate = useNavigate()
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader
         title="Edit discovery"
         backTo={`/discoveries/${discovery.id}`}

@@ -7,7 +7,7 @@ const items = [
   { to: '/', label: 'Map', icon: Map },
   { to: '/collection', label: 'Collection', icon: Grid2X2 },
   { to: '/groups', label: 'Groups', icon: UsersRound },
-  { to: '/profile', label: 'Profile', icon: UserRound },
+  { to: '/profile', label: 'Me', icon: UserRound },
 ]
 
 export function BottomNavigation() {
@@ -16,7 +16,7 @@ export function BottomNavigation() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur"
+      className="sterna-bottom-navigation fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 pt-2 backdrop-blur"
     >
       <div className="mx-auto grid max-w-lg grid-cols-5 items-end">
         {items.slice(0, 2).map(({ to, label, icon: Icon }) => (
