@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import {
   categories,
   discoveries,
+  exploredCountryCodes,
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
@@ -42,6 +43,7 @@ export function MapPage() {
         ref={mapRef}
         discoveries={visibleDiscoveries}
         landmarks={landmarks}
+        exploredCountryCodes={exploredCountryCodes}
         onSelectDiscovery={handleSelectDiscovery}
         onSelectLandmark={handleSelectLandmark}
       />

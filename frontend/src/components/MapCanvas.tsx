@@ -17,6 +17,8 @@ import type { DiscoveryCategory } from '@/lib/mock-data'
 setWorkerUrl(maplibreWorkerUrl)
 
 const openFreeMapStyle = 'https://tiles.openfreemap.org/styles/liberty'
+const countriesSourceId = 'countries'
+const unexploredCountriesLayerId = 'unexplored-countries'
 
 export interface MapCanvasHandle {
   locate: () => void
@@ -38,13 +40,20 @@ export interface LandmarkMarkerData {
 interface MapCanvasProps {
   discoveries?: DiscoveryMarkerData[]
   landmarks?: LandmarkMarkerData[]
+  exploredCountryCodes?: string[]
   onSelectDiscovery?: (id: number) => void
   onSelectLandmark?: (id: string) => void
 }
 
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
   function MapCanvas(
-    { discoveries = [], landmarks = [], onSelectDiscovery, onSelectLandmark },
+    {
+      discoveries = [],
+      landmarks = [],
+      exploredCountryCodes = [],
+      onSelectDiscovery,
+      onSelectLandmark,
+    },
     ref,
   ) {
     const mapContainer = useRef<HTMLDivElement>(null)
@@ -86,6 +95,47 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         instance.remove()
       }
     }, [])
+
+    useEffect(() => {
+      const instance = map.current
+      if (!instance) {
+        return
+      }
+
+      const applyUnexploredMask = () => {
+        if (!instance.getSource(countriesSourceId)) {
+          instance.addSource(countriesSourceId, {
+            type: 'geojson',
+            data: '/countries.geo.json',
+          })
+        }
+        if (!instance.getLayer(unexploredCountriesLayerId)) {
+          instance.addLayer({
+            id: unexploredCountriesLayerId,
+            type: 'fill',
+            source: countriesSourceId,
+            paint: {
+              'fill-color': '#8a8a8a',
+              'fill-opacity': 0.65,
+            },
+          })
+        }
+        instance.setFilter(unexploredCountriesLayerId, [
+          '!',
+          ['in', ['get', 'iso_a3'], ['literal', exploredCountryCodes]],
+        ])
+      }
+
+      if (instance.isStyleLoaded()) {
+        applyUnexploredMask()
+      } else {
+        instance.once('load', applyUnexploredMask)
+      }
+
+      return () => {
+        instance.off('load', applyUnexploredMask)
+      }
+    }, [exploredCountryCodes])
 
     useEffect(() => {
       const instance = map.current
