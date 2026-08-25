@@ -22,7 +22,9 @@ export function MapPage() {
   const visibleDiscoveries = useMemo(
     () =>
       activeCategory
-        ? discoveries.filter((discovery) => discovery.category === activeCategory)
+        ? discoveries.filter(
+            (discovery) => discovery.category === activeCategory,
+          )
         : discoveries,
     [activeCategory],
   )
@@ -51,7 +53,11 @@ export function MapPage() {
         className="pointer-events-none absolute inset-0 bg-[#f7f5f0]/20"
         aria-hidden="true"
       />
-      <div className="relative z-10 px-4 pt-4">
+      <div
+        role="group"
+        aria-label="Map controls"
+        className="sterna-map-controls relative z-10 px-4 pt-4"
+      >
         <div className="flex items-center gap-2">
           <Link
             to="/groups"

@@ -60,6 +60,11 @@ body {
   margin: 0;
 }
 
+#root {
+  min-height: 100dvh;
+  background: var(--background);
+}
+
 button,
 input,
 textarea {

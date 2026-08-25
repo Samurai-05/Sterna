@@ -239,7 +239,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             }
             fiord.jumpTo(camera)
             labels.jumpTo(camera)
-            updateMask()
+            //         updateMask()
           }
 
           bright.on('move', syncSecondary)
