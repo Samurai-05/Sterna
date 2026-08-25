@@ -1,61 +1,46 @@
-import { Link, Route, Routes } from 'react-router'
+import { Route, Routes, useLocation } from 'react-router'
 
-import { Button } from '@/components/ui/button'
+import { BottomNavigation } from '@/components/BottomNavigation'
+import { AddDiscoveryPage } from '@/pages/AddDiscoveryPage'
+import { CollectionPage } from '@/pages/CollectionPage'
+import { CreateGroupPage } from '@/pages/CreateGroupPage'
+import { DiscoveryDetailPage } from '@/pages/DiscoveryDetailPage'
+import { EditDiscoveryPage } from '@/pages/EditDiscoveryPage'
+import { GroupDetailPage } from '@/pages/GroupDetailPage'
+import { GroupsPage } from '@/pages/GroupsPage'
+import { LandmarkDetailPage } from '@/pages/LandmarkDetailPage'
 import { MapPage } from '@/pages/MapPage'
+import { ProfilePage } from '@/pages/ProfilePage'
+import { SearchPage } from '@/pages/SearchPage'
 
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-6 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-      <p className="text-muted-foreground">
-        Temporary route used to validate the frontend foundation.
-      </p>
-    </main>
-  )
-}
-
-function HomePage() {
-  return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-6 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight">Sterna frontend</h1>
-      <p className="text-muted-foreground">
-        Technical foundation: React Router, TanStack Query, Tailwind and
-        shadcn/ui.
-      </p>
-      <div>
-        <Button asChild>
-          <Link to="/map">Open map smoke test</Link>
-        </Button>
-      </div>
-    </main>
-  )
-}
+const mainRoutes = new Set(['/', '/collection', '/groups', '/profile'])
 
 function App() {
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b">
-        <nav
-          aria-label="Temporary navigation"
-          className="mx-auto flex w-full max-w-3xl gap-2 px-6 py-3"
-        >
-          <Button asChild size="sm" variant="ghost">
-            <Link to="/">Home</Link>
-          </Button>
-          <Button asChild size="sm" variant="ghost">
-            <Link to="/map">Map</Link>
-          </Button>
-          <Button asChild size="sm" variant="ghost">
-            <Link to="/profile">Profile</Link>
-          </Button>
-        </nav>
-      </header>
+  const { pathname } = useLocation()
+  const showBottomNavigation = mainRoutes.has(pathname)
 
+  return (
+    <div className="min-h-dvh bg-background text-foreground">
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/map" element={<MapPage />} />
-        <Route path="/profile" element={<PlaceholderPage title="Profile" />} />
+        <Route path="/" element={<MapPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/collection" element={<CollectionPage />} />
+        <Route path="/add" element={<AddDiscoveryPage />} />
+        <Route
+          path="/discoveries/:discoveryId"
+          element={<DiscoveryDetailPage />}
+        />
+        <Route
+          path="/discoveries/:discoveryId/edit"
+          element={<EditDiscoveryPage />}
+        />
+        <Route path="/landmarks/:landmarkId" element={<LandmarkDetailPage />} />
+        <Route path="/groups" element={<GroupsPage />} />
+        <Route path="/groups/new" element={<CreateGroupPage />} />
+        <Route path="/groups/:groupId" element={<GroupDetailPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
+      {showBottomNavigation && <BottomNavigation />}
     </div>
   )
 }
