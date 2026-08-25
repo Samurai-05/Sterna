@@ -38,7 +38,7 @@ export interface LandmarkMarkerData {
 }
 
 interface CountryFeature {
-  properties: { code?: string }
+  properties: { A3?: string }
   geometry:
     | { type: 'Polygon'; coordinates: number[][][] }
     | { type: 'MultiPolygon'; coordinates: number[][][][] }
@@ -126,7 +126,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const codes = new Set(exploredCodes.current)
         let d = ''
         for (const feature of countryFeatures.current) {
-          const code = feature.properties?.code
+          const code = feature.properties?.A3
           if (!code || codes.has(code)) {
             continue
           }
