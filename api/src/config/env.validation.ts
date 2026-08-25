@@ -1,5 +1,6 @@
-import { plainToInstance } from 'class-transformer';
+import { Transform, plainToInstance } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -54,6 +55,49 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   POSTGRES_DB: string;
+
+  @IsString()
+  @IsNotEmpty()
+  MINIO_ENDPOINT: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  MINIO_PORT: number;
+
+  // enableImplicitConversion has already run by the time this transform fires,
+  // and it turns the string "false" into `true` (Boolean("false") === true).
+  // `obj` is the untouched environment, so read the raw string from there.
+  //
+  // Anything that is neither "true" nor "false" is passed through unchanged, so
+  // @IsBoolean() rejects it and names the variable: a typo must not quietly
+  // turn TLS off.
+  @IsOptional()
+  @Transform(({ obj }) => {
+    const raw = (obj as Record<string, unknown>).MINIO_USE_SSL;
+
+    if (raw === 'true') {
+      return true;
+    }
+
+    return raw === 'false' ? false : raw;
+  })
+  @IsBoolean()
+  MINIO_USE_SSL?: boolean;
+
+  // The MinIO root credentials for now. A dedicated service account scoped to
+  // the photo bucket is a hardening item, not an MVP one.
+  @IsString()
+  @IsNotEmpty()
+  MINIO_ROOT_USER: string;
+
+  @IsString()
+  @IsNotEmpty()
+  MINIO_ROOT_PASSWORD: string;
+
+  @IsString()
+  @IsNotEmpty()
+  MINIO_BUCKET_NAME: string;
 }
 
 export function validate(

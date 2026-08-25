@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { buildDataSourceOptions } from './config/data-source-options';
 import { validate } from './config/env.validation';
 import { HealthModule } from './health/health.module';
+import { PhotosModule } from './photos/photos.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { HealthModule } from './health/health.module';
       }),
     }),
     HealthModule,
+    PhotosModule,
   ],
 })
 export class AppModule {}
