@@ -119,11 +119,15 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         if (!maskPath.current) {
           return
         }
+        // The mask's base (a huge white rect, see the JSX below) keeps
+        // everything shown by default, including the ocean, which belongs
+        // to no country. This path punches black holes over unexplored
+        // countries only, revealing the fiord map beneath just there.
         const codes = new Set(exploredCodes.current)
         let d = ''
         for (const feature of countryFeatures.current) {
           const code = feature.properties?.code
-          if (!code || !codes.has(code)) {
+          if (!code || codes.has(code)) {
             continue
           }
           const polygons =
@@ -284,7 +288,14 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         >
           <defs>
             <mask id={maskId}>
-              <path ref={maskPath} fill="white" fillRule="evenodd" />
+              <rect
+                x={-100000}
+                y={-100000}
+                width={200000}
+                height={200000}
+                fill="white"
+              />
+              <path ref={maskPath} fill="black" />
             </mask>
           </defs>
         </svg>
