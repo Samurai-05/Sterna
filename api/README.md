@@ -23,7 +23,7 @@ Check that it is up:
 
 ```bash
 curl http://localhost:3000/api/health
-# {"status":"ok","info":{"database":{"status":"up"}},...}
+# {"status":"ok","info":{"database":{"status":"up"},"storage":{"status":"up"}},...}
 ```
 
 Interactive documentation: <http://localhost:3000/api/docs>.
@@ -44,6 +44,7 @@ src/
 │   ├── env.validation.ts        environment schema, validated at boot
 │   └── data-source-options.ts   database settings shared by app and CLI
 ├── health/                      GET /api/health (Terminus)
+├── photos/                      photo upload and download, backed by MinIO
 ├── app-setup.ts                 global prefix, validation pipe, OpenAPI
 ├── swagger.ts                   OpenAPI document
 ├── app.module.ts                composition root
@@ -71,7 +72,7 @@ already present, or from `api/` on the host for the ones that do not need a data
 | `npm run lint` | ESLint with `--fix` |
 | `npm run lint:ci` | ESLint without `--fix` — what CI runs |
 | `npm test` | Unit tests (`*.spec.ts` under `src/`) |
-| `npm run test:e2e` | End-to-end tests — **needs a database**, run it in the container |
+| `npm run test:e2e` | End-to-end tests — **needs a database and MinIO**, run it in the container |
 | `npm run build` | Compile to `dist/` |
 | `npm run migration:generate -- src/migrations/<Name>` | Generate a migration from entity changes |
 | `npm run migration:run` | Apply pending migrations |
@@ -90,6 +91,11 @@ Docker Compose from the repository-root `.env`; nothing is read from a `.env` in
 | `POSTGRES_HOST` | `postgres` on the Compose network, not `localhost` |
 | `POSTGRES_PORT` | 5432 |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Database credentials |
+| `MINIO_ENDPOINT` | `minio` on the Compose network, not `localhost` |
+| `MINIO_PORT` | 9000 |
+| `MINIO_USE_SSL` | `"true"` or `"false"` (default) — the string is converted explicitly |
+| `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | MinIO credentials, shared with the `minio` service |
+| `MINIO_BUCKET_NAME` | Bucket the photos live in, created by `minio-init` |
 
 ## Database
 
@@ -107,6 +113,30 @@ location: Point;
 
 The `postgis` extension is created by `infra/postgres/init/001-init-extensions.sql` when the
 database volume is first initialised.
+
+## Photos
+
+Photos are stored in MinIO ([ADR-006](../docs/decisions/ADR-006-photo-storage.md)); Postgres
+holds only the object key, in `DISCOVERIES.image_object_key`. Clients never talk to MinIO —
+both directions go through the API.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/photos` | `multipart/form-data`, field `file`. Returns `{ objectKey, url, exif }` |
+| `GET /api/photos/{uuid}.{ext}` | Streams the object back out |
+
+A photo is uploaded *before* the discovery that references it exists, so upload is a
+standalone resource: it returns a key, and the client sends that key with the rest of the
+discovery. Keys look like `photos/{uuid}.{jpg|png|webp}` — see
+[`infra/minio/README.md`](../infra/minio/README.md) for why they carry no user or discovery
+segment.
+
+On upload the service reads the EXIF GPS tags so the client can pre-fill the location
+(FR-06), then re-encodes the image through `sharp`. Re-encoding does three jobs at once: it
+strips every metadata block from the stored object (NFR-27), bakes the orientation flag into
+the pixels, and validates the bytes for real — the declared MIME type is client-supplied,
+so it cannot be trusted on its own (NFR-21). A photo with no usable GPS tag returns
+`exif: null` and still uploads (FR-33).
 
 ## API documentation
 
