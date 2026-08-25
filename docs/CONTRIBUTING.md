@@ -11,7 +11,51 @@ cp .env.example .env
 docker compose up
 ```
 
-As of Sprint 0, `docker compose up` starts the Nginx deployment placeholder, PostgreSQL, and MinIO. The placeholder is available at http://localhost:8080 (default, configurable via `WEB_PORT` in `.env`). The application frontend and API are not yet part of this checkout, so a dedicated app/API URL is not documented here — this section will be updated once the Nginx routing layer described in `docs/architecture.md` is provisioned in Sprint 1.
+| Service | URL | Note |
+|---|---|---|
+| API | http://localhost:3000/api | `API_PORT`; check `GET /api/health` |
+| API documentation | http://localhost:3000/api/docs | Swagger UI, generated from the code |
+| Web placeholder | http://localhost:8080 | `WEB_PORT`; still the Nginx placeholder |
+| MinIO console | http://localhost:9001 | Credentials from `.env` |
+| PostgreSQL | localhost:5432 | PostgreSQL + PostGIS |
+
+The app frontend is not scaffolded yet, so nothing else is served.
+
+Confirm the stack came up correctly:
+
+```bash
+docker compose ps                          # every service should be "healthy"
+curl http://localhost:3000/api/health      # {"status":"ok","info":{"database":{"status":"up"}},...}
+```
+
+### Working on the API
+
+`docker compose up` runs the API in watch mode with `api/` mounted into the container, so
+saving a file recompiles and restarts it — there is nothing to rerun by hand. Commands go
+through the container, which already has the database environment:
+
+```bash
+docker compose exec api npm test           # unit tests
+docker compose exec api npm run test:e2e   # end-to-end tests (needs the database)
+docker compose exec api npm run lint:ci    # what CI runs
+docker compose exec api npm run migration:run
+```
+
+After adding a dependency to `api/package.json`, rebuild — the container's `node_modules` is
+a volume created when the image was built, so an install done on the host is invisible
+inside it:
+
+```bash
+docker compose up -d --build --renew-anon-volumes api
+```
+
+Details, project layout and conventions: [`api/README.md`](../api/README.md).
+
+Two files describe the stack, and the split matters: `docker-compose.yml` is the production
+definition (prebuilt image, no bind mount, no published API port) and
+`docker-compose.override.yml` adds the development conveniences. Compose merges them
+automatically for you; the deployment workflow passes `-f docker-compose.yml` so the VM only
+gets the first one. Anything development-only belongs in the override file.
 
 ## Workflow
 

@@ -314,12 +314,13 @@ maps or other product surfaces.
 
 Sterna uses two font families.
 
-### 8.1 Outfit — UI font
+### 8.1 Outfit — Primary UI font
 
-**Outfit** is the primary application font.
+**Outfit** is the default font for the Sterna interface.
 
 Use it for:
 
+- screen titles;
 - body text;
 - buttons;
 - forms;
@@ -327,8 +328,8 @@ Use it for:
 - labels;
 - statistics;
 - map UI;
-- metadata;
-- general interface copy.
+- functional headings;
+- metadata and general interface copy.
 
 ```css
 font-family: "Outfit", sans-serif;
@@ -345,18 +346,17 @@ Avoid unnecessary additional weights.
 
 ---
 
-### 8.2 Fraunces — display font
+### 8.2 Fraunces — Editorial accent font
 
-**Fraunces** provides Sterna's editorial and exploratory character.
+**Fraunces** is reserved for high-emphasis editorial and exploratory content.
 
 Use it for:
 
-- major page titles;
-- discovery titles;
+- welcome / hero messaging;
+- discovery titles when visually emphasized;
 - points of interest;
-- success / milestone screens;
-- selected profile headings;
-- selected high-emphasis editorial elements.
+- milestones and exploration achievements;
+- selected high-emphasis editorial moments.
 
 ```css
 font-family: "Fraunces", serif;
@@ -364,6 +364,7 @@ font-family: "Fraunces", serif;
 
 Do not use Fraunces for:
 
+- functional screen titles;
 - buttons;
 - navigation;
 - input fields;
@@ -381,19 +382,15 @@ Do not create arbitrary font sizes.
 
 | Token | Font | Size | Line height | Weight |
 |---|---|---:|---:|---:|
-| `display-lg` | Fraunces | 36 px | 42 px | 700 |
-| `display-md` | Fraunces | 30 px | 36 px | 600 |
-| `title-lg` | Fraunces | 26 px | 32 px | 600 |
-| `title-md` | Fraunces | 22 px | 28 px | 600 |
-| `title-sm` | Fraunces | 20 px | 26 px | 600 |
+| `display` | Fraunces | 36 px | 44 px | 700 |
+| `screen-title` | Outfit | 30 px | 36 px | 700 |
+| `section-title` | Outfit | 22 px | 28 px | 600 |
 | `heading` | Outfit | 18 px | 24 px | 600 |
 | `body-lg` | Outfit | 16 px | 24 px | 400 |
-| `body-md` | Outfit | 14 px | 20 px | 400 |
-| `body-sm` | Outfit | 13 px | 18 px | 400 |
-| `label-lg` | Outfit | 15 px | 20 px | 600 |
-| `label-md` | Outfit | 13 px | 18 px | 600 |
+| `body` | Outfit | 14 px | 20 px | 400 |
+| `label` | Outfit | 14 px | 20 px | 600 |
+| `button` | Outfit | 15 px | 20 px | 600 |
 | `caption` | Outfit | 12 px | 16 px | 500 |
-| `micro` | Outfit | 11 px | 14 px | 500 |
 
 ### Rules
 
@@ -449,7 +446,8 @@ Avoid arbitrary spacing values unless a technical constraint requires them.
 Recommended usage:
 
 - inputs → `12 px`;
-- buttons → `12–16 px`;
+- standard buttons → `16 px`;
+- prominent / large mobile CTAs → `20 px`;
 - cards → `16 px`;
 - bottom sheets → `24 px`;
 - chips → `12 px` or `radius-full`.
@@ -469,7 +467,7 @@ Avoid mixing excessively square and excessively rounded components without reaso
 | Weight | 600 |
 | Background | `#2D5A3D` |
 | Text | `#FFFFFF` |
-| Radius | `12–16 px` |
+| Radius | `16 px` |
 
 ### Secondary
 
@@ -606,7 +604,28 @@ Do not:
 
 ---
 
-## 18. Accessibility
+## 18. Authentication screens
+
+### Welcome screen
+
+- A full-screen photograph may be used for the unauthenticated entry screen.
+- The photograph may extend edge-to-edge behind the layout.
+- Interactive content must respect the device safe areas.
+- A light overlay or gradient is allowed only to preserve text and CTA readability.
+- The primary CTA uses Sterna Green; the secondary CTA uses a neutral or white surface.
+- The main application bottom navigation is not shown.
+
+### Login / Register
+
+- Use the warm neutral page background and restrained, functional forms.
+- Inputs use white or neutral surfaces with the standard border token.
+- Focus states use Sterna Green; semantic colors are reserved for validation errors.
+- Authentication screen titles use Outfit; Fraunces remains reserved for editorial and exploratory moments.
+- Login and Register share the same structure, input treatment, CTA dimensions and link styles.
+
+---
+
+## 19. Accessibility
 
 Sterna UI must preserve sufficient contrast and readability on mobile.
 
@@ -621,7 +640,7 @@ Requirements:
 
 ---
 
-## 19. AI agent rules
+## 20. AI agent rules
 
 Any AI agent creating or modifying Sterna UI must follow this design system.
 
@@ -663,7 +682,7 @@ If the design system does not cover a required UI case:
 
 ---
 
-## 20. Core implementation tokens
+## 21. Core implementation tokens
 
 ```text
 BRAND_PRIMARY           #2D5A3D
@@ -695,7 +714,7 @@ FONT_DISPLAY            Fraunces
 
 ---
 
-## 21. Recommended CSS variables
+## 22. Recommended CSS variables
 
 ```css
 :root {
@@ -762,7 +781,7 @@ Prefer this over:
 
 ---
 
-## 22. Maintenance
+## 23. Maintenance
 
 This document is the visual source of truth for Sterna.
 

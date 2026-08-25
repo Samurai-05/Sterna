@@ -1,0 +1,31 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { buildDataSourceOptions } from './config/data-source-options';
+import { validate } from './config/env.validation';
+import { HealthModule } from './health/health.module';
+
+@Module({
+  imports: [
+    // isGlobal: ConfigService becomes injectable everywhere, without every
+    // feature module having to import ConfigModule again.
+    ConfigModule.forRoot({ isGlobal: true, validate }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        ...buildDataSourceOptions({
+          POSTGRES_HOST: config.getOrThrow<string>('POSTGRES_HOST'),
+          POSTGRES_PORT: config.getOrThrow<number>('POSTGRES_PORT'),
+          POSTGRES_USER: config.getOrThrow<string>('POSTGRES_USER'),
+          POSTGRES_PASSWORD: config.getOrThrow<string>('POSTGRES_PASSWORD'),
+          POSTGRES_DB: config.getOrThrow<string>('POSTGRES_DB'),
+        }),
+        // Entities registered with TypeOrmModule.forFeature() join this
+        // connection automatically — no manual entity list to maintain.
+        autoLoadEntities: true,
+      }),
+    }),
+    HealthModule,
+  ],
+})
+export class AppModule {}

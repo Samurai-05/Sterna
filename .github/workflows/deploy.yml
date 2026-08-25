@@ -6,6 +6,7 @@ on:
 
 env:
   IMAGE: ghcr.io/samurai-05/sterna-web
+  API_IMAGE: ghcr.io/samurai-05/sterna-api
 
 jobs:
   build-and-push:
@@ -30,12 +31,11 @@ jobs:
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
 
-  deploy:
-    needs: build-and-push
-    runs-on: self-hosted
+  build-and-push-api:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -45,8 +45,85 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          # Runtime image only: compiled dist/ plus production dependencies.
+          # The `development` target (watch mode, dev dependencies) must never
+          # be deployed.
+          target: production
+          push: true
+          tags: |
+            ${{ env.API_IMAGE }}:latest
+            ${{ env.API_IMAGE }}:${{ github.sha }}
+
+  deploy:
+    needs: [build-and-push, build-and-push-api]
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: read
+    # Compose interpolates ${VAR} from the environment of the process that runs
+    # it. These have to be defined here rather than in a `.env` on the VM:
+    # actions/checkout runs `git clean -ffdx` in the workspace on every run, so
+    # any untracked .env placed there is deleted before Compose ever sees it.
+    # Without them every variable expands to "" and postgres never gets healthy.
+    env:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      MINIO_BUCKET_NAME: ${{ secrets.MINIO_BUCKET_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Fail loudly and early rather than letting Compose silently substitute
+      # empty strings for missing credentials.
+      - name: Check the deployment secrets are configured
+        run: |
+          missing=
+          for var in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB \
+                     MINIO_ROOT_USER MINIO_ROOT_PASSWORD MINIO_BUCKET_NAME; do
+            [ -n "${!var}" ] || missing="$missing $var"
+          done
+          if [ -n "$missing" ]; then
+            echo "Missing repository secrets:$missing" >&2
+            exit 1
+          fi
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # -f docker-compose.yml is deliberate: the repository checkout also
+      # contains docker-compose.override.yml, which Compose would otherwise
+      # load automatically and turn this into a development deployment.
       - name: Pull and restart
         run: |
-          docker compose pull
-          docker compose up -d
+          docker compose -f docker-compose.yml pull
+          docker compose -f docker-compose.yml up -d
           docker image prune -f
+
+      - name: Verify the API is healthy
+        run: |
+          for _ in $(seq 1 30); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' app_api 2>/dev/null || echo starting)
+            case "$status" in
+              healthy)
+                echo "API reported healthy"
+                exit 0
+                ;;
+              unhealthy)
+                echo "API reported unhealthy"
+                docker compose -f docker-compose.yml logs api --tail 50
+                exit 1
+                ;;
+            esac
+            sleep 5
+          done
+          echo "API did not become healthy within 150s"
+          docker compose -f docker-compose.yml logs api --tail 50
+          exit 1

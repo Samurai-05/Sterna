@@ -8,6 +8,43 @@ services:
     networks:
       - app_network
 
+  # NestJS API — production definition.
+  #
+  # Runs the prebuilt image published by .github/workflows/deploy.yml. No port
+  # is published: per ADR-007 the API is only reachable through Nginx over the
+  # internal Compose network. Everything needed for local development (source
+  # bind mount, published port, watch mode) lives in docker-compose.override.yml,
+  # which Compose loads automatically on a developer machine.
+  api:
+    image: ghcr.io/samurai-05/sterna-api:latest
+    container_name: app_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Service names, not localhost: inside the Compose network `postgres`
+      # resolves to the database container.
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - app_network
+
   postgres:
     image: postgis/postgis:16-3.4
     container_name: app_postgres
@@ -16,13 +53,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/postgres/init:/docker-entrypoint-initdb.d
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      # $$ escapes the expansion so it is resolved by the shell inside the
+      # container (from the variables set above), not by Compose on the host.
+      # Quoted so a missing value fails as an empty argument instead of letting
+      # -U swallow the -d flag and hang the check forever.
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
       retries: 5

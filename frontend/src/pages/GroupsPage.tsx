@@ -21,9 +21,7 @@ export function GroupsPage() {
       <div className="space-y-5 px-5">
         <section className="rounded-2xl border border-primary/20 bg-green-50 p-4">
           <p className="text-sm text-muted-foreground">Active map</p>
-          <h2 className="mt-1 font-display text-[22px] font-semibold">
-            Personal map
-          </h2>
+          <h2 className="sterna-section-title mt-1">Personal map</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Your private discoveries
           </p>
