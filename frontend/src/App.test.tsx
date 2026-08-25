@@ -83,6 +83,20 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
+  it('returns to the map when backing out of a discovery opened from the map', () => {
+    render(
+      <MemoryRouter initialEntries={['/', '/discoveries/1']} initialIndex={1}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the profile exploration summary and supporting details', () => {
     render(
       <MemoryRouter initialEntries={['/profile']}>
