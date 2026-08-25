@@ -95,6 +95,8 @@ The application frontend does not currently have a tracked `package.json` or sou
 - [Frontend stack](docs/frontend-stack.md)
 - [Architecture](docs/architecture.md)
 - [API](api/README.md)
+- [Design system](docs/design-system.md)
+- [Landing page — narrative and implementation references](docs/landing-page-design.md)
 - [ADR-001 — Frontend platform](docs/decisions/ADR-001-frontend-platform.md)
 - [ADR-002 — Mapping stack](docs/decisions/ADR-002-mapping-stack.md)
 - [ADR-003 — Backend architecture](docs/decisions/ADR-003-backend-architecture.md)
