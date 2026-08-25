@@ -20,13 +20,25 @@ describe('authentication pages', () => {
     expect(heading).toBeInTheDocument()
     expect(heading).toHaveClass('sterna-screen-title', 'font-sans')
     expect(heading).not.toHaveClass('font-display')
-    expect(screen.getByRole('img', { name: 'Sterna logo' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('img', { name: 'Sterna logo' }),
+    ).not.toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toHaveAttribute(
       'type',
       'password',
     )
     expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument()
+    const backButton = screen.getByRole('button', { name: 'Back' })
+    expect(backButton).toHaveClass(
+      'size-11',
+      'rounded-full',
+      'bg-card',
+      'text-primary',
+    )
+    expect(
+      screen.queryByRole('link', { name: 'Create an account' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows the register fields and primary action', () => {
@@ -44,25 +56,32 @@ describe('authentication pages', () => {
     expect(
       screen.getByRole('button', { name: 'Create account' }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Log in' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('img', { name: 'Sterna logo' }),
+    ).not.toBeInTheDocument()
   })
 
-  it('navigates from login to register', () => {
+  it('navigates back from login to the welcome screen', () => {
     renderAt('/login')
 
-    fireEvent.click(screen.getByRole('link', { name: 'Create an account' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
 
     expect(
-      screen.getByRole('heading', { name: 'Create your account' }),
+      screen.getByRole('heading', { name: 'Keep your discoveries close' }),
     ).toBeInTheDocument()
   })
 
-  it('navigates from register to login', () => {
+  it('navigates back from register to the welcome screen', () => {
     renderAt('/register')
 
-    fireEvent.click(screen.getByRole('link', { name: 'Log in' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
 
     expect(
-      screen.getByRole('heading', { name: 'Welcome back' }),
+      screen.getByRole('heading', { name: 'Keep your discoveries close' }),
     ).toBeInTheDocument()
   })
 

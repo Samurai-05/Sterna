@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthTextInput } from '@/components/auth/AuthTextInput'
@@ -53,17 +52,6 @@ export function LoginPage() {
     <AuthLayout
       title="Welcome back"
       subtitle="Return to the places and memories you have collected."
-      footer={
-        <>
-          New to Sterna?{' '}
-          <Link
-            to="/register"
-            className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            Create an account
-          </Link>
-        </>
-      }
     >
       <form noValidate onSubmit={handleSubmit} className="space-y-5">
         <AuthTextInput

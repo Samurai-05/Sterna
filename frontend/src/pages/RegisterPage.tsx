@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthTextInput } from '@/components/auth/AuthTextInput'
@@ -65,17 +64,6 @@ export function RegisterPage() {
     <AuthLayout
       title="Create your account"
       subtitle="Start collecting the places that matter to you."
-      footer={
-        <>
-          Already have an account?{' '}
-          <Link
-            to="/login"
-            className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            Log in
-          </Link>
-        </>
-      }
     >
       <form noValidate onSubmit={handleSubmit} className="space-y-5">
         <AuthTextInput
