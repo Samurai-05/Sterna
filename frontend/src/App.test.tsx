@@ -71,6 +71,18 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
+  it('keeps map controls below the status bar inset', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('group', { name: 'Map controls' })).toHaveClass(
+      'sterna-map-controls',
+    )
+  })
+
   it('renders the collection through its application route', () => {
     render(
       <MemoryRouter initialEntries={['/collection']}>
