@@ -1,0 +1,34 @@
+# Local development overrides.
+#
+# Compose loads this file automatically alongside docker-compose.yml, so a
+# plain `docker compose up` gives you the development setup with no extra
+# flags. The deployment workflow deliberately passes `-f docker-compose.yml`
+# so the VM ignores everything in here.
+#
+# Overrides can only add to or replace values from the base file, never remove
+# them — which is why the base file holds the leaner production definition and
+# the development extras live here.
+
+services:
+  api:
+    # Build locally from the Dockerfile's `development` target instead of
+    # pulling the published production image. The separate tag keeps the local
+    # development build from overwriting the `ghcr.io/...:latest` tag, and
+    # pull_policy stops Compose from ever reaching for a registry copy.
+    image: sterna-api:dev
+    pull_policy: build
+    build:
+      context: ./api
+      target: development
+    environment:
+      NODE_ENV: development
+    # Published so you can reach the API directly from the host during
+    # development; in production only Nginx talks to it.
+    ports:
+      - "${API_PORT:-3000}:3000"
+    volumes:
+      # Source bind mount: `nest start --watch` recompiles on save.
+      - ./api:/app
+      # Anonymous volume: keeps the image's node_modules instead of letting
+      # the bind mount hide it behind the host's.
+      - /app/node_modules

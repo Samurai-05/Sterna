@@ -1,0 +1,21 @@
+# Never ship the host's install: it is reinstalled in the image, and on a
+# different platform it would be silently wrong.
+node_modules
+dist
+coverage
+
+# Secrets and local overrides
+.env
+.env.*
+
+# Version control and tooling noise
+.git
+.gitignore
+*.log
+*.tsbuildinfo
+.vscode
+.idea
+
+# Docker files themselves are not needed inside the build context
+Dockerfile
+.dockerignore

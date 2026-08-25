@@ -15,3 +15,41 @@ jobs:
         with:
           context: ./deploy/placeholder
           push: false
+
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the runtime in api/Dockerfile.
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `npm run lint` rewrites files with --fix; CI must report problems
+      # instead of silently repairing them.
+      - name: Lint
+        run: npm run lint:ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Verifies the deployable artifact itself builds, not just the source:
+      # a broken Dockerfile would otherwise only surface after merging.
+      - name: Build API production image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          target: production
+          push: false

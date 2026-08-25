@@ -44,7 +44,7 @@ The MVP also defines simple discovery categories, including Landscape, Monument,
 The following choices are supported by the accepted architecture decisions, the current landing page configuration, or the repository's deployment configuration.
 
 - **Application frontend:** a shared React/TypeScript application built with Vite, targeting the web as a PWA with `vite-plugin-pwa` and mobile platforms through Capacitor, along with React Router, TanStack Query, and the native Fetch API.
-- **Backend and data:** Node.js/TypeScript API, PostgreSQL + PostGIS for relational and spatial data, and MinIO for photo object storage.
+- **Backend and data:** a NestJS/TypeScript API using TypeORM, PostgreSQL + PostGIS for relational and spatial data, and MinIO for photo object storage.
 - **Mapping:** MapLibre GL JS, OpenFreeMap vector tiles, primarily OpenStreetMap data, a custom MapLibre Style JSON, and Nominatim accessed through the Sterna backend.
 - **Landing page:** Next.js, React, TypeScript, and Tailwind CSS.
 - **Container and deployment configuration:** Docker Compose and Nginx.
@@ -70,14 +70,20 @@ npm run start
 
 ### Docker Compose
 
-The root Compose configuration currently builds the Nginx deployment placeholder. The default port is `8080` and can be changed through `WEB_PORT`:
+The root Compose configuration runs the API, PostgreSQL + PostGIS, MinIO, and the Nginx deployment placeholder:
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-The placeholder is available at [http://localhost:8080](http://localhost:8080) with the default configuration.
+| Service | URL | Port variable |
+|---|---|---|
+| API | [http://localhost:3000/api](http://localhost:3000/api) | `API_PORT` |
+| Web placeholder | [http://localhost:8080](http://localhost:8080) | `WEB_PORT` |
+| MinIO console | [http://localhost:9001](http://localhost:9001) | — |
+
+The API runs in watch mode with `api/` mounted into its container, so changes are picked up without rebuilding. `GET /api/health` reports whether it can reach the database. See [`api/README.md`](api/README.md).
 
 The application frontend does not currently have a tracked `package.json` or source tree in this checkout, so no separate application run command is documented here.
 
@@ -87,8 +93,16 @@ The application frontend does not currently have a tracked `package.json` or sou
 - [Functional requirements](docs/functional_requirements.md)
 - [Non-functional requirements](docs/non_functional_requirements.md)
 - [Frontend stack](docs/frontend-stack.md)
+- [Architecture](docs/architecture.md)
+- [API](api/README.md)
 - [ADR-001 — Frontend platform](docs/decisions/ADR-001-frontend-platform.md)
 - [ADR-002 — Mapping stack](docs/decisions/ADR-002-mapping-stack.md)
+- [ADR-003 — Backend architecture](docs/decisions/ADR-003-backend-architecture.md)
+- [ADR-004 — Database](docs/decisions/ADR-004-database.md)
+- [ADR-005 — Country detection](docs/decisions/ADR-005-country-detection.md)
+- [ADR-006 — Photo storage](docs/decisions/ADR-006-photo-storage.md)
+- [ADR-007 — Deployment architecture](docs/decisions/ADR-007-deployment-architecture.md)
+- [ADR-008 — Backend framework](docs/decisions/ADR-008-backend-framework.md)
 - [Contributing guide](docs/CONTRIBUTING.md)
 - [Work process](docs/work_process.md)
 

@@ -11,7 +11,42 @@ cp .env.example .env
 docker compose up
 ```
 
-The app is available at http://localhost:\<TBD\>, the API at http://localhost:\<TBD\>.
+| Service | URL | Note |
+|---|---|---|
+| API | http://localhost:3000/api | `API_PORT`; check `GET /api/health` |
+| Web placeholder | http://localhost:8080 | `WEB_PORT`; still the Nginx placeholder |
+| MinIO console | http://localhost:9001 | Credentials from `.env` |
+| PostgreSQL | localhost:5432 | PostgreSQL + PostGIS |
+
+The app frontend is not scaffolded yet, so nothing else is served.
+
+Confirm the stack came up correctly:
+
+```bash
+docker compose ps                          # every service should be "healthy"
+curl http://localhost:3000/api/health      # {"status":"ok","info":{"database":{"status":"up"}},...}
+```
+
+### Working on the API
+
+`docker compose up` runs the API in watch mode with `api/` mounted into the container, so
+saving a file recompiles and restarts it — there is nothing to rerun by hand. Commands go
+through the container, which already has the database environment:
+
+```bash
+docker compose exec api npm test           # unit tests
+docker compose exec api npm run test:e2e   # end-to-end tests (needs the database)
+docker compose exec api npm run lint:ci    # what CI runs
+docker compose exec api npm run migration:run
+```
+
+Details, project layout and conventions: [`api/README.md`](../api/README.md).
+
+Two files describe the stack, and the split matters: `docker-compose.yml` is the production
+definition (prebuilt image, no bind mount, no published API port) and
+`docker-compose.override.yml` adds the development conveniences. Compose merges them
+automatically for you; the deployment workflow passes `-f docker-compose.yml` so the VM only
+gets the first one. Anything development-only belongs in the override file.
 
 ## Workflow
 
