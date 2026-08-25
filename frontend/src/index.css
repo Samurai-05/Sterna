@@ -4,7 +4,9 @@
 @import 'shadcn/tailwind.css';
 
 :root {
-  font-family: 'Outfit', sans-serif;
+  --font-ui: 'Outfit', sans-serif;
+  --font-editorial: 'Fraunces', serif;
+  font-family: var(--font-ui);
   color: #1c1917;
   background: #f7f5f0;
   font-synthesis: none;
@@ -48,9 +50,26 @@ textarea {
   font: inherit;
 }
 
+input:autofill,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:active {
+  background-color: var(--card) !important;
+  border-color: var(--border);
+  color: var(--foreground);
+  -webkit-box-shadow: 0 0 0 1000px var(--card) inset;
+  -webkit-text-fill-color: var(--foreground);
+  box-shadow: 0 0 0 1000px var(--card) inset;
+}
+
+input:autofill:focus,
+input:-webkit-autofill:focus {
+  border-color: var(--primary);
+}
+
 @theme inline {
-  --font-sans: 'Outfit', sans-serif;
-  --font-display: 'Fraunces', serif;
+  --font-sans: var(--font-ui);
+  --font-display: var(--font-editorial);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -74,6 +93,71 @@ textarea {
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
+}
+
+@layer components {
+  .sterna-editorial-display {
+    font-family: var(--font-editorial);
+    font-size: 36px;
+    line-height: 44px;
+    font-weight: 700;
+  }
+
+  .sterna-screen-title {
+    font-family: var(--font-ui);
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 700;
+  }
+
+  .sterna-section-title {
+    font-family: var(--font-ui);
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 600;
+  }
+
+  .sterna-heading {
+    font-family: var(--font-ui);
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+
+  .sterna-body-large {
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+
+  .sterna-body {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+
+  .sterna-label {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+
+  .sterna-button {
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+
+  .sterna-caption {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+  }
 }
 
 @layer base {
