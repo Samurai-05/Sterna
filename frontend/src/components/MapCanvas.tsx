@@ -16,9 +16,9 @@ import type { DiscoveryCategory } from '@/lib/mock-data'
 
 setWorkerUrl(maplibreWorkerUrl)
 
-const openFreeMapStyle = 'https://tiles.openfreemap.org/styles/liberty'
-const countriesSourceId = 'countries'
-const unexploredCountriesLayerId = 'unexplored-countries'
+const exploredStyle = 'https://tiles.openfreemap.org/styles/bright'
+const unexploredStyle = 'https://tiles.openfreemap.org/styles/fiord'
+const maskId = 'explored-country-mask'
 
 export interface MapCanvasHandle {
   locate: () => void
@@ -35,6 +35,13 @@ export interface LandmarkMarkerData {
   id: string
   name: string
   coordinates: [number, number]
+}
+
+interface CountryFeature {
+  properties: { code?: string }
+  geometry:
+    | { type: 'Polygon'; coordinates: number[][][] }
+    | { type: 'MultiPolygon'; coordinates: number[][][][] }
 }
 
 interface MapCanvasProps {
@@ -56,27 +63,47 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
     },
     ref,
   ) {
-    const mapContainer = useRef<HTMLDivElement>(null)
-    const map = useRef<Map | null>(null)
+    const exploredContainer = useRef<HTMLDivElement>(null)
+    const unexploredContainer = useRef<HTMLDivElement>(null)
+    const exploredMap = useRef<Map | null>(null)
     const geolocateControl = useRef<GeolocateControl | null>(null)
+    const maskPath = useRef<SVGPathElement>(null)
+    const countryFeatures = useRef<CountryFeature[]>([])
+    const exploredCodes = useRef<string[]>(exploredCountryCodes)
+    const updateMaskRef = useRef<() => void>(() => {})
 
     useImperativeHandle(ref, () => ({
       locate: () => geolocateControl.current?.trigger(),
     }))
 
+    // The country-boundary mask is projected relative to the explored (bright)
+    // map's camera, so it stays aligned as that map pans/zooms.
     useEffect(() => {
-      if (!mapContainer.current || navigator.userAgent.includes('jsdom')) {
+      if (
+        !exploredContainer.current ||
+        !unexploredContainer.current ||
+        navigator.userAgent.includes('jsdom')
+      ) {
         return
       }
 
-      const instance = new Map({
-        container: mapContainer.current,
-        style: openFreeMapStyle,
+      const bright = new Map({
+        container: exploredContainer.current,
+        style: exploredStyle,
         center: [2.3522, 48.8566],
         zoom: 12,
       })
 
-      instance.addControl(
+      const fiord = new Map({
+        container: unexploredContainer.current,
+        style: unexploredStyle,
+        center: [2.3522, 48.8566],
+        zoom: 12,
+        interactive: false,
+        attributionControl: false,
+      })
+
+      bright.addControl(
         new NavigationControl({ showCompass: false }),
         'bottom-right',
       )
@@ -85,60 +112,100 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
       })
-      instance.addControl(geolocate, 'top-left')
+      bright.addControl(geolocate, 'top-left')
       geolocateControl.current = geolocate
-      map.current = instance
+
+      const updateMask = () => {
+        if (!maskPath.current) {
+          return
+        }
+        const codes = new Set(exploredCodes.current)
+        let d = ''
+        for (const feature of countryFeatures.current) {
+          const code = feature.properties?.code
+          if (!code || !codes.has(code)) {
+            continue
+          }
+          const polygons =
+            feature.geometry.type === 'Polygon'
+              ? [feature.geometry.coordinates]
+              : feature.geometry.coordinates
+          for (const polygon of polygons) {
+            for (const ring of polygon) {
+              const points = ring.map(([lng, lat]) => bright.project([lng, lat]))
+              if (points.length === 0) {
+                continue
+              }
+              d += `M${points[0].x},${points[0].y} `
+              for (let i = 1; i < points.length; i++) {
+                d += `L${points[i].x},${points[i].y} `
+              }
+              d += 'Z '
+            }
+          }
+        }
+        maskPath.current.setAttribute('d', d)
+      }
+      updateMaskRef.current = updateMask
+
+      const syncSecondary = () => {
+        fiord.jumpTo({
+          center: bright.getCenter(),
+          zoom: bright.getZoom(),
+          bearing: bright.getBearing(),
+          pitch: bright.getPitch(),
+        })
+        updateMask()
+      }
+
+      bright.on('move', syncSecondary)
+      bright.on('resize', syncSecondary)
+      bright.once('load', syncSecondary)
+
+      // Mask only the rendered tiles, not the markers/controls layered on
+      // top, so pins and the geolocate dot stay visible everywhere.
+      const canvas = bright.getCanvas()
+      canvas.style.maskImage = `url(#${maskId})`
+      canvas.style.webkitMaskImage = `url(#${maskId})`
+
+      exploredMap.current = bright
 
       return () => {
+        bright.off('move', syncSecondary)
+        bright.off('resize', syncSecondary)
+        updateMaskRef.current = () => {}
         geolocateControl.current = null
-        map.current = null
-        instance.remove()
+        exploredMap.current = null
+        bright.remove()
+        fiord.remove()
       }
     }, [])
 
     useEffect(() => {
-      const instance = map.current
-      if (!instance) {
-        return
-      }
-
-      const applyUnexploredMask = () => {
-        if (!instance.getSource(countriesSourceId)) {
-          instance.addSource(countriesSourceId, {
-            type: 'geojson',
-            data: '/countries.geo.json',
-          })
-        }
-        if (!instance.getLayer(unexploredCountriesLayerId)) {
-          instance.addLayer({
-            id: unexploredCountriesLayerId,
-            type: 'fill',
-            source: countriesSourceId,
-            paint: {
-              'fill-color': '#8a8a8a',
-              'fill-opacity': 0.65,
-            },
-          })
-        }
-        instance.setFilter(unexploredCountriesLayerId, [
-          '!',
-          ['in', ['get', 'iso_a3'], ['literal', exploredCountryCodes]],
-        ])
-      }
-
-      if (instance.isStyleLoaded()) {
-        applyUnexploredMask()
-      } else {
-        instance.once('load', applyUnexploredMask)
-      }
-
-      return () => {
-        instance.off('load', applyUnexploredMask)
-      }
+      exploredCodes.current = exploredCountryCodes
+      updateMaskRef.current()
     }, [exploredCountryCodes])
 
     useEffect(() => {
-      const instance = map.current
+      if (navigator.userAgent.includes('jsdom')) {
+        return
+      }
+      let cancelled = false
+      fetch('/countries.geo.json')
+        .then((res) => res.json())
+        .then((data: { features: CountryFeature[] }) => {
+          if (!cancelled) {
+            countryFeatures.current = data.features
+            updateMaskRef.current()
+          }
+        })
+      return () => {
+        cancelled = true
+      }
+    }, [])
+
+    useEffect(() => {
+      const instance = exploredMap.current
       if (!instance) {
         return
       }
@@ -199,11 +266,28 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
     return (
       <div className="absolute inset-0">
-        <div
-          ref={mapContainer}
-          aria-label="Interactive map"
-          className="h-full w-full [&_.maplibregl-ctrl-top-left]:hidden"
-        />
+        <div className="absolute inset-0">
+          <div ref={unexploredContainer} className="h-full w-full" />
+        </div>
+        <div className="absolute inset-0">
+          <div
+            ref={exploredContainer}
+            aria-label="Interactive map"
+            className="h-full w-full [&_.maplibregl-ctrl-top-left]:hidden"
+          />
+        </div>
+        <svg
+          width="0"
+          height="0"
+          style={{ position: 'absolute' }}
+          aria-hidden="true"
+        >
+          <defs>
+            <mask id={maskId}>
+              <path ref={maskPath} fill="white" fillRule="evenodd" />
+            </mask>
+          </defs>
+        </svg>
       </div>
     )
   },
