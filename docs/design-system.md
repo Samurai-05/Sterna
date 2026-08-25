@@ -271,6 +271,25 @@ Categories are primarily distinguished by:
 
 They should **not** each receive a permanent unique color.
 
+### Analytics category visualization exception
+
+Category-specific colors may be used inside analytical category breakdowns only,
+such as the profile's "Discoveries by category" section. These colors are
+visualization aids, not global category tokens: keep them muted, apply them only
+to the icon treatment and progress indicator, and keep labels and counts
+neutral. Do not propagate this palette to navigation, filters, discovery cards,
+maps or other product surfaces.
+
+| Category | Icon / indicator | Soft background |
+|---|---|---|
+| Landscape | `#2F6B8A` | `#EAF3F7` |
+| Monument | `#7E6552` | `#F1E9E4` |
+| Food | `#B8572B` | `#FBF1EC` |
+| Animal | `#3F7A78` | `#E8F2F1` |
+| Plant | `#3F724E` | `#F0F7F3` |
+| Culture | `#756B8F` | `#F1EEF7` |
+| Other | `#9C7A32` | `#FBF4E2` |
+
 ### Inactive category
 
 | Property | Value |

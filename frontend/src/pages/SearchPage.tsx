@@ -18,7 +18,7 @@ export function SearchPage() {
   )
 
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader title="Search a place" backTo="/" />
       <div className="space-y-5 px-5">
         <label className="flex h-12 items-center gap-2 rounded-xl border border-border bg-card px-3 focus-within:ring-2 focus-within:ring-ring/30">

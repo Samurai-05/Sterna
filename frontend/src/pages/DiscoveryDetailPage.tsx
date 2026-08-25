@@ -12,7 +12,7 @@ export function DiscoveryDetailPage() {
     discoveries.find((item) => item.id === Number(discoveryId)) ??
     discoveries[0]
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader
         title="Discovery"
         backTo="/collection"

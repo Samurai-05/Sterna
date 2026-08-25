@@ -20,11 +20,11 @@ export function MapPage() {
     : discoveries
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#e8e3d9] pb-24">
+    <main className="relative min-h-dvh overflow-hidden bg-[#e8e3d9]">
       <h1 className="sr-only">Explore Paris</h1>
       <MapCanvas />
       <div className="absolute inset-0 bg-[#f7f5f0]/20" aria-hidden="true" />
-      <div className="relative z-10 px-4 pt-4">
+      <div className="sterna-map-controls relative z-10 px-4 pb-2">
         <div className="flex items-center gap-2">
           <Link
             to="/groups"

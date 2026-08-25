@@ -1,6 +1,11 @@
+import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router'
 
 import { BottomNavigation } from '@/components/BottomNavigation'
+import {
+  applySystemBarAppearance,
+  getSystemBarAppearance,
+} from '@/lib/system-bars'
 import { AddDiscoveryPage } from '@/pages/AddDiscoveryPage'
 import { CollectionPage } from '@/pages/CollectionPage'
 import { CreateGroupPage } from '@/pages/CreateGroupPage'
@@ -19,8 +24,14 @@ function App() {
   const { pathname } = useLocation()
   const showBottomNavigation = mainRoutes.has(pathname)
 
+  useEffect(() => {
+    void applySystemBarAppearance(getSystemBarAppearance(pathname))
+  }, [pathname])
+
   return (
-    <div className="min-h-dvh bg-background text-foreground">
+    <div
+      className={`sterna-app-shell min-h-dvh bg-background text-foreground ${showBottomNavigation ? 'sterna-app-shell--with-bottom-navigation' : ''}`}
+    >
       <Routes>
         <Route path="/" element={<MapPage />} />
         <Route path="/search" element={<SearchPage />} />
