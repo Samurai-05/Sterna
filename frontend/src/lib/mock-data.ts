@@ -11,7 +11,7 @@ export interface Discovery {
   author: string
   initials: string
   relativeDate: string
-  mapPosition: { left: string; top: string }
+  coordinates: [number, number]
 }
 
 export interface Group {
@@ -30,6 +30,7 @@ export interface Landmark {
   imageId: string
   description: string
   discovered: boolean
+  coordinates: [number, number]
 }
 
 export const categories: Array<{
@@ -57,7 +58,7 @@ export const discoveries: Discovery[] = [
     author: 'Emma',
     initials: 'E',
     relativeDate: '2h ago',
-    mapPosition: { left: '35%', top: '40%' },
+    coordinates: [2.3622, 48.8586],
   },
   {
     id: 2,
@@ -70,7 +71,7 @@ export const discoveries: Discovery[] = [
     author: 'Marc',
     initials: 'M',
     relativeDate: '4h ago',
-    mapPosition: { left: '72%', top: '35%' },
+    coordinates: [2.3608, 48.8598],
   },
   {
     id: 3,
@@ -82,7 +83,7 @@ export const discoveries: Discovery[] = [
     author: 'Emma',
     initials: 'E',
     relativeDate: '6h ago',
-    mapPosition: { left: '55%', top: '59%' },
+    coordinates: [2.3364, 48.8606],
   },
   {
     id: 4,
@@ -95,7 +96,7 @@ export const discoveries: Discovery[] = [
     author: 'Lucas',
     initials: 'L',
     relativeDate: '1d ago',
-    mapPosition: { left: '24%', top: '55%' },
+    coordinates: [2.3431, 48.8867],
   },
   {
     id: 5,
@@ -107,7 +108,7 @@ export const discoveries: Discovery[] = [
     author: 'Emma',
     initials: 'E',
     relativeDate: '1d ago',
-    mapPosition: { left: '70%', top: '73%' },
+    coordinates: [2.3364, 48.8462],
   },
   {
     id: 6,
@@ -119,7 +120,7 @@ export const discoveries: Discovery[] = [
     author: 'Lucas',
     initials: 'L',
     relativeDate: '2d ago',
-    mapPosition: { left: '18%', top: '78%' },
+    coordinates: [2.2431, 48.8637],
   },
 ]
 
@@ -156,6 +157,7 @@ export const landmarks: Landmark[] = [
     description:
       'The iconic iron lattice tower on the Champ de Mars, completed for the World’s Fair.',
     discovered: true,
+    coordinates: [2.2945, 48.8584],
   },
   {
     id: 'arc-de-triomphe',
@@ -166,6 +168,7 @@ export const landmarks: Landmark[] = [
     description:
       'A monument honouring those who fought for France, standing at the centre of twelve avenues.',
     discovered: true,
+    coordinates: [2.295, 48.8738],
   },
 ]
 
