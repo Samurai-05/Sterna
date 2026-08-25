@@ -193,7 +193,7 @@ FK group_id -> GROUPS.id
 
 ```text
 POIS(
-    id PK NOT NULL,
+    id PK,
     title NOT NULL,
     description NULL,
     location NOT NULL,
