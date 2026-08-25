@@ -63,8 +63,34 @@ jobs:
     permissions:
       contents: read
       packages: read
+    # Compose interpolates ${VAR} from the environment of the process that runs
+    # it. These have to be defined here rather than in a `.env` on the VM:
+    # actions/checkout runs `git clean -ffdx` in the workspace on every run, so
+    # any untracked .env placed there is deleted before Compose ever sees it.
+    # Without them every variable expands to "" and postgres never gets healthy.
+    env:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      MINIO_BUCKET_NAME: ${{ secrets.MINIO_BUCKET_NAME }}
     steps:
       - uses: actions/checkout@v4
+
+      # Fail loudly and early rather than letting Compose silently substitute
+      # empty strings for missing credentials.
+      - name: Check the deployment secrets are configured
+        run: |
+          missing=
+          for var in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB \
+                     MINIO_ROOT_USER MINIO_ROOT_PASSWORD MINIO_BUCKET_NAME; do
+            [ -n "${!var}" ] || missing="$missing $var"
+          done
+          if [ -n "$missing" ]; then
+            echo "Missing repository secrets:$missing" >&2
+            exit 1
+          fi
 
       - uses: docker/login-action@v3
         with:
