@@ -80,6 +80,7 @@ docker compose up --build
 | Service | URL | Port variable |
 |---|---|---|
 | API | [http://localhost:3000/api](http://localhost:3000/api) | `API_PORT` |
+| API documentation | [http://localhost:3000/api/docs](http://localhost:3000/api/docs) | — |
 | Web placeholder | [http://localhost:8080](http://localhost:8080) | `WEB_PORT` |
 | MinIO console | [http://localhost:9001](http://localhost:9001) | — |
 

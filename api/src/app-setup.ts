@@ -1,4 +1,5 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { setupSwagger } from './swagger';
 
 /**
  * Application-wide configuration, applied by both main.ts and the e2e tests
@@ -19,4 +20,8 @@ export function configureApp(app: INestApplication): void {
       transform: true,
     }),
   );
+
+  // After the pipes: the OpenAPI document describes the DTOs those pipes
+  // enforce.
+  setupSwagger(app);
 }

@@ -26,6 +26,16 @@ curl http://localhost:3000/api/health
 # {"status":"ok","info":{"database":{"status":"up"}},...}
 ```
 
+Interactive documentation: <http://localhost:3000/api/docs>.
+
+**After changing `package.json`**, rebuild the image — the container's `node_modules` lives
+in a volume created at build time, so a dependency installed on the host is not visible
+inside it:
+
+```bash
+docker compose up -d --build --renew-anon-volumes api
+```
+
 ## Layout
 
 ```
@@ -34,7 +44,8 @@ src/
 │   ├── env.validation.ts        environment schema, validated at boot
 │   └── data-source-options.ts   database settings shared by app and CLI
 ├── health/                      GET /api/health (Terminus)
-├── app-setup.ts                 global prefix and validation pipe
+├── app-setup.ts                 global prefix, validation pipe, OpenAPI
+├── swagger.ts                   OpenAPI document
 ├── app.module.ts                composition root
 ├── data-source.ts               DataSource for the TypeORM CLI only
 └── main.ts                      bootstrap
@@ -96,6 +107,28 @@ location: Point;
 
 The `postgis` extension is created by `infra/postgres/init/001-init-extensions.sql` when the
 database volume is first initialised.
+
+## API documentation
+
+| URL | Content |
+|---|---|
+| `/api/docs` | Swagger UI |
+| `/api/docs-json` | Raw OpenAPI 3 document, for client generators |
+
+The document is generated from the controllers and DTOs themselves, so it cannot drift from
+the validation the API actually enforces. The `@nestjs/swagger` CLI plugin is enabled in
+`nest-cli.json`, which means it reads TypeScript types and the existing `class-validator`
+decorators: **DTO properties do not need an `@ApiProperty()` on every field**. Decorators
+are only worth adding for what cannot be inferred — summaries, descriptions, response
+examples and non-obvious status codes, as in `health/health.controller.ts`.
+
+The documentation is served in **every environment**, production included. This is a school
+project whose API is meant to be demonstrated, and the endpoints are reachable regardless of
+whether they are documented. To restrict it, guard the `setupSwagger(app)` call in
+`app-setup.ts` on `NODE_ENV`.
+
+When authentication lands, add `.addBearerAuth()` to the `DocumentBuilder` chain in
+`swagger.ts` so the UI can send a token.
 
 ## Conventions
 

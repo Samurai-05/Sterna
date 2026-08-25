@@ -14,6 +14,7 @@ docker compose up
 | Service | URL | Note |
 |---|---|---|
 | API | http://localhost:3000/api | `API_PORT`; check `GET /api/health` |
+| API documentation | http://localhost:3000/api/docs | Swagger UI, generated from the code |
 | Web placeholder | http://localhost:8080 | `WEB_PORT`; still the Nginx placeholder |
 | MinIO console | http://localhost:9001 | Credentials from `.env` |
 | PostgreSQL | localhost:5432 | PostgreSQL + PostGIS |
@@ -38,6 +39,14 @@ docker compose exec api npm test           # unit tests
 docker compose exec api npm run test:e2e   # end-to-end tests (needs the database)
 docker compose exec api npm run lint:ci    # what CI runs
 docker compose exec api npm run migration:run
+```
+
+After adding a dependency to `api/package.json`, rebuild — the container's `node_modules` is
+a volume created when the image was built, so an install done on the host is invisible
+inside it:
+
+```bash
+docker compose up -d --build --renew-anon-volumes api
 ```
 
 Details, project layout and conventions: [`api/README.md`](../api/README.md).
