@@ -6,6 +6,8 @@ const completeEnv = {
   POSTGRES_USER: 'app_user',
   POSTGRES_PASSWORD: 'secret',
   POSTGRES_DB: 'app_db',
+  JWT_SECRET: 'test-secret',
+  JWT_EXPIRES_IN: '1h',
 };
 
 describe('validate', () => {

@@ -27,6 +27,7 @@ export function setupSwagger(app: INestApplication): void {
         'The API is the only component that accesses PostgreSQL + PostGIS and MinIO.',
     )
     .setVersion('0.0.1')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

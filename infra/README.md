@@ -26,7 +26,13 @@ to reach them. The API service itself is defined in the same Compose stack — s
    docker compose up -d
    ```
 
-3. Check that everything is healthy:
+3. Apply API-managed database migrations:
+
+   ```bash
+   docker compose exec api npm run migration:run
+   ```
+
+4. Check that everything is healthy:
 
    ```bash
    docker compose ps
@@ -66,9 +72,9 @@ docker compose down -v
 
 - PostgreSQL + PostGIS provides relational storage, geographical data storage,
   and spatial queries such as country detection and distance to points of
-  interest. See `postgres/init/001-init-extensions.sql`.
+  interest. See `postgres/bootstrap/001_enable_postgis.sql`.
 - The Node.js backend is the only component that accesses PostgreSQL + PostGIS.
-- `001-init-extensions.sql` runs only when the `postgres_data` volume is first
+- `001_enable_postgis.sql` runs only when the `postgres_data` volume is first
   created; it enables the `postgis` extension. Everything beyond that — tables,
   indexes, constraints — belongs to the API's TypeORM migrations (`api/src/migrations/`),
   never to a manual change against a running database.

@@ -47,6 +47,12 @@ describe('OpenAPI documentation (e2e)', () => {
 
     expect(document.openapi).toMatch(/^3\./);
     expect(document.info.title).toBe('Sterna API');
+    expect(document.paths['/api/auth/login'].post.tags).toContain('auth');
+    expect(document.paths['/api/discoveries'].post.tags).toContain(
+      'discoveries',
+    );
     expect(document.paths['/api/health'].get.tags).toContain('health');
+    expect(document.paths['/api/pois'].get.tags).toContain('pois');
+    expect(document.paths['/api/users'].post.tags).toContain('users');
   });
 });

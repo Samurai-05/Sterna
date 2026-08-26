@@ -4,6 +4,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
+  Matches,
   IsString,
   Max,
   Min,
@@ -54,6 +55,15 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   POSTGRES_DB: string;
+
+  @IsString()
+  @IsNotEmpty()
+  JWT_SECRET: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d+[smhd]$/)
+  JWT_EXPIRES_IN: string;
 }
 
 export function validate(

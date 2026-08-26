@@ -19,6 +19,12 @@ That builds the Dockerfile's `development` target, mounts `api/` into the contai
 `nest start --watch`, so saving a file recompiles and restarts the service. The API is
 published on `http://localhost:3000` (`API_PORT` in `.env`).
 
+Apply pending database migrations after starting the stack:
+
+```bash
+docker compose exec api npm run migration:run
+```
+
 Check that it is up:
 
 ```bash
@@ -105,7 +111,7 @@ Spatial columns use PostGIS types through TypeORM's spatial support, per
 location: Point;
 ```
 
-The `postgis` extension is created by `infra/postgres/init/001-init-extensions.sql` when the
+The `postgis` extension is created by `infra/postgres/bootstrap/001_enable_postgis.sql` when the
 database volume is first initialised.
 
 ## API documentation

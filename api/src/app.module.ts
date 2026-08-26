@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 import { buildDataSourceOptions } from './config/data-source-options';
 import { validate } from './config/env.validation';
+import { DiscoveriesModule } from './discoveries/discoveries.module';
 import { HealthModule } from './health/health.module';
+import { PoisModule } from './pois/pois.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -25,7 +29,11 @@ import { HealthModule } from './health/health.module';
         autoLoadEntities: true,
       }),
     }),
+    AuthModule,
+    DiscoveriesModule,
     HealthModule,
+    PoisModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
