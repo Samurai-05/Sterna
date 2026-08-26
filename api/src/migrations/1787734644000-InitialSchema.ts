@@ -3,21 +3,66 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
 /**
  * Baseline schema: users, groups, group memberships, discoveries and POIs.
  *
- * The SQL is carried over from the former `infra/postgres/init/002…007` scripts,
- * which only ever ran on an empty `postgres_data` volume and had therefore never
- * been applied to any environment. Owning it here makes the schema reproducible
- * on a volume that already exists.
+ * The SQL is carried over from the former `infra/postgres/init/002…007`
+ * scripts, so that the schema is owned here rather than by container init
+ * scripts that only ever run on an empty `postgres_data` volume.
+ *
+ * Those scripts did run on production, whose volume was created while they
+ * still existed. So this migration has to cope with a database that already
+ * carries the whole schema and simply has no `migrations` table to prove it —
+ * otherwise it aborts on `relation "users" already exists`, which is exactly
+ * how it first broke the deploy. In that case it adopts the database: it
+ * records itself as applied and creates nothing. The DDL below is equivalent
+ * to the 002…007 scripts table for table, constraint for constraint and index
+ * for index, so adopting leaves precisely what a fresh run would have built.
+ *
+ * A database holding only some of the tables is not a state either path
+ * produces, so it fails loudly rather than guessing at the difference.
  *
  * `CREATE EXTENSION postgis` is repeated (idempotently) from
- * `infra/postgres/bootstrap/001_enable_postgis.sql` so this migration can also bring
- * up a database that never went through the container's bootstrap script — a test
- * database, for instance.
+ * `infra/postgres/bootstrap/001_enable_postgis.sql` so this migration can also
+ * bring up a database that never went through the container's bootstrap
+ * script — a test database, for instance.
  */
 export class InitialSchema1787734644000 implements MigrationInterface {
   name = 'InitialSchema1787734644000';
 
+  /** Every table the DDL below creates, in dependency order. */
+  private static readonly TABLES = [
+    'users',
+    'groups',
+    'group_members',
+    'discoveries',
+    'pois',
+  ];
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS postgis`);
+
+    const existing: string[] = [];
+
+    for (const table of InitialSchema1787734644000.TABLES) {
+      if (await queryRunner.hasTable(table)) {
+        existing.push(table);
+      }
+    }
+
+    if (existing.length === InitialSchema1787734644000.TABLES.length) {
+      // Adopting a database built by infra/postgres/init/. Returning here still
+      // writes the row in `migrations`, which is the whole point: the schema
+      // comes under migration control without being rebuilt.
+      return;
+    }
+
+    if (existing.length > 0) {
+      throw new Error(
+        `Refusing to run InitialSchema against a partial schema. Found: ` +
+          `${existing.join(', ')}. Expected either all of ` +
+          `${InitialSchema1787734644000.TABLES.join(', ')} (an existing ` +
+          `database, which is adopted as-is) or none of them (a new one). ` +
+          `Inspect the database by hand before retrying.`,
+      );
+    }
 
     // -- users ---------------------------------------------------------------
 

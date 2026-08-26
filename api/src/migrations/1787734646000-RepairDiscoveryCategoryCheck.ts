@@ -4,22 +4,24 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
  * Brings `discoveries_category_check` in line with the capitalised
  * `DiscoveryCategory` enum (api/src/discoveries/discovery-category.ts).
  *
- * The constraint was originally written with lower-case identifiers and was
- * later edited in place inside InitialSchema1787734644000. TypeORM keys the
- * `migrations` table on the migration's class name, which that edit did not
- * change, so any database that had already run InitialSchema kept the old
- * lower-case constraint — and every insert carrying a category would fail
- * against it, because CreateDiscoveryDto only ever admits 'Landscape',
- * 'Monument' and friends.
+ * The values were capitalised in the original `infra/postgres/init/` DDL, went
+ * lower-case when that DDL was converted into InitialSchema1787734644000
+ * (d091b5b), and were put back in #99 — an in-place edit of a migration that
+ * had by then run on developer machines. TypeORM keys the `migrations` table
+ * on class name, which the edit did not change, so those databases keep the
+ * lower-case constraint and will reject every insert CreateDiscoveryDto
+ * admits, with no pending migration to tell them why.
  *
- * This migration repairs those databases. It is deliberately written to be a
- * no-op on a database where InitialSchema ran with the already-corrected SQL,
- * so it is safe whichever state an environment happens to be in:
+ * Production is not affected: its volume predates the conversion, so its
+ * constraint came from the DDL and was capitalised all along. This is a repair
+ * for the databases caught in that window, not a production fix.
+ *
+ * It is written to be a no-op wherever the constraint is already correct, so
+ * it is safe whichever of the two spellings an environment happens to hold:
  *
  *   - DROP ... IF EXISTS tolerates the constraint being absent.
  *   - The UPDATE only rewrites rows that are not already capitalised.
- *   - Re-adding the constraint reproduces exactly what the corrected
- *     InitialSchema creates.
+ *   - Re-adding the constraint reproduces exactly what InitialSchema creates.
  */
 export class RepairDiscoveryCategoryCheck1787734646000 implements MigrationInterface {
   name = 'RepairDiscoveryCategoryCheck1787734646000';
