@@ -8,6 +8,7 @@ import {
   IsString,
   Max,
   Min,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
@@ -98,6 +99,23 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   MINIO_BUCKET_NAME: string;
+
+  // HMAC key the access tokens are signed with. 32 characters is the floor
+  // because a shorter HS256 key can be brute-forced offline from a single
+  // captured token; rejecting it here is what stops a placeholder secret from
+  // reaching production (NFR-22).
+  @IsString()
+  @MinLength(32)
+  JWT_SECRET: string;
+
+  // Seconds rather than a duration string ("7d"): @types/jsonwebtoken types
+  // SignOptions.expiresIn as `StringValue | number`, so a plain string read
+  // from the environment does not type-check. It is also the unit RFC 6749
+  // uses for the expiresIn the API hands back to clients.
+  @IsOptional()
+  @IsInt()
+  @Min(60)
+  JWT_EXPIRES_IN_SECONDS?: number;
 }
 
 export function validate(
