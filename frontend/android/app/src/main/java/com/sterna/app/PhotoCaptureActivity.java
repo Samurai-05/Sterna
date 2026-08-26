@@ -152,10 +152,6 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         topScrim.setBackgroundResource(R.drawable.camera_top_scrim);
         root.addView(topScrim, new FrameLayout.LayoutParams(-1, dp(180), Gravity.TOP));
 
-        View bottomScrim = new View(this);
-        bottomScrim.setBackgroundResource(R.drawable.camera_bottom_scrim);
-        root.addView(bottomScrim, new FrameLayout.LayoutParams(-1, dp(300), Gravity.BOTTOM));
-
         topControls = new FrameLayout(this);
         closeButton = createControlButton(R.drawable.ic_camera_close, "Close photo capture");
         closeButton.setOnClickListener(view -> cancelAndClose());
