@@ -1,12 +1,12 @@
-import { CalendarDays, MapPin, MoreHorizontal } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { CalendarDays, MapPin, Trash2 } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { getDiscoveries } from '@/lib/api'
-import { categoryLabel, discoveries, imageUrl } from '@/lib/mock-data'
+import { deleteDiscovery, getDiscovery } from '@/lib/api'
+import { categoryLabel, imageUrl } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 
 export function DiscoveryDetailPage() {
@@ -14,17 +14,36 @@ export function DiscoveryDetailPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const session = loadSession()
+  const queryClient = useQueryClient()
   const openedFromMap =
     (location.state as { from?: string } | null)?.from === 'map'
   const handleBack = () => (openedFromMap ? navigate('/') : navigate(-1))
-  const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries', session?.user.id],
-    queryFn: () => getDiscoveries(session!.accessToken),
-    enabled: Boolean(session),
+  const { data: discovery, isLoading } = useQuery({
+    queryKey: ['discovery', session?.user.id, discoveryId],
+    queryFn: () => getDiscovery(session!.accessToken, discoveryId!),
+    enabled: Boolean(session && discoveryId),
   })
-  const sourceDiscoveries = backendDiscoveries ?? discoveries
-  const discovery =
-    sourceDiscoveries.find((item) => item.id === Number(discoveryId)) ?? null
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteDiscovery(session!.accessToken, discoveryId!),
+    onSuccess: () => {
+      queryClient.removeQueries({
+        queryKey: ['discovery', session?.user.id, discoveryId],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['discoveries', session?.user.id],
+      })
+      navigate('/collection', { replace: true })
+    },
+  })
+
+  if (isLoading) {
+    return (
+      <main className="min-h-dvh bg-background pb-8">
+        <PageHeader title="Discovery" backTo="/collection" />
+        <div className="px-5 text-sm text-muted-foreground">Loading...</div>
+      </main>
+    )
+  }
 
   if (!discovery) {
     return (
@@ -39,20 +58,7 @@ export function DiscoveryDetailPage() {
 
   return (
     <main className="min-h-dvh bg-background">
-      <PageHeader
-        title="Discovery"
-        onBack={handleBack}
-        action={
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-11"
-            aria-label="More options"
-          >
-            <MoreHorizontal />
-          </Button>
-        }
-      />
+      <PageHeader title="Discovery" onBack={handleBack} />
       <article className="px-5">
         <img
           src={imageUrl(discovery.imageId)}
@@ -89,6 +95,25 @@ export function DiscoveryDetailPage() {
         <Button asChild variant="outline" className="mt-6 h-11 w-full">
           <Link to={`/discoveries/${discovery.id}/edit`}>Edit discovery</Link>
         </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={deleteMutation.isPending}
+          className="mt-3 h-11 w-full"
+          onClick={() => {
+            if (window.confirm('Delete this discovery permanently?')) {
+              deleteMutation.mutate()
+            }
+          }}
+        >
+          <Trash2 />
+          {deleteMutation.isPending ? 'Deleting...' : 'Delete discovery'}
+        </Button>
+        {deleteMutation.isError && (
+          <p role="status" className="mt-3 text-sm text-destructive">
+            Unable to delete discovery.
+          </p>
+        )}
       </article>
     </main>
   )

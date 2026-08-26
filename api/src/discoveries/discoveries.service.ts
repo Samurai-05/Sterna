@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateDiscoveryDto } from './create-discovery.dto';
 import { Discovery } from './discovery.entity';
+import { UpdateDiscoveryDto } from './update-discovery.dto';
 
 export interface DiscoveryResponse {
   id: string;
@@ -121,6 +122,110 @@ export class DiscoveriesService {
     );
 
     return this.toResponse(row);
+  }
+
+  async findOneByUser(id: string, userId: string): Promise<DiscoveryResponse> {
+    const [row] = await this.discoveries.query<DiscoveryRow[]>(
+      `
+        SELECT
+          id,
+          user_id,
+          group_id,
+          title,
+          description,
+          category,
+          ST_X(location) AS longitude,
+          ST_Y(location) AS latitude,
+          image_object_key,
+          discovered_at,
+          created_at,
+          updated_at
+        FROM discoveries
+        WHERE id = $1 AND user_id = $2
+      `,
+      [id, userId],
+    );
+
+    return this.toResponse(this.requireRow(row));
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    dto: UpdateDiscoveryDto,
+  ): Promise<DiscoveryResponse> {
+    const [row] = await this.discoveries.query<DiscoveryRow[]>(
+      `
+        WITH updated AS (
+          UPDATE discoveries
+          SET
+            title = COALESCE($3, title),
+            description = CASE WHEN $4::boolean THEN $5 ELSE description END,
+            category = COALESCE($6, category),
+            location = ST_SetSRID(
+              ST_MakePoint(
+                COALESCE($7, ST_X(location)),
+                COALESCE($8, ST_Y(location))
+              ),
+              4326
+            )
+          WHERE id = $1 AND user_id = $2
+          RETURNING *
+        )
+        SELECT
+          id,
+          user_id,
+          group_id,
+          title,
+          description,
+          category,
+          ST_X(location) AS longitude,
+          ST_Y(location) AS latitude,
+          image_object_key,
+          discovered_at,
+          created_at,
+          updated_at
+        FROM updated
+      `,
+      [
+        id,
+        userId,
+        dto.title ?? null,
+        Object.prototype.hasOwnProperty.call(dto, 'description'),
+        dto.description ?? null,
+        dto.category ?? null,
+        dto.longitude ?? null,
+        dto.latitude ?? null,
+      ],
+    );
+
+    return this.toResponse(this.requireRow(row));
+  }
+
+  async remove(id: string, userId: string): Promise<void> {
+    const result = await this.discoveries.query<Array<{ id: string }>>(
+      `
+        WITH deleted AS (
+          DELETE FROM discoveries
+          WHERE id = $1 AND user_id = $2
+          RETURNING id
+        )
+        SELECT id FROM deleted
+      `,
+      [id, userId],
+    );
+
+    if (!result[0]) {
+      throw new NotFoundException('Discovery not found.');
+    }
+  }
+
+  private requireRow(row: DiscoveryRow | undefined): DiscoveryRow {
+    if (!row) {
+      throw new NotFoundException('Discovery not found.');
+    }
+
+    return row;
   }
 
   private toResponse(row: DiscoveryRow): DiscoveryResponse {
