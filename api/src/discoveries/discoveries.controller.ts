@@ -8,7 +8,6 @@ import {
 import type { AuthenticatedUser } from '../common/authenticated-user';
 import { ApiAuthenticated } from '../common/decorators/api-authenticated.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Public } from '../common/decorators/public.decorator';
 import { CreateDiscoveryDto } from './create-discovery.dto';
 import { DiscoveriesService, DiscoveryResponse } from './discoveries.service';
 
@@ -32,19 +31,22 @@ const discoveryExample = {
 export class DiscoveriesController {
   constructor(private readonly discoveries: DiscoveriesService) {}
 
-  @Public()
   @Get()
+  @ApiAuthenticated()
   @ApiOperation({
-    summary: 'List discoveries',
+    summary: 'List the signed-in user\'s discoveries',
     description:
-      'Reads discoveries from PostgreSQL and extracts coordinates with PostGIS.',
+      'Reads only discoveries authored by the signed-in user and extracts ' +
+      'coordinates with PostGIS.',
   })
   @ApiOkResponse({
-    description: 'Known discoveries.',
+    description: 'Discoveries authored by the signed-in user.',
     schema: { example: [discoveryExample] },
   })
-  findAll(): Promise<DiscoveryResponse[]> {
-    return this.discoveries.findAll();
+  findAll(
+    @CurrentUser() caller: AuthenticatedUser,
+  ): Promise<DiscoveryResponse[]> {
+    return this.discoveries.findAllByUser(caller.id);
   }
 
   @Post()

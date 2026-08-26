@@ -6,7 +6,7 @@ import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
 
 describe('App', () => {
-  // A signed-out visit to "/" now redirects to the welcome screen (App.tsx),
+  // A signed-out visit to "/" redirects to the authentication entry screen,
   // so these tests act as an already-signed-in user reaching the map, the
   // same way a returning user would.
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('App', () => {
     window.localStorage.clear()
   })
 
-  it('redirects a signed-out visit to the root route to the welcome screen', () => {
+  it('redirects a signed-out visit to the authentication entry screen', () => {
     window.localStorage.clear()
     renderWithProviders(<App />, { route: '/' })
 
@@ -35,6 +35,28 @@ describe('App', () => {
         name: 'Keep your discoveries close',
       }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Create an account' }),
+    ).toHaveAttribute('href', '/register')
+    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute(
+      'href',
+      '/login',
+    )
+  })
+
+  it('redirects a signed-out application route to the authentication entry', () => {
+    window.localStorage.clear()
+    renderWithProviders(<App />, { route: '/collection' })
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Keep your discoveries close',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { level: 1, name: 'Your discoveries' }),
+    ).not.toBeInTheDocument()
   })
 
   it('renders the welcome screen at the authentication entry route', () => {
@@ -128,12 +150,12 @@ describe('App', () => {
     expect(
       screen.getByRole('button', { name: 'Open account settings' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Emma Barret')).toBeInTheDocument()
+    expect(screen.getByText('Explorer')).toBeInTheDocument()
     const accountButton = screen.getByRole('button', {
       name: 'Open account settings',
     })
     const profileImage = within(accountButton).getByRole('img', {
-      name: 'Emma Barret',
+      name: 'Explorer',
     })
     expect(accountButton).toHaveClass('size-[68px]')
     expect(accountButton).toHaveClass('-translate-x-2.5')
@@ -144,7 +166,7 @@ describe('App', () => {
     )
     fireEvent.error(profileImage)
     expect(within(accountButton).getByText('E')).toBeInTheDocument()
-    expect(screen.getByText('Explorer · Since March 2023')).toHaveClass('mt-2')
+    expect(screen.getByText('Explorer · Since 2026')).toHaveClass('mt-2')
     expect(
       within(screen.getByLabelText('Exploration statistics')).getByText(
         'Countries',
@@ -211,7 +233,7 @@ describe('App', () => {
 
     const overview = screen.getByRole('region', { name: 'Profile overview' })
 
-    expect(within(overview).getByText('Emma Barret')).toBeInTheDocument()
+    expect(within(overview).getByText('Explorer')).toBeInTheDocument()
     expect(within(overview).getByText('Discoveries')).toBeInTheDocument()
     expect(within(overview).getByText('Countries')).toBeInTheDocument()
     expect(within(overview).getByText('POIs')).toBeInTheDocument()

@@ -57,7 +57,9 @@ export function AddDiscoveryPage() {
   const mutation = useMutation({
     mutationFn: createDiscovery,
     onSuccess: (discovery) => {
-      queryClient.invalidateQueries({ queryKey: ['discoveries'] })
+      queryClient.invalidateQueries({
+        queryKey: ['discoveries', session?.user.id],
+      })
       navigate(`/discoveries/${discovery.id}`)
     },
     onError: (error) => {
