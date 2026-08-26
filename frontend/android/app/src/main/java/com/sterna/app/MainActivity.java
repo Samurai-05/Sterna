@@ -7,6 +7,10 @@ import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
 
+    public MainActivity() {
+        registerPlugin(SternaPhotoCapturePlugin.class);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
