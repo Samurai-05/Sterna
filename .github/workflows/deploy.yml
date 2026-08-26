@@ -93,6 +93,16 @@ jobs:
             echo "Missing repository secrets:$missing" >&2
             exit 1
           fi
+          # The API refuses to boot on a JWT_SECRET shorter than 32 characters
+          # (@MinLength(32) in api/src/config/env.validation.ts, per NFR-22).
+          # Checking only for non-emptiness let a too-short secret through to
+          # become a crash-on-boot on the VM, which is far harder to read than
+          # a failure here.
+          if [ "${#JWT_SECRET}" -lt 32 ]; then
+            echo "JWT_SECRET is ${#JWT_SECRET} characters; the API requires at least 32." >&2
+            echo "Regenerate it with: openssl rand -base64 48" >&2
+            exit 1
+          fi
 
       - uses: docker/login-action@v3
         with:
@@ -103,22 +113,45 @@ jobs:
       # -f docker-compose.yml is deliberate: the repository checkout also
       # contains docker-compose.override.yml, which Compose would otherwise
       # load automatically and turn this into a development deployment.
-      - name: Pull and restart
-        run: |
-          docker compose -f docker-compose.yml pull
-          docker compose -f docker-compose.yml up -d
-          docker image prune -f
+      - name: Pull the new images
+        run: docker compose -f docker-compose.yml pull
 
       # The schema belongs to api/src/migrations/, so it has to be applied on
       # every deploy — infra/postgres/bootstrap/ only ever runs on a brand new
       # postgres_data volume. `migration:run:prod` drives the compiled
       # dist/data-source.js with the plain typeorm CLI: the production image has
       # no ts-node, so the ts-node-based `migration:run` cannot work there.
-      # `up -d` has already waited for postgres to report healthy (depends_on).
+      #
+      # This runs BEFORE the API starts, in a throwaway container of its own.
+      #
+      # It used to be `exec -T api` after `up -d`, which had two faults. The
+      # ordering was backwards — the API booted against a schema that had not
+      # been migrated yet — and, worse, `exec` attaches to the long-running API
+      # container, which carries `restart: unless-stopped`. When that container's
+      # main process dies, Docker SIGKILLs every exec session inside it, so an
+      # API that crashes on boot surfaced here as a bare "exit code 137" on the
+      # migration step, with no output and no hint that the API was the problem.
+      #
+      # A throwaway container cannot be caught in someone else's restart: it
+      # reports the migration's own exit code and its own stderr. `--name` is
+      # required because the api service sets `container_name: app_api`, which
+      # `run` would otherwise collide with.
+      #
+      # Postgres is brought up separately with `--wait` ("Wait for services to be
+      # running|healthy") rather than leaning on `run` to resolve depends_on:
+      # the compose-run reference documents dependency startup only for `links`,
+      # so `--no-deps` keeps this off undocumented behaviour. Migrations need the
+      # database and nothing else.
       - name: Apply database migrations
         run: |
-          docker compose -f docker-compose.yml exec -T api \
+          docker compose -f docker-compose.yml up -d --wait postgres
+          docker compose -f docker-compose.yml run --rm --no-deps --name sterna_migrate api \
             npm run migration:run:prod
+
+      - name: Start the stack
+        run: |
+          docker compose -f docker-compose.yml up -d
+          docker image prune -f
 
       - name: Verify the API is healthy
         run: |
@@ -135,6 +168,15 @@ jobs:
                 exit 1
                 ;;
             esac
+            # A container that crashes on boot is restarted by
+            # `restart: unless-stopped` and never leaves "starting", so without
+            # this it would burn the full 150s before saying anything useful.
+            restarts=$(docker inspect --format '{{.RestartCount}}' app_api 2>/dev/null || echo 0)
+            if [ "$restarts" -gt 0 ]; then
+              echo "API container has restarted $restarts time(s) — it is crashing on boot"
+              docker compose -f docker-compose.yml logs api --tail 50
+              exit 1
+            fi
             sleep 5
           done
           echo "API did not become healthy within 150s"
