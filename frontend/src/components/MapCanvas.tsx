@@ -6,13 +6,14 @@ import {
   Map,
   Marker,
   NavigationControl,
+  Popup,
   setWorkerUrl,
 } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
-import type { DiscoveryCategory } from '@/lib/mock-data'
+import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -20,6 +21,9 @@ const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
 const countriesSourceId = 'countries'
 const unexploredFillLayerId = 'unexplored-countries-fill'
 const countryBorderLayerId = 'country-borders'
+// Zoom level from which a marker is "close" enough that its photo pre-opens
+// above the pin instead of waiting for a tap.
+const photoPreopenZoom = 15
 
 // countries.geo.json gives two genuinely disputed areas their own feature
 // instead of folding them into either claim's polygon — XCR (Crimea, claimed
@@ -39,13 +43,36 @@ export interface DiscoveryMarkerData {
   id: number
   name: string
   category: DiscoveryCategory
+  imageId: string
   coordinates: [number, number]
 }
 
 export interface LandmarkMarkerData {
   id: string
   name: string
+  imageId: string
   coordinates: [number, number]
+}
+
+function createPhotoPreviewElement(
+  name: string,
+  imageId: string,
+  onSelect: () => void,
+) {
+  const button = document.createElement('button')
+  button.type = 'button'
+  button.setAttribute('aria-label', `View ${name}`)
+  button.className =
+    'block size-[72px] overflow-hidden rounded-xl border-2 border-white shadow-lg'
+  button.addEventListener('click', onSelect)
+
+  const img = document.createElement('img')
+  img.src = imageUrl(imageId, 160)
+  img.alt = ''
+  img.className = 'size-full object-cover'
+
+  button.appendChild(img)
+  return button
 }
 
 interface MapCanvasProps {
@@ -209,6 +236,18 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       const markers: Marker[] = []
       const roots: Root[] = []
+      const photoPopups: Popup[] = []
+
+      const updatePhotoPopups = () => {
+        const shouldShow = instance.getZoom() >= photoPreopenZoom
+        for (const popup of photoPopups) {
+          if (shouldShow) {
+            if (!popup.isOpen()) popup.addTo(instance)
+          } else if (popup.isOpen()) {
+            popup.remove()
+          }
+        }
+      }
 
       for (const discovery of discoveries) {
         const el = document.createElement('div')
@@ -229,6 +268,22 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             .addTo(instance),
         )
         roots.push(root)
+
+        photoPopups.push(
+          new Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: 28,
+            anchor: 'bottom',
+            className: 'sterna-map-photo-popup',
+          })
+            .setLngLat(discovery.coordinates)
+            .setDOMContent(
+              createPhotoPreviewElement(discovery.name, discovery.imageId, () =>
+                onSelectDiscovery?.(discovery.id),
+              ),
+            ),
+        )
       }
 
       for (const landmark of landmarks) {
@@ -250,9 +305,30 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             .addTo(instance),
         )
         roots.push(root)
+
+        photoPopups.push(
+          new Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: 26,
+            anchor: 'bottom',
+            className: 'sterna-map-photo-popup',
+          })
+            .setLngLat(landmark.coordinates)
+            .setDOMContent(
+              createPhotoPreviewElement(landmark.name, landmark.imageId, () =>
+                onSelectLandmark?.(landmark.id),
+              ),
+            ),
+        )
       }
 
+      updatePhotoPopups()
+      instance.on('zoom', updatePhotoPopups)
+
       return () => {
+        instance.off('zoom', updatePhotoPopups)
+        photoPopups.forEach((popup) => popup.remove())
         markers.forEach((marker) => marker.remove())
         // Deferred: unmounting synchronously here can race with React's own
         // commit of an unrelated update (e.g. this page unmounting on
