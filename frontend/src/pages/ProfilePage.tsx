@@ -1,46 +1,111 @@
-import { Award, Camera, MapPinned, Settings, Trophy } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Award, Camera, Globe2, Trophy } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
+import profileEmma from '@/assets/mock/profile-emma.jpg'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
-import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { ApiError, getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
+import {
+  categories,
+  discoveries,
+  landmarks,
+  type DiscoveryCategory,
+} from '@/lib/mock-data'
 import { clearSession, loadSession, saveSession } from '@/lib/session'
 
+const categoryVisuals: Record<
+  DiscoveryCategory,
+  { icon: string; background: string; indicator: string }
+> = {
+  landscape: {
+    icon: 'text-[#2F6B8A]',
+    background: 'bg-[#EAF3F7]',
+    indicator: 'bg-[#2F6B8A]',
+  },
+  monument: {
+    icon: 'text-[#7E6552]',
+    background: 'bg-[#F1E9E4]',
+    indicator: 'bg-[#7E6552]',
+  },
+  food: {
+    icon: 'text-[#B8572B]',
+    background: 'bg-[#FBF1EC]',
+    indicator: 'bg-[#B8572B]',
+  },
+  animal: {
+    icon: 'text-[#3F7A78]',
+    background: 'bg-[#E8F2F1]',
+    indicator: 'bg-[#3F7A78]',
+  },
+  plant: {
+    icon: 'text-[#3F724E]',
+    background: 'bg-[#F0F7F3]',
+    indicator: 'bg-[#3F724E]',
+  },
+  culture: {
+    icon: 'text-[#756B8F]',
+    background: 'bg-[#F1EEF7]',
+    indicator: 'bg-[#756B8F]',
+  },
+  other: {
+    icon: 'text-[#9C7A32]',
+    background: 'bg-[#FBF4E2]',
+    indicator: 'bg-[#9C7A32]',
+  },
+}
+
 export function ProfilePage() {
+  const [profileImageFailed, setProfileImageFailed] = useState(false)
   const [session, setSession] = useState(() => loadSession())
   const accessToken = session?.accessToken
+
   const { data: currentUser, error: currentUserError } = useQuery({
     queryKey: ['current-user', session?.accessToken],
     queryFn: () => getCurrentUser(accessToken!),
     enabled: Boolean(accessToken),
   })
-  const { data: backendDiscoveries, isLoading: isLoadingDiscoveries } = useQuery(
-    {
-      queryKey: ['discoveries'],
-      queryFn: getDiscoveries,
-    },
-  )
+  const { data: backendDiscoveries } = useQuery({
+    queryKey: ['discoveries'],
+    queryFn: getDiscoveries,
+  })
   const { data: backendPois } = useQuery({
     queryKey: ['pois'],
     queryFn: getPois,
   })
-  const user = currentUser ?? session?.user
-  const userName = user?.userName ?? 'Guest'
-  const initial = userName.trim().charAt(0).toUpperCase() || 'G'
-  const discoveries = backendDiscoveries ?? []
-  const recentDiscoveries = discoveries.slice(0, 2)
-  const countryCount = useMemo(
-    () =>
-      new Set(
-        discoveries
-          .map((discovery) => discovery.countryCode)
-          .filter((countryCode) => countryCode !== 'UNK'),
-      ).size,
-    [discoveries],
+
+  const sourceDiscoveries = backendDiscoveries ?? discoveries
+  const sourceLandmarks = backendPois ?? landmarks
+
+  const discoveredLandmarks = sourceLandmarks.filter(
+    (landmark) => landmark.discovered,
   )
+  const exploredCountries = [
+    ...new Set(
+      sourceDiscoveries.map(
+        (discovery) =>
+          discovery.location.split(', ').at(-1) ?? discovery.location,
+      ),
+    ),
+  ]
+  const categoryCounts = categories
+    .map((category) => ({
+      ...category,
+      count: sourceDiscoveries.filter(
+        (discovery) => discovery.category === category.id,
+      ).length,
+    }))
+    .filter((category) => category.count > 0)
+  const highestCategoryCount = Math.max(
+    ...categoryCounts.map((category) => category.count),
+    1,
+  )
+  const progress = sourceLandmarks.length
+    ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
+    : 0
 
   useEffect(() => {
     if (!accessToken || !currentUser) return
@@ -74,32 +139,67 @@ export function ProfilePage() {
   }
 
   return (
-    <main className="min-h-dvh bg-background pb-28">
-      <PageHeader
-        title="Profile"
-        action={
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-11"
-            aria-label="Profile settings"
+    <main className="min-h-dvh bg-background">
+      <div className="bg-[linear-gradient(150deg,#1D3B28_0%,#2D5A3D_100%)] text-primary-foreground">
+        <section
+          className="sterna-profile-hero px-5 pb-8"
+          aria-label="Profile overview"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-[26px] font-semibold leading-8">
+                Emma Barret
+              </h2>
+              <p className="mt-2 font-sans text-sm leading-5 text-primary-foreground/70">
+                Explorer · Since March 2023
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label="Open account settings"
+              className="flex size-[68px] shrink-0 -translate-x-2.5 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-[#C4622D] font-display text-[26px] font-semibold text-primary-foreground shadow-sm outline-none transition-transform focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
+            >
+              {profileImageFailed ? (
+                'E'
+              ) : (
+                <img
+                  src={profileEmma}
+                  alt="Emma Barret"
+                  className="size-16 rounded-full object-cover"
+                  onError={() => setProfileImageFailed(true)}
+                />
+              )}
+            </button>
+          </div>
+          <div
+            className="mt-5 grid grid-cols-3 border-t border-white/20 pt-4 text-center"
+            aria-label="Exploration statistics"
           >
-            <Settings />
-          </Button>
-        }
-      />
-      <div className="space-y-7 px-5">
-        <section className="flex items-center gap-4">
-          <span className="flex size-20 items-center justify-center rounded-full bg-[#fbf1ec] text-3xl font-semibold text-[#b8572b]">
-            {initial}
-          </span>
-          <div>
-            <h2 className="sterna-section-title">{userName}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {user ? user.email : 'Not logged in'}
-            </p>
+            <Stat
+              icon={<Camera />}
+              value={sourceDiscoveries.length}
+              label="Discoveries"
+              inverse
+              separator={false}
+            />
+            <Stat
+              icon={<Globe2 />}
+              value={exploredCountries.length}
+              label="Countries"
+              inverse
+              separator
+            />
+            <Stat
+              icon={<Trophy />}
+              value={discoveredLandmarks.length}
+              label="POIs"
+              inverse
+              separator
+            />
           </div>
         </section>
+      </div>
+      <div className="-mt-6 space-y-8 rounded-t-3xl bg-card px-5 pb-2 pt-8">
         <section>
           {session ? (
             <Button
@@ -116,58 +216,116 @@ export function ProfilePage() {
             </Button>
           )}
         </section>
-        <section className="grid grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card py-4 text-center">
-          <Stat
-            icon={<Camera />}
-            value={isLoadingDiscoveries ? '...' : discoveries.length}
-            label="Discoveries"
-          />
-          <Stat
-            icon={<MapPinned />}
-            value={isLoadingDiscoveries ? '...' : countryCount}
-            label={countryCount === 1 ? 'Country' : 'Countries'}
-          />
-          <Stat
-            icon={<Trophy />}
-            value={backendPois?.length ?? 0}
-            label="POIs"
-          />
-        </section>
-        <section>
+        <section aria-labelledby="recent-discoveries-heading">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="sterna-section-title">Recent</h2>
+            <h2
+              id="recent-discoveries-heading"
+              className="font-display text-[22px] font-semibold leading-7"
+            >
+              Recent
+            </h2>
             <Link
               to="/collection"
-              className="text-sm font-semibold text-primary"
+              className="flex min-h-11 items-center text-sm font-semibold text-primary"
             >
               See all
             </Link>
           </div>
-          {recentDiscoveries.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {recentDiscoveries.map((discovery) => (
-                <DiscoveryCard key={discovery.id} discovery={discovery} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {isLoadingDiscoveries
-                ? 'Loading recent discoveries'
-                : 'No discoveries yet'}
-            </p>
-          )}
-        </section>
-        <section className="rounded-2xl border border-border bg-card p-4">
-          <p className="flex items-center gap-2 text-sm font-semibold">
-            <Award className="size-4 text-[#b8572b]" />
-            Exploration progress
-          </p>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#f0eee8]">
-            <div className="h-full w-[38%] rounded-full bg-primary" />
+          <div className="-mr-5 flex snap-x gap-3 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {sourceDiscoveries.slice(0, 3).map((discovery) => (
+              <DiscoveryCard
+                key={discovery.id}
+                discovery={discovery}
+                className="w-[min(80vw,20rem)] shrink-0 snap-start"
+              />
+            ))}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {backendPois?.length ?? 0} points of interest available
+        </section>
+        <section
+          className="rounded-2xl border border-border bg-background p-4 shadow-sm"
+          aria-labelledby="exploration-progress-heading"
+        >
+          <h2
+            id="exploration-progress-heading"
+            className="flex items-center gap-2 text-[15px] font-semibold leading-5"
+          >
+            <Award className="size-5 text-primary" aria-hidden="true" />
+            Exploration progress
+          </h2>
+          <Progress
+            className="mt-3"
+            value={progress}
+            aria-label="Point of interest exploration progress"
+            aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
+          />
+          <p className="mt-3 text-sm text-muted-foreground">
+            {discoveredLandmarks.length} / {sourceLandmarks.length} points of
+            interest discovered
           </p>
+        </section>
+        <section aria-labelledby="countries-explored-heading">
+          <h2
+            id="countries-explored-heading"
+            className="font-display text-[22px] font-semibold leading-7"
+          >
+            Countries explored
+          </h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {exploredCountries.map((country) => (
+              <span
+                key={country}
+                className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium leading-4"
+              >
+                {country}
+              </span>
+            ))}
+          </div>
+        </section>
+        <section
+          className="pb-2"
+          aria-labelledby="discoveries-by-category-heading"
+        >
+          <h2
+            id="discoveries-by-category-heading"
+            className="font-sans text-lg font-semibold leading-6"
+          >
+            Discoveries by category
+          </h2>
+          <div className="mt-4 space-y-4">
+            {categoryCounts.map((category) => {
+              const visual = categoryVisuals[category.id]
+
+              return (
+                <div
+                  key={category.id}
+                  className="grid grid-cols-[36px_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-3 gap-y-1"
+                >
+                  <span
+                    className={`row-span-2 flex size-9 shrink-0 items-center justify-center self-start rounded-xl ${visual.background}`}
+                    aria-hidden="true"
+                  >
+                    <CategoryIcon
+                      category={category.id}
+                      className={`size-4 ${visual.icon}`}
+                    />
+                  </span>
+                  <span className="min-w-0 truncate text-sm font-semibold leading-5">
+                    {category.label}
+                  </span>
+                  <span className="text-sm font-semibold leading-5 tabular-nums text-muted-foreground">
+                    {category.count}
+                  </span>
+                  <Progress
+                    value={(category.count / highestCategoryCount) * 100}
+                    aria-label={`${category.label} discoveries: ${category.count}`}
+                    aria-valuetext={`${category.count} ${category.count === 1 ? 'discovery' : 'discoveries'} in ${category.label}`}
+                    indicatorClassName={visual.indicator}
+                    className="col-span-2 bg-[#E7E5E0]"
+                  />
+                </div>
+              )
+            })}
+          </div>
         </section>
       </div>
     </main>
@@ -178,16 +336,35 @@ function Stat({
   icon,
   value,
   label,
+  inverse = false,
+  separator = false,
 }: {
   icon: React.ReactNode
   value: string | number
   label: string
+  inverse?: boolean
+  separator?: boolean
 }) {
   return (
-    <div className="px-2">
-      <span className="mx-auto mb-1 block size-4 text-primary">{icon}</span>
-      <strong className="sterna-heading block">{value}</strong>
-      <span className="sterna-caption text-muted-foreground">{label}</span>
+    <div
+      className={`relative px-2 ${separator ? 'before:absolute before:left-0 before:top-1/2 before:h-10 before:w-px before:-translate-y-1/2 before:bg-white/15' : ''}`}
+    >
+      <span
+        className={`mx-auto mb-1 flex size-6 items-center justify-center [&>svg]:size-5 ${inverse ? 'text-primary-foreground/80' : 'text-primary'}`}
+        aria-hidden="true"
+      >
+        {icon}
+      </span>
+      <strong
+        className={`block font-sans text-2xl font-bold leading-7 ${inverse ? 'text-primary-foreground' : 'text-foreground'}`}
+      >
+        {value}
+      </strong>
+      <span
+        className={`font-sans text-xs font-medium leading-4 ${inverse ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
+      >
+        {label}
+      </span>
     </div>
   )
 }

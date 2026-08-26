@@ -1,110 +1,335 @@
+import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { JwtService } from '@nestjs/jwt';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { DataSource } from 'typeorm';
-import { configureApp } from './../src/app-setup';
-import { AppModule } from './../src/app.module';
+import { AuthResponseDto } from './../src/auth/dto/auth-response.dto';
+import { UserDto } from './../src/auth/dto/user.dto';
+import {
+  TEST_PASSWORD,
+  createTestApp,
+  deleteTestUsers,
+  registerTestUser,
+} from './e2e-app';
 
-interface LoginResponse {
-  accessToken: string;
-  user: {
-    id: string;
-    email: string;
-    userName: string;
-    password?: string;
-    passwordHash?: string;
-  };
-}
-
+/**
+ * The first suite that writes rows, so every account it creates carries a
+ * unique address and afterAll sweeps them. Needs the whole stack up:
+ *
+ *   docker compose exec api npm run test:e2e
+ */
 describe('AuthController (e2e)', () => {
   let app: INestApplication<App>;
-  let dataSource: DataSource;
+
+  const address = (): string => `e2e-${randomUUID()}@sterna.test`;
+
+  const register = (body: Record<string, unknown>) =>
+    request(app.getHttpServer()).post('/api/auth/register').send(body);
+
+  const login = (body: Record<string, unknown>) =>
+    request(app.getHttpServer()).post('/api/auth/login').send(body);
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    configureApp(app);
-    await app.init();
-
-    dataSource = app.get(DataSource);
-
-    await request(app.getHttpServer()).post('/api/users').send({
-      email: 'auth-e2e@sterna.local',
-      password: 'password-123',
-      userName: 'Auth E2E',
-    });
+    app = await createTestApp();
   });
 
   afterAll(async () => {
-    await dataSource.query(
-      `DELETE FROM users WHERE email = 'auth-e2e@sterna.local'`,
-    );
+    await deleteTestUsers(app);
     await app.close();
   });
 
-  it('logs in with valid credentials', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({
-        email: 'auth-e2e@sterna.local',
-        password: 'password-123',
-      })
-      .expect(201);
+  describe('registration', () => {
+    // FR-01.
+    it('creates an account and returns a token with it', async () => {
+      const email = address();
 
-    const body = response.body as LoginResponse;
+      const response = await register({
+        email,
+        userName: 'Ada',
+        password: TEST_PASSWORD,
+      }).expect(201);
 
-    expect(body.accessToken).toEqual(expect.any(String));
-    expect(body.user).toEqual(
-      expect.objectContaining({
-        email: 'auth-e2e@sterna.local',
-        userName: 'Auth E2E',
-      }),
-    );
-    expect(body.user.password).toBeUndefined();
-    expect(body.user.passwordHash).toBeUndefined();
+      const body = response.body as AuthResponseDto;
+
+      expect(body.accessToken).toEqual(expect.any(String));
+      expect(body.tokenType).toBe('Bearer');
+      expect(body.expiresIn).toBeGreaterThan(0);
+      expect(body.user).toEqual({
+        id: expect.any(String) as string,
+        email,
+        userName: 'Ada',
+        createdAt: expect.any(String) as string,
+      });
+    });
+
+    it('refuses a second registration of the same address', async () => {
+      const email = address();
+      const body = { email, userName: 'Ada', password: TEST_PASSWORD };
+
+      await register(body).expect(201);
+      await register(body).expect(409);
+    });
+
+    // The UNIQUE index compares bytes, so the API lower-cases before storing.
+    it('refuses the same address in a different case', async () => {
+      const email = address();
+
+      await register({
+        email,
+        userName: 'Ada',
+        password: TEST_PASSWORD,
+      }).expect(201);
+      await register({
+        email: email.toUpperCase(),
+        userName: 'Ada',
+        password: TEST_PASSWORD,
+      }).expect(409);
+    });
+
+    // OWASP ASVS 4.0 §2.1.1.
+    it('refuses a password shorter than twelve characters', async () => {
+      await register({
+        email: address(),
+        userName: 'Ada',
+        password: 'short',
+      }).expect(400);
+    });
+
+    it('refuses a registration with no user name', async () => {
+      await register({ email: address(), password: TEST_PASSWORD }).expect(400);
+    });
+
+    // forbidNonWhitelisted: the frontend's confirmPassword field must not be
+    // posted to this endpoint.
+    it('refuses a body carrying a property the endpoint does not declare', async () => {
+      await register({
+        email: address(),
+        userName: 'Ada',
+        password: TEST_PASSWORD,
+        confirmPassword: TEST_PASSWORD,
+      }).expect(400);
+    });
   });
 
-  it('returns the current user from a valid bearer token', async () => {
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({
-        email: 'auth-e2e@sterna.local',
-        password: 'password-123',
-      })
-      .expect(201);
-    const body = loginResponse.body as LoginResponse;
+  describe('login', () => {
+    // FR-02.
+    it('signs in with the registered credentials', async () => {
+      const email = address();
 
-    const meResponse = await request(app.getHttpServer())
-      .get('/api/users/me')
-      .set('Authorization', `Bearer ${body.accessToken}`)
-      .expect(200);
+      await register({
+        email,
+        userName: 'Ada',
+        password: TEST_PASSWORD,
+      }).expect(201);
 
-    expect(meResponse.body).toEqual(
-      expect.objectContaining({
-        id: body.user.id,
-        email: 'auth-e2e@sterna.local',
-        userName: 'Auth E2E',
-      }),
-    );
-    expect(meResponse.body.password).toBeUndefined();
-    expect(meResponse.body.passwordHash).toBeUndefined();
+      const response = await login({ email, password: TEST_PASSWORD }).expect(
+        200,
+      );
+
+      expect((response.body as AuthResponseDto).accessToken).toEqual(
+        expect.any(String),
+      );
+    });
+
+    // NFR-18: the endpoint must not reveal whether an account exists.
+    it('answers a wrong password and an unknown address identically', async () => {
+      const email = address();
+
+      await register({
+        email,
+        userName: 'Ada',
+        password: TEST_PASSWORD,
+      }).expect(201);
+
+      const wrongPassword = await login({
+        email,
+        password: 'definitely not it',
+      }).expect(401);
+
+      const unknownAddress = await login({
+        email: address(),
+        password: TEST_PASSWORD,
+      }).expect(401);
+
+      expect(wrongPassword.body).toEqual(unknownAddress.body);
+    });
   });
 
-  it('rejects current user requests without a bearer token', async () => {
-    await request(app.getHttpServer()).get('/api/users/me').expect(401);
+  describe('the current account', () => {
+    // NFR-18.
+    it('refuses a request with no authorization header', async () => {
+      await request(app.getHttpServer()).get('/api/auth/me').expect(401);
+    });
+
+    it('refuses a token signed with a different secret', async () => {
+      const foreign = new JwtService({ secret: 'a'.repeat(48) });
+      const token = await foreign.signAsync({ sub: '1', email: address() });
+
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(401);
+    });
+
+    it('refuses a syntactically broken token', async () => {
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', 'Bearer not.a.jwt')
+        .expect(401);
+    });
+
+    // FR-03.
+    it('returns the caller profile for a valid token', async () => {
+      const session = await registerTestUser(app);
+
+      const response = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .expect(200);
+
+      expect(response.body).toEqual(session.user);
+    });
+
+    // NFR-18: the hash must never reach a response body, by any route.
+    it('never puts the password hash in a register, login or profile response', async () => {
+      const session = await registerTestUser(app);
+
+      const signedIn = await login({
+        email: session.user.email,
+        password: TEST_PASSWORD,
+      }).expect(200);
+
+      const profile = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .expect(200);
+
+      for (const body of [session, signedIn.body, profile.body]) {
+        expect(JSON.stringify(body)).not.toContain('argon2');
+        expect(JSON.stringify(body)).not.toContain('passwordHash');
+      }
+    });
   });
 
-  it('rejects invalid credentials', async () => {
-    await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({
-        email: 'auth-e2e@sterna.local',
-        password: 'wrong-password',
-      })
-      .expect(401);
+  describe('profile updates', () => {
+    // FR-03.
+    it('renames the account and reflects it on the next read', async () => {
+      const session = await registerTestUser(app);
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({ userName: 'Ada L.' })
+        .expect(200);
+
+      const profile = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .expect(200);
+
+      expect((profile.body as UserDto).userName).toBe('Ada L.');
+    });
+
+    it('refuses an update with nothing to update', async () => {
+      const session = await registerTestUser(app);
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({})
+        .expect(400);
+    });
+  });
+
+  describe('password changes', () => {
+    // FR-02.
+    it('changes the password, after which only the new one signs in', async () => {
+      const session = await registerTestUser(app);
+      const newPassword = 'a completely different passphrase';
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/password')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({ currentPassword: TEST_PASSWORD, newPassword })
+        .expect(204);
+
+      await login({
+        email: session.user.email,
+        password: newPassword,
+      }).expect(200);
+      await login({
+        email: session.user.email,
+        password: TEST_PASSWORD,
+      }).expect(401);
+    });
+
+    // A body value failed, not the token — so 400, and 401 keeps meaning
+    // "your session is over".
+    it('refuses a change whose current password is wrong, with 400 not 401', async () => {
+      const session = await registerTestUser(app);
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/password')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({
+          currentPassword: 'definitely not it',
+          newPassword: 'a completely different passphrase',
+        })
+        .expect(400);
+    });
+  });
+
+  describe('account deletion', () => {
+    // FR-01.
+    it('deletes the account, after which its credentials no longer sign in', async () => {
+      const session = await registerTestUser(app);
+
+      await request(app.getHttpServer())
+        .delete('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({ currentPassword: TEST_PASSWORD })
+        .expect(204);
+
+      await login({
+        email: session.user.email,
+        password: TEST_PASSWORD,
+      }).expect(401);
+    });
+
+    // The token outlives the row, because the guard never reads the database.
+    it('answers 401 to a token whose account has been deleted', async () => {
+      const session = await registerTestUser(app);
+
+      await request(app.getHttpServer())
+        .delete('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({ currentPassword: TEST_PASSWORD })
+        .expect(204);
+
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .expect(401);
+    });
+
+    it('refuses a deletion whose current password is wrong', async () => {
+      const session = await registerTestUser(app);
+
+      await request(app.getHttpServer())
+        .delete('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({ currentPassword: 'definitely not it' })
+        .expect(400);
+
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .expect(200);
+    });
+  });
+
+  // The @Public() boundary: the Compose healthcheck carries no token.
+  it('serves the health endpoint without a token', async () => {
+    await request(app.getHttpServer()).get('/api/health').expect(200);
   });
 });

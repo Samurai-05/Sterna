@@ -4,53 +4,81 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
-import { AuthenticatedRequest, AuthenticatedUser } from './authenticated-request';
+import type { Request } from 'express';
+import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
+import { isJwtPayload } from './jwt.payload';
+import type { JwtPayload } from './jwt.payload';
 
-interface JwtPayload {
-  sub: string;
-  email: string;
+/**
+ * One message for every way a token can fail.
+ *
+ * jsonwebtoken's own strings ("jwt malformed", "invalid signature", "jwt
+ * expired") describe our verification to whoever is probing it.
+ */
+export const MISSING_OR_INVALID_TOKEN =
+  'The bearer token is missing, invalid or has expired.';
+
+/**
+ * `Authorization: Bearer <token>`. RFC 7235 makes the scheme
+ * case-insensitive, so `bearer` has to be accepted too.
+ */
+function bearerToken(header: string | undefined): string | undefined {
+  const [scheme, token] = header?.split(' ') ?? [];
+
+  return scheme?.toLowerCase() === 'bearer' && token ? token : undefined;
 }
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwt: JwtService) {}
+  constructor(
+    private readonly jwt: JwtService,
+    private readonly reflector: Reflector,
+  ) {}
 
+  /**
+   * NFR-18: registered globally (see AuthModule), so a route is private unless
+   * it says otherwise. A controller added six weeks from now is protected by
+   * default — the failure mode of the opposite wiring is a silent leak.
+   *
+   * No database round-trip: the token is the assertion. The cost is that a
+   * deleted user's token still passes here, which AuthService turns into a 401
+   * at the point of use.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token = this.extractBearerToken(request);
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest<Request>();
+    const token = bearerToken(request.headers.authorization);
 
     if (!token) {
-      throw new UnauthorizedException('Missing bearer token.');
+      throw new UnauthorizedException(MISSING_OR_INVALID_TOKEN);
     }
+
+    let payload: JwtPayload;
 
     try {
-      const payload = await this.jwt.verifyAsync<JwtPayload>(token);
-      request.user = this.toAuthenticatedUser(payload);
-
-      return true;
+      payload = await this.jwt.verifyAsync<JwtPayload>(token);
     } catch {
-      throw new UnauthorizedException('Invalid bearer token.');
-    }
-  }
-
-  private extractBearerToken(request: Request): string | null {
-    const authorization = request.headers.authorization;
-
-    if (!authorization) {
-      return null;
+      throw new UnauthorizedException(MISSING_OR_INVALID_TOKEN);
     }
 
-    const [type, token] = authorization.split(' ');
+    // A correctly signed token can still carry claims this application never
+    // minted, so the shape is checked before it is trusted.
+    if (!isJwtPayload(payload)) {
+      throw new UnauthorizedException(MISSING_OR_INVALID_TOKEN);
+    }
 
-    return type === 'Bearer' && token ? token : null;
-  }
+    request.user = { id: payload.sub, email: payload.email };
 
-  private toAuthenticatedUser(payload: JwtPayload): AuthenticatedUser {
-    return {
-      id: payload.sub,
-      email: payload.email,
-    };
+    return true;
   }
 }

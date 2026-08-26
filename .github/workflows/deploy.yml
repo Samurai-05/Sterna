@@ -75,6 +75,7 @@ jobs:
       MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
       MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
       MINIO_BUCKET_NAME: ${{ secrets.MINIO_BUCKET_NAME }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
     steps:
       - uses: actions/checkout@v4
 
@@ -84,7 +85,8 @@ jobs:
         run: |
           missing=
           for var in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB \
-                     MINIO_ROOT_USER MINIO_ROOT_PASSWORD MINIO_BUCKET_NAME; do
+                     MINIO_ROOT_USER MINIO_ROOT_PASSWORD MINIO_BUCKET_NAME \
+                     JWT_SECRET; do
             [ -n "${!var}" ] || missing="$missing $var"
           done
           if [ -n "$missing" ]; then
@@ -106,6 +108,17 @@ jobs:
           docker compose -f docker-compose.yml pull
           docker compose -f docker-compose.yml up -d
           docker image prune -f
+
+      # The schema belongs to api/src/migrations/, so it has to be applied on
+      # every deploy — infra/postgres/bootstrap/ only ever runs on a brand new
+      # postgres_data volume. `migration:run:prod` drives the compiled
+      # dist/data-source.js with the plain typeorm CLI: the production image has
+      # no ts-node, so the ts-node-based `migration:run` cannot work there.
+      # `up -d` has already waited for postgres to report healthy (depends_on).
+      - name: Apply database migrations
+        run: |
+          docker compose -f docker-compose.yml exec -T api \
+            npm run migration:run:prod
 
       - name: Verify the API is healthy
         run: |

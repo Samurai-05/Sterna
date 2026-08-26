@@ -57,8 +57,8 @@ export function register(input: {
   email: string
   password: string
   userName: string
-}): Promise<AuthenticatedUser> {
-  return request<AuthenticatedUser>('/api/users', {
+}): Promise<AuthSession> {
+  return request<AuthSession>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(input),
   })
@@ -75,7 +75,7 @@ export function login(input: {
 }
 
 export function getCurrentUser(accessToken: string): Promise<AuthenticatedUser> {
-  return request<AuthenticatedUser>('/api/users/me', {
+  return request<AuthenticatedUser>('/api/auth/me', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

@@ -3,7 +3,6 @@ export interface AuthenticatedUser {
   email: string
   userName: string
   createdAt: string
-  updatedAt: string
 }
 
 export interface AuthSession {

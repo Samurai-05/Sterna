@@ -5,7 +5,7 @@ import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthTextInput } from '@/components/auth/AuthTextInput'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 import { Button } from '@/components/ui/button'
-import { login, register } from '@/lib/api'
+import { register } from '@/lib/api'
 import { saveSession } from '@/lib/session'
 
 type RegisterErrors = {
@@ -71,8 +71,7 @@ export function RegisterPage() {
 
     try {
       setIsSubmitting(true)
-      await register({ email, password, userName })
-      saveSession(await login({ email, password }))
+      saveSession(await register({ email, password, userName }))
       navigate('/', { replace: true })
     } catch (error) {
       setSubmissionMessage(

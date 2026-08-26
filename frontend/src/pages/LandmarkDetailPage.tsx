@@ -9,7 +9,7 @@ export function LandmarkDetailPage() {
   const landmark =
     landmarks.find((item) => item.id === landmarkId) ?? landmarks[0]
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader title="Point of interest" backTo="/" />
       <article className="px-5">
         <img

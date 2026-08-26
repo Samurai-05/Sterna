@@ -1,13 +1,14 @@
-import { plainToInstance } from 'class-transformer';
+import { Transform, plainToInstance } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
-  Matches,
   IsString,
   Max,
   Min,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
@@ -58,12 +59,63 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
-  JWT_SECRET: string;
+  MINIO_ENDPOINT: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  MINIO_PORT: number;
+
+  // enableImplicitConversion has already run by the time this transform fires,
+  // and it turns the string "false" into `true` (Boolean("false") === true).
+  // `obj` is the untouched environment, so read the raw string from there.
+  //
+  // Anything that is neither "true" nor "false" is passed through unchanged, so
+  // @IsBoolean() rejects it and names the variable: a typo must not quietly
+  // turn TLS off.
+  @IsOptional()
+  @Transform(({ obj }) => {
+    const raw = (obj as Record<string, unknown>).MINIO_USE_SSL;
+
+    if (raw === 'true') {
+      return true;
+    }
+
+    return raw === 'false' ? false : raw;
+  })
+  @IsBoolean()
+  MINIO_USE_SSL?: boolean;
+
+  // The MinIO root credentials for now. A dedicated service account scoped to
+  // the photo bucket is a hardening item, not an MVP one.
+  @IsString()
+  @IsNotEmpty()
+  MINIO_ROOT_USER: string;
 
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\d+[smhd]$/)
-  JWT_EXPIRES_IN: string;
+  MINIO_ROOT_PASSWORD: string;
+
+  @IsString()
+  @IsNotEmpty()
+  MINIO_BUCKET_NAME: string;
+
+  // HMAC key the access tokens are signed with. 32 characters is the floor
+  // because a shorter HS256 key can be brute-forced offline from a single
+  // captured token; rejecting it here is what stops a placeholder secret from
+  // reaching production (NFR-22).
+  @IsString()
+  @MinLength(32)
+  JWT_SECRET: string;
+
+  // Seconds rather than a duration string ("7d"): @types/jsonwebtoken types
+  // SignOptions.expiresIn as `StringValue | number`, so a plain string read
+  // from the environment does not type-check. It is also the unit RFC 6749
+  // uses for the expiresIn the API hands back to clients.
+  @IsOptional()
+  @IsInt()
+  @Min(60)
+  JWT_EXPIRES_IN_SECONDS?: number;
 }
 
 export function validate(

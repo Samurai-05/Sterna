@@ -56,7 +56,7 @@ export function AddDiscoveryPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader title="New discovery" backTo="/" />
       {!session && (
         <div className="mb-5 px-5">

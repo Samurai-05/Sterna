@@ -29,7 +29,7 @@ Check that it is up:
 
 ```bash
 curl http://localhost:3000/api/health
-# {"status":"ok","info":{"database":{"status":"up"}},...}
+# {"status":"ok","info":{"database":{"status":"up"},"storage":{"status":"up"}},...}
 ```
 
 Interactive documentation: <http://localhost:3000/api/docs>.
@@ -46,10 +46,16 @@ docker compose up -d --build --renew-anon-volumes api
 
 ```
 src/
+├── auth/                        accounts, sessions, the global guard
+├── common/                      cross-cutting decorators (@Public, @CurrentUser)
 ├── config/
 │   ├── env.validation.ts        environment schema, validated at boot
 │   └── data-source-options.ts   database settings shared by app and CLI
+├── discoveries/                 geolocated discoveries (PostGIS)
 ├── health/                      GET /api/health (Terminus)
+├── migrations/                  the schema — see "Database" below
+├── photos/                      photo upload and download, backed by MinIO
+├── pois/                        predefined points of interest (PostGIS)
 ├── app-setup.ts                 global prefix, validation pipe, OpenAPI
 ├── swagger.ts                   OpenAPI document
 ├── app.module.ts                composition root
@@ -77,11 +83,12 @@ already present, or from `api/` on the host for the ones that do not need a data
 | `npm run lint` | ESLint with `--fix` |
 | `npm run lint:ci` | ESLint without `--fix` — what CI runs |
 | `npm test` | Unit tests (`*.spec.ts` under `src/`) |
-| `npm run test:e2e` | End-to-end tests — **needs a database**, run it in the container |
+| `npm run test:e2e` | End-to-end tests — **needs a database and MinIO**, run it in the container |
 | `npm run build` | Compile to `dist/` |
 | `npm run migration:generate -- src/migrations/<Name>` | Generate a migration from entity changes |
 | `npm run migration:run` | Apply pending migrations |
 | `npm run migration:revert` | Roll back the last migration |
+| `npm run migration:run:prod` | Apply pending migrations from `dist/` — the production image has no `ts-node`, so this is what the deploy workflow runs |
 
 ## Configuration
 
@@ -96,12 +103,50 @@ Docker Compose from the repository-root `.env`; nothing is read from a `.env` in
 | `POSTGRES_HOST` | `postgres` on the Compose network, not `localhost` |
 | `POSTGRES_PORT` | 5432 |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Database credentials |
+| `MINIO_ENDPOINT` | `minio` on the Compose network, not `localhost` |
+| `MINIO_PORT` | 9000 |
+| `MINIO_USE_SSL` | `"true"` or `"false"` (default) — the string is converted explicitly |
+| `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | MinIO credentials, shared with the `minio` service |
+| `MINIO_BUCKET_NAME` | Bucket the photos live in, created by `minio-init` |
+| `JWT_SECRET` | HMAC key the access tokens are signed with. At least 32 characters; generate with `openssl rand -base64 48` |
+| `JWT_EXPIRES_IN_SECONDS` | Optional access token lifetime, default `604800` (7 days) |
 
 ## Database
 
 The schema is owned by migrations: TypeORM's `synchronize` is disabled everywhere, so
 entity changes never reach the database on their own. Write an entity, generate a migration,
 review the generated SQL, commit it.
+
+`src/migrations/1787734644000-InitialSchema.ts` is the baseline — users, groups,
+group_members, discoveries, pois, their constraints, triggers and indexes — followed by
+`1787734645000-SeedPois.ts`, which inserts the predefined points of interest. Both hold
+hand-written SQL, moved over from the `infra/postgres/init/` scripts that never ran anywhere
+because Postgres only executes those on a brand new data volume.
+
+`auth/user.entity.ts` is so far the only entity written against that baseline. An entity here
+*describes* an existing table rather than specifying one, and it must match exactly — anything
+that does not becomes a diff the next `migration:generate` tries to apply. Two traps that cost
+nothing to avoid and are easy to miss: TypeORM compares `@Check` constraints **by name only**
+and drops any it does not know about, and `@CreateDateColumn` maps to `timestamp` rather than
+`timestamptz` unless the type is spelled out. After adding one, confirm the baseline is intact:
+
+```bash
+docker compose exec api npm run migration:generate -- src/migrations/Scratch
+# => "No changes in database schema were found"
+```
+
+Migrations are applied on every deploy (`.github/workflows/deploy.yml`) and have to be run
+by hand locally after pulling a new one:
+
+```bash
+docker compose exec api npm run migration:run
+```
+
+If your local database still carries tables applied outside migrations — the init scripts,
+or a manual `psql` run — `migration:run` fails with `42P07 relation already exists`. Drop
+them (`docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c 'DROP
+TABLE IF EXISTS discoveries, group_members, groups, pois, users CASCADE; DROP FUNCTION IF
+EXISTS set_updated_at();'`) and run it again. Photos live in MinIO and are unaffected.
 
 Spatial columns use PostGIS types through TypeORM's spatial support, per
 [ADR-004](../docs/decisions/ADR-004-database.md):
@@ -112,7 +157,88 @@ location: Point;
 ```
 
 The `postgis` extension is created by `infra/postgres/bootstrap/001_enable_postgis.sql` when the
-database volume is first initialised.
+database volume is first initialised. `InitialSchema` also issues `CREATE EXTENSION IF NOT
+EXISTS postgis` so it can bring up a database that never went through that bootstrap script.
+
+## Authentication
+
+Accounts and sessions, per [ADR-009](../docs/decisions/ADR-009-authentication.md). Sessions
+are a **stateless JWT access token**: the API signs one at registration and at login, and the
+client sends it as `Authorization: Bearer <token>`.
+
+| Route | Auth | Purpose |
+|---|---|---|
+| `POST /api/auth/register` | public | Create an account (FR-01). 201, or 409 if taken |
+| `POST /api/auth/login` | public | Sign in (FR-02). 200, or 401 |
+| `GET /api/auth/me` | bearer | The signed-in profile (FR-03) |
+| `PATCH /api/auth/me` | bearer | Rename the account |
+| `PATCH /api/auth/password` | bearer | Change the password. 204 |
+| `DELETE /api/auth/me` | bearer | Delete the account. 204 |
+
+**There is no logout endpoint, and that is deliberate** — logging out is discarding the token.
+The flip side is that nothing is revocable server-side: a token stays valid until it expires
+(7 days by default), and *changing a password does not invalidate tokens already issued*.
+
+**Routes are private by default.** A single `APP_GUARD` registered in `AuthModule` covers every
+controller route; `@Public()` opts one out, and only `register`, `login` and the health
+controller use it (NFR-18). A new controller is therefore protected the moment it exists —
+read the caller with `@CurrentUser()`:
+
+```ts
+@Get()
+list(@CurrentUser() caller: AuthenticatedUser): Promise<Thing[]> {
+  return this.things.forUser(caller.id);
+}
+```
+
+Passwords are hashed with **argon2id** (`@node-rs/argon2`) at the OWASP-recommended cost, and
+must be 12–128 characters with no composition rule (OWASP ASVS 4.0 §2.1). `password_hash` is
+`select: false` on the entity *and* never crosses the service boundary — responses are built
+by an explicit entity-to-DTO mapping, so there is no field for it to leak through.
+
+**Identifiers are decimal strings, not numbers.** `users.id` is `BIGINT`, which is lossy as a
+JavaScript number above 2^53-1. Treat `id` as opaque; this is the convention for every
+resource.
+
+Two things a wrong assumption would break, both worth reading before writing a client:
+
+- a **wrong `currentPassword`** on the two re-authentication routes is answered **400, not
+  401** — the token was fine, a body value was not. That keeps 401 meaning exactly one thing:
+  the session is over, send the user to the login screen;
+- **login is uniform.** An unknown address and a wrong password get the same status, the same
+  message and the same response time, so the endpoint cannot be used to discover whether an
+  account exists.
+
+## Photos
+
+Photos are stored in MinIO ([ADR-006](../docs/decisions/ADR-006-photo-storage.md)); Postgres
+holds only the object key, in `DISCOVERIES.image_object_key`. Clients never talk to MinIO —
+both directions go through the API.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/photos` | `multipart/form-data`, field `file`. Returns `{ objectKey, url, exif }` |
+| `GET /api/photos/{uuid}.{ext}` | Streams the object back out |
+
+**Both routes require a bearer token** (NFR-18, NFR-24). That has a consequence worth
+spelling out for the frontend: an `<img src="/api/photos/…">` cannot attach an
+`Authorization` header, so a client has to `fetch()` the bytes and render
+`URL.createObjectURL(blob)` instead — MapLibre marker images included. Authorization today
+stops at "is the caller signed in"; checking that *this* caller may see the discovery a photo
+belongs to needs the discoveries table and is marked `TODO(discoveries)` in the controller.
+
+A photo is uploaded *before* the discovery that references it exists, so upload is a
+standalone resource: it returns a key, and the client sends that key with the rest of the
+discovery. Keys look like `photos/{uuid}.{jpg|png|webp}` — see
+[`infra/minio/README.md`](../infra/minio/README.md) for why they carry no user or discovery
+segment.
+
+On upload the service reads the EXIF GPS tags so the client can pre-fill the location
+(FR-06), then re-encodes the image through `sharp`. Re-encoding does three jobs at once: it
+strips every metadata block from the stored object (NFR-27), bakes the orientation flag into
+the pixels, and validates the bytes for real — the declared MIME type is client-supplied,
+so it cannot be trusted on its own (NFR-21). A photo with no usable GPS tag returns
+`exif: null` and still uploads (FR-33).
 
 ## API documentation
 
@@ -133,8 +259,10 @@ project whose API is meant to be demonstrated, and the endpoints are reachable r
 whether they are documented. To restrict it, guard the `setupSwagger(app)` call in
 `app-setup.ts` on `NODE_ENV`.
 
-When authentication lands, add `.addBearerAuth()` to the `DocumentBuilder` chain in
-`swagger.ts` so the UI can send a token.
+The document declares a `bearer` security scheme, so the UI's **Authorize** button takes a
+token from `POST /api/auth/login` and sends it on every protected route. Note that Swagger's
+own routes are registered through `httpAdapter.get()`, outside Nest's guard pipeline — the
+global `JwtAuthGuard` does not apply to them and they need no `@Public()`.
 
 ## Conventions
 

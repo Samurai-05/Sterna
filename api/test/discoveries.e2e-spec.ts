@@ -19,8 +19,9 @@ interface DiscoveryResponse {
   discoveredAt: string;
 }
 
-interface LoginResponse {
+interface AuthResponse {
   accessToken: string;
+  user: { id: string };
 }
 
 describe('DiscoveriesController (e2e)', () => {
@@ -43,21 +44,18 @@ describe('DiscoveriesController (e2e)', () => {
       `DELETE FROM users WHERE email = 'discoveries-e2e@sterna.local'`,
     );
 
-    const userResponse = await request(app.getHttpServer()).post('/api/users').send({
-      email: 'discoveries-e2e@sterna.local',
-      password: 'password-123',
-      userName: 'Discoveries E2E',
-    });
-
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
+    const registerResponse = await request(app.getHttpServer())
+      .post('/api/auth/register')
       .send({
         email: 'discoveries-e2e@sterna.local',
         password: 'password-123',
+        userName: 'Discoveries E2E',
       });
 
-    userId = userResponse.body.id as string;
-    accessToken = (loginResponse.body as LoginResponse).accessToken;
+    const body = registerResponse.body as AuthResponse;
+
+    userId = body.user.id;
+    accessToken = body.accessToken;
   });
 
   afterAll(async () => {

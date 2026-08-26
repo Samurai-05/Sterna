@@ -6,8 +6,8 @@ import { buildDataSourceOptions } from './config/data-source-options';
 import { validate } from './config/env.validation';
 import { DiscoveriesModule } from './discoveries/discoveries.module';
 import { HealthModule } from './health/health.module';
+import { PhotosModule } from './photos/photos.module';
 import { PoisModule } from './pois/pois.module';
-import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -32,8 +32,8 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     DiscoveriesModule,
     HealthModule,
+    PhotosModule,
     PoisModule,
-    UsersModule,
   ],
 })
 export class AppModule {}

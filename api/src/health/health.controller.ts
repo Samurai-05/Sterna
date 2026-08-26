@@ -11,12 +11,16 @@ import {
   HealthCheckService,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+import { Public } from '../common/decorators/public.decorator';
+import { MinioHealthIndicator } from './minio.health';
+
+const upExample = { database: { status: 'up' }, storage: { status: 'up' } };
 
 const healthExample = {
   status: 'ok',
-  info: { database: { status: 'up' } },
+  info: upExample,
   error: {},
-  details: { database: { status: 'up' } },
+  details: upExample,
 };
 
 /**
@@ -28,11 +32,15 @@ const healthExample = {
  * itself as healthy.
  */
 @ApiTags('health')
+// The Compose healthcheck and the deploy job's readiness poll carry no token,
+// so the whole controller opts out of the global guard.
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly database: TypeOrmHealthIndicator,
+    private readonly storage: MinioHealthIndicator,
   ) {}
 
   @Get()
@@ -52,17 +60,27 @@ export class HealthController {
     schema: {
       example: {
         status: 'error',
-        info: {},
+        info: { database: { status: 'up' } },
         error: {
-          database: { status: 'down', message: 'timeout of 1000ms exceeded' },
+          storage: {
+            status: 'down',
+            message: 'connect ECONNREFUSED minio:9000',
+          },
         },
         details: {
-          database: { status: 'down', message: 'timeout of 1000ms exceeded' },
+          database: { status: 'up' },
+          storage: {
+            status: 'down',
+            message: 'connect ECONNREFUSED minio:9000',
+          },
         },
       },
     },
   })
   check(): Promise<HealthCheckResult> {
-    return this.health.check([() => this.database.pingCheck('database')]);
+    return this.health.check([
+      () => this.database.pingCheck('database'),
+      () => this.storage.isHealthy('storage'),
+    ]);
   }
 }

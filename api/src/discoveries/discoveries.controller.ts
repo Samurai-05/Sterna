@@ -1,17 +1,16 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import type { AuthenticatedRequest } from '../auth/authenticated-request';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { AuthenticatedUser } from '../common/authenticated-user';
+import { ApiAuthenticated } from '../common/decorators/api-authenticated.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { CreateDiscoveryDto } from './create-discovery.dto';
-import {
-  DiscoveriesService,
-  DiscoveryResponse,
-} from './discoveries.service';
+import { DiscoveriesService, DiscoveryResponse } from './discoveries.service';
 
 const discoveryExample = {
   id: '1',
@@ -33,6 +32,7 @@ const discoveryExample = {
 export class DiscoveriesController {
   constructor(private readonly discoveries: DiscoveriesService) {}
 
+  @Public()
   @Get()
   @ApiOperation({
     summary: 'List discoveries',
@@ -48,7 +48,7 @@ export class DiscoveriesController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @ApiAuthenticated()
   @ApiOperation({
     summary: 'Create a discovery',
     description:
@@ -59,9 +59,9 @@ export class DiscoveriesController {
     schema: { example: discoveryExample },
   })
   create(
-    @Req() request: AuthenticatedRequest,
+    @CurrentUser() caller: AuthenticatedUser,
     @Body() dto: CreateDiscoveryDto,
   ): Promise<DiscoveryResponse> {
-    return this.discoveries.create(request.user.id, dto);
+    return this.discoveries.create(caller.id, dto);
   }
 }

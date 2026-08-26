@@ -1,6 +1,6 @@
 import { CalendarDays, MapPin, MoreHorizontal } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { PageHeader } from '@/components/PageHeader'
@@ -10,6 +10,7 @@ import { categoryLabel, discoveries, imageUrl } from '@/lib/mock-data'
 
 export function DiscoveryDetailPage() {
   const { discoveryId } = useParams()
+  const navigate = useNavigate()
   const { data: backendDiscoveries } = useQuery({
     queryKey: ['discoveries'],
     queryFn: getDiscoveries,
@@ -30,10 +31,10 @@ export function DiscoveryDetailPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader
         title="Discovery"
-        backTo="/collection"
+        onBack={() => navigate(-1)}
         action={
           <Button
             size="icon"

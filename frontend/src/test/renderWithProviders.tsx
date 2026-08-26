@@ -4,7 +4,11 @@ import { MemoryRouter } from 'react-router'
 
 export function renderWithProviders(
   ui: React.ReactNode,
-  { route = '/' }: { route?: string } = {},
+  {
+    route = '/',
+    initialEntries,
+    initialIndex,
+  }: { route?: string; initialEntries?: string[]; initialIndex?: number } = {},
 ) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -16,7 +20,12 @@ export function renderWithProviders(
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+      <MemoryRouter
+        initialEntries={initialEntries ?? [route]}
+        initialIndex={initialIndex}
+      >
+        {ui}
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }

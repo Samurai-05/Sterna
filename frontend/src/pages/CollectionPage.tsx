@@ -31,7 +31,7 @@ export function CollectionPage() {
   )
 
   return (
-    <main className="min-h-dvh bg-background pb-28">
+    <main className="min-h-dvh bg-background">
       <PageHeader title="Your discoveries" />
       <div className="space-y-4 px-5">
         <label className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground focus-within:ring-2 focus-within:ring-ring/30">

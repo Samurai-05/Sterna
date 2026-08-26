@@ -8,7 +8,7 @@ export function CreateGroupPage() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   return (
-    <main className="min-h-dvh bg-background pb-8">
+    <main className="min-h-dvh bg-background">
       <PageHeader title="Create a group" backTo="/groups" />
       <form
         onSubmit={(event) => {

@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from '../common/decorators/public.decorator';
 import { PoiResponse, PoisService } from './pois.service';
 
 const poisExample = [
@@ -18,6 +19,7 @@ const poisExample = [
 export class PoisController {
   constructor(private readonly pois: PoisService) {}
 
+  @Public()
   @Get()
   @ApiOperation({
     summary: 'List points of interest',

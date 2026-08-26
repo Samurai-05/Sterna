@@ -6,8 +6,13 @@ const completeEnv = {
   POSTGRES_USER: 'app_user',
   POSTGRES_PASSWORD: 'secret',
   POSTGRES_DB: 'app_db',
-  JWT_SECRET: 'test-secret',
-  JWT_EXPIRES_IN: '1h',
+  MINIO_ENDPOINT: 'minio',
+  MINIO_PORT: '9000',
+  MINIO_USE_SSL: 'false',
+  MINIO_ROOT_USER: 'minioadmin',
+  MINIO_ROOT_PASSWORD: 'secret',
+  MINIO_BUCKET_NAME: 'observations',
+  JWT_SECRET: 'a'.repeat(32),
 };
 
 describe('validate', () => {
@@ -36,5 +41,61 @@ describe('validate', () => {
     expect(() => validate({ ...completeEnv, NODE_ENV: 'staging' })).toThrow(
       /NODE_ENV/,
     );
+  });
+
+  it('rejects an environment without MinIO credentials', () => {
+    const incomplete: Record<string, string> = { ...completeEnv };
+    delete incomplete.MINIO_ROOT_PASSWORD;
+
+    expect(() => validate(incomplete)).toThrow(/MINIO_ROOT_PASSWORD/);
+  });
+
+  it('converts MINIO_USE_SSL to a real boolean', () => {
+    expect(validate(completeEnv).MINIO_USE_SSL).toBe(false);
+    expect(
+      validate({ ...completeEnv, MINIO_USE_SSL: 'true' }).MINIO_USE_SSL,
+    ).toBe(true);
+  });
+
+  // A typo must not quietly turn TLS off.
+  it.each(['TRUE', 'True', '1', 'yes', ''])(
+    'rejects MINIO_USE_SSL=%p instead of reading it as false',
+    (value) => {
+      expect(() => validate({ ...completeEnv, MINIO_USE_SSL: value })).toThrow(
+        /MINIO_USE_SSL/,
+      );
+    },
+  );
+
+  it('names JWT_SECRET when it is missing', () => {
+    const incomplete: Record<string, string> = { ...completeEnv };
+    delete incomplete.JWT_SECRET;
+
+    expect(() => validate(incomplete)).toThrow(/JWT_SECRET/);
+  });
+
+  // A short HS256 key can be brute-forced offline from one captured token, so
+  // a placeholder must stop the process rather than reach production (NFR-22).
+  it('rejects a JWT_SECRET shorter than thirty-two characters', () => {
+    expect(() => validate({ ...completeEnv, JWT_SECRET: 'too-short' })).toThrow(
+      /JWT_SECRET/,
+    );
+  });
+
+  it('treats JWT_EXPIRES_IN_SECONDS as optional', () => {
+    expect(validate(completeEnv).JWT_EXPIRES_IN_SECONDS).toBeUndefined();
+  });
+
+  it('converts JWT_EXPIRES_IN_SECONDS from the string the environment provides', () => {
+    expect(
+      validate({ ...completeEnv, JWT_EXPIRES_IN_SECONDS: '604800' })
+        .JWT_EXPIRES_IN_SECONDS,
+    ).toBe(604800);
+  });
+
+  it('rejects a non-numeric JWT_EXPIRES_IN_SECONDS', () => {
+    expect(() =>
+      validate({ ...completeEnv, JWT_EXPIRES_IN_SECONDS: 'a week' }),
+    ).toThrow(/JWT_EXPIRES_IN_SECONDS/);
   });
 });

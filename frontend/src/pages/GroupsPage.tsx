@@ -7,7 +7,7 @@ import { groups } from '@/lib/mock-data'
 
 export function GroupsPage() {
   return (
-    <main className="min-h-dvh bg-background pb-28">
+    <main className="min-h-dvh bg-background">
       <PageHeader
         title="Groups"
         action={
