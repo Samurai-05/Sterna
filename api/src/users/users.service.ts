@@ -43,6 +43,10 @@ export class UsersService {
     return this.users.findOne({ where: { email } });
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.users.findOne({ where: { id } });
+  }
+
   toResponse(user: User): UserResponse {
     return {
       id: user.id,

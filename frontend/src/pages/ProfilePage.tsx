@@ -1,17 +1,72 @@
 import { Award, Camera, MapPinned, Settings, Trophy } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
 
 import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { discoveries, landmarks } from '@/lib/mock-data'
-import { clearSession, loadSession } from '@/lib/session'
+import { ApiError, getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
+import { clearSession, loadSession, saveSession } from '@/lib/session'
 
 export function ProfilePage() {
   const [session, setSession] = useState(() => loadSession())
-  const userName = session?.user.userName ?? 'Guest'
+  const accessToken = session?.accessToken
+  const { data: currentUser, error: currentUserError } = useQuery({
+    queryKey: ['current-user', session?.accessToken],
+    queryFn: () => getCurrentUser(accessToken!),
+    enabled: Boolean(accessToken),
+  })
+  const { data: backendDiscoveries, isLoading: isLoadingDiscoveries } = useQuery(
+    {
+      queryKey: ['discoveries'],
+      queryFn: getDiscoveries,
+    },
+  )
+  const { data: backendPois } = useQuery({
+    queryKey: ['pois'],
+    queryFn: getPois,
+  })
+  const user = currentUser ?? session?.user
+  const userName = user?.userName ?? 'Guest'
   const initial = userName.trim().charAt(0).toUpperCase() || 'G'
+  const discoveries = backendDiscoveries ?? []
+  const recentDiscoveries = discoveries.slice(0, 2)
+  const countryCount = useMemo(
+    () =>
+      new Set(
+        discoveries
+          .map((discovery) => discovery.countryCode)
+          .filter((countryCode) => countryCode !== 'UNK'),
+      ).size,
+    [discoveries],
+  )
+
+  useEffect(() => {
+    if (!accessToken || !currentUser) return
+
+    const nextSession = { accessToken, user: currentUser }
+    saveSession(nextSession)
+    setSession((storedSession) => {
+      if (!storedSession) return storedSession
+      if (
+        storedSession.user.id === currentUser.id &&
+        storedSession.user.email === currentUser.email &&
+        storedSession.user.userName === currentUser.userName
+      ) {
+        return storedSession
+      }
+
+      return nextSession
+    })
+  }, [accessToken, currentUser])
+
+  useEffect(() => {
+    if (currentUserError instanceof ApiError && currentUserError.status === 401) {
+      clearSession()
+      setSession(null)
+    }
+  }, [currentUserError])
 
   function handleLogout() {
     clearSession()
@@ -41,7 +96,7 @@ export function ProfilePage() {
           <div>
             <h2 className="sterna-section-title">{userName}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {session ? session.user.email : 'Not logged in'}
+              {user ? user.email : 'Not logged in'}
             </p>
           </div>
         </section>
@@ -64,13 +119,17 @@ export function ProfilePage() {
         <section className="grid grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card py-4 text-center">
           <Stat
             icon={<Camera />}
-            value={discoveries.length}
+            value={isLoadingDiscoveries ? '...' : discoveries.length}
             label="Discoveries"
           />
-          <Stat icon={<MapPinned />} value="1" label="Country" />
+          <Stat
+            icon={<MapPinned />}
+            value={isLoadingDiscoveries ? '...' : countryCount}
+            label={countryCount === 1 ? 'Country' : 'Countries'}
+          />
           <Stat
             icon={<Trophy />}
-            value={landmarks.filter((item) => item.discovered).length}
+            value={backendPois?.length ?? 0}
             label="POIs"
           />
         </section>
@@ -84,11 +143,19 @@ export function ProfilePage() {
               See all
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {discoveries.slice(0, 2).map((discovery) => (
-              <DiscoveryCard key={discovery.id} discovery={discovery} />
-            ))}
-          </div>
+          {recentDiscoveries.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {recentDiscoveries.map((discovery) => (
+                <DiscoveryCard key={discovery.id} discovery={discovery} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {isLoadingDiscoveries
+                ? 'Loading recent discoveries'
+                : 'No discoveries yet'}
+            </p>
+          )}
         </section>
         <section className="rounded-2xl border border-border bg-card p-4">
           <p className="flex items-center gap-2 text-sm font-semibold">
@@ -99,7 +166,7 @@ export function ProfilePage() {
             <div className="h-full w-[38%] rounded-full bg-primary" />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            2 points of interest discovered
+            {backendPois?.length ?? 0} points of interest available
           </p>
         </section>
       </div>

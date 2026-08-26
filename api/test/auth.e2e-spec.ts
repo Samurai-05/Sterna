@@ -68,6 +68,36 @@ describe('AuthController (e2e)', () => {
     expect(body.user.passwordHash).toBeUndefined();
   });
 
+  it('returns the current user from a valid bearer token', async () => {
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({
+        email: 'auth-e2e@sterna.local',
+        password: 'password-123',
+      })
+      .expect(201);
+    const body = loginResponse.body as LoginResponse;
+
+    const meResponse = await request(app.getHttpServer())
+      .get('/api/users/me')
+      .set('Authorization', `Bearer ${body.accessToken}`)
+      .expect(200);
+
+    expect(meResponse.body).toEqual(
+      expect.objectContaining({
+        id: body.user.id,
+        email: 'auth-e2e@sterna.local',
+        userName: 'Auth E2E',
+      }),
+    );
+    expect(meResponse.body.password).toBeUndefined();
+    expect(meResponse.body.passwordHash).toBeUndefined();
+  });
+
+  it('rejects current user requests without a bearer token', async () => {
+    await request(app.getHttpServer()).get('/api/users/me').expect(401);
+  });
+
   it('rejects invalid credentials', async () => {
     await request(app.getHttpServer())
       .post('/api/auth/login')
