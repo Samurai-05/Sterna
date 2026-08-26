@@ -29,6 +29,8 @@ describe('DiscoveriesController (e2e)', () => {
   let dataSource: DataSource;
   let userId: string;
   let accessToken: string;
+  let otherUserId: string;
+  let otherAccessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -41,7 +43,10 @@ describe('DiscoveriesController (e2e)', () => {
 
     dataSource = app.get(DataSource);
     await dataSource.query(
-      `DELETE FROM users WHERE email = 'discoveries-e2e@sterna.local'`,
+      `DELETE FROM users WHERE email IN (
+        'discoveries-e2e@sterna.local',
+        'discoveries-other-e2e@sterna.local'
+      )`,
     );
 
     const registerResponse = await request(app.getHttpServer())
@@ -56,11 +61,26 @@ describe('DiscoveriesController (e2e)', () => {
 
     userId = body.user.id;
     accessToken = body.accessToken;
+
+    const otherRegisterResponse = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({
+        email: 'discoveries-other-e2e@sterna.local',
+        password: 'password-123',
+        userName: 'Other Discoveries E2E',
+      });
+
+    const otherBody = otherRegisterResponse.body as AuthResponse;
+    otherUserId = otherBody.user.id;
+    otherAccessToken = otherBody.accessToken;
   });
 
   afterAll(async () => {
     await dataSource.query(
-      `DELETE FROM users WHERE email = 'discoveries-e2e@sterna.local'`,
+      `DELETE FROM users WHERE email IN (
+        'discoveries-e2e@sterna.local',
+        'discoveries-other-e2e@sterna.local'
+      )`,
     );
     await app.close();
   });
@@ -97,7 +117,7 @@ describe('DiscoveriesController (e2e)', () => {
     );
   });
 
-  it('lists discoveries with PostGIS coordinates', async () => {
+  it('lists only the caller discoveries with PostGIS coordinates', async () => {
     await request(app.getHttpServer())
       .post('/api/discoveries')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -113,8 +133,24 @@ describe('DiscoveriesController (e2e)', () => {
       })
       .expect(201);
 
+    await request(app.getHttpServer())
+      .post('/api/discoveries')
+      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .send({
+        groupId: null,
+        title: 'Another user discovery',
+        description: null,
+        category: 'Other',
+        longitude: 2.3522,
+        latitude: 48.8566,
+        imageObjectKey: 'discoveries/e2e-other-user.jpg',
+        discoveredAt: '2026-08-25T14:00:00.000Z',
+      })
+      .expect(201);
+
     const response = await request(app.getHttpServer())
       .get('/api/discoveries')
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     const body = response.body as DiscoveryResponse[];
@@ -132,6 +168,17 @@ describe('DiscoveriesController (e2e)', () => {
         }),
       ]),
     );
+    expect(body.every((discovery) => discovery.userId === userId)).toBe(true);
+    expect(body.some((discovery) => discovery.userId === otherUserId)).toBe(
+      false,
+    );
+    expect(
+      body.some((discovery) => discovery.title === 'Another user discovery'),
+    ).toBe(false);
+  });
+
+  it('rejects discovery listing without a bearer token', async () => {
+    await request(app.getHttpServer()).get('/api/discoveries').expect(401);
   });
 
   it('rejects discovery creation without a bearer token', async () => {
