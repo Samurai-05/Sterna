@@ -142,7 +142,7 @@ export async function createDiscovery(input: {
   accessToken: string
   title: string
   description: string | null
-  category: DiscoveryCategory
+  category: DiscoveryCategory | null
   longitude: number
   latitude: number
   imageObjectKey: string
@@ -157,7 +157,7 @@ export async function createDiscovery(input: {
       groupId: null,
       title: input.title,
       description: input.description,
-      category: apiValueByCategory[input.category],
+      category: input.category ? apiValueByCategory[input.category] : null,
       longitude: input.longitude,
       latitude: input.latitude,
       imageObjectKey: input.imageObjectKey,

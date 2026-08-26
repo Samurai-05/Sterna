@@ -1,23 +1,23 @@
 import {
-  Camera,
-  Flower2,
   Landmark,
-  Leaf,
-  MapPinned,
+  Mountain,
   Palette,
+  PawPrint,
+  Shapes,
+  Sprout,
   Utensils,
 } from 'lucide-react'
 
 import type { DiscoveryCategory } from '@/lib/mock-data'
 
 const icons = {
-  landscape: MapPinned,
+  landscape: Mountain,
   monument: Landmark,
   food: Utensils,
-  animal: Camera,
-  plant: Flower2,
+  animal: PawPrint,
+  plant: Sprout,
   culture: Palette,
-  other: Leaf,
+  other: Shapes,
 } as const
 
 export function CategoryIcon({

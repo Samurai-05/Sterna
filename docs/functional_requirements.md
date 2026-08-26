@@ -60,13 +60,10 @@ The user must be able to create a discovery containing at least:
 
 * a date;
 
-* a title;
-
-* a category;
-
 * an author.
 
-A discovery may also contain a description.
+A discovery may also contain a title, description and category. If the title is
+omitted, the application uses a generated title when saving.
 
 ### FR-06 - Automatic Location
 
@@ -106,7 +103,8 @@ The user must be able to select one of the following predefined categories:
 
 * Other.
 
-If no category is selected, **Other** must be assigned automatically.
+Category selection is optional. If no category is selected, the discovery keeps
+an unset category; **Other** is only used when the user explicitly selects it.
 
 ### FR-10 - Edit a Discovery
 

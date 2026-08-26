@@ -60,9 +60,9 @@ When a photo contains valid GPS coordinates, the user must be able to save a dis
 
 **Priority: MUST**
 
-Not manually selecting a category must never prevent a discovery from being saved.
-
-If no category is selected, the **Other** category must be assigned automatically in **100% of cases**.
+Not manually selecting a category must never prevent a discovery from being
+saved. An unset category must remain unset; **Other** is only assigned when the
+user explicitly selects it.
 
 ### NFR-06 - Touch Interface
 

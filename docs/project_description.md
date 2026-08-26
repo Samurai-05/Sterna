@@ -90,7 +90,8 @@ There are seven predefined categories:
 
 * Other.
 
-If the user does not select a category, the **Other** category is automatically assigned.
+Category selection is optional. If the user does not select a category, it
+remains unset; **Other** is only assigned when explicitly selected.
 
 This allows the user to quickly save a photo without being required to complete several fields.
 
