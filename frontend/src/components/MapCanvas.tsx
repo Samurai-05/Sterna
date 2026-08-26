@@ -154,18 +154,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             type: 'line',
             source: countriesSourceId,
             paint: {
-              'line-color': [
-                'case',
-                ['boolean', ['feature-state', 'explored'], false],
-                '#2d5a3d',
-                'rgba(255,255,255,0.5)',
-              ],
-              'line-width': [
-                'case',
-                ['boolean', ['feature-state', 'explored'], false],
-                2,
-                1,
-              ],
+              'line-color': 'rgba(255,255,255,0.5)',
+              'line-width': 1,
             },
           },
           firstSymbolLayerId,
