@@ -42,7 +42,7 @@ export class DiscoveriesService {
   ) {}
 
   async findAll(): Promise<DiscoveryResponse[]> {
-    const rows = await this.discoveries.query(`
+    const rows = await this.discoveries.query<DiscoveryRow[]>(`
       SELECT
         id,
         user_id,
@@ -60,14 +60,14 @@ export class DiscoveriesService {
       ORDER BY created_at DESC, id DESC
     `);
 
-    return (rows as DiscoveryRow[]).map((row) => this.toResponse(row));
+    return rows.map((row) => this.toResponse(row));
   }
 
   async create(
     userId: string,
     dto: CreateDiscoveryDto,
   ): Promise<DiscoveryResponse> {
-    const [row] = await this.discoveries.query(
+    const [row] = await this.discoveries.query<DiscoveryRow[]>(
       `
         INSERT INTO discoveries (
           user_id,
@@ -116,7 +116,7 @@ export class DiscoveriesService {
       ],
     );
 
-    return this.toResponse(row as DiscoveryRow);
+    return this.toResponse(row);
   }
 
   private toResponse(row: DiscoveryRow): DiscoveryResponse {
