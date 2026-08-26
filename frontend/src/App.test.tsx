@@ -116,6 +116,36 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
+  it('returns to the map, not whatever else is in history, when backing out of a discovery opened from the map', () => {
+    renderWithProviders(<App />, {
+      initialEntries: [
+        '/',
+        '/collection',
+        { pathname: '/discoveries/1', state: { from: 'map' } },
+      ],
+      initialIndex: 2,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+    ).toBeInTheDocument()
+  })
+
+  it('returns to the collection when backing out of a discovery opened from the collection', () => {
+    renderWithProviders(<App />, {
+      initialEntries: ['/collection', '/discoveries/1'],
+      initialIndex: 1,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the profile exploration summary and supporting details', () => {
     renderWithProviders(<App />, { route: '/profile' })
 

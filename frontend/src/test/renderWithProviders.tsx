@@ -8,7 +8,11 @@ export function renderWithProviders(
     route = '/',
     initialEntries,
     initialIndex,
-  }: { route?: string; initialEntries?: string[]; initialIndex?: number } = {},
+  }: {
+    route?: string
+    initialEntries?: React.ComponentProps<typeof MemoryRouter>['initialEntries']
+    initialIndex?: number
+  } = {},
 ) {
   const queryClient = new QueryClient({
     defaultOptions: {

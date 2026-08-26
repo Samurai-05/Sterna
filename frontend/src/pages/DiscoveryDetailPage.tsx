@@ -1,6 +1,6 @@
 import { CalendarDays, MapPin, MoreHorizontal } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { PageHeader } from '@/components/PageHeader'
@@ -11,6 +11,10 @@ import { categoryLabel, discoveries, imageUrl } from '@/lib/mock-data'
 export function DiscoveryDetailPage() {
   const { discoveryId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const openedFromMap =
+    (location.state as { from?: string } | null)?.from === 'map'
+  const handleBack = () => (openedFromMap ? navigate('/') : navigate(-1))
   const { data: backendDiscoveries } = useQuery({
     queryKey: ['discoveries'],
     queryFn: getDiscoveries,
@@ -34,7 +38,7 @@ export function DiscoveryDetailPage() {
     <main className="min-h-dvh bg-background">
       <PageHeader
         title="Discovery"
-        onBack={() => navigate(-1)}
+        onBack={handleBack}
         action={
           <Button
             size="icon"

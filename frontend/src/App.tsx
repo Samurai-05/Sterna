@@ -33,13 +33,18 @@ function App() {
   // stays released, so logging out later or navigating back to "/" doesn't
   // bounce a guest who is deliberately browsing the map — GET
   // /api/discoveries and /api/pois are public routes on purpose.
+  //
+  // The release check runs during render (not a useEffect) so it takes
+  // effect on the very render that first sees the new session — e.g. right
+  // after register/login navigates to "/". An effect-based release runs one
+  // commit too late: the "/" route would already have evaluated the stale
+  // (still signed-out) latch and rendered <Navigate to="/auth" />, sending a
+  // freshly-registered user back to the welcome screen instead of the map.
   const [signedOutAtStart, setSignedOutAtStart] = useState(() => !loadSession())
 
-  useEffect(() => {
-    if (signedOutAtStart && loadSession()) {
-      setSignedOutAtStart(false)
-    }
-  }, [pathname, signedOutAtStart])
+  if (signedOutAtStart && loadSession()) {
+    setSignedOutAtStart(false)
+  }
 
   useEffect(() => {
     void applySystemBarAppearance(getSystemBarAppearance(pathname))

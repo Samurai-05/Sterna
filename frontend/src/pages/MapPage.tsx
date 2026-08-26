@@ -40,11 +40,12 @@ export function MapPage() {
   )
 
   const handleSelectDiscovery = useCallback(
-    (id: number) => navigate(`/discoveries/${id}`),
+    (id: number) =>
+      navigate(`/discoveries/${id}`, { state: { from: 'map' } }),
     [navigate],
   )
   const handleSelectLandmark = useCallback(
-    (id: string) => navigate(`/landmarks/${id}`),
+    (id: string) => navigate(`/landmarks/${id}`, { state: { from: 'map' } }),
     [navigate],
   )
 
