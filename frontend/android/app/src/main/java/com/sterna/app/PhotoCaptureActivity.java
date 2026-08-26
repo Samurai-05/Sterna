@@ -2,25 +2,30 @@ package com.sterna.app;
 
 import android.Manifest;
 import android.app.Activity;
+import android.animation.AnimatorInflater;
+import android.animation.StateListAnimator;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ext.SdkExtensions;
 import android.provider.OpenableColumns;
 import android.view.Gravity;
+import android.view.Surface;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
@@ -28,6 +33,11 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.photopicker.EmbeddedPhotoPickerView;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.io.File;
@@ -48,24 +58,62 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     static final String EXTRA_FILE_NAME = "fileName";
     static final String EXTRA_SOURCE = "source";
 
+    private static final int CAMERA_CONTROLS_HEIGHT_DP = 100;
+    private static final int EMBEDDED_PICKER_HEIGHT_DP = 180;
+
+    private FrameLayout rootView;
     private PreviewView previewView;
     private ImageCapture imageCapture;
     private TextView statusView;
-    private Button galleryButton;
+    private ImageButton galleryButton;
+    private ImageButton closeButton;
+    private ImageButton flashButton;
+    private ImageButton switchCameraButton;
+    private ImageButton shutterButton;
+    private FrameLayout topControls;
+    private FrameLayout bottomControls;
     private EmbeddedPhotoPickerView embeddedPickerView;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<PickVisualMediaRequest> galleryLauncher;
     private ExecutorService cameraExecutor;
+    private ProcessCameraProvider cameraProvider;
     private Uri embeddedSelectedUri;
+    private boolean usingFrontCamera;
+    private boolean flashEnabled;
+    private boolean captureInProgress;
+    private int topSystemInset;
+    private int bottomSystemInset;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        configureWindow();
         cameraExecutor = Executors.newSingleThreadExecutor();
         registerLaunchers();
-        setContentView(createContentView());
+        rootView = createContentView();
+        setContentView(rootView);
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (view, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            topSystemInset = systemBars.top;
+            bottomSystemInset = systemBars.bottom;
+            applySystemInsets();
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(rootView);
         configureGallery();
         requestOrStartCamera();
+    }
+
+    private void configureWindow() {
+        WindowCompat.enableEdgeToEdge(getWindow());
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarDividerColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarContrastEnforced(false);
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        controller.setAppearanceLightNavigationBars(false);
     }
 
     private void registerLaunchers() {
@@ -88,42 +136,165 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                 });
     }
 
-    private View createContentView() {
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xff101312);
+    private FrameLayout createContentView() {
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(Color.BLACK);
 
-        Button closeButton = new Button(this);
-        closeButton.setText("Close");
-        closeButton.setContentDescription("Close photo capture");
-        closeButton.setOnClickListener(view -> finish());
-        root.addView(closeButton, new LinearLayout.LayoutParams(-1, 56));
-
-        FrameLayout cameraArea = new FrameLayout(this);
         previewView = new PreviewView(this);
         previewView.setImplementationMode(PreviewView.ImplementationMode.COMPATIBLE);
-        cameraArea.addView(previewView, new FrameLayout.LayoutParams(-1, -1));
+        previewView.setScaleType(PreviewView.ScaleType.FILL_CENTER);
+        root.addView(previewView, new FrameLayout.LayoutParams(-1, -1));
 
-        Button shutterButton = new Button(this);
-        shutterButton.setText("●");
-        shutterButton.setTextSize(28);
-        shutterButton.setContentDescription("Take photo");
-        shutterButton.setOnClickListener(view -> capturePhoto());
-        FrameLayout.LayoutParams shutterParams = new FrameLayout.LayoutParams(96, 72, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        shutterParams.bottomMargin = 20;
-        cameraArea.addView(shutterButton, shutterParams);
-        root.addView(cameraArea, new LinearLayout.LayoutParams(-1, 0, 1));
+        View topScrim = new View(this);
+        topScrim.setBackgroundResource(R.drawable.camera_top_scrim);
+        root.addView(topScrim, new FrameLayout.LayoutParams(-1, dp(180), Gravity.TOP));
+
+        View bottomScrim = new View(this);
+        bottomScrim.setBackgroundResource(R.drawable.camera_bottom_scrim);
+        root.addView(bottomScrim, new FrameLayout.LayoutParams(-1, dp(300), Gravity.BOTTOM));
+
+        topControls = new FrameLayout(this);
+        closeButton = createControlButton(R.drawable.ic_camera_close, "Close photo capture");
+        closeButton.setOnClickListener(view -> cancelAndClose());
+        topControls.addView(closeButton, controlLayoutParams(Gravity.START));
+
+        FrameLayout topRightControls = new FrameLayout(this);
+        flashButton = createControlButton(R.drawable.ic_camera_flash_off, "Turn flash on");
+        flashButton.setVisibility(View.GONE);
+        flashButton.setOnClickListener(view -> toggleFlash());
+        topRightControls.addView(flashButton, controlLayoutParams(Gravity.END));
+        topControls.addView(topRightControls, new FrameLayout.LayoutParams(-2, dp(56), Gravity.END));
+        root.addView(topControls, new FrameLayout.LayoutParams(-1, -2, Gravity.TOP));
 
         statusView = new TextView(this);
-        statusView.setTextColor(0xffffffff);
-        statusView.setPadding(24, 8, 24, 8);
-        root.addView(statusView, new LinearLayout.LayoutParams(-1, -2));
-        galleryButton = new Button(this);
-        galleryButton.setText("Gallery");
-        galleryButton.setContentDescription("Choose photo from Gallery");
+        statusView.setTextColor(Color.WHITE);
+        statusView.setTextSize(14);
+        statusView.setGravity(Gravity.CENTER);
+        statusView.setPadding(dp(16), dp(8), dp(16), dp(8));
+        statusView.setBackgroundResource(R.drawable.camera_status_background);
+        statusView.setVisibility(View.GONE);
+        FrameLayout.LayoutParams statusParams =
+                new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        statusParams.bottomMargin = dp(CAMERA_CONTROLS_HEIGHT_DP + 16);
+        root.addView(statusView, statusParams);
+
+        bottomControls = new FrameLayout(this);
+        bottomControls.setClipChildren(false);
+        bottomControls.setPadding(dp(18), 0, dp(18), 0);
+
+        galleryButton = createControlButton(R.drawable.ic_camera_gallery, "Choose a photo from Gallery");
         galleryButton.setOnClickListener(view -> launchGallery());
-        root.addView(galleryButton, new LinearLayout.LayoutParams(-1, 64));
+        bottomControls.addView(
+                galleryButton,
+                controlLayoutParams(Gravity.START | Gravity.CENTER_VERTICAL));
+
+        shutterButton = new ImageButton(this);
+        shutterButton.setContentDescription("Take photo");
+        shutterButton.setBackgroundResource(R.drawable.camera_shutter_background);
+        StateListAnimator shutterAnimator = AnimatorInflater.loadStateListAnimator(
+                this, R.animator.camera_shutter_state_list);
+        shutterButton.setStateListAnimator(shutterAnimator);
+        shutterButton.setPadding(0, 0, 0, 0);
+        shutterButton.setScaleType(ImageView.ScaleType.CENTER);
+        shutterButton.setOnClickListener(view -> capturePhoto());
+        FrameLayout.LayoutParams shutterParams =
+                new FrameLayout.LayoutParams(dp(84), dp(84), Gravity.CENTER);
+        bottomControls.addView(shutterButton, shutterParams);
+
+        switchCameraButton = createControlButton(R.drawable.ic_camera_switch, "Switch camera");
+        switchCameraButton.setVisibility(View.GONE);
+        switchCameraButton.setOnClickListener(view -> switchCamera());
+        bottomControls.addView(
+                switchCameraButton,
+                controlLayoutParams(Gravity.END | Gravity.CENTER_VERTICAL));
+
+        FrameLayout.LayoutParams bottomParams =
+                new FrameLayout.LayoutParams(-1, dp(CAMERA_CONTROLS_HEIGHT_DP), Gravity.BOTTOM);
+        root.addView(bottomControls, bottomParams);
         return root;
+    }
+
+    private ImageButton createControlButton(int iconResId, String contentDescription) {
+        ImageButton button = new ImageButton(this);
+        button.setImageResource(iconResId);
+        button.setContentDescription(contentDescription);
+        button.setBackgroundResource(R.drawable.camera_control_background);
+        button.setColorFilter(Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN);
+        button.setPadding(dp(16), dp(16), dp(16), dp(16));
+        button.setMinimumWidth(dp(56));
+        button.setMinimumHeight(dp(56));
+        button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        button.setElevation(dp(2));
+        return button;
+    }
+
+    private FrameLayout.LayoutParams controlLayoutParams(int gravity) {
+        return new FrameLayout.LayoutParams(dp(56), dp(56), gravity);
+    }
+
+    private void applySystemInsets() {
+        if (topControls == null || bottomControls == null) {
+            return;
+        }
+        topControls.setPadding(dp(8), topSystemInset + dp(8), dp(8), dp(8));
+        bottomControls.setPadding(dp(18), 0, dp(18), bottomSystemInset);
+
+        FrameLayout.LayoutParams bottomParams =
+                (FrameLayout.LayoutParams) bottomControls.getLayoutParams();
+        bottomParams.height = dp(CAMERA_CONTROLS_HEIGHT_DP) + bottomSystemInset;
+        bottomParams.bottomMargin = embeddedPickerView == null
+                ? 0 : dp(EMBEDDED_PICKER_HEIGHT_DP) + bottomSystemInset;
+        bottomControls.setLayoutParams(bottomParams);
+
+        if (embeddedPickerView != null) {
+            FrameLayout.LayoutParams pickerParams =
+                    (FrameLayout.LayoutParams) embeddedPickerView.getLayoutParams();
+            pickerParams.bottomMargin = bottomSystemInset;
+            embeddedPickerView.setLayoutParams(pickerParams);
+        }
+
+        FrameLayout.LayoutParams statusParams =
+                (FrameLayout.LayoutParams) statusView.getLayoutParams();
+        statusParams.bottomMargin = dp(CAMERA_CONTROLS_HEIGHT_DP + 16) + bottomSystemInset
+                + (embeddedPickerView == null ? 0 : dp(EMBEDDED_PICKER_HEIGHT_DP));
+        statusView.setLayoutParams(statusParams);
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    private void toggleFlash() {
+        if (imageCapture == null || flashButton.getVisibility() != View.VISIBLE) {
+            return;
+        }
+        flashEnabled = !flashEnabled;
+        imageCapture.setFlashMode(
+                flashEnabled ? ImageCapture.FLASH_MODE_ON : ImageCapture.FLASH_MODE_OFF);
+        flashButton.setImageResource(
+                flashEnabled ? R.drawable.ic_camera_flash_on : R.drawable.ic_camera_flash_off);
+        flashButton.setContentDescription(flashEnabled ? "Turn flash off" : "Turn flash on");
+    }
+
+    private void switchCamera() {
+        if (cameraProvider == null || captureInProgress) {
+            return;
+        }
+        usingFrontCamera = !usingFrontCamera;
+        bindCamera();
+    }
+
+    private void cancelAndClose() {
+        setResult(Activity.RESULT_CANCELED);
+        if (cameraProvider != null) {
+            cameraProvider.unbindAll();
+        }
+        finish();
+    }
+
+    private int getTargetRotation() {
+        return previewView.getDisplay() == null
+                ? Surface.ROTATION_0 : previewView.getDisplay().getRotation();
     }
 
     private void configureGallery() {
@@ -133,7 +304,6 @@ public class PhotoCaptureActivity extends AppCompatActivity {
 
         try {
             EmbeddedPhotoPickerView pickerView = new EmbeddedPhotoPickerView(this);
-            embeddedPickerView = pickerView;
             android.widget.photopicker.EmbeddedPhotoPickerFeatureInfo.Builder featureBuilder =
                     new android.widget.photopicker.EmbeddedPhotoPickerFeatureInfo.Builder()
                             .setMimeTypes(Arrays.asList("image/*"))
@@ -155,7 +325,8 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onSessionOpened(android.widget.photopicker.EmbeddedPhotoPickerSession session) {}
+                        public void onSessionOpened(
+                                android.widget.photopicker.EmbeddedPhotoPickerSession session) {}
 
                         @Override
                         public void onUriPermissionGranted(List<? extends Uri> uris) {
@@ -171,9 +342,12 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                             }
                         }
                     });
-            LinearLayout galleryParent = (LinearLayout) galleryButton.getParent();
-            galleryParent.removeView(galleryButton);
-            galleryParent.addView(pickerView, new LinearLayout.LayoutParams(-1, 180));
+            galleryButton.setVisibility(View.GONE);
+            embeddedPickerView = pickerView;
+            FrameLayout.LayoutParams pickerParams =
+                    new FrameLayout.LayoutParams(-1, dp(EMBEDDED_PICKER_HEIGHT_DP), Gravity.BOTTOM);
+            rootView.addView(pickerView, pickerParams);
+            applySystemInsets();
         } catch (RuntimeException exception) {
             showClassicGallery();
         }
@@ -200,13 +374,13 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     }
 
     private void showClassicGallery() {
-        if (embeddedPickerView != null && embeddedPickerView.getParent() instanceof LinearLayout) {
-            LinearLayout parent = (LinearLayout) embeddedPickerView.getParent();
+        if (embeddedPickerView != null && embeddedPickerView.getParent() instanceof FrameLayout) {
+            FrameLayout parent = (FrameLayout) embeddedPickerView.getParent();
             parent.removeView(embeddedPickerView);
-            parent.addView(galleryButton, new LinearLayout.LayoutParams(-1, 64));
             embeddedPickerView = null;
         }
         galleryButton.setVisibility(View.VISIBLE);
+        applySystemInsets();
     }
 
     private void launchGallery() {
@@ -216,7 +390,8 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     }
 
     private void requestOrStartCamera() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else if (!getPreferences(MODE_PRIVATE).getBoolean("camera_denied", false)) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
@@ -226,27 +401,67 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     }
 
     private void startCamera() {
-        ListenableFuture<ProcessCameraProvider> providerFuture = ProcessCameraProvider.getInstance(this);
+        ListenableFuture<ProcessCameraProvider> providerFuture =
+                ProcessCameraProvider.getInstance(this);
         providerFuture.addListener(() -> {
             try {
-                ProcessCameraProvider provider = providerFuture.get();
-                Preview preview = new Preview.Builder().build();
-                imageCapture = new ImageCapture.Builder().build();
-                preview.setSurfaceProvider(previewView.getSurfaceProvider());
-                provider.unbindAll();
-                provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture);
-                showStatus("");
+                cameraProvider = providerFuture.get();
+                bindCamera();
             } catch (Exception exception) {
                 showStatus("Camera unavailable. You can still choose a photo from Gallery.");
             }
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private void capturePhoto() {
-        if (imageCapture == null) {
-            showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+    private void bindCamera() {
+        if (cameraProvider == null) {
             return;
         }
+        try {
+            boolean hasBackCamera = cameraProvider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA);
+            boolean hasFrontCamera = cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA);
+            usingFrontCamera = usingFrontCamera && hasFrontCamera;
+            CameraSelector selector = usingFrontCamera
+                    ? CameraSelector.DEFAULT_FRONT_CAMERA : CameraSelector.DEFAULT_BACK_CAMERA;
+
+            Preview preview = new Preview.Builder().setTargetRotation(getTargetRotation()).build();
+            imageCapture = new ImageCapture.Builder()
+                    .setTargetRotation(getTargetRotation())
+                    .setFlashMode(ImageCapture.FLASH_MODE_OFF)
+                    .build();
+            preview.setSurfaceProvider(previewView.getSurfaceProvider());
+            cameraProvider.unbindAll();
+            Camera camera = cameraProvider.bindToLifecycle(this, selector, preview, imageCapture);
+            flashEnabled = false;
+            updateFlashControl(camera);
+            switchCameraButton.setVisibility(hasBackCamera && hasFrontCamera ? View.VISIBLE : View.GONE);
+            showStatus("");
+        } catch (Exception exception) {
+            showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+        }
+    }
+
+    private void updateFlashControl(Camera camera) {
+        boolean hasFlash = camera.getCameraInfo().hasFlashUnit();
+        flashButton.setVisibility(hasFlash ? View.VISIBLE : View.GONE);
+        if (!hasFlash) {
+            flashEnabled = false;
+        }
+        flashButton.setImageResource(
+                flashEnabled ? R.drawable.ic_camera_flash_on : R.drawable.ic_camera_flash_off);
+        flashButton.setContentDescription(flashEnabled ? "Turn flash off" : "Turn flash on");
+    }
+
+    private void capturePhoto() {
+        if (imageCapture == null || captureInProgress) {
+            if (imageCapture == null) {
+                showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+            }
+            return;
+        }
+        captureInProgress = true;
+        shutterButton.setEnabled(false);
+        shutterButton.setAlpha(0.55f);
         File output = new File(getCacheDir(), "sterna-camera-" + UUID.randomUUID() + ".jpg");
         ImageCapture.OutputFileOptions options = new ImageCapture.OutputFileOptions.Builder(output).build();
         imageCapture.takePicture(options, cameraExecutor, new ImageCapture.OnImageSavedCallback() {
@@ -257,7 +472,12 @@ public class PhotoCaptureActivity extends AppCompatActivity {
 
             @Override
             public void onError(ImageCaptureException exception) {
-                runOnUiThread(() -> showStatus("Could not take photo. Please try again or use Gallery."));
+                runOnUiThread(() -> {
+                    captureInProgress = false;
+                    shutterButton.setEnabled(true);
+                    shutterButton.setAlpha(1f);
+                    showStatus("Could not take photo. Please try again or use Gallery.");
+                });
             }
         });
     }
@@ -293,7 +513,8 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         if (!"content".equals(uri.getScheme())) {
             return uri.getLastPathSegment();
         }
-        try (android.database.Cursor cursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+        try (android.database.Cursor cursor = getContentResolver().query(
+                uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 return cursor.getString(0);
             }
@@ -320,13 +541,13 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     private void showStatus(String message) {
         if (statusView != null) {
             statusView.setText(message);
+            statusView.setVisibility(message.isEmpty() ? View.GONE : View.VISIBLE);
         }
     }
 
     @Override
     public void onBackPressed() {
-        setResult(Activity.RESULT_CANCELED);
-        super.onBackPressed();
+        cancelAndClose();
     }
 
     @Override
