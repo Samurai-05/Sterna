@@ -1,7 +1,8 @@
 import { Grid2X2, Map, Plus, UserRound, UsersRound } from 'lucide-react'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import { cn } from '@/lib/utils'
+import { createDiscoveryPhotoAction } from '@/lib/photo-capture'
 
 const items = [
   { to: '/', label: 'Map', icon: Map },
@@ -10,8 +11,13 @@ const items = [
   { to: '/profile', label: 'Me', icon: UserRound },
 ]
 
-export function BottomNavigation() {
+export function BottomNavigation({
+  onAddDiscovery,
+}: {
+  onAddDiscovery?: () => void
+}) {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
 
   return (
     <nav
@@ -29,8 +35,15 @@ export function BottomNavigation() {
             <Icon />
           </NavigationLink>
         ))}
-        <Link
-          to="/add"
+        <button
+          type="button"
+          onClick={() => {
+            if (onAddDiscovery) {
+              onAddDiscovery()
+            } else {
+              void createDiscoveryPhotoAction({ navigate })
+            }
+          }}
           aria-label="Add discovery"
           className="-mt-7 flex min-h-14 flex-col items-center justify-end gap-1 text-xs font-semibold text-primary"
         >
@@ -38,7 +51,7 @@ export function BottomNavigation() {
             <Plus className="size-6" strokeWidth={2.5} />
           </span>
           Add
-        </Link>
+        </button>
         {items.slice(2).map(({ to, label, icon: Icon }) => (
           <NavigationLink
             key={to}

@@ -1,26 +1,59 @@
 import { Camera, Check, ImagePlus, MapPin } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Capacitor } from '@capacitor/core'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { createDiscovery } from '@/lib/api'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
+import { type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
+
+type AddDiscoveryLocationState = {
+  selectedPhoto?: SelectedPhoto
+}
 
 export function AddDiscoveryPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const session = loadSession()
+
+  const selectedPhoto = (location.state as AddDiscoveryLocationState | null)
+    ?.selectedPhoto
+
+  const [nativePhoto, setNativePhoto] = useState(selectedPhoto)
+  const [browserPhoto, setBrowserPhoto] = useState<File | null>(null)
+
   const [category, setCategory] = useState<DiscoveryCategory>('other')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [longitude, setLongitude] = useState('2.3522')
   const [latitude, setLatitude] = useState('48.8566')
-  const [photoSelected, setPhotoSelected] = useState(false)
   const [formMessage, setFormMessage] = useState('')
+
+  const browserPhotoUrl = useMemo(
+    () => (browserPhoto ? URL.createObjectURL(browserPhoto) : null),
+    [browserPhoto],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (browserPhotoUrl) {
+        URL.revokeObjectURL(browserPhotoUrl)
+      }
+    }
+  }, [browserPhotoUrl])
+
+  const photoSelected = Boolean(nativePhoto || browserPhoto)
+
+  const photoUrl = nativePhoto
+    ? Capacitor.convertFileSrc(nativePhoto.path)
+    : browserPhotoUrl
+
   const mutation = useMutation({
     mutationFn: createDiscovery,
     onSuccess: (discovery) => {
@@ -82,9 +115,18 @@ export function AddDiscoveryPage() {
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="sr-only"
-              onChange={() => setPhotoSelected(true)}
+              onChange={(event) => {
+                setNativePhoto(undefined)
+                setBrowserPhoto(event.target.files?.[0] ?? null)
+              }}
             />
-            {photoSelected ? (
+            {photoUrl ? (
+              <img
+                src={photoUrl}
+                alt="Selected discovery photo"
+                className="h-40 w-full rounded-2xl object-cover"
+              />
+            ) : photoSelected ? (
               <Check className="size-8 text-primary" />
             ) : (
               <ImagePlus className="size-8 text-primary" />

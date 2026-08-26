@@ -24,7 +24,7 @@ For the MVP, the mobile target must be distributable and installable as an **APK
 
 It must:
 
-* be installable on **Android 10 or later**;
+* be installable on **Android 10 (API 29) or later**;
 
 * be launchable from Android like a standard application;
 

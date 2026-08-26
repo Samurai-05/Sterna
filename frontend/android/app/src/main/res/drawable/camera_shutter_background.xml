@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:enterFadeDuration="100"
+    android:exitFadeDuration="160">
+    <item android:state_enabled="false">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="#33000000" />
+                    <stroke android:width="4dp" android:color="#66FFFFFF" />
+                </shape>
+            </item>
+            <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp">
+                <shape android:shape="oval">
+                    <solid android:color="#99FFFFFF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="#26000000" />
+                    <stroke android:width="4dp" android:color="#FFFFFFFF" />
+                </shape>
+            </item>
+            <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp">
+                <shape android:shape="oval">
+                    <solid android:color="#FFFFFFFF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="#26000000" />
+                    <stroke android:width="4dp" android:color="#FFFFFFFF" />
+                </shape>
+            </item>
+            <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp">
+                <shape android:shape="oval">
+                    <solid android:color="#FFFFFFFF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>
