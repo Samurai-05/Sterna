@@ -1,8 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  window.localStorage.clear()
+})
 
 function renderAt(path: string) {
   return render(
@@ -50,6 +55,7 @@ describe('authentication pages', () => {
     expect(heading).toBeInTheDocument()
     expect(heading).toHaveClass('sterna-screen-title', 'font-sans')
     expect(heading).not.toHaveClass('font-display')
+    expect(screen.getByLabelText('Name')).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
     expect(screen.getByLabelText('Confirm password')).toBeInTheDocument()
@@ -101,6 +107,9 @@ describe('authentication pages', () => {
   it('shows a confirmation error when register passwords do not match', () => {
     renderAt('/register')
 
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Explorer' },
+    })
     fireEvent.change(screen.getByLabelText('Email'), {
       target: { value: 'explorer@sterna.app' },
     })
@@ -121,5 +130,36 @@ describe('authentication pages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Log in' }))
 
     expect(screen.getByText('Enter your email address.')).toBeInTheDocument()
+  })
+
+  it('stores the session when login succeeds', async () => {
+    vi.spyOn(window, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          accessToken: 'test-token',
+          user: {
+            id: '1',
+            email: 'explorer@sterna.app',
+            userName: 'Explorer',
+            createdAt: '2026-08-26T08:00:00.000Z',
+            updatedAt: '2026-08-26T08:00:00.000Z',
+          },
+        }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+
+    renderAt('/login')
+
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'explorer@sterna.app' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'password-123' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Log in' }))
+
+    await screen.findByRole('heading', { name: 'Explore Paris' })
+    expect(window.localStorage.getItem('sterna.auth')).toContain('test-token')
   })
 })

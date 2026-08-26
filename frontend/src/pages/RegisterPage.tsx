@@ -1,22 +1,31 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthTextInput } from '@/components/auth/AuthTextInput'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 import { Button } from '@/components/ui/button'
+import { login, register } from '@/lib/api'
+import { saveSession } from '@/lib/session'
 
 type RegisterErrors = {
   confirmPassword?: string
   email?: string
   password?: string
+  userName?: string
 }
 
 function registerErrors(
+  userName: string,
   email: string,
   password: string,
   confirmPassword: string,
 ): RegisterErrors {
   const errors: RegisterErrors = {}
+
+  if (!userName.trim()) {
+    errors.userName = 'Enter your name.'
+  }
 
   if (!email.trim()) {
     errors.email = 'Enter your email address.'
@@ -38,6 +47,8 @@ function registerErrors(
 }
 
 export function RegisterPage() {
+  const navigate = useNavigate()
+  const [userName, setUserName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -45,19 +56,31 @@ export function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionMessage, setSubmissionMessage] = useState('')
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const nextErrors = registerErrors(email, password, confirmPassword)
+    const nextErrors = registerErrors(
+      userName,
+      email,
+      password,
+      confirmPassword,
+    )
     setErrors(nextErrors)
     setSubmissionMessage('')
 
     if (Object.keys(nextErrors).length > 0) return
 
-    setIsSubmitting(true)
-    window.setTimeout(() => {
+    try {
+      setIsSubmitting(true)
+      await register({ email, password, userName })
+      saveSession(await login({ email, password }))
+      navigate('/', { replace: true })
+    } catch (error) {
+      setSubmissionMessage(
+        error instanceof Error ? error.message : 'Unable to create account.',
+      )
+    } finally {
       setIsSubmitting(false)
-      setSubmissionMessage('Account creation will be connected soon.')
-    }, 600)
+    }
   }
 
   return (
@@ -66,6 +89,15 @@ export function RegisterPage() {
       subtitle="Start collecting the places that matter to you."
     >
       <form noValidate onSubmit={handleSubmit} className="space-y-5">
+        <AuthTextInput
+          id="userName"
+          label="Name"
+          autoComplete="name"
+          value={userName}
+          onChange={(event) => setUserName(event.target.value)}
+          placeholder="Alex"
+          error={errors.userName}
+        />
         <AuthTextInput
           id="email"
           label="Email"
