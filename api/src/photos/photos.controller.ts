@@ -22,6 +22,7 @@ import {
   ApiTags,
   ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
+import { ApiAuthenticated } from '../common/decorators/api-authenticated.decorator';
 import { UploadPhotoResponseDto } from './dto/upload-photo-response.dto';
 import {
   ALLOWED_MIME_TYPES,
@@ -36,6 +37,11 @@ import {
  *
  * MinIO is never reached by clients directly (ADR-006, ADR-007) — everything
  * goes through here.
+ *
+ * Both routes require a bearer token (NFR-18, NFR-24). Note what that means for
+ * a browser: `<img src="/api/photos/...">` cannot attach an Authorization
+ * header, so a client has to fetch the bytes and render the resulting object
+ * URL instead.
  */
 @ApiTags('photos')
 @Controller('photos')
@@ -43,6 +49,7 @@ export class PhotosController {
   constructor(private readonly photos: PhotosService) {}
 
   @Post()
+  @ApiAuthenticated()
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: MAX_PHOTO_BYTES, files: 1 },
@@ -92,6 +99,7 @@ export class PhotosController {
   }
 
   @Get(':filename')
+  @ApiAuthenticated()
   @ApiOperation({
     summary: 'Download a photo',
     description:
@@ -104,9 +112,13 @@ export class PhotosController {
     @Param('filename') filename: string,
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
-    // TODO(auth): personal discoveries are private by default (NFR-24/25/26).
-    // Once JWT auth lands, check the caller may see the discovery this photo
-    // belongs to before streaming it.
+    // The global guard has established that the caller is signed in, which is
+    // as far as authorization can go today.
+    //
+    // TODO(discoveries): personal discoveries are private by default
+    // (NFR-24/25/26), so once the discoveries table exists this must also check
+    // that *this* caller may see the discovery the photo belongs to. Until
+    // then any signed-in user can read any key they know.
     const { stream, contentType, size } = await this.photos.read(filename);
 
     // Keys are immutable, so the bytes behind one never change. Set here rather

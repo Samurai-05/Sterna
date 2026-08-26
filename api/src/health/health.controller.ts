@@ -11,6 +11,7 @@ import {
   HealthCheckService,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+import { Public } from '../common/decorators/public.decorator';
 import { MinioHealthIndicator } from './minio.health';
 
 const upExample = { database: { status: 'up' }, storage: { status: 'up' } };
@@ -31,6 +32,9 @@ const healthExample = {
  * itself as healthy.
  */
 @ApiTags('health')
+// The Compose healthcheck and the deploy job's readiness poll carry no token,
+// so the whole controller opts out of the global guard.
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(

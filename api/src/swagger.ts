@@ -18,6 +18,11 @@ export const SWAGGER_JSON_PATH = `${SWAGGER_PATH}-json`;
  * The documentation is served in every environment: this is a school project
  * whose API is meant to be demonstrated, and the endpoints are reachable anyway.
  * To restrict it later, guard the call in configureApp() on NODE_ENV.
+ *
+ * Note that SwaggerModule registers /api/docs through httpAdapter.get(), i.e.
+ * as a raw Express route that never enters Nest's guard pipeline. The global
+ * JwtAuthGuard therefore does not apply to it and it needs no @Public() —
+ * there is nothing to "fix" here.
  */
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
@@ -27,6 +32,12 @@ export function setupSwagger(app: INestApplication): void {
         'The API is the only component that accesses PostgreSQL + PostGIS and MinIO.',
     )
     .setVersion('0.0.1')
+    // Lets the docs UI's Authorize button send a token, and marks every route
+    // carrying @ApiAuthenticated() as requiring one.
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'bearer',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

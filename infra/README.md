@@ -66,12 +66,20 @@ docker compose down -v
 
 - PostgreSQL + PostGIS provides relational storage, geographical data storage,
   and spatial queries such as country detection and distance to points of
-  interest. See `postgres/init/001-init-extensions.sql`.
+  interest. See `postgres/init/001_enable_postgis.sql`.
 - The Node.js backend is the only component that accesses PostgreSQL + PostGIS.
-- `001-init-extensions.sql` runs only when the `postgres_data` volume is first
-  created; it enables the `postgis` extension. Everything beyond that — tables,
-  indexes, constraints — belongs to the API's TypeORM migrations (`api/src/migrations/`),
-  never to a manual change against a running database.
+- `001_enable_postgis.sql` is the **only** script in `postgres/init/`, and it runs
+  only when the `postgres_data` volume is first created. Everything beyond that —
+  tables, indexes, constraints, reference data — belongs to the API's TypeORM
+  migrations (`api/src/migrations/`), never to another init script and never to a
+  manual change against a running database. The schema DDL used to live here as
+  `002`–`008`; because Postgres runs `/docker-entrypoint-initdb.d` only on an empty
+  data directory, it had never been applied to any environment, so it was moved into
+  `InitialSchema` and `SeedPois` where it can reach volumes that already exist.
+- Apply pending migrations after pulling: `docker compose exec api npm run migration:run`.
+  On a database that still carries the old init-script tables this fails with
+  `42P07 relation already exists` — see the "Database" section of
+  [`api/README.md`](../api/README.md) for the one-line cleanup.
 - MinIO remains exclusively responsible for photo object storage; PostgreSQL +
   PostGIS stores the associated structured and geographical metadata.
 - See `minio/README.md` for object storage conventions.

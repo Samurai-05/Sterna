@@ -12,6 +12,7 @@ const completeEnv = {
   MINIO_ROOT_USER: 'minioadmin',
   MINIO_ROOT_PASSWORD: 'secret',
   MINIO_BUCKET_NAME: 'observations',
+  JWT_SECRET: 'a'.repeat(32),
 };
 
 describe('validate', () => {
@@ -65,4 +66,36 @@ describe('validate', () => {
       );
     },
   );
+
+  it('names JWT_SECRET when it is missing', () => {
+    const incomplete: Record<string, string> = { ...completeEnv };
+    delete incomplete.JWT_SECRET;
+
+    expect(() => validate(incomplete)).toThrow(/JWT_SECRET/);
+  });
+
+  // A short HS256 key can be brute-forced offline from one captured token, so
+  // a placeholder must stop the process rather than reach production (NFR-22).
+  it('rejects a JWT_SECRET shorter than thirty-two characters', () => {
+    expect(() => validate({ ...completeEnv, JWT_SECRET: 'too-short' })).toThrow(
+      /JWT_SECRET/,
+    );
+  });
+
+  it('treats JWT_EXPIRES_IN_SECONDS as optional', () => {
+    expect(validate(completeEnv).JWT_EXPIRES_IN_SECONDS).toBeUndefined();
+  });
+
+  it('converts JWT_EXPIRES_IN_SECONDS from the string the environment provides', () => {
+    expect(
+      validate({ ...completeEnv, JWT_EXPIRES_IN_SECONDS: '604800' })
+        .JWT_EXPIRES_IN_SECONDS,
+    ).toBe(604800);
+  });
+
+  it('rejects a non-numeric JWT_EXPIRES_IN_SECONDS', () => {
+    expect(() =>
+      validate({ ...completeEnv, JWT_EXPIRES_IN_SECONDS: 'a week' }),
+    ).toThrow(/JWT_EXPIRES_IN_SECONDS/);
+  });
 });

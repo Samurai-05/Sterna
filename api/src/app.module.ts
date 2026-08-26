@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 import { buildDataSourceOptions } from './config/data-source-options';
 import { validate } from './config/env.validation';
 import { HealthModule } from './health/health.module';
@@ -26,6 +27,7 @@ import { PhotosModule } from './photos/photos.module';
         autoLoadEntities: true,
       }),
     }),
+    AuthModule,
     HealthModule,
     PhotosModule,
   ],
