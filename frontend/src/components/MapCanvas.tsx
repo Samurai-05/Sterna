@@ -137,11 +137,21 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             source: countriesSourceId,
             paint: {
               'fill-color': '#38404a',
+              // countries.geo.json has a handful of features whose claimed
+              // territory genuinely overlaps another one's — Crimea is drawn
+              // as part of both RUS and UKR, Western Sahara as part of both
+              // MAR and ESH. Both polygons render (neither claim's borders or
+              // country-detection are touched), each independently lit by its
+              // own real discoveries, but two 0.55 fills stacked over the same
+              // pixels compose darker than every other, single-covered
+              // country. Halving opacity for just these codes cancels that
+              // out: 1-(1-0.3292)^2 ≈ 0.55, matching everyone else when
+              // neither side has been explored yet.
               'fill-opacity': [
                 'case',
                 ['boolean', ['feature-state', 'explored'], false],
                 0,
-                0.55,
+                ['match', ['get', 'A3'], ['RUS', 'UKR', 'MAR', 'ESH'], 0.3292, 0.55],
               ],
             },
           },

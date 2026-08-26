@@ -1,10 +1,42 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import App from './App'
+import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
 
 describe('App', () => {
+  // A signed-out visit to "/" now redirects to the welcome screen (App.tsx),
+  // so these tests act as an already-signed-in user reaching the map, the
+  // same way a returning user would.
+  beforeEach(() => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+  })
+
+  afterEach(() => {
+    window.localStorage.clear()
+  })
+
+  it('redirects a signed-out visit to the root route to the welcome screen', () => {
+    window.localStorage.clear()
+    renderWithProviders(<App />, { route: '/' })
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Keep your discoveries close',
+      }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the welcome screen at the authentication entry route', () => {
     renderWithProviders(<App />, { route: '/auth' })
 

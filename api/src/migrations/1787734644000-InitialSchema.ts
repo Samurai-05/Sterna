@@ -170,20 +170,20 @@ export class InitialSchema1787734644000 implements MigrationInterface {
           CONSTRAINT discoveries_image_object_key_not_blank
               CHECK (BTRIM(image_object_key) <> ''),
 
-          -- Lower-case identifiers, matching the DiscoveryCategory union the
-          -- frontend sends (frontend/src/lib/mock-data.ts). Capitalisation is a
-          -- display concern and belongs to the label, not to the stored value.
+          -- Matches DiscoveryCategory in api/src/discoveries/discovery-category.ts,
+          -- which CreateDiscoveryDto validates against before a request ever
+          -- reaches this constraint.
           CONSTRAINT discoveries_category_check
               CHECK (
                   category IS NULL
                   OR category IN (
-                      'landscape',
-                      'monument',
-                      'food',
-                      'animal',
-                      'plant',
-                      'culture',
-                      'other'
+                      'Landscape',
+                      'Monument',
+                      'Food',
+                      'Animal',
+                      'Plant',
+                      'Culture',
+                      'Other'
                   )
               )
       )

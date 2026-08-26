@@ -1,11 +1,12 @@
-import { useEffect } from 'react'
-import { Route, Routes, useLocation } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 
 import { BottomNavigation } from '@/components/BottomNavigation'
 import {
   applySystemBarAppearance,
   getSystemBarAppearance,
 } from '@/lib/system-bars'
+import { loadSession } from '@/lib/session'
 import { AddDiscoveryPage } from '@/pages/AddDiscoveryPage'
 import { CollectionPage } from '@/pages/CollectionPage'
 import { CreateGroupPage } from '@/pages/CreateGroupPage'
@@ -26,6 +27,19 @@ const mainRoutes = new Set(['/', '/collection', '/groups', '/profile'])
 function App() {
   const { pathname } = useLocation()
   const showBottomNavigation = mainRoutes.has(pathname)
+  // A one-way latch: a guest opening the app cold lands on the welcome
+  // screen instead of the map. It releases the moment a session shows up —
+  // including right after logging in from /login or /register — and then
+  // stays released, so logging out later or navigating back to "/" doesn't
+  // bounce a guest who is deliberately browsing the map — GET
+  // /api/discoveries and /api/pois are public routes on purpose.
+  const [signedOutAtStart, setSignedOutAtStart] = useState(() => !loadSession())
+
+  useEffect(() => {
+    if (signedOutAtStart && loadSession()) {
+      setSignedOutAtStart(false)
+    }
+  }, [pathname, signedOutAtStart])
 
   useEffect(() => {
     void applySystemBarAppearance(getSystemBarAppearance(pathname))
@@ -36,7 +50,12 @@ function App() {
       className={`sterna-app-shell min-h-dvh bg-background text-foreground ${showBottomNavigation ? 'sterna-app-shell--with-bottom-navigation' : ''}`}
     >
       <Routes>
-        <Route path="/" element={<MapPage />} />
+        <Route
+          path="/"
+          element={
+            signedOutAtStart ? <Navigate to="/auth" replace /> : <MapPage />
+          }
+        />
         <Route path="/auth" element={<WelcomePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/collection" element={<CollectionPage />} />
