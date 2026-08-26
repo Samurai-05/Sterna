@@ -7,17 +7,20 @@ import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { getDiscoveries } from '@/lib/api'
 import { categoryLabel, discoveries, imageUrl } from '@/lib/mock-data'
+import { loadSession } from '@/lib/session'
 
 export function DiscoveryDetailPage() {
   const { discoveryId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const session = loadSession()
   const openedFromMap =
     (location.state as { from?: string } | null)?.from === 'map'
   const handleBack = () => (openedFromMap ? navigate('/') : navigate(-1))
   const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries'],
-    queryFn: getDiscoveries,
+    queryKey: ['discoveries', session?.user.id],
+    queryFn: () => getDiscoveries(session!.accessToken),
+    enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
   const discovery =

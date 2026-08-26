@@ -11,13 +11,16 @@ import {
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { getDiscoveries } from '@/lib/api'
+import { loadSession } from '@/lib/session'
 
 export function CollectionPage() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<DiscoveryCategory | null>(null)
+  const session = loadSession()
   const { data: backendDiscoveries, isError, isLoading } = useQuery({
-    queryKey: ['discoveries'],
-    queryFn: getDiscoveries,
+    queryKey: ['discoveries', session?.user.id],
+    queryFn: () => getDiscoveries(session!.accessToken),
+    enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
   const filteredDiscoveries = useMemo(

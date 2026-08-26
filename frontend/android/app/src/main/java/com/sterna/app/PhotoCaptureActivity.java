@@ -70,6 +70,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     private ImageButton flashButton;
     private ImageButton switchCameraButton;
     private ImageButton shutterButton;
+    private TextView zoomButton;
     private FrameLayout topControls;
     private FrameLayout bottomControls;
     private EmbeddedPhotoPickerView embeddedPickerView;
@@ -77,6 +78,8 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     private ActivityResultLauncher<PickVisualMediaRequest> galleryLauncher;
     private ExecutorService cameraExecutor;
     private ProcessCameraProvider cameraProvider;
+    private Camera activeCamera;
+    private CameraZoomState zoomState;
     private Uri embeddedSelectedUri;
     private boolean usingFrontCamera;
     private boolean flashEnabled;
@@ -149,10 +152,6 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         topScrim.setBackgroundResource(R.drawable.camera_top_scrim);
         root.addView(topScrim, new FrameLayout.LayoutParams(-1, dp(180), Gravity.TOP));
 
-        View bottomScrim = new View(this);
-        bottomScrim.setBackgroundResource(R.drawable.camera_bottom_scrim);
-        root.addView(bottomScrim, new FrameLayout.LayoutParams(-1, dp(300), Gravity.BOTTOM));
-
         topControls = new FrameLayout(this);
         closeButton = createControlButton(R.drawable.ic_camera_close, "Close photo capture");
         closeButton.setOnClickListener(view -> cancelAndClose());
@@ -201,12 +200,29 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                 new FrameLayout.LayoutParams(dp(84), dp(84), Gravity.CENTER);
         bottomControls.addView(shutterButton, shutterParams);
 
+        zoomButton = new TextView(this);
+        zoomButton.setTextColor(Color.WHITE);
+        zoomButton.setTextSize(14);
+        zoomButton.setGravity(Gravity.CENTER);
+        zoomButton.setBackgroundResource(R.drawable.camera_control_background);
+        zoomButton.setElevation(dp(2));
+        zoomButton.setOnClickListener(view -> cycleZoom());
+        updateZoomButton();
+        FrameLayout.LayoutParams zoomParams =
+                new FrameLayout.LayoutParams(dp(48), dp(48), Gravity.END | Gravity.CENTER_VERTICAL);
+        zoomParams.rightMargin = dp(64);
+        bottomControls.addView(
+                zoomButton,
+                zoomParams);
+
         switchCameraButton = createControlButton(R.drawable.ic_camera_switch, "Switch camera");
         switchCameraButton.setVisibility(View.GONE);
         switchCameraButton.setOnClickListener(view -> switchCamera());
+        FrameLayout.LayoutParams switchParams =
+                controlLayoutParams(Gravity.END | Gravity.CENTER_VERTICAL);
         bottomControls.addView(
                 switchCameraButton,
-                controlLayoutParams(Gravity.END | Gravity.CENTER_VERTICAL));
+                switchParams);
 
         FrameLayout.LayoutParams bottomParams =
                 new FrameLayout.LayoutParams(-1, dp(CAMERA_CONTROLS_HEIGHT_DP), Gravity.BOTTOM);
@@ -282,6 +298,39 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         }
         usingFrontCamera = !usingFrontCamera;
         bindCamera();
+    }
+
+    private void cycleZoom() {
+        if (activeCamera == null || zoomState == null) {
+            return;
+        }
+        if (!zoomState.hasNextAvailable()) {
+            return;
+        }
+        float nextRatio = zoomState.getNextRatio();
+        ListenableFuture<Void> zoomRequest =
+                activeCamera.getCameraControl().setZoomRatio(nextRatio);
+        zoomRequest.addListener(() -> {
+            try {
+                zoomRequest.get();
+                runOnUiThread(() -> {
+                    zoomState.advance();
+                    updateZoomButton();
+                    showStatus("");
+                });
+            } catch (Exception exception) {
+                runOnUiThread(() -> showStatus("That zoom level is not available on this camera."));
+            }
+        }, ContextCompat.getMainExecutor(this));
+    }
+
+    private void updateZoomButton() {
+        if (zoomButton == null) {
+            return;
+        }
+        String label = zoomState == null ? "1x" : zoomState.getLabel();
+        zoomButton.setText(label);
+        zoomButton.setContentDescription("Zoom " + label);
     }
 
     private void cancelAndClose() {
@@ -432,6 +481,15 @@ public class PhotoCaptureActivity extends AppCompatActivity {
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
             cameraProvider.unbindAll();
             Camera camera = cameraProvider.bindToLifecycle(this, selector, preview, imageCapture);
+            activeCamera = camera;
+            androidx.camera.core.ZoomState cameraZoomState =
+                    camera.getCameraInfo().getZoomState().getValue();
+            zoomState = cameraZoomState == null
+                    ? new CameraZoomState()
+                    : new CameraZoomState(
+                            cameraZoomState.getMinZoomRatio(),
+                            cameraZoomState.getMaxZoomRatio());
+            updateZoomButton();
             flashEnabled = false;
             updateFlashControl(camera);
             switchCameraButton.setVisibility(hasBackCamera && hasFrontCamera ? View.VISIBLE : View.GONE);

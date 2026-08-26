@@ -13,15 +13,18 @@ import {
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { getDiscoveries } from '@/lib/api'
+import { loadSession } from '@/lib/session'
 
 export function MapPage() {
   const [activeCategory, setActiveCategory] =
     useState<DiscoveryCategory | null>(null)
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
+  const session = loadSession()
   const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries'],
-    queryFn: getDiscoveries,
+    queryKey: ['discoveries', session?.user.id],
+    queryFn: () => getDiscoveries(session!.accessToken),
+    enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
   const exploredCountryCodes = useMemo(

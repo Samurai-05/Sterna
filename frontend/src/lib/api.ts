@@ -126,8 +126,12 @@ const apiValueByCategory: Record<DiscoveryCategory, string> = {
   other: 'Other',
 }
 
-export async function getDiscoveries(): Promise<Discovery[]> {
-  const discoveries = await request<ApiDiscovery[]>('/api/discoveries')
+export async function getDiscoveries(accessToken: string): Promise<Discovery[]> {
+  const discoveries = await request<ApiDiscovery[]>('/api/discoveries', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
 
   return Promise.all(discoveries.map(toDiscovery))
 }

@@ -41,8 +41,9 @@ export class DiscoveriesService {
     private readonly discoveries: Repository<Discovery>,
   ) {}
 
-  async findAll(): Promise<DiscoveryResponse[]> {
-    const rows = await this.discoveries.query<DiscoveryRow[]>(`
+  async findAllByUser(userId: string): Promise<DiscoveryResponse[]> {
+    const rows = await this.discoveries.query<DiscoveryRow[]>(
+      `
       SELECT
         id,
         user_id,
@@ -57,8 +58,11 @@ export class DiscoveriesService {
         created_at,
         updated_at
       FROM discoveries
+      WHERE user_id = $1
       ORDER BY created_at DESC, id DESC
-    `);
+    `,
+      [userId],
+    );
 
     return rows.map((row) => this.toResponse(row));
   }

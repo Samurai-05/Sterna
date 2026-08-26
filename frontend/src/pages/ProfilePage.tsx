@@ -1,6 +1,6 @@
 import { Award, Camera, Globe2, Trophy } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import profileEmma from '@/assets/mock/profile-emma.jpg'
@@ -59,6 +59,7 @@ const categoryVisuals: Record<
 }
 
 export function ProfilePage() {
+  const navigate = useNavigate()
   const [profileImageFailed, setProfileImageFailed] = useState(false)
   const [session, setSession] = useState(() => loadSession())
   const accessToken = session?.accessToken
@@ -69,8 +70,9 @@ export function ProfilePage() {
     enabled: Boolean(accessToken),
   })
   const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries'],
-    queryFn: getDiscoveries,
+    queryKey: ['discoveries', session?.user.id],
+    queryFn: () => getDiscoveries(accessToken!),
+    enabled: Boolean(accessToken),
   })
   const { data: backendPois } = useQuery({
     queryKey: ['pois'],
@@ -79,6 +81,12 @@ export function ProfilePage() {
 
   const sourceDiscoveries = backendDiscoveries ?? discoveries
   const sourceLandmarks = backendPois ?? landmarks
+  const displayedUser = currentUser ?? session?.user
+  const displayedUserName = displayedUser?.userName ?? ''
+  const displayedInitial = displayedUserName.trim().charAt(0).toUpperCase()
+  const memberSinceYear = displayedUser
+    ? new Date(displayedUser.createdAt).getFullYear()
+    : null
 
   const discoveredLandmarks = sourceLandmarks.filter(
     (landmark) => landmark.discovered,
@@ -130,12 +138,14 @@ export function ProfilePage() {
     if (currentUserError instanceof ApiError && currentUserError.status === 401) {
       clearSession()
       setSession(null)
+      navigate('/auth', { replace: true })
     }
-  }, [currentUserError])
+  }, [currentUserError, navigate])
 
   function handleLogout() {
     clearSession()
     setSession(null)
+    navigate('/auth', { replace: true })
   }
 
   return (
@@ -148,10 +158,10 @@ export function ProfilePage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="font-display text-[26px] font-semibold leading-8">
-                Emma Barret
+                {displayedUserName}
               </h2>
               <p className="mt-2 font-sans text-sm leading-5 text-primary-foreground/70">
-                Explorer · Since March 2023
+                Explorer · Since {memberSinceYear}
               </p>
             </div>
             <button
@@ -160,11 +170,11 @@ export function ProfilePage() {
               className="flex size-[68px] shrink-0 -translate-x-2.5 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-[#C4622D] font-display text-[26px] font-semibold text-primary-foreground shadow-sm outline-none transition-transform focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
             >
               {profileImageFailed ? (
-                'E'
+                displayedInitial
               ) : (
                 <img
                   src={profileEmma}
-                  alt="Emma Barret"
+                  alt={displayedUserName}
                   className="size-16 rounded-full object-cover"
                   onError={() => setProfileImageFailed(true)}
                 />
