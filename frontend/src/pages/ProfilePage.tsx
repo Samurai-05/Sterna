@@ -1,17 +1,21 @@
 import { Award, Camera, Globe2, Trophy } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
 
 import profileEmma from '@/assets/mock/profile-emma.jpg'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
+import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { ApiError, getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
 import {
   categories,
   discoveries,
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
+import { clearSession, loadSession, saveSession } from '@/lib/session'
 
 const categoryVisuals: Record<
   DiscoveryCategory,
@@ -56,12 +60,32 @@ const categoryVisuals: Record<
 
 export function ProfilePage() {
   const [profileImageFailed, setProfileImageFailed] = useState(false)
-  const discoveredLandmarks = landmarks.filter(
+  const [session, setSession] = useState(() => loadSession())
+  const accessToken = session?.accessToken
+
+  const { data: currentUser, error: currentUserError } = useQuery({
+    queryKey: ['current-user', session?.accessToken],
+    queryFn: () => getCurrentUser(accessToken!),
+    enabled: Boolean(accessToken),
+  })
+  const { data: backendDiscoveries } = useQuery({
+    queryKey: ['discoveries'],
+    queryFn: getDiscoveries,
+  })
+  const { data: backendPois } = useQuery({
+    queryKey: ['pois'],
+    queryFn: getPois,
+  })
+
+  const sourceDiscoveries = backendDiscoveries ?? discoveries
+  const sourceLandmarks = backendPois ?? landmarks
+
+  const discoveredLandmarks = sourceLandmarks.filter(
     (landmark) => landmark.discovered,
   )
   const exploredCountries = [
     ...new Set(
-      discoveries.map(
+      sourceDiscoveries.map(
         (discovery) =>
           discovery.location.split(', ').at(-1) ?? discovery.location,
       ),
@@ -70,7 +94,7 @@ export function ProfilePage() {
   const categoryCounts = categories
     .map((category) => ({
       ...category,
-      count: discoveries.filter(
+      count: sourceDiscoveries.filter(
         (discovery) => discovery.category === category.id,
       ).length,
     }))
@@ -79,9 +103,40 @@ export function ProfilePage() {
     ...categoryCounts.map((category) => category.count),
     1,
   )
-  const progress = landmarks.length
-    ? (discoveredLandmarks.length / landmarks.length) * 100
+  const progress = sourceLandmarks.length
+    ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
     : 0
+
+  useEffect(() => {
+    if (!accessToken || !currentUser) return
+
+    const nextSession = { accessToken, user: currentUser }
+    saveSession(nextSession)
+    setSession((storedSession) => {
+      if (!storedSession) return storedSession
+      if (
+        storedSession.user.id === currentUser.id &&
+        storedSession.user.email === currentUser.email &&
+        storedSession.user.userName === currentUser.userName
+      ) {
+        return storedSession
+      }
+
+      return nextSession
+    })
+  }, [accessToken, currentUser])
+
+  useEffect(() => {
+    if (currentUserError instanceof ApiError && currentUserError.status === 401) {
+      clearSession()
+      setSession(null)
+    }
+  }, [currentUserError])
+
+  function handleLogout() {
+    clearSession()
+    setSession(null)
+  }
 
   return (
     <main className="min-h-dvh bg-background">
@@ -122,7 +177,7 @@ export function ProfilePage() {
           >
             <Stat
               icon={<Camera />}
-              value={discoveries.length}
+              value={sourceDiscoveries.length}
               label="Discoveries"
               inverse
               separator={false}
@@ -145,6 +200,22 @@ export function ProfilePage() {
         </section>
       </div>
       <div className="-mt-6 space-y-8 rounded-t-3xl bg-card px-5 pb-2 pt-8">
+        <section>
+          {session ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full"
+              onClick={handleLogout}
+            >
+              Log out
+            </Button>
+          ) : (
+            <Button asChild className="h-11 w-full">
+              <Link to="/login">Log in</Link>
+            </Button>
+          )}
+        </section>
         <section aria-labelledby="recent-discoveries-heading">
           <div className="mb-3 flex items-center justify-between">
             <h2
@@ -161,7 +232,7 @@ export function ProfilePage() {
             </Link>
           </div>
           <div className="-mr-5 flex snap-x gap-3 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {discoveries.slice(0, 3).map((discovery) => (
+            {sourceDiscoveries.slice(0, 3).map((discovery) => (
               <DiscoveryCard
                 key={discovery.id}
                 discovery={discovery}
@@ -185,11 +256,11 @@ export function ProfilePage() {
             className="mt-3"
             value={progress}
             aria-label="Point of interest exploration progress"
-            aria-valuetext={`${discoveredLandmarks.length} of ${landmarks.length} points of interest discovered`}
+            aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
           />
           <p className="mt-3 text-sm text-muted-foreground">
-            {discoveredLandmarks.length} / {landmarks.length} points of interest
-            discovered
+            {discoveredLandmarks.length} / {sourceLandmarks.length} points of
+            interest discovered
           </p>
         </section>
         <section aria-labelledby="countries-explored-heading">

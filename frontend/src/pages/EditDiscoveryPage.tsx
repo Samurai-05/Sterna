@@ -1,17 +1,41 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router'
 
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { getDiscoveries } from '@/lib/api'
 import { discoveries } from '@/lib/mock-data'
 
 export function EditDiscoveryPage() {
   const { discoveryId } = useParams()
+  const { data: backendDiscoveries } = useQuery({
+    queryKey: ['discoveries'],
+    queryFn: getDiscoveries,
+  })
+  const sourceDiscoveries = backendDiscoveries ?? discoveries
   const discovery =
-    discoveries.find((item) => item.id === Number(discoveryId)) ??
-    discoveries[0]
-  const [title, setTitle] = useState(discovery.name)
+    sourceDiscoveries.find((item) => item.id === Number(discoveryId)) ?? null
   const navigate = useNavigate()
+  const [title, setTitle] = useState('')
+
+  useEffect(() => {
+    if (discovery) {
+      setTitle(discovery.name)
+    }
+  }, [discovery])
+
+  if (!discovery) {
+    return (
+      <main className="min-h-dvh bg-background pb-8">
+        <PageHeader title="Edit discovery" backTo="/collection" />
+        <div className="px-5 text-sm text-muted-foreground">
+          Discovery not found.
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-dvh bg-background">
       <PageHeader

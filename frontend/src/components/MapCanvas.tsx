@@ -21,6 +21,16 @@ const countriesSourceId = 'countries'
 const unexploredFillLayerId = 'unexplored-countries-fill'
 const countryBorderLayerId = 'country-borders'
 
+// countries.geo.json gives two genuinely disputed areas their own feature
+// instead of folding them into either claim's polygon — XCR (Crimea, claimed
+// by RUS and UKR) and XWS (the Morocco/Western-Sahara overlap, MAR and ESH).
+// Neither claim is favoured: the shared zone's veil lifts the moment either
+// side of the dispute is explored.
+const disputedZoneClaims: Record<string, string[]> = {
+  XCR: ['RUS', 'UKR'],
+  XWS: ['MAR', 'ESH'],
+}
+
 export interface MapCanvasHandle {
   locate: () => void
 }
@@ -97,6 +107,11 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           return
         }
         const codes = new Set(exploredCodes.current)
+        for (const [zone, claims] of Object.entries(disputedZoneClaims)) {
+          if (claims.some((code) => codes.has(code))) {
+            codes.add(zone)
+          }
+        }
         for (const code of codes) {
           if (!appliedCodes.current.has(code)) {
             instance.setFeatureState(

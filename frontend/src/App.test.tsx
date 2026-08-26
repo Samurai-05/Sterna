@@ -1,16 +1,44 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import App from './App'
+import { saveSession } from '@/lib/session'
+import { renderWithProviders } from './test/renderWithProviders'
 
 describe('App', () => {
+  // A signed-out visit to "/" now redirects to the welcome screen (App.tsx),
+  // so these tests act as an already-signed-in user reaching the map, the
+  // same way a returning user would.
+  beforeEach(() => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+  })
+
+  afterEach(() => {
+    window.localStorage.clear()
+  })
+
+  it('redirects a signed-out visit to the root route to the welcome screen', () => {
+    window.localStorage.clear()
+    renderWithProviders(<App />, { route: '/' })
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Keep your discoveries close',
+      }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the welcome screen at the authentication entry route', () => {
-    render(
-      <MemoryRouter initialEntries={['/auth']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/auth' })
 
     expect(
       screen.getByRole('heading', {
@@ -35,11 +63,7 @@ describe('App', () => {
   })
 
   it('navigates from the welcome screen to register', () => {
-    render(
-      <MemoryRouter initialEntries={['/auth']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/auth' })
 
     fireEvent.click(screen.getByRole('link', { name: 'Create an account' }))
     expect(
@@ -48,11 +72,7 @@ describe('App', () => {
   })
 
   it('navigates from the welcome screen to login', () => {
-    render(
-      <MemoryRouter initialEntries={['/auth']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/auth' })
     fireEvent.click(screen.getByRole('link', { name: 'Log in' }))
     expect(
       screen.getByRole('heading', { name: 'Welcome back' }),
@@ -60,11 +80,7 @@ describe('App', () => {
   })
 
   it('renders the map at the application root route', () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/' })
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
@@ -72,11 +88,7 @@ describe('App', () => {
   })
 
   it('keeps map controls below the status bar inset', () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/' })
 
     expect(screen.getByRole('group', { name: 'Map controls' })).toHaveClass(
       'sterna-map-controls',
@@ -84,11 +96,7 @@ describe('App', () => {
   })
 
   it('renders the collection through its application route', () => {
-    render(
-      <MemoryRouter initialEntries={['/collection']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/collection' })
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
@@ -96,11 +104,10 @@ describe('App', () => {
   })
 
   it('returns to the map when backing out of a discovery opened from the map', () => {
-    render(
-      <MemoryRouter initialEntries={['/', '/discoveries/1']} initialIndex={1}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, {
+      initialEntries: ['/', '/discoveries/1'],
+      initialIndex: 1,
+    })
 
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
@@ -110,11 +117,7 @@ describe('App', () => {
   })
 
   it('renders the profile exploration summary and supporting details', () => {
-    render(
-      <MemoryRouter initialEntries={['/profile']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/profile' })
 
     expect(
       screen.queryByRole('heading', { level: 1, name: 'Profile' }),
@@ -170,11 +173,7 @@ describe('App', () => {
   })
 
   it('shows each category as a labeled mobile-friendly progress row', () => {
-    render(
-      <MemoryRouter initialEntries={['/profile']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/profile' })
 
     const categorySection = screen.getByRole('region', {
       name: 'Discoveries by category',
@@ -199,11 +198,7 @@ describe('App', () => {
   })
 
   it('links from recent discoveries to the collection', () => {
-    render(
-      <MemoryRouter initialEntries={['/profile']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/profile' })
 
     expect(screen.getByRole('link', { name: 'See all' })).toHaveAttribute(
       'href',
@@ -212,11 +207,7 @@ describe('App', () => {
   })
 
   it('groups identity and primary statistics in the profile overview', () => {
-    render(
-      <MemoryRouter initialEntries={['/profile']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/profile' })
 
     const overview = screen.getByRole('region', { name: 'Profile overview' })
 
@@ -227,11 +218,7 @@ describe('App', () => {
   })
 
   it('labels the profile destination Me in the bottom navigation', () => {
-    render(
-      <MemoryRouter initialEntries={['/profile']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/profile' })
 
     expect(screen.getByRole('link', { name: 'Me' })).toHaveAttribute(
       'href',

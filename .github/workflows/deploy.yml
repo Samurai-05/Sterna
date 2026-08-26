@@ -110,7 +110,7 @@ jobs:
           docker image prune -f
 
       # The schema belongs to api/src/migrations/, so it has to be applied on
-      # every deploy — infra/postgres/init/ only ever runs on a brand new
+      # every deploy — infra/postgres/bootstrap/ only ever runs on a brand new
       # postgres_data volume. `migration:run:prod` drives the compiled
       # dist/data-source.js with the plain typeorm CLI: the production image has
       # no ts-node, so the ts-node-based `migration:run` cannot work there.

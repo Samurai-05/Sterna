@@ -19,6 +19,12 @@ That builds the Dockerfile's `development` target, mounts `api/` into the contai
 `nest start --watch`, so saving a file recompiles and restarts the service. The API is
 published on `http://localhost:3000` (`API_PORT` in `.env`).
 
+Apply pending database migrations after starting the stack:
+
+```bash
+docker compose exec api npm run migration:run
+```
+
 Check that it is up:
 
 ```bash
@@ -45,9 +51,11 @@ src/
 ├── config/
 │   ├── env.validation.ts        environment schema, validated at boot
 │   └── data-source-options.ts   database settings shared by app and CLI
+├── discoveries/                 geolocated discoveries (PostGIS)
 ├── health/                      GET /api/health (Terminus)
 ├── migrations/                  the schema — see "Database" below
 ├── photos/                      photo upload and download, backed by MinIO
+├── pois/                        predefined points of interest (PostGIS)
 ├── app-setup.ts                 global prefix, validation pipe, OpenAPI
 ├── swagger.ts                   OpenAPI document
 ├── app.module.ts                composition root
@@ -148,9 +156,9 @@ Spatial columns use PostGIS types through TypeORM's spatial support, per
 location: Point;
 ```
 
-The `postgis` extension is created by `infra/postgres/init/001_enable_postgis.sql` when the
+The `postgis` extension is created by `infra/postgres/bootstrap/001_enable_postgis.sql` when the
 database volume is first initialised. `InitialSchema` also issues `CREATE EXTENSION IF NOT
-EXISTS postgis` so it can bring up a database that never went through those init scripts.
+EXISTS postgis` so it can bring up a database that never went through that bootstrap script.
 
 ## Authentication
 

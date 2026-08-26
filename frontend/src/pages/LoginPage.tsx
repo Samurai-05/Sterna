@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthTextInput } from '@/components/auth/AuthTextInput'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 import { Button } from '@/components/ui/button'
+import { login } from '@/lib/api'
+import { saveSession } from '@/lib/session'
 
 type LoginErrors = {
   email?: string
@@ -27,13 +30,14 @@ function loginErrors(email: string, password: string): LoginErrors {
 }
 
 export function LoginPage() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<LoginErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionMessage, setSubmissionMessage] = useState('')
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nextErrors = loginErrors(email, password)
     setErrors(nextErrors)
@@ -41,11 +45,17 @@ export function LoginPage() {
 
     if (Object.keys(nextErrors).length > 0) return
 
-    setIsSubmitting(true)
-    window.setTimeout(() => {
+    try {
+      setIsSubmitting(true)
+      saveSession(await login({ email, password }))
+      navigate('/', { replace: true })
+    } catch (error) {
+      setSubmissionMessage(
+        error instanceof Error ? error.message : 'Unable to log in.',
+      )
+    } finally {
       setIsSubmitting(false)
-      setSubmissionMessage('Authentication will be connected soon.')
-    }, 600)
+    }
   }
 
   return (

@@ -9,8 +9,8 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
  * on a volume that already exists.
  *
  * `CREATE EXTENSION postgis` is repeated (idempotently) from
- * `infra/postgres/init/001_enable_postgis.sql` so this migration can also bring
- * up a database that never went through the container's init scripts — a test
+ * `infra/postgres/bootstrap/001_enable_postgis.sql` so this migration can also bring
+ * up a database that never went through the container's bootstrap script — a test
  * database, for instance.
  */
 export class InitialSchema1787734644000 implements MigrationInterface {
@@ -170,20 +170,20 @@ export class InitialSchema1787734644000 implements MigrationInterface {
           CONSTRAINT discoveries_image_object_key_not_blank
               CHECK (BTRIM(image_object_key) <> ''),
 
-          -- Lower-case identifiers, matching the DiscoveryCategory union the
-          -- frontend sends (frontend/src/lib/mock-data.ts). Capitalisation is a
-          -- display concern and belongs to the label, not to the stored value.
+          -- Matches DiscoveryCategory in api/src/discoveries/discovery-category.ts,
+          -- which CreateDiscoveryDto validates against before a request ever
+          -- reaches this constraint.
           CONSTRAINT discoveries_category_check
               CHECK (
                   category IS NULL
                   OR category IN (
-                      'landscape',
-                      'monument',
-                      'food',
-                      'animal',
-                      'plant',
-                      'culture',
-                      'other'
+                      'Landscape',
+                      'Monument',
+                      'Food',
+                      'Animal',
+                      'Plant',
+                      'Culture',
+                      'Other'
                   )
               )
       )
@@ -292,6 +292,6 @@ export class InitialSchema1787734644000 implements MigrationInterface {
     await queryRunner.query(`DROP FUNCTION IF EXISTS set_updated_at()`);
 
     // The postgis extension is deliberately left in place: it is created by the
-    // container's init script as well, and other databases/objects may rely on it.
+    // container's bootstrap script as well, and other databases/objects may rely on it.
   }
 }

@@ -4,8 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { buildDataSourceOptions } from './config/data-source-options';
 import { validate } from './config/env.validation';
+import { DiscoveriesModule } from './discoveries/discoveries.module';
 import { HealthModule } from './health/health.module';
 import { PhotosModule } from './photos/photos.module';
+import { PoisModule } from './pois/pois.module';
 
 @Module({
   imports: [
@@ -28,8 +30,10 @@ import { PhotosModule } from './photos/photos.module';
       }),
     }),
     AuthModule,
+    DiscoveriesModule,
     HealthModule,
     PhotosModule,
+    PoisModule,
   ],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
 -- Enable PostGIS for spatial data support.
--- This extension is required before creating GEOMETRY columns.
+-- Application tables are managed by TypeORM migrations in api/src/migrations.
 
 CREATE EXTENSION IF NOT EXISTS postgis;
