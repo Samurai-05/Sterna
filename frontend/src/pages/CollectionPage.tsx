@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
@@ -9,18 +10,24 @@ import {
   discoveries,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
+import { getDiscoveries } from '@/lib/api'
 
 export function CollectionPage() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<DiscoveryCategory | null>(null)
+  const { data: backendDiscoveries, isError, isLoading } = useQuery({
+    queryKey: ['discoveries'],
+    queryFn: getDiscoveries,
+  })
+  const sourceDiscoveries = backendDiscoveries ?? discoveries
   const filteredDiscoveries = useMemo(
     () =>
-      discoveries.filter(
+      sourceDiscoveries.filter(
         (discovery) =>
           (!category || discovery.category === category) &&
           discovery.name.toLowerCase().includes(query.toLowerCase()),
       ),
-    [category, query],
+    [category, query, sourceDiscoveries],
   )
 
   return (
@@ -56,8 +63,15 @@ export function CollectionPage() {
           ))}
         </div>
         <p className="text-sm text-muted-foreground">
-          {filteredDiscoveries.length} discoveries
+          {isLoading
+            ? 'Loading discoveries'
+            : `${filteredDiscoveries.length} discoveries`}
         </p>
+        {isError && (
+          <p role="status" className="text-sm text-muted-foreground">
+            Showing local sample discoveries.
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-3">
           {filteredDiscoveries.map((discovery) => (
             <DiscoveryCard key={discovery.id} discovery={discovery} />

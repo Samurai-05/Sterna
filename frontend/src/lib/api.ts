@@ -1,4 +1,8 @@
 import type { AuthSession, AuthenticatedUser } from '@/lib/session'
+import type {
+  Discovery,
+  DiscoveryCategory,
+} from '@/lib/mock-data'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -20,11 +24,11 @@ async function request<TResponse>(
   options: RequestInit = {},
 ): Promise<TResponse> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
-    ...options,
   })
 
   if (!response.ok) {
@@ -66,4 +70,106 @@ export function login(input: {
     method: 'POST',
     body: JSON.stringify(input),
   })
+}
+
+interface ApiDiscovery {
+  id: string
+  userId: string
+  groupId: string | null
+  title: string
+  description: string | null
+  category: string | null
+  longitude: number
+  latitude: number
+  imageObjectKey: string
+  discoveredAt: string
+  createdAt: string
+  updatedAt: string
+}
+
+const categoryByApiValue: Record<string, DiscoveryCategory> = {
+  Landscape: 'landscape',
+  Monument: 'monument',
+  Food: 'food',
+  Animal: 'animal',
+  Plant: 'plant',
+  Culture: 'culture',
+  Other: 'other',
+}
+
+const apiValueByCategory: Record<DiscoveryCategory, string> = {
+  landscape: 'Landscape',
+  monument: 'Monument',
+  food: 'Food',
+  animal: 'Animal',
+  plant: 'Plant',
+  culture: 'Culture',
+  other: 'Other',
+}
+
+export async function getDiscoveries(): Promise<Discovery[]> {
+  const discoveries = await request<ApiDiscovery[]>('/api/discoveries')
+
+  return discoveries.map(toDiscovery)
+}
+
+export async function createDiscovery(input: {
+  accessToken: string
+  title: string
+  description: string | null
+  category: DiscoveryCategory
+  longitude: number
+  latitude: number
+  imageObjectKey: string
+  discoveredAt: string
+}): Promise<Discovery> {
+  const discovery = await request<ApiDiscovery>('/api/discoveries', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${input.accessToken}`,
+    },
+    body: JSON.stringify({
+      groupId: null,
+      title: input.title,
+      description: input.description,
+      category: apiValueByCategory[input.category],
+      longitude: input.longitude,
+      latitude: input.latitude,
+      imageObjectKey: input.imageObjectKey,
+      discoveredAt: input.discoveredAt,
+    }),
+  })
+
+  return toDiscovery(discovery)
+}
+
+function toDiscovery(discovery: ApiDiscovery): Discovery {
+  const category = discovery.category
+    ? categoryByApiValue[discovery.category] ?? 'other'
+    : 'other'
+
+  return {
+    id: Number(discovery.id),
+    name: discovery.title,
+    category,
+    location: `${discovery.latitude.toFixed(4)}, ${discovery.longitude.toFixed(4)}`,
+    imageId: 'photo-1500530855697-b586d89ba3ee',
+    description: discovery.description ?? '',
+    author: `User ${discovery.userId}`,
+    initials: 'U',
+    relativeDate: formatRelativeDate(discovery.discoveredAt),
+    coordinates: [discovery.longitude, discovery.latitude],
+    countryCode: 'FRA',
+  }
+}
+
+function formatRelativeDate(value: string): string {
+  const date = new Date(value)
+  const diffMs = Date.now() - date.getTime()
+  const diffDays = Math.floor(diffMs / 86_400_000)
+
+  if (diffDays <= 0) return 'today'
+  if (diffDays === 1) return '1d ago'
+
+  return `${diffDays}d ago`
 }

@@ -1,26 +1,78 @@
 import { Camera, Check, ImagePlus, MapPin } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { createDiscovery } from '@/lib/api'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
+import { loadSession } from '@/lib/session'
 
 export function AddDiscoveryPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const session = loadSession()
   const [category, setCategory] = useState<DiscoveryCategory>('other')
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [longitude, setLongitude] = useState('2.3522')
+  const [latitude, setLatitude] = useState('48.8566')
   const [photoSelected, setPhotoSelected] = useState(false)
+  const [formMessage, setFormMessage] = useState('')
+  const mutation = useMutation({
+    mutationFn: createDiscovery,
+    onSuccess: (discovery) => {
+      queryClient.invalidateQueries({ queryKey: ['discoveries'] })
+      navigate(`/discoveries/${discovery.id}`)
+    },
+    onError: (error) => {
+      setFormMessage(
+        error instanceof Error ? error.message : 'Unable to save discovery.',
+      )
+    },
+  })
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setFormMessage('')
+
+    if (!session) {
+      setFormMessage('Log in before saving a discovery.')
+      return
+    }
+
+    mutation.mutate({
+      accessToken: session.accessToken,
+      title,
+      description: description.trim() || null,
+      category,
+      longitude: Number(longitude),
+      latitude: Number(latitude),
+      imageObjectKey: `discoveries/manual-${Date.now()}.jpg`,
+      discoveredAt: new Date().toISOString(),
+    })
+  }
 
   return (
     <main className="min-h-dvh bg-background pb-8">
       <PageHeader title="New discovery" backTo="/" />
+      {!session && (
+        <div className="mb-5 px-5">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-sm font-semibold">Log in required</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Your discovery will be saved to your personal map.
+            </p>
+            <Button asChild className="mt-3 h-11 w-full">
+              <Link to="/login">Log in</Link>
+            </Button>
+          </div>
+        </div>
+      )}
       <form
-        onSubmit={(event) => {
-          event.preventDefault()
-          navigate('/collection')
-        }}
+        onSubmit={handleSubmit}
         className="space-y-6 px-5"
       >
         <section>
@@ -59,6 +111,16 @@ export function AddDiscoveryPage() {
             className="h-12 w-full rounded-xl border border-border bg-card px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
           />
         </label>
+        <label className="block space-y-2 text-sm font-semibold">
+          Description
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            rows={4}
+            placeholder="What did you discover?"
+            className="w-full rounded-xl border border-border bg-card p-3 text-sm font-normal leading-5 outline-none focus:ring-2 focus:ring-ring/30"
+          />
+        </label>
         <section className="space-y-2">
           <p className="text-sm font-semibold">Category</p>
           <div className="grid grid-cols-2 gap-2">
@@ -84,12 +146,46 @@ export function AddDiscoveryPage() {
             Destination: Personal map
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            GPS will propose a location when it is available.
+            GPS will propose a location when it is available. For now, enter
+            coordinates manually.
           </p>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <label className="space-y-1 text-xs font-semibold">
+              Longitude
+              <input
+                value={longitude}
+                onChange={(event) => setLongitude(event.target.value)}
+                required
+                type="number"
+                step="any"
+                min="-180"
+                max="180"
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
+              />
+            </label>
+            <label className="space-y-1 text-xs font-semibold">
+              Latitude
+              <input
+                value={latitude}
+                onChange={(event) => setLatitude(event.target.value)}
+                required
+                type="number"
+                step="any"
+                min="-90"
+                max="90"
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
+              />
+            </label>
+          </div>
         </section>
-        <Button type="submit" className="h-12 w-full">
-          Save discovery
+        <Button type="submit" disabled={mutation.isPending} className="h-12 w-full">
+          {mutation.isPending ? 'Saving discovery...' : 'Save discovery'}
         </Button>
+        {formMessage && (
+          <p role="status" className="text-center text-sm text-muted-foreground">
+            {formMessage}
+          </p>
+        )}
       </form>
     </main>
   )

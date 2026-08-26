@@ -1,4 +1,5 @@
 import { LocateFixed, Search, SlidersHorizontal } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
@@ -8,23 +9,34 @@ import { Button } from '@/components/ui/button'
 import {
   categories,
   discoveries,
-  exploredCountryCodes,
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
+import { getDiscoveries } from '@/lib/api'
 
 export function MapPage() {
   const [activeCategory, setActiveCategory] =
     useState<DiscoveryCategory | null>(null)
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
+  const { data: backendDiscoveries } = useQuery({
+    queryKey: ['discoveries'],
+    queryFn: getDiscoveries,
+  })
+  const sourceDiscoveries = backendDiscoveries ?? discoveries
+  const exploredCountryCodes = useMemo(
+    () => [...new Set(sourceDiscoveries.map((discovery) => discovery.countryCode))],
+    [sourceDiscoveries],
+  )
 
   const visibleDiscoveries = useMemo(
     () =>
       activeCategory
-        ? discoveries.filter((discovery) => discovery.category === activeCategory)
-        : discoveries,
-    [activeCategory],
+        ? sourceDiscoveries.filter(
+            (discovery) => discovery.category === activeCategory,
+          )
+        : sourceDiscoveries,
+    [activeCategory, sourceDiscoveries],
   )
 
   const handleSelectDiscovery = useCallback(

@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { fireEvent, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
+import { renderWithProviders } from './test/renderWithProviders'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -10,11 +10,7 @@ afterEach(() => {
 })
 
 function renderAt(path: string) {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <App />
-    </MemoryRouter>,
-  )
+  return renderWithProviders(<App />, { route: path })
 }
 
 describe('authentication pages', () => {

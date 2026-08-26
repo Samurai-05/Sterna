@@ -1,16 +1,34 @@
 import { CalendarDays, MapPin, MoreHorizontal } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { getDiscoveries } from '@/lib/api'
 import { categoryLabel, discoveries, imageUrl } from '@/lib/mock-data'
 
 export function DiscoveryDetailPage() {
   const { discoveryId } = useParams()
+  const { data: backendDiscoveries } = useQuery({
+    queryKey: ['discoveries'],
+    queryFn: getDiscoveries,
+  })
+  const sourceDiscoveries = backendDiscoveries ?? discoveries
   const discovery =
-    discoveries.find((item) => item.id === Number(discoveryId)) ??
-    discoveries[0]
+    sourceDiscoveries.find((item) => item.id === Number(discoveryId)) ?? null
+
+  if (!discovery) {
+    return (
+      <main className="min-h-dvh bg-background pb-8">
+        <PageHeader title="Discovery" backTo="/collection" />
+        <div className="px-5 text-sm text-muted-foreground">
+          Discovery not found.
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-dvh bg-background pb-8">
       <PageHeader

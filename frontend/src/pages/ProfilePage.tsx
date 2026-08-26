@@ -1,12 +1,23 @@
 import { Award, Camera, MapPinned, Settings, Trophy } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 
 import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { discoveries, landmarks } from '@/lib/mock-data'
+import { clearSession, loadSession } from '@/lib/session'
 
 export function ProfilePage() {
+  const [session, setSession] = useState(() => loadSession())
+  const userName = session?.user.userName ?? 'Guest'
+  const initial = userName.trim().charAt(0).toUpperCase() || 'G'
+
+  function handleLogout() {
+    clearSession()
+    setSession(null)
+  }
+
   return (
     <main className="min-h-dvh bg-background pb-28">
       <PageHeader
@@ -25,14 +36,30 @@ export function ProfilePage() {
       <div className="space-y-7 px-5">
         <section className="flex items-center gap-4">
           <span className="flex size-20 items-center justify-center rounded-full bg-[#fbf1ec] text-3xl font-semibold text-[#b8572b]">
-            E
+            {initial}
           </span>
           <div>
-            <h2 className="sterna-section-title">Emma Barret</h2>
+            <h2 className="sterna-section-title">{userName}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Explorer · Since March 2023
+              {session ? session.user.email : 'Not logged in'}
             </p>
           </div>
+        </section>
+        <section>
+          {session ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full"
+              onClick={handleLogout}
+            >
+              Log out
+            </Button>
+          ) : (
+            <Button asChild className="h-11 w-full">
+              <Link to="/login">Log in</Link>
+            </Button>
+          )}
         </section>
         <section className="grid grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card py-4 text-center">
           <Stat

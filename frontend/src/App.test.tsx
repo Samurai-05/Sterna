@@ -1,16 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import App from './App'
+import { renderWithProviders } from './test/renderWithProviders'
 
 describe('App', () => {
   it('renders the welcome screen at the authentication entry route', () => {
-    render(
-      <MemoryRouter initialEntries={['/auth']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/auth' })
 
     expect(
       screen.getByRole('heading', {
@@ -35,11 +31,7 @@ describe('App', () => {
   })
 
   it('navigates from the welcome screen to register', () => {
-    render(
-      <MemoryRouter initialEntries={['/auth']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/auth' })
 
     fireEvent.click(screen.getByRole('link', { name: 'Create an account' }))
     expect(
@@ -48,11 +40,7 @@ describe('App', () => {
   })
 
   it('navigates from the welcome screen to login', () => {
-    render(
-      <MemoryRouter initialEntries={['/auth']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/auth' })
     fireEvent.click(screen.getByRole('link', { name: 'Log in' }))
     expect(
       screen.getByRole('heading', { name: 'Welcome back' }),
@@ -60,11 +48,7 @@ describe('App', () => {
   })
 
   it('renders the map at the application root route', () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/' })
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
@@ -72,11 +56,7 @@ describe('App', () => {
   })
 
   it('renders the collection through its application route', () => {
-    render(
-      <MemoryRouter initialEntries={['/collection']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderWithProviders(<App />, { route: '/collection' })
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
