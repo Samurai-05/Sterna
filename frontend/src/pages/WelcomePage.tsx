@@ -7,6 +7,7 @@ import sternaLogo from '../../../landing/src/assets/brand/sterna-logo-white-fill
 
 export function WelcomePage() {
   const navigate = useNavigate()
+  const authSkipEnabled = import.meta.env.VITE_ENABLE_AUTH_SKIP === 'true'
 
   function handleSkip() {
     saveSession({
@@ -65,7 +66,7 @@ export function WelcomePage() {
           >
             <Link to="/login">Log in</Link>
           </Button>
-          {import.meta.env.DEV && (
+          {authSkipEnabled && (
             <Button
               type="button"
               variant="ghost"
