@@ -36,6 +36,7 @@ const discoveryExample = {
   latitude: 46.7785,
   imageObjectKey: 'discoveries/lake.jpg',
   authorUserName: 'Ada',
+  countryCode: 'CHE',
   discoveredAt: '2026-08-25T12:00:00.000Z',
   createdAt: '2026-08-25T12:01:00.000Z',
   updatedAt: '2026-08-25T12:01:00.000Z',

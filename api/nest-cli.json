@@ -4,6 +4,7 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "plugins": ["@nestjs/swagger"]
+    "plugins": ["@nestjs/swagger"],
+    "assets": [{ "include": "countries/countries.geo.json", "outDir": "dist" }]
   }
 }
