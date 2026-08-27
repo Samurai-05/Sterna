@@ -94,6 +94,7 @@ interface ApiDiscovery {
   longitude: number
   latitude: number
   imageObjectKey: string
+  authorUserName?: string
   discoveredAt: string
   createdAt: string
   updatedAt: string
@@ -109,7 +110,7 @@ interface ApiPoi {
   discovered: boolean
 }
 
-interface UploadPhotoResponse {
+export interface UploadPhotoResponse {
   objectKey: string
   url: string
   exif: {
@@ -252,6 +253,7 @@ export async function getPois(accessToken: string): Promise<Landmark[]> {
 
 export async function createDiscovery(input: {
   accessToken: string
+  groupId: string | null
   title: string
   description: string | null
   category: DiscoveryCategory
@@ -266,7 +268,7 @@ export async function createDiscovery(input: {
       Authorization: `Bearer ${input.accessToken}`,
     },
     body: JSON.stringify({
-      groupId: null,
+      groupId: input.groupId,
       title: input.title,
       description: input.description,
       category: apiValueByCategory[input.category],
@@ -281,6 +283,7 @@ export async function createDiscovery(input: {
 }
 
 async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
+  const authorName = discovery.authorUserName ?? `User ${discovery.userId}`
   const category = discovery.category
     ? (categoryByApiValue[discovery.category] ?? 'other')
     : 'other'
@@ -292,14 +295,15 @@ async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
 
   return {
     id: Number(discovery.id),
+    userId: discovery.userId,
     name: discovery.title,
     category,
     location: `${discovery.latitude.toFixed(4)}, ${discovery.longitude.toFixed(4)}`,
     imageId: 'photo-1500530855697-b586d89ba3ee',
     imageObjectKey: discovery.imageObjectKey,
     description: discovery.description ?? '',
-    author: `User ${discovery.userId}`,
-    initials: 'U',
+    author: authorName,
+    initials: initialsOf(authorName),
     relativeDate: formatRelativeDate(discovery.discoveredAt),
     coordinates,
     countryCode: countryCode ?? 'UNK',
@@ -343,4 +347,145 @@ function formatRelativeDate(value: string): string {
   if (diffDays === 1) return '1d ago'
 
   return `${diffDays}d ago`
+}
+
+export type GroupRole = 'owner' | 'member'
+
+export interface GroupMember {
+  userId: string
+  userName: string
+  role: GroupRole
+  joinedAt: string
+}
+
+export interface GroupSummary {
+  id: string
+  name: string
+  description: string | null
+  role: GroupRole
+  isActive: boolean
+  memberCount: number
+  discoveryCount: number
+}
+
+export interface GroupDetail extends GroupSummary {
+  inviteCode: string
+  members: GroupMember[]
+  createdAt: string
+}
+
+export interface ActiveMap {
+  groupId: string | null
+  name: string | null
+}
+
+export function getGroups(accessToken: string): Promise<GroupSummary[]> {
+  return request<GroupSummary[]>('/api/groups', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export function getGroup(
+  accessToken: string,
+  groupId: string,
+): Promise<GroupDetail> {
+  return request<GroupDetail>(`/api/groups/${groupId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export function createGroup(input: {
+  accessToken: string
+  name: string
+  description: string | null
+}): Promise<GroupDetail> {
+  return request<GroupDetail>('/api/groups', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${input.accessToken}` },
+    body: JSON.stringify({
+      name: input.name,
+      description: input.description,
+    }),
+  })
+}
+
+export function updateGroup(input: {
+  accessToken: string
+  groupId: string
+  name?: string
+  description?: string | null
+}): Promise<GroupDetail> {
+  const changes: { name?: string; description?: string | null } = {}
+  if (input.name !== undefined) changes.name = input.name
+  if (input.description !== undefined) changes.description = input.description
+
+  return request<GroupDetail>(`/api/groups/${input.groupId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${input.accessToken}` },
+    body: JSON.stringify(changes),
+  })
+}
+
+export function deleteGroup(
+  accessToken: string,
+  groupId: string,
+): Promise<void> {
+  return request<void>(`/api/groups/${groupId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export function leaveGroup(
+  accessToken: string,
+  groupId: string,
+): Promise<void> {
+  return request<void>(`/api/groups/${groupId}/members/me`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export function joinGroup(input: {
+  accessToken: string
+  inviteCode: string
+}): Promise<GroupDetail> {
+  return request<GroupDetail>('/api/groups/join', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${input.accessToken}` },
+    body: JSON.stringify({ inviteCode: input.inviteCode }),
+  })
+}
+
+export async function getGroupDiscoveries(
+  accessToken: string,
+  groupId: string,
+): Promise<Discovery[]> {
+  const discoveries = await request<ApiDiscovery[]>(
+    `/api/groups/${groupId}/discoveries`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+
+  return Promise.all(discoveries.map(toDiscovery))
+}
+
+export function getActiveMap(accessToken: string): Promise<ActiveMap> {
+  return request<ActiveMap>('/api/active-map', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export function setActiveMap(input: {
+  accessToken: string
+  groupId: string | null
+}): Promise<ActiveMap> {
+  return request<ActiveMap>('/api/active-map', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${input.accessToken}` },
+    body: JSON.stringify({ groupId: input.groupId }),
+  })
+}
+
+export function initialsOf(name: string): string {
+  return name.trim().charAt(0).toUpperCase() || 'U'
 }

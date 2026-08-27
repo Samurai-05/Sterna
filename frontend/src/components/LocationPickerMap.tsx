@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import {
   GeolocateControl,
   Map,
@@ -13,25 +13,38 @@ setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
 
+export interface LocationPickerMapHandle {
+  /** Recenters the map and moves the pin without waiting for a tap/drag. */
+  flyTo: (coordinates: [number, number], zoom?: number) => void
+}
+
 interface LocationPickerMapProps {
   coordinates: [number, number]
   onChange: (coordinates: [number, number]) => void
   className?: string
 }
 
-// Lets the user drop/drag a pin instead of typing coordinates. Initial
-// position only (the map is only created once, like MapCanvas) — later
-// `coordinates` updates from outside (e.g. a parent resetting the form)
-// aren't reflected back onto the pin.
-export function LocationPickerMap({
-  coordinates,
-  onChange,
-  className,
-}: LocationPickerMapProps) {
+// Lets the user drop/drag a pin instead of typing coordinates. `coordinates`
+// only sets the initial position (the map is only created once, like
+// MapCanvas) — use the `flyTo` handle to move the pin programmatically
+// afterwards (e.g. once a photo's EXIF location comes back).
+export const LocationPickerMap = forwardRef<
+  LocationPickerMapHandle,
+  LocationPickerMapProps
+>(function LocationPickerMap({ coordinates, onChange, className }, ref) {
   const mapContainer = useRef<HTMLDivElement>(null)
+  const map = useRef<Map | null>(null)
+  const marker = useRef<Marker | null>(null)
   const initialCoordinates = useRef(coordinates)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+
+  useImperativeHandle(ref, () => ({
+    flyTo: (nextCoordinates, zoom = 15) => {
+      marker.current?.setLngLat(nextCoordinates)
+      map.current?.flyTo({ center: nextCoordinates, zoom })
+    },
+  }))
 
   useEffect(() => {
     if (!mapContainer.current || navigator.userAgent.includes('jsdom')) {
@@ -77,7 +90,12 @@ export function LocationPickerMap({
       onChangeRef.current([longitude, latitude])
     })
 
+    map.current = instance
+    marker.current = pin
+
     return () => {
+      map.current = null
+      marker.current = null
       instance.remove()
     }
   }, [])
@@ -90,4 +108,4 @@ export function LocationPickerMap({
       className={className}
     />
   )
-}
+})

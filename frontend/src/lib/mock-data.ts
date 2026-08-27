@@ -3,6 +3,8 @@ export type DiscoveryCategory =
 
 export interface Discovery {
   id: number
+  /** Absent on the local sample fixtures, always set on API data. */
+  userId?: string
   name: string
   category: DiscoveryCategory
   location: string
@@ -14,14 +16,6 @@ export interface Discovery {
   relativeDate: string
   coordinates: [number, number]
   countryCode: string
-}
-
-export interface Group {
-  id: string
-  name: string
-  description: string
-  members: Array<{ name: string; initials: string }>
-  discoveryIds: number[]
 }
 
 export interface Landmark {
@@ -135,29 +129,6 @@ export const discoveries: Discovery[] = [
 
 export const exploredCountryCodes = [
   ...new Set(discoveries.map((discovery) => discovery.countryCode)),
-]
-
-export const groups: Group[] = [
-  {
-    id: 'paris-weekend',
-    name: 'Paris Weekend',
-    description: 'A shared map for a weekend in Paris.',
-    members: [
-      { name: 'Emma', initials: 'E' },
-      { name: 'Marc', initials: 'M' },
-    ],
-    discoveryIds: [1, 2, 3],
-  },
-  {
-    id: 'montmartre-walk',
-    name: 'Montmartre Walk',
-    description: 'The steep streets, cafés and viewpoints of Montmartre.',
-    members: [
-      { name: 'Emma', initials: 'E' },
-      { name: 'Lucas', initials: 'L' },
-    ],
-    discoveryIds: [4],
-  },
 ]
 
 export const landmarks: Landmark[] = [
