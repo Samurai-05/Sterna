@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import {
+  AttributionControl,
   GeolocateControl,
   Map,
   Marker,
@@ -56,8 +57,13 @@ export const LocationPickerMap = forwardRef<
       style: mapStyle,
       center: initialCoordinates.current,
       zoom: 13,
+      attributionControl: false,
     })
 
+    instance.addControl(
+      new AttributionControl({ compact: true }),
+      'bottom-right',
+    )
     instance.addControl(
       new NavigationControl({ showCompass: false }),
       'bottom-right',

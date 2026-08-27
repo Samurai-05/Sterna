@@ -1,17 +1,11 @@
-import {
-  Camera,
-  Check,
-  ImagePlus,
-  MapPin,
-  UserRound,
-  UsersRound,
-} from 'lucide-react'
+import { Camera, ImagePlus, MapPin, UserRound, UsersRound } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { MapSwitcherSheet } from '@/components/MapSwitcherSheet'
 import {
   LocationPickerMap,
   type LocationPickerMapHandle,
@@ -19,9 +13,13 @@ import {
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { createDiscovery, getGroups, uploadPhoto } from '@/lib/api'
-import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
+import {
+  activeMapName,
+  useActiveMap,
+  useSetActiveMap,
+} from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
-import { type SelectedPhoto } from '@/lib/photo-capture'
+import { openNativePhotoCapture, type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
 
 type AddDiscoveryLocationState = {
@@ -58,6 +56,8 @@ export function AddDiscoveryPage() {
   const queryClient = useQueryClient()
   const session = loadSession()
   const locationPickerRef = useRef<LocationPickerMapHandle>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const selectedPhoto = (location.state as AddDiscoveryLocationState | null)
     ?.selectedPhoto
@@ -74,6 +74,8 @@ export function AddDiscoveryPage() {
     'default' | 'photo' | 'manual'
   >('default')
   const [formMessage, setFormMessage] = useState('')
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false)
+  const [isOpeningCamera, setIsOpeningCamera] = useState(false)
 
   const { data: activeMap, isPending: isLoadingActiveMap } = useActiveMap()
   const setActiveMap = useSetActiveMap()
@@ -87,6 +89,21 @@ export function AddDiscoveryPage() {
     queryFn: () => getGroups(session!.accessToken),
     enabled: Boolean(session),
   })
+
+  function selectBrowserPhoto(file: File | null) {
+    setNativePhoto(undefined)
+    setBrowserPhoto(file)
+    photoUpload.reset()
+    setFormMessage('')
+  }
+
+  function selectNativePhoto(photo: SelectedPhoto | null) {
+    if (!photo) return
+    setNativePhoto(photo)
+    setBrowserPhoto(null)
+    photoUpload.reset()
+    setFormMessage('')
+  }
 
   const browserPhotoUrl = useMemo(
     () => (browserPhoto ? URL.createObjectURL(browserPhoto) : null),
@@ -106,6 +123,22 @@ export function AddDiscoveryPage() {
   const photoUrl = nativePhoto
     ? Capacitor.convertFileSrc(nativePhoto.path)
     : browserPhotoUrl
+
+  async function handleCameraAction() {
+    if (Capacitor.getPlatform() !== 'android') {
+      cameraInputRef.current?.click()
+      return
+    }
+
+    setIsOpeningCamera(true)
+    try {
+      selectNativePhoto(await openNativePhotoCapture())
+    } catch {
+      setFormMessage('Unable to open the camera. Please try again.')
+    } finally {
+      setIsOpeningCamera(false)
+    }
+  }
 
   // Uploads the photo as soon as it's selected (rather than on submit) so its
   // EXIF GPS location — if any — can propose the discovery's position before
@@ -224,6 +257,12 @@ export function AddDiscoveryPage() {
     setLocationSource('manual')
   }
 
+  function handleSelectMap(groupId: string | null) {
+    setActiveMap.mutate(groupId, {
+      onSuccess: () => setIsMapPickerOpen(false),
+    })
+  }
+
   return (
     <main className="min-h-dvh bg-background">
       <PageHeader title="New discovery" backTo="/" />
@@ -241,73 +280,117 @@ export function AddDiscoveryPage() {
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-6 px-5">
-        <section className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-sm font-semibold">
-            Saving to:{' '}
-            {isLoadingActiveMap ? '...' : (activeMap?.name ?? 'Personal map')}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pick another destination to move this discovery, and your active
-            map, to it.
-          </p>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            <DestinationChip
-              active={activeGroupId === null}
-              disabled={setActiveMap.isPending}
-              onClick={() => setActiveMap.mutate(null)}
-            >
-              <UserRound className="size-4" />
-              Personal map
-            </DestinationChip>
-            {groups?.map((group) => (
-              <DestinationChip
-                key={group.id}
-                active={activeGroupId === group.id}
-                disabled={setActiveMap.isPending}
-                onClick={() => setActiveMap.mutate(group.id)}
-              >
-                <UsersRound className="size-4" />
-                {group.name}
-              </DestinationChip>
-            ))}
-          </div>
-        </section>
         <section>
           <p className="mb-2 text-sm font-semibold">Photo</p>
-          <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/45 bg-green-50 text-center text-sm text-muted-foreground">
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              onChange={(event) => {
-                setNativePhoto(undefined)
-                setBrowserPhoto(event.target.files?.[0] ?? null)
-                photoUpload.reset()
-              }}
-            />
-            {photoUrl ? (
+          <input
+            id="discovery-gallery-input"
+            ref={galleryInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            onChange={(event) =>
+              selectBrowserPhoto(event.target.files?.[0] ?? null)
+            }
+          />
+          {!photoSelected ? (
+            <label
+              htmlFor="discovery-gallery-input"
+              className="flex min-h-56 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/45 bg-green-50 px-5 text-center text-sm text-muted-foreground"
+            >
+              <ImagePlus className="size-9 text-primary" />
+              <span>Choose a photo from your device</span>
+              <span className="text-xs">JPEG, PNG or WebP · 10 MB maximum</span>
+            </label>
+          ) : (
+            <div className="overflow-hidden rounded-2xl bg-stone-100 shadow-sm">
               <img
-                src={photoUrl}
+                src={photoUrl ?? undefined}
                 alt="Selected discovery photo"
-                className="h-40 w-full rounded-2xl object-cover"
+                className="max-h-[32rem] min-h-64 w-full object-cover"
               />
-            ) : photoSelected ? (
-              <Check className="size-8 text-primary" />
-            ) : (
-              <ImagePlus className="size-8 text-primary" />
-            )}
-            <span>
-              {photoSelected
-                ? 'Photo selected'
-                : 'Choose a photo from your device'}
-            </span>
-            <span className="text-xs">JPEG, PNG or WebP · 10 MB maximum</span>
-          </label>
-          <Button type="button" variant="outline" className="mt-3 h-11 w-full">
-            <Camera className="size-4" />
-            Take a photo
-          </Button>
+            </div>
+          )}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            capture="environment"
+            className="sr-only"
+            onChange={(event) =>
+              selectBrowserPhoto(event.target.files?.[0] ?? null)
+            }
+          />
+          {photoSelected ? (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                <ImagePlus className="size-4" />
+                Change photo
+              </button>
+              <button
+                type="button"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                onClick={() => void handleCameraAction()}
+                disabled={isOpeningCamera}
+              >
+                <Camera className="size-4" />
+                {isOpeningCamera ? 'Opening camera…' : 'Retake'}
+              </button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 h-11 w-full"
+              onClick={() => void handleCameraAction()}
+              disabled={isOpeningCamera}
+            >
+              <Camera className="size-4" />
+              {isOpeningCamera ? 'Opening camera…' : 'Take a photo'}
+            </Button>
+          )}
         </section>
+        <section className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-green-50 text-primary">
+            {activeGroupId ? (
+              <UsersRound className="size-4" />
+            ) : (
+              <UserRound className="size-4" />
+            )}
+          </span>
+          <p className="min-w-0 flex-1 truncate text-sm">
+            <span className="text-muted-foreground">Saving to: </span>
+            <span className="font-semibold">
+              {isLoadingActiveMap ? '...' : activeMapName(activeMap)}
+            </span>
+          </p>
+          <button
+            type="button"
+            className="min-h-11 shrink-0 rounded-lg px-2 text-sm font-semibold text-primary transition-colors hover:bg-green-50 disabled:opacity-50"
+            disabled={isLoadingActiveMap || setActiveMap.isPending}
+            aria-haspopup="dialog"
+            aria-expanded={isMapPickerOpen}
+            onClick={() => {
+              setActiveMap.reset()
+              setIsMapPickerOpen(true)
+            }}
+          >
+            Change
+          </button>
+        </section>
+        {isMapPickerOpen && (
+          <MapSwitcherSheet
+            activeGroupId={activeGroupId}
+            groups={groups}
+            isPending={setActiveMap.isPending}
+            isError={setActiveMap.isError}
+            onClose={() => setIsMapPickerOpen(false)}
+            onSelect={handleSelectMap}
+          />
+        )}
         <label className="block space-y-2 text-sm font-semibold">
           Title
           <input
@@ -316,16 +399,6 @@ export function AddDiscoveryPage() {
             required
             placeholder="Name your discovery"
             className="h-12 w-full rounded-xl border border-border bg-card px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
-          />
-        </label>
-        <label className="block space-y-2 text-sm font-semibold">
-          Description
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={4}
-            placeholder="What did you discover?"
-            className="w-full rounded-xl border border-border bg-card p-3 text-sm font-normal leading-5 outline-none focus:ring-2 focus:ring-ring/30"
           />
         </label>
         <section className="space-y-2">
@@ -347,14 +420,23 @@ export function AddDiscoveryPage() {
             Other is selected automatically when no category is chosen.
           </p>
         </section>
+        <label className="block space-y-2 text-sm font-semibold">
+          Description
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            rows={4}
+            placeholder="What did you discover?"
+            className="w-full rounded-xl border border-border bg-card p-3 text-sm font-normal leading-5 outline-none focus:ring-2 focus:ring-ring/30"
+          />
+        </label>
         <section className="rounded-2xl border border-border bg-card p-4">
           <p className="flex items-center gap-2 text-sm font-semibold">
             <MapPin className="size-4 text-primary" />
             Location
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {photoUpload.isPending &&
-              'Looking for a location in the photo...'}
+            {photoUpload.isPending && 'Looking for a location in the photo...'}
             {!photoUpload.isPending &&
               locationSource === 'photo' &&
               'Location detected from the photo. Tap or drag the pin to adjust it.'}
@@ -391,29 +473,5 @@ export function AddDiscoveryPage() {
         )}
       </form>
     </main>
-  )
-}
-
-function DestinationChip({
-  active,
-  disabled,
-  onClick,
-  children,
-}: {
-  active: boolean
-  disabled: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground'}`}
-    >
-      {children}
-    </button>
   )
 }

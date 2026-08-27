@@ -72,7 +72,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
   window.localStorage.clear()
 })
 
@@ -203,9 +203,7 @@ describe('opening a discovery from a group map', () => {
     expect(
       screen.queryByRole('button', { name: /Delete discovery/ }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByText(/Only Marc can edit or delete/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Only Marc can edit or delete/)).toBeInTheDocument()
   })
 
   it("keeps edit and delete on the viewer's own discovery", async () => {
@@ -278,15 +276,22 @@ describe('choosing the destination map before saving', () => {
   })
 
   it('blocks saving while a destination switch is in flight', async () => {
+    api.getActiveMap.mockResolvedValue({ groupId: null, name: null })
+    api.getGroups.mockResolvedValue([ownedGroup])
     api.setActiveMap.mockReturnValue(new Promise(() => {}))
     renderAt('/add')
 
+    const changeButton = await screen.findByRole('button', { name: 'Change' })
+    await waitFor(() => expect(changeButton).toBeEnabled())
+    fireEvent.click(changeButton)
     fireEvent.click(
       await screen.findByRole('button', { name: /Paris Weekend/ }),
     )
 
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Save discovery' })).toBeDisabled(),
+      expect(
+        screen.getByRole('button', { name: 'Save discovery' }),
+      ).toBeDisabled(),
     )
   })
 
