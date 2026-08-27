@@ -22,8 +22,9 @@ const countriesSourceId = 'countries'
 const unexploredFillLayerId = 'unexplored-countries-fill'
 const countryBorderLayerId = 'country-borders'
 // Zoom level from which a marker is "close" enough that its photo pre-opens
-// above the pin instead of waiting for a tap.
-const photoPreopenZoom = 15
+// above the pin instead of waiting for a tap. Below street level (~15) so the
+// photo shows up while still zooming in, not only once fully street-level.
+const photoPreopenZoom = 13
 
 // countries.geo.json gives two genuinely disputed areas their own feature
 // instead of folding them into either claim's polygon — XCR (Crimea, claimed
@@ -63,11 +64,11 @@ function createPhotoPreviewElement(
   button.type = 'button'
   button.setAttribute('aria-label', `View ${name}`)
   button.className =
-    'block size-[72px] overflow-hidden rounded-xl border-2 border-white shadow-lg'
+    'block size-[104px] overflow-hidden rounded-xl border-2 border-white shadow-lg'
   button.addEventListener('click', onSelect)
 
   const img = document.createElement('img')
-  img.src = imageUrl(imageId, 160)
+  img.src = imageUrl(imageId, 220)
   img.alt = ''
   img.className = 'size-full object-cover'
 

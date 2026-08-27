@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { LocationPickerMap } from '@/components/LocationPickerMap'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { createDiscovery } from '@/lib/api'
@@ -31,8 +32,9 @@ export function AddDiscoveryPage() {
   const [category, setCategory] = useState<DiscoveryCategory>('other')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [longitude, setLongitude] = useState('2.3522')
-  const [latitude, setLatitude] = useState('48.8566')
+  const [coordinates, setCoordinates] = useState<[number, number]>([
+    2.3522, 48.8566,
+  ])
   const [formMessage, setFormMessage] = useState('')
 
   const browserPhotoUrl = useMemo(
@@ -83,8 +85,8 @@ export function AddDiscoveryPage() {
       title,
       description: description.trim() || null,
       category,
-      longitude: Number(longitude),
-      latitude: Number(latitude),
+      longitude: coordinates[0],
+      latitude: coordinates[1],
       imageObjectKey: `discoveries/manual-${Date.now()}.jpg`,
       discoveredAt: new Date().toISOString(),
     })
@@ -190,37 +192,19 @@ export function AddDiscoveryPage() {
             Destination: Personal map
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            GPS will propose a location when it is available. For now, enter
-            coordinates manually.
+            Tap the map to drop a pin where this was discovered, or drag the
+            pin to adjust it.
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <label className="space-y-1 text-xs font-semibold">
-              Longitude
-              <input
-                value={longitude}
-                onChange={(event) => setLongitude(event.target.value)}
-                required
-                type="number"
-                step="any"
-                min="-180"
-                max="180"
-                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
-              />
-            </label>
-            <label className="space-y-1 text-xs font-semibold">
-              Latitude
-              <input
-                value={latitude}
-                onChange={(event) => setLatitude(event.target.value)}
-                required
-                type="number"
-                step="any"
-                min="-90"
-                max="90"
-                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
-              />
-            </label>
+          <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
+            <LocationPickerMap
+              coordinates={coordinates}
+              onChange={setCoordinates}
+              className="h-full w-full"
+            />
           </div>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            {coordinates[1].toFixed(5)}, {coordinates[0].toFixed(5)}
+          </p>
         </section>
         <Button type="submit" disabled={mutation.isPending} className="h-12 w-full">
           {mutation.isPending ? 'Saving discovery...' : 'Save discovery'}
