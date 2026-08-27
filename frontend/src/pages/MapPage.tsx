@@ -1,4 +1,4 @@
-import { LocateFixed, Search, SlidersHorizontal } from 'lucide-react'
+import { LocateFixed, Search } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
@@ -21,6 +21,8 @@ export function MapPage() {
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
   const session = loadSession()
+  const userInitial =
+    session?.user.userName.trim().charAt(0).toUpperCase() || '?'
   const { data: backendDiscoveries } = useQuery({
     queryKey: ['discoveries', session?.user.id],
     queryFn: () => getDiscoveries(session!.accessToken),
@@ -28,7 +30,9 @@ export function MapPage() {
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
   const exploredCountryCodes = useMemo(
-    () => [...new Set(sourceDiscoveries.map((discovery) => discovery.countryCode))],
+    () => [
+      ...new Set(sourceDiscoveries.map((discovery) => discovery.countryCode)),
+    ],
     [sourceDiscoveries],
   )
 
@@ -44,7 +48,7 @@ export function MapPage() {
 
   const handleSelectDiscovery = useCallback(
     (id: number) =>
-      navigate(`/discoveries/${id}`, { state: { from: 'map' } }),
+      navigate(`/discoveries/${id}`, { state: { returnTo: '/' } }),
     [navigate],
   )
   const handleSelectLandmark = useCallback(
@@ -60,6 +64,7 @@ export function MapPage() {
         discoveries={visibleDiscoveries}
         landmarks={landmarks}
         exploredCountryCodes={exploredCountryCodes}
+        photoAccessToken={session?.accessToken}
         onSelectDiscovery={handleSelectDiscovery}
         onSelectLandmark={handleSelectLandmark}
       />
@@ -78,7 +83,7 @@ export function MapPage() {
             className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/75 bg-card/95 px-3 text-sm font-semibold shadow-sm backdrop-blur"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              E
+              {userInitial}
             </span>
             <span className="truncate">Personal map</span>
           </Link>
@@ -113,15 +118,7 @@ export function MapPage() {
         </div>
       </div>
 
-      <div className="absolute bottom-28 right-4 z-20 flex flex-col gap-2">
-        <Button
-          size="icon"
-          variant="outline"
-          className="size-11 rounded-full bg-card shadow-sm"
-          aria-label="Filter discoveries"
-        >
-          <SlidersHorizontal className="size-5" />
-        </Button>
+      <div className="absolute bottom-28 right-4 z-20">
         <Button
           size="icon"
           variant="outline"

@@ -3,10 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { deleteDiscovery, getDiscovery } from '@/lib/api'
-import { categoryLabel, imageUrl } from '@/lib/mock-data'
+import { categoryLabel } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 
 export function DiscoveryDetailPage() {
@@ -15,9 +16,9 @@ export function DiscoveryDetailPage() {
   const location = useLocation()
   const session = loadSession()
   const queryClient = useQueryClient()
-  const openedFromMap =
-    (location.state as { from?: string } | null)?.from === 'map'
-  const handleBack = () => (openedFromMap ? navigate('/') : navigate(-1))
+  const returnTo =
+    (location.state as { returnTo?: string } | null)?.returnTo ?? '/collection'
+  const handleBack = () => navigate(returnTo, { replace: true })
   const { data: discovery, isLoading } = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
     queryFn: () => getDiscovery(session!.accessToken, discoveryId!),
@@ -32,14 +33,14 @@ export function DiscoveryDetailPage() {
       queryClient.invalidateQueries({
         queryKey: ['discoveries', session?.user.id],
       })
-      navigate('/collection', { replace: true })
+      navigate(returnTo, { replace: true })
     },
   })
 
   if (isLoading) {
     return (
       <main className="min-h-dvh bg-background pb-8">
-        <PageHeader title="Discovery" backTo="/collection" />
+        <PageHeader title="Discovery" onBack={handleBack} />
         <div className="px-5 text-sm text-muted-foreground">Loading...</div>
       </main>
     )
@@ -48,7 +49,7 @@ export function DiscoveryDetailPage() {
   if (!discovery) {
     return (
       <main className="min-h-dvh bg-background pb-8">
-        <PageHeader title="Discovery" backTo="/collection" />
+        <PageHeader title="Discovery" onBack={handleBack} />
         <div className="px-5 text-sm text-muted-foreground">
           Discovery not found.
         </div>
@@ -60,8 +61,8 @@ export function DiscoveryDetailPage() {
     <main className="min-h-dvh bg-background">
       <PageHeader title="Discovery" onBack={handleBack} />
       <article className="px-5">
-        <img
-          src={imageUrl(discovery.imageId)}
+        <DiscoveryPhoto
+          discovery={discovery}
           alt={discovery.name}
           className="aspect-[4/3] w-full rounded-2xl object-cover"
         />
@@ -93,7 +94,9 @@ export function DiscoveryDetailPage() {
           {discovery.description}
         </p>
         <Button asChild variant="outline" className="mt-6 h-11 w-full">
-          <Link to={`/discoveries/${discovery.id}/edit`}>Edit discovery</Link>
+          <Link to={`/discoveries/${discovery.id}/edit`} state={{ returnTo }}>
+            Edit discovery
+          </Link>
         </Button>
         <Button
           type="button"

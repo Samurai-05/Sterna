@@ -1,8 +1,9 @@
 import { MapPin } from 'lucide-react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
-import { categoryLabel, imageUrl, type Discovery } from '@/lib/mock-data'
+import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
+import { categoryLabel, type Discovery } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 
 export function DiscoveryCard({
@@ -12,19 +13,22 @@ export function DiscoveryCard({
   discovery: Discovery
   className?: string
 }) {
+  const location = useLocation()
+
   return (
     <Link
       to={`/discoveries/${discovery.id}`}
+      state={{ returnTo: location.pathname }}
       className={cn(
         'group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99]',
         className,
       )}
     >
-      <img
-        src={imageUrl(discovery.imageId, 560)}
+      <DiscoveryPhoto
+        discovery={discovery}
         alt=""
+        width={560}
         className="aspect-[4/3] w-full object-cover"
-        loading="lazy"
       />
       <div className="space-y-2 p-3">
         <div className="flex items-start justify-between gap-2">

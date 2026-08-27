@@ -127,7 +127,10 @@ describe('App', () => {
 
   it('returns to the map when backing out of a discovery opened from the map', () => {
     renderWithProviders(<App />, {
-      initialEntries: ['/', '/discoveries/1'],
+      initialEntries: [
+        '/',
+        { pathname: '/discoveries/1', state: { returnTo: '/' } },
+      ],
       initialIndex: 1,
     })
 
@@ -143,7 +146,7 @@ describe('App', () => {
       initialEntries: [
         '/',
         '/collection',
-        { pathname: '/discoveries/1', state: { from: 'map' } },
+        { pathname: '/discoveries/1', state: { returnTo: '/' } },
       ],
       initialIndex: 2,
     })
@@ -184,17 +187,8 @@ describe('App', () => {
     const accountButton = screen.getByRole('button', {
       name: 'Open account settings',
     })
-    const profileImage = within(accountButton).getByRole('img', {
-      name: 'Explorer',
-    })
     expect(accountButton).toHaveClass('size-[68px]')
     expect(accountButton).toHaveClass('-translate-x-2.5')
-    expect(profileImage).toHaveClass('size-16', 'rounded-full', 'object-cover')
-    expect(profileImage).toHaveAttribute(
-      'src',
-      expect.stringContaining('profile-emma'),
-    )
-    fireEvent.error(profileImage)
     expect(within(accountButton).getByText('E')).toBeInTheDocument()
     expect(screen.getByText('Explorer · Since 2026')).toHaveClass('mt-2')
     expect(

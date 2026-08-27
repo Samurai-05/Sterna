@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -14,16 +14,36 @@ import { loadSession } from '@/lib/session'
 
 export function EditDiscoveryPage() {
   const { discoveryId } = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const session = loadSession()
+  const returnTo =
+    (location.state as { returnTo?: string } | null)?.returnTo ?? '/collection'
   const { data: discovery, isLoading } = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
     queryFn: () => getDiscovery(session!.accessToken, discoveryId!),
     enabled: Boolean(session && discoveryId),
   })
 
-  if (isLoading) return <EditPageMessage message="Loading..." />
+  const handleBack = () => {
+    if (!discoveryId) {
+      navigate(returnTo, { replace: true })
+      return
+    }
+
+    navigate(`/discoveries/${discoveryId}`, {
+      state: { returnTo },
+      replace: true,
+    })
+  }
+
+  if (isLoading) {
+    return <EditPageMessage message="Loading..." onBack={handleBack} />
+  }
   if (!discovery || !session || !discoveryId) {
-    return <EditPageMessage message="Discovery not found." />
+    return (
+      <EditPageMessage message="Discovery not found." onBack={handleBack} />
+    )
   }
 
   return (
@@ -33,14 +53,21 @@ export function EditDiscoveryPage() {
       discoveryId={discoveryId}
       accessToken={session.accessToken}
       userId={session.user.id}
+      returnTo={returnTo}
     />
   )
 }
 
-function EditPageMessage({ message }: { message: string }) {
+function EditPageMessage({
+  message,
+  onBack,
+}: {
+  message: string
+  onBack: () => void
+}) {
   return (
     <main className="min-h-dvh bg-background pb-8">
-      <PageHeader title="Edit discovery" backTo="/collection" />
+      <PageHeader title="Edit discovery" onBack={onBack} />
       <div className="px-5 text-sm text-muted-foreground">{message}</div>
     </main>
   )
@@ -51,11 +78,13 @@ function EditDiscoveryForm({
   discoveryId,
   accessToken,
   userId,
+  returnTo,
 }: {
   discovery: Discovery
   discoveryId: string
   accessToken: string
   userId: string
+  returnTo: string
 }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -76,7 +105,10 @@ function EditDiscoveryForm({
         updatedDiscovery,
       )
       queryClient.invalidateQueries({ queryKey: ['discoveries', userId] })
-      navigate(`/discoveries/${updatedDiscovery.id}`)
+      navigate(`/discoveries/${updatedDiscovery.id}`, {
+        state: { returnTo },
+        replace: true,
+      })
     },
     onError: (error) => {
       setFormMessage(
@@ -89,7 +121,12 @@ function EditDiscoveryForm({
     <main className="min-h-dvh bg-background">
       <PageHeader
         title="Edit discovery"
-        backTo={`/discoveries/${discovery.id}`}
+        onBack={() =>
+          navigate(`/discoveries/${discovery.id}`, {
+            state: { returnTo },
+            replace: true,
+          })
+        }
       />
       <form
         onSubmit={(event) => {
