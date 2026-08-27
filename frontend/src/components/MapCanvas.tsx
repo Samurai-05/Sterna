@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { Trophy } from 'lucide-react'
 import { GeolocateControl, Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -53,6 +52,8 @@ export interface LandmarkMarkerData {
   id: string
   name: string
   imageId: string
+  imageUrl?: string
+  discovered: boolean
   coordinates: [number, number]
 }
 
@@ -321,14 +322,28 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       for (const landmark of landmarks) {
         const el = document.createElement('div')
         const root = createRoot(el)
+        const markerImage = landmark.imageUrl ?? imageUrl(landmark.imageId, 160)
         root.render(
           <button
             type="button"
             aria-label={`View ${landmark.name}`}
-            className="flex size-10 items-center justify-center rounded-full border-2 border-white bg-[#c4622d] text-white shadow-lg"
+            className={`relative size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#c4622d]' : 'border-white bg-stone-400 grayscale'}`}
             onClick={() => onSelectLandmark?.(landmark.id)}
           >
-            <Trophy className="size-4" />
+            <img
+              src={markerImage}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
+            />
+            <img
+              src={markerImage}
+              alt=""
+              className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
+            />
+            <span className="sr-only">
+              {landmark.discovered ? 'Discovered' : 'Undiscovered'}
+            </span>
           </button>,
         )
         markers.push(
@@ -343,6 +358,17 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           landmark.imageId,
           () => onSelectLandmark?.(landmark.id),
         )
+        preview.image.src = markerImage
+        preview.image.classList.remove('object-cover')
+        preview.image.classList.add('relative', 'object-contain')
+        preview.element.style.backgroundColor = '#d6d3d1'
+        preview.element.style.backgroundImage = `linear-gradient(rgba(255,255,255,.25), rgba(255,255,255,.25)), url("${markerImage.replaceAll('"', '%22')}")`
+        preview.element.style.backgroundPosition = 'center'
+        preview.element.style.backgroundSize = 'cover'
+        if (!landmark.discovered) {
+          preview.image.classList.add('grayscale', 'opacity-65')
+          preview.element.style.filter = 'grayscale(1)'
+        }
 
         photoPopups.push(
           new Popup({

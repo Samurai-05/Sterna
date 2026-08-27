@@ -12,7 +12,7 @@ import {
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
-import { getDiscoveries, getGroupDiscoveries } from '@/lib/api'
+import { getDiscoveries, getGroupDiscoveries, getPois } from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
@@ -48,6 +48,11 @@ export function MapPage({ active }: { active: boolean }) {
       activeGroupId
         ? getGroupDiscoveries(session!.accessToken, activeGroupId)
         : getDiscoveries(session!.accessToken),
+    enabled: Boolean(session),
+  })
+  const { data: backendPois } = useQuery({
+    queryKey: ['pois', session?.user.id],
+    queryFn: () => getPois(session!.accessToken),
     enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
@@ -93,7 +98,7 @@ export function MapPage({ active }: { active: boolean }) {
       <MapCanvas
         ref={mapRef}
         discoveries={visibleDiscoveries}
-        landmarks={landmarks}
+        landmarks={backendPois ?? landmarks}
         exploredCountryCodes={exploredCountryCodes}
         photoAccessToken={session?.accessToken}
         onSelectDiscovery={handleSelectDiscovery}

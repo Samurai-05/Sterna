@@ -150,11 +150,11 @@ The application aims to encourage users to discover new places rather than simpl
 
 A selection of **iconic points of interest** is defined in the application. These points may, for example, correspond to monuments or well-known places that users can discover.
 
-Unlike on a traditional tourist map, points of interest are not displayed before they are explored.
+Points of interest remain visible as exploration targets. Their images are greyed out before they are explored and displayed in colour after discovery.
 
 When a discovery is recorded sufficiently close to a point of interest, that point of interest is considered explored.
 
-Once explored, the point of interest can appear on the map of the active context.
+The discovery status displayed for a point of interest always belongs to the active context.
 
 The first version may notably display the following statistics in the user's profile:
 
@@ -166,7 +166,7 @@ The first version may notably display the following statistics in the user's pro
 
 * overall exploration progress.
 
-For the MVP, only a limited selection of well-known points of interest will be included.
+For the MVP, the catalogue contains one well-known point of interest for each of the 193 UN member states, plus Palestine and Vatican City: 195 points of interest in total.
 
 Challenges, badges, recommendations, advanced rankings, or region-specific collections are considered possible future extensions.
 

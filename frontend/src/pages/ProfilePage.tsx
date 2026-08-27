@@ -74,8 +74,9 @@ export function ProfilePage() {
     enabled: Boolean(accessToken),
   })
   const { data: backendPois } = useQuery({
-    queryKey: ['pois'],
-    queryFn: getPois,
+    queryKey: ['pois', session?.user.id],
+    queryFn: () => getPois(accessToken!),
+    enabled: Boolean(accessToken),
   })
 
   const sourceDiscoveries = backendDiscoveries ?? discoveries

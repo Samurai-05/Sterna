@@ -10,6 +10,7 @@ export interface PoiResponse {
   longitude: number;
   latitude: number;
   imageUrl: string | null;
+  discovered: boolean;
 }
 
 interface PoiRow {
@@ -19,7 +20,10 @@ interface PoiRow {
   longitude: string;
   latitude: string;
   image_url: string | null;
+  discovered: boolean;
 }
+
+export const POI_DISCOVERY_RADIUS_METERS = 150;
 
 @Injectable()
 export class PoisService {
@@ -28,17 +32,40 @@ export class PoisService {
     private readonly pois: Repository<Poi>,
   ) {}
 
-  async findAll(): Promise<PoiResponse[]> {
-    const rows = await this.pois
-      .createQueryBuilder('poi')
-      .select('poi.id', 'id')
-      .addSelect('poi.title', 'title')
-      .addSelect('poi.description', 'description')
-      .addSelect('ST_X(poi.location)', 'longitude')
-      .addSelect('ST_Y(poi.location)', 'latitude')
-      .addSelect('poi.imageUrl', 'image_url')
-      .orderBy('poi.title', 'ASC')
-      .getRawMany<PoiRow>();
+  async findAll(userId: string): Promise<PoiResponse[]> {
+    const rows = await this.pois.query<PoiRow[]>(
+      `
+        SELECT
+          poi.id,
+          poi.title,
+          poi.description,
+          ST_X(poi.location) AS longitude,
+          ST_Y(poi.location) AS latitude,
+          poi.image_url,
+          EXISTS (
+            SELECT 1
+            FROM discoveries discovery
+            WHERE ST_DWithin(
+              poi.location::geography,
+              discovery.location::geography,
+              $2
+            )
+            AND (
+              (active_map.group_id IS NULL AND discovery.user_id = $1)
+              OR discovery.group_id = active_map.group_id
+            )
+          ) AS discovered
+        FROM pois poi
+        LEFT JOIN LATERAL (
+          SELECT member.group_id
+          FROM group_members member
+          WHERE member.user_id = $1 AND member.is_active = TRUE
+          LIMIT 1
+        ) active_map ON TRUE
+        ORDER BY poi.title ASC
+      `,
+      [userId, POI_DISCOVERY_RADIUS_METERS],
+    );
 
     return rows.map((row) => ({
       id: row.id,
@@ -47,6 +74,7 @@ export class PoisService {
       longitude: Number(row.longitude),
       latitude: Number(row.latitude),
       imageUrl: row.image_url,
+      discovered: row.discovered,
     }));
   }
 }

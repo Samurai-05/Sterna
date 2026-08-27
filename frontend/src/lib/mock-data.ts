@@ -24,6 +24,7 @@ export interface Landmark {
   city: string
   country: string
   imageId: string
+  imageUrl?: string
   description: string
   discovered: boolean
   coordinates: [number, number]
