@@ -6,7 +6,7 @@ import sternaLogo from '../../../landing/src/assets/brand/sterna-logo-white-fill
 
 export function WelcomePage() {
   return (
-    <main className="relative isolate flex min-h-dvh overflow-hidden bg-primary text-primary-foreground">
+    <main className="sterna-auth-welcome relative isolate flex min-h-dvh overflow-hidden bg-primary text-primary-foreground">
       <img
         src={backgroundImage}
         alt="Aerial coastline with a coastal road"

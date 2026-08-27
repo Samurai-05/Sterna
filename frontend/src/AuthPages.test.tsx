@@ -17,6 +17,10 @@ describe('authentication pages', () => {
   it('shows the login fields and primary action', () => {
     renderAt('/login')
 
+    expect(screen.getByRole('main')).toHaveClass(
+      'sterna-auth-screen',
+      'overflow-y-auto',
+    )
     const heading = screen.getByRole('heading', { name: 'Welcome back' })
     expect(heading).toBeInTheDocument()
     expect(heading).toHaveClass('sterna-screen-title', 'font-sans')
@@ -45,6 +49,10 @@ describe('authentication pages', () => {
   it('shows the register fields and primary action', () => {
     renderAt('/register')
 
+    expect(screen.getByRole('main')).toHaveClass(
+      'sterna-auth-screen',
+      'overflow-y-auto',
+    )
     const heading = screen.getByRole('heading', {
       name: 'Create your account',
     })

@@ -62,6 +62,10 @@ describe('App', () => {
   it('renders the welcome screen at the authentication entry route', () => {
     renderWithProviders(<App />, { route: '/auth' })
 
+    expect(screen.getByRole('main')).toHaveClass(
+      'sterna-auth-welcome',
+      'overflow-hidden',
+    )
     expect(
       screen.getByRole('heading', {
         level: 1,

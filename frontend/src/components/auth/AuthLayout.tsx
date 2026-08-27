@@ -15,8 +15,8 @@ export function AuthLayout({
   const navigate = useNavigate()
 
   return (
-    <main className="min-h-dvh bg-background px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-foreground sm:flex sm:items-center">
-      <div className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-sm flex-col sm:min-h-0">
+    <main className="sterna-auth-screen flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto bg-background text-foreground sm:items-center sm:justify-center">
+      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col sm:flex-none">
         <header>
           <Button
             type="button"
