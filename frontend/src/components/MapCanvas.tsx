@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { Trophy } from 'lucide-react'
 import { GeolocateControl, Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -47,6 +46,8 @@ export interface LandmarkMarkerData {
   id: string
   name: string
   imageId: string
+  imageUrl?: string
+  discovered: boolean
   coordinates: [number, number]
 }
 
@@ -299,14 +300,22 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       for (const landmark of landmarks) {
         const el = document.createElement('div')
         const root = createRoot(el)
+        const markerImage = landmark.imageUrl ?? imageUrl(landmark.imageId, 160)
         root.render(
           <button
             type="button"
             aria-label={`View ${landmark.name}`}
-            className="flex size-10 items-center justify-center rounded-full border-2 border-white bg-[#c4622d] text-white shadow-lg"
+            className={`size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#c4622d]' : 'border-white bg-stone-400'}`}
             onClick={() => onSelectLandmark?.(landmark.id)}
           >
-            <Trophy className="size-4" />
+            <img
+              src={markerImage}
+              alt=""
+              className={`size-full object-cover ${landmark.discovered ? '' : 'grayscale opacity-65'}`}
+            />
+            <span className="sr-only">
+              {landmark.discovered ? 'Discovered' : 'Undiscovered'}
+            </span>
           </button>,
         )
         markers.push(
@@ -321,6 +330,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           landmark.imageId,
           () => onSelectLandmark?.(landmark.id),
         )
+        preview.image.src = markerImage
+        if (!landmark.discovered) {
+          preview.image.classList.add('grayscale', 'opacity-65')
+        }
 
         photoPopups.push(
           new Popup({

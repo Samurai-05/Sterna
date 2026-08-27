@@ -106,6 +106,7 @@ interface ApiPoi {
   longitude: number
   latitude: number
   imageUrl: string | null
+  discovered: boolean
 }
 
 interface UploadPhotoResponse {
@@ -241,8 +242,10 @@ export async function getPhoto(
   return response.blob()
 }
 
-export async function getPois(): Promise<Landmark[]> {
-  const pois = await request<ApiPoi[]>('/api/pois')
+export async function getPois(accessToken: string): Promise<Landmark[]> {
+  const pois = await request<ApiPoi[]>('/api/pois', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
 
   return pois.map(toLandmark)
 }
@@ -324,8 +327,9 @@ function toLandmark(poi: ApiPoi): Landmark {
     city: '',
     country: '',
     imageId: 'photo-1502602898657-3e91760cbb34',
+    imageUrl: poi.imageUrl ?? undefined,
     description: poi.description ?? '',
-    discovered: false,
+    discovered: poi.discovered,
     coordinates: [poi.longitude, poi.latitude],
   }
 }

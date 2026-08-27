@@ -12,7 +12,7 @@ import {
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
-import { getDiscoveries } from '@/lib/api'
+import { getDiscoveries, getPois } from '@/lib/api'
 import { loadSession } from '@/lib/session'
 
 export function MapPage() {
@@ -26,6 +26,11 @@ export function MapPage() {
   const { data: backendDiscoveries } = useQuery({
     queryKey: ['discoveries', session?.user.id],
     queryFn: () => getDiscoveries(session!.accessToken),
+    enabled: Boolean(session),
+  })
+  const { data: backendPois } = useQuery({
+    queryKey: ['pois', session?.user.id],
+    queryFn: () => getPois(session!.accessToken),
     enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
@@ -62,7 +67,7 @@ export function MapPage() {
       <MapCanvas
         ref={mapRef}
         discoveries={visibleDiscoveries}
-        landmarks={landmarks}
+        landmarks={backendPois ?? landmarks}
         exploredCountryCodes={exploredCountryCodes}
         photoAccessToken={session?.accessToken}
         onSelectDiscovery={handleSelectDiscovery}
