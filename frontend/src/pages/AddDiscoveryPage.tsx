@@ -1,11 +1,14 @@
 import { Camera, Check, ImagePlus, MapPin } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
-import { LocationPickerMap } from '@/components/LocationPickerMap'
+import {
+  LocationPickerMap,
+  type LocationPickerMapHandle,
+} from '@/components/LocationPickerMap'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { createDiscovery, uploadPhoto } from '@/lib/api'
@@ -17,11 +20,36 @@ type AddDiscoveryLocationState = {
   selectedPhoto?: SelectedPhoto
 }
 
+const defaultCoordinates: [number, number] = [2.3522, 48.8566]
+
+/** Resolves whichever photo the user selected (native or browser) into bytes. */
+async function readSelectedPhoto(
+  nativePhoto: SelectedPhoto | undefined,
+  browserPhoto: File | null,
+): Promise<{ photo: Blob; fileName: string }> {
+  if (browserPhoto) {
+    return { photo: browserPhoto, fileName: browserPhoto.name }
+  }
+
+  if (nativePhoto) {
+    const response = await fetch(Capacitor.convertFileSrc(nativePhoto.path))
+    if (!response.ok) throw new Error('Unable to read the selected photo.')
+    const nativeBlob = await response.blob()
+    const photo = nativeBlob.type
+      ? nativeBlob
+      : new Blob([nativeBlob], { type: nativePhoto.mimeType })
+    return { photo, fileName: nativePhoto.fileName }
+  }
+
+  throw new Error('Select a photo before saving the discovery.')
+}
+
 export function AddDiscoveryPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
   const session = loadSession()
+  const locationPickerRef = useRef<LocationPickerMapHandle>(null)
 
   const selectedPhoto = (location.state as AddDiscoveryLocationState | null)
     ?.selectedPhoto
@@ -32,9 +60,11 @@ export function AddDiscoveryPage() {
   const [category, setCategory] = useState<DiscoveryCategory>('other')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [coordinates, setCoordinates] = useState<[number, number]>([
-    2.3522, 48.8566,
-  ])
+  const [coordinates, setCoordinates] =
+    useState<[number, number]>(defaultCoordinates)
+  const [locationSource, setLocationSource] = useState<
+    'default' | 'photo' | 'manual'
+  >('default')
   const [formMessage, setFormMessage] = useState('')
 
   const browserPhotoUrl = useMemo(
@@ -56,33 +86,52 @@ export function AddDiscoveryPage() {
     ? Capacitor.convertFileSrc(nativePhoto.path)
     : browserPhotoUrl
 
+  // Uploads the photo as soon as it's selected (rather than on submit) so its
+  // EXIF GPS location — if any — can propose the discovery's position before
+  // the user saves, per issue #122 part 1. The result is reused at submit
+  // time instead of uploading the same photo twice.
+  const photoUpload = useMutation({
+    mutationFn: async () => {
+      if (!session) throw new Error('Log in before uploading a photo.')
+      const { photo, fileName } = await readSelectedPhoto(
+        nativePhoto,
+        browserPhoto,
+      )
+      return uploadPhoto(session.accessToken, photo, fileName)
+    },
+    onSuccess: (uploadedPhoto) => {
+      if (uploadedPhoto.exif) {
+        const nextCoordinates: [number, number] = [
+          uploadedPhoto.exif.longitude,
+          uploadedPhoto.exif.latitude,
+        ]
+        setCoordinates(nextCoordinates)
+        setLocationSource('photo')
+        locationPickerRef.current?.flyTo(nextCoordinates)
+      }
+    },
+  })
+
+  const isLoggedIn = Boolean(session)
+
+  useEffect(() => {
+    if (!isLoggedIn || !photoSelected) return
+    photoUpload.mutate()
+    // Depend on isLoggedIn (a stable boolean) rather than `session` itself:
+    // loadSession() returns a new object every render, which would otherwise
+    // re-fire this effect — and re-upload the photo — on every state update
+    // triggered by its own onSuccess handler.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, nativePhoto, browserPhoto])
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!session) throw new Error('Log in before saving a discovery.')
 
-      let photo: Blob
-      let fileName: string
-
-      if (browserPhoto) {
-        photo = browserPhoto
-        fileName = browserPhoto.name
-      } else if (nativePhoto) {
-        const response = await fetch(Capacitor.convertFileSrc(nativePhoto.path))
-        if (!response.ok) throw new Error('Unable to read the selected photo.')
-        const nativeBlob = await response.blob()
-        photo = nativeBlob.type
-          ? nativeBlob
-          : new Blob([nativeBlob], { type: nativePhoto.mimeType })
-        fileName = nativePhoto.fileName
-      } else {
-        throw new Error('Select a photo before saving the discovery.')
+      const uploadedPhoto = photoUpload.data
+      if (!uploadedPhoto) {
+        throw new Error('Wait for the photo to finish uploading.')
       }
-
-      const uploadedPhoto = await uploadPhoto(
-        session.accessToken,
-        photo,
-        fileName,
-      )
 
       return createDiscovery({
         accessToken: session.accessToken,
@@ -125,7 +174,22 @@ export function AddDiscoveryPage() {
       return
     }
 
+    if (photoUpload.isPending) {
+      setFormMessage('The photo is still uploading — please wait.')
+      return
+    }
+
+    if (photoUpload.isError || !photoUpload.data) {
+      setFormMessage('The photo failed to upload. Choose it again to retry.')
+      return
+    }
+
     mutation.mutate()
+  }
+
+  function handleLocationChange(nextCoordinates: [number, number]) {
+    setCoordinates(nextCoordinates)
+    setLocationSource('manual')
   }
 
   return (
@@ -155,6 +219,7 @@ export function AddDiscoveryPage() {
               onChange={(event) => {
                 setNativePhoto(undefined)
                 setBrowserPhoto(event.target.files?.[0] ?? null)
+                photoUpload.reset()
               }}
             />
             {photoUrl ? (
@@ -225,13 +290,20 @@ export function AddDiscoveryPage() {
             Destination: Personal map
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Tap the map to drop a pin where this was discovered, or drag the
-            pin to adjust it.
+            {photoUpload.isPending &&
+              'Looking for a location in the photo...'}
+            {!photoUpload.isPending &&
+              locationSource === 'photo' &&
+              'Location detected from the photo. Tap or drag the pin to adjust it.'}
+            {!photoUpload.isPending &&
+              locationSource !== 'photo' &&
+              'Tap the map to drop a pin where this was discovered, or drag the pin to adjust it.'}
           </p>
           <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
             <LocationPickerMap
+              ref={locationPickerRef}
               coordinates={coordinates}
-              onChange={setCoordinates}
+              onChange={handleLocationChange}
               className="h-full w-full"
             />
           </div>
