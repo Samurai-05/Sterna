@@ -95,6 +95,19 @@ describe('authentication pages', () => {
     ).toBeInTheDocument()
   })
 
+  it('skips authentication in development and opens the app', async () => {
+    renderAt('/auth')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }))
+
+    expect(
+      await screen.findByRole('heading', { name: 'Explore Paris' }),
+    ).toBeInTheDocument()
+    expect(window.localStorage.getItem('sterna.auth')).toContain(
+      'dev-skip-token',
+    )
+  })
+
   it('toggles password visibility from the password input control', () => {
     renderAt('/login')
 

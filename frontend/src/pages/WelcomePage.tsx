@@ -1,10 +1,26 @@
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import backgroundImage from '@/assets/auth-welcome-coast-road-1.jpg'
 import { Button } from '@/components/ui/button'
+import { saveSession } from '@/lib/session'
 import sternaLogo from '../../../landing/src/assets/brand/sterna-logo-white-filled.svg'
 
 export function WelcomePage() {
+  const navigate = useNavigate()
+
+  function handleSkip() {
+    saveSession({
+      accessToken: 'dev-skip-token',
+      user: {
+        id: 'dev-user',
+        email: 'dev@sterna.app',
+        userName: 'Dev Explorer',
+        createdAt: new Date().toISOString(),
+      },
+    })
+    navigate('/', { replace: true })
+  }
+
   return (
     <main className="sterna-auth-welcome relative isolate flex min-h-dvh overflow-hidden bg-primary text-primary-foreground">
       <img
@@ -49,6 +65,16 @@ export function WelcomePage() {
           >
             <Link to="/login">Log in</Link>
           </Button>
+          {import.meta.env.DEV && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="sterna-button h-11 w-full text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+              onClick={handleSkip}
+            >
+              Skip
+            </Button>
+          )}
         </nav>
       </div>
     </main>
