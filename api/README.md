@@ -52,6 +52,7 @@ src/
 │   ├── env.validation.ts        environment schema, validated at boot
 │   └── data-source-options.ts   database settings shared by app and CLI
 ├── discoveries/                 geolocated discoveries (PostGIS)
+├── groups/                      groups, memberships and the active map
 ├── health/                      GET /api/health (Terminus)
 ├── migrations/                  the schema — see "Database" below
 ├── photos/                      photo upload and download, backed by MinIO
@@ -121,14 +122,19 @@ review the generated SQL, commit it.
 group_members, discoveries, pois, their constraints, triggers and indexes — followed by
 `1787734645000-SeedPois.ts`, which inserts the predefined points of interest. Both hold
 hand-written SQL, moved over from the `infra/postgres/init/` scripts that never ran anywhere
-because Postgres only executes those on a brand new data volume.
+because Postgres only executes those on a brand new data volume. After them come
+`1787734646000-RepairDiscoveryCategoryCheck.ts` and `1787734647000-AddGroupInviteCode.ts`,
+which gives every group its invitation code.
 
-`auth/user.entity.ts` is so far the only entity written against that baseline. An entity here
-*describes* an existing table rather than specifying one, and it must match exactly — anything
-that does not becomes a diff the next `migration:generate` tries to apply. Two traps that cost
-nothing to avoid and are easy to miss: TypeORM compares `@Check` constraints **by name only**
-and drops any it does not know about, and `@CreateDateColumn` maps to `timestamp` rather than
-`timestamptz` unless the type is spelled out. After adding one, confirm the baseline is intact:
+Every entity — `auth/user.entity.ts`, `discoveries/discovery.entity.ts`, `pois/poi.entity.ts`
+and the two in `groups/` — is written against that schema. An entity here *describes* an
+existing table rather than specifying one, and it must match exactly: anything that does not
+becomes a diff the next `migration:generate` tries to apply. Three traps that cost nothing to
+avoid and are easy to miss: TypeORM compares `@Check` constraints **by name only** and drops any
+it does not know about, it does the same to **indexes** (which is why `group-member.entity.ts`
+re-declares all three of the table's, partial `where` clauses included), and
+`@CreateDateColumn` maps to `timestamp` rather than `timestamptz` unless the type is spelled
+out. After adding one, confirm the baseline is intact:
 
 ```bash
 docker compose exec api npm run migration:generate -- src/migrations/Scratch
@@ -239,6 +245,58 @@ strips every metadata block from the stored object (NFR-27), bakes the orientati
 the pixels, and validates the bytes for real — the declared MIME type is client-supplied,
 so it cannot be trusted on its own (NFR-21). A photo with no usable GPS tag returns
 `exif: null` and still uploads (FR-33).
+
+## Groups and the active map
+
+Groups (FR-25 … FR-33) live in `src/groups/`. The `groups` and `group_members` tables come from
+the baseline schema; `AddGroupInviteCode1787734647000` added the one column the feature needed.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/groups` | Create a group. The caller becomes its owner. 201 |
+| `GET /api/groups` | The caller's groups, with their role, the active flag and member/discovery counts |
+| `GET /api/groups/{id}` | One group: members (FR-32) and the invitation code |
+| `PATCH /api/groups/{id}` | Rename or re-describe. **Owner only** |
+| `DELETE /api/groups/{id}` | Delete. **Owner only.** 204 |
+| `POST /api/groups/join` | Join with `{ inviteCode }`. 200 |
+| `DELETE /api/groups/{id}/members/me` | Leave (FR-33). 204 |
+| `GET /api/groups/{id}/discoveries` | The group's shared map (FR-29), each discovery carrying its author (FR-31) |
+| `GET /api/active-map` | The map new discoveries go to (FR-27) |
+| `PUT /api/active-map` | Change it with `{ groupId }`, or `{ groupId: null }` for the personal map (FR-28) |
+
+**A personal map is not a group.** It is the absence of one: a discovery with `group_id = NULL`
+is personal, and a user with no active membership has their personal map active. That is why
+`/api/active-map` is its own resource rather than `/api/groups/active` — `null` is one of its
+legitimate values.
+
+**Invitations are one permanent code per group**, eight characters from an alphabet with no
+lookalikes (`ABCDEFGHJKMNPQRSTVWXYZ23456789` — no `I`, `L`, `O`, `U`, `0` or `1`). There is no
+invitation table, no expiry and no per-recipient token: the owner copies the code off the group
+screen and the recipient types it in. The lookup ignores case, spaces and dashes, so `ab3k-9qz2`
+and `AB3K9QZ2` are the same invitation, and joining twice is a no-op rather than a 409.
+
+Three rules that a wrong assumption would break:
+
+- **A non-member is answered 404, not 403** — on every group route, including
+  `PUT /api/active-map` and a discovery aimed at someone else's group. A group must be invisible
+  to people outside it (NFR-19), and 403 would still confirm that it exists. Once membership *is*
+  established, the owner-only routes answer **403**: the caller can already see the group, so
+  there is nothing left to hide.
+- **The owner cannot leave a group** (409) — they delete it instead.
+  `uq_group_members_one_owner_per_group` permits *zero* owners, so nothing in the schema stops a
+  group from being abandoned with no one able to rename or delete it. This is where that is
+  prevented.
+- **A group discovery is on two maps at once**: the group's, and its author's personal map.
+  `GET /api/discoveries` filters on `user_id` alone and does not exclude group discoveries.
+  Nobody else's discoveries ever appear there, group-mates included (NFR-24), and no personal
+  discovery is ever pulled onto a group map (NFR-25).
+
+**Leaving or deleting has to detach the discoveries first.** `fk_discoveries_group_membership` is
+`ON DELETE RESTRICT` and Postgres checks it immediately, so a membership cannot be deleted while
+that member still has discoveries in the group. Both paths run
+`UPDATE discoveries SET group_id = NULL …` inside the same transaction before touching
+`group_members` — which is also why the discoveries survive: they go back to the personal maps of
+whoever took them, never to the bin.
 
 ## API documentation
 
