@@ -1,5 +1,12 @@
-import { Camera, Check, ImagePlus, MapPin } from 'lucide-react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  Camera,
+  Check,
+  ImagePlus,
+  MapPin,
+  UserRound,
+  UsersRound,
+} from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -8,7 +15,8 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { LocationPickerMap } from '@/components/LocationPickerMap'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { createDiscovery, uploadPhoto } from '@/lib/api'
+import { createDiscovery, getGroups, uploadPhoto } from '@/lib/api'
+import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
 import { type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
@@ -36,6 +44,15 @@ export function AddDiscoveryPage() {
     2.3522, 48.8566,
   ])
   const [formMessage, setFormMessage] = useState('')
+
+  const { data: activeMap } = useActiveMap()
+  const setActiveMap = useSetActiveMap()
+  const activeGroupId = activeMap?.groupId ?? null
+  const { data: groups } = useQuery({
+    queryKey: ['groups', session?.user.id],
+    queryFn: () => getGroups(session!.accessToken),
+    enabled: Boolean(session),
+  })
 
   const browserPhotoUrl = useMemo(
     () => (browserPhoto ? URL.createObjectURL(browserPhoto) : null),
@@ -86,6 +103,7 @@ export function AddDiscoveryPage() {
 
       return createDiscovery({
         accessToken: session.accessToken,
+        groupId: activeGroupId,
         title,
         description: description.trim() || null,
         category,
@@ -96,9 +114,14 @@ export function AddDiscoveryPage() {
       })
     },
     onSuccess: (discovery) => {
+      // A group discovery lives on two maps: the group's and its author's own.
       queryClient.invalidateQueries({
         queryKey: ['discoveries', session?.user.id],
       })
+      queryClient.invalidateQueries({
+        queryKey: ['group-discoveries', session?.user.id],
+      })
+      queryClient.invalidateQueries({ queryKey: ['groups', session?.user.id] })
       navigate(`/discoveries/${discovery.id}`, {
         state: { returnTo: '/' },
         replace: true,
@@ -145,6 +168,36 @@ export function AddDiscoveryPage() {
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-6 px-5">
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-sm font-semibold">
+            Saving to: {activeMap?.name ?? 'Personal map'}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Pick another destination to move this discovery, and your active
+            map, to it.
+          </p>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            <DestinationChip
+              active={activeGroupId === null}
+              disabled={setActiveMap.isPending}
+              onClick={() => setActiveMap.mutate(null)}
+            >
+              <UserRound className="size-4" />
+              Personal map
+            </DestinationChip>
+            {groups?.map((group) => (
+              <DestinationChip
+                key={group.id}
+                active={activeGroupId === group.id}
+                disabled={setActiveMap.isPending}
+                onClick={() => setActiveMap.mutate(group.id)}
+              >
+                <UsersRound className="size-4" />
+                {group.name}
+              </DestinationChip>
+            ))}
+          </div>
+        </section>
         <section>
           <p className="mb-2 text-sm font-semibold">Photo</p>
           <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/45 bg-green-50 text-center text-sm text-muted-foreground">
@@ -222,11 +275,11 @@ export function AddDiscoveryPage() {
         <section className="rounded-2xl border border-border bg-card p-4">
           <p className="flex items-center gap-2 text-sm font-semibold">
             <MapPin className="size-4 text-primary" />
-            Destination: Personal map
+            Location
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Tap the map to drop a pin where this was discovered, or drag the
-            pin to adjust it.
+            Tap the map to drop a pin where this was discovered, or drag the pin
+            to adjust it.
           </p>
           <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
             <LocationPickerMap
@@ -256,5 +309,29 @@ export function AddDiscoveryPage() {
         )}
       </form>
     </main>
+  )
+}
+
+function DestinationChip({
+  active,
+  disabled,
+  onClick,
+  children,
+}: {
+  active: boolean
+  disabled: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground'}`}
+    >
+      {children}
+    </button>
   )
 }

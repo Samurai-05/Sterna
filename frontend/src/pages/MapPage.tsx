@@ -1,4 +1,4 @@
-import { LocateFixed, Search } from 'lucide-react'
+import { LocateFixed, Search, UsersRound } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
@@ -12,7 +12,8 @@ import {
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
-import { getDiscoveries } from '@/lib/api'
+import { getDiscoveries, getGroupDiscoveries } from '@/lib/api'
+import { useActiveMap } from '@/hooks/useActiveMap'
 import { loadSession } from '@/lib/session'
 
 export function MapPage() {
@@ -23,9 +24,18 @@ export function MapPage() {
   const session = loadSession()
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'
+  const { data: activeMap } = useActiveMap()
+  const activeGroupId = activeMap?.groupId ?? null
+  // The map renders whichever destination is active: the personal map, or the
+  // group's shared map with every member's discoveries.
   const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries', session?.user.id],
-    queryFn: () => getDiscoveries(session!.accessToken),
+    queryKey: activeGroupId
+      ? ['group-discoveries', session?.user.id, activeGroupId]
+      : ['discoveries', session?.user.id],
+    queryFn: () =>
+      activeGroupId
+        ? getGroupDiscoveries(session!.accessToken, activeGroupId)
+        : getDiscoveries(session!.accessToken),
     enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
@@ -83,9 +93,11 @@ export function MapPage() {
             className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/75 bg-card/95 px-3 text-sm font-semibold shadow-sm backdrop-blur"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {userInitial}
+              {activeGroupId ? <UsersRound className="size-4" /> : userInitial}
             </span>
-            <span className="truncate">Personal map</span>
+            <span className="truncate">
+              {activeMap?.name ?? 'Personal map'}
+            </span>
           </Link>
           <Button
             asChild

@@ -18,8 +18,10 @@ import { CollectionPage } from '@/pages/CollectionPage'
 import { CreateGroupPage } from '@/pages/CreateGroupPage'
 import { DiscoveryDetailPage } from '@/pages/DiscoveryDetailPage'
 import { EditDiscoveryPage } from '@/pages/EditDiscoveryPage'
+import { EditGroupPage } from '@/pages/EditGroupPage'
 import { GroupDetailPage } from '@/pages/GroupDetailPage'
 import { GroupsPage } from '@/pages/GroupsPage'
+import { JoinGroupPage } from '@/pages/JoinGroupPage'
 import { LandmarkDetailPage } from '@/pages/LandmarkDetailPage'
 import { MapPage } from '@/pages/MapPage'
 import { ProfilePage } from '@/pages/ProfilePage'
@@ -65,7 +67,9 @@ function App() {
           />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/groups/new" element={<CreateGroupPage />} />
+          <Route path="/groups/join" element={<JoinGroupPage />} />
           <Route path="/groups/:groupId" element={<GroupDetailPage />} />
+          <Route path="/groups/:groupId/edit" element={<EditGroupPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
