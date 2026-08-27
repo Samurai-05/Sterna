@@ -1,7 +1,7 @@
 import { LocateFixed, Search } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { MapCanvas, type MapCanvasHandle } from '@/components/MapCanvas'
@@ -13,13 +13,24 @@ import {
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { getDiscoveries } from '@/lib/api'
+import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
-export function MapPage() {
+export function MapPage({ active }: { active: boolean }) {
   const [activeCategory, setActiveCategory] =
     useState<DiscoveryCategory | null>(null)
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
+  const location = useLocation()
+  const locationRef = useRef(location)
+  useEffect(() => {
+    locationRef.current = location
+  }, [location])
+  useEffect(() => {
+    if (active) {
+      mapRef.current?.resize()
+    }
+  }, [active])
   const session = loadSession()
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'
@@ -48,7 +59,12 @@ export function MapPage() {
 
   const handleSelectDiscovery = useCallback(
     (id: number) =>
-      navigate(`/discoveries/${id}`, { state: { returnTo: '/' } }),
+      navigate(`/discoveries/${id}`, {
+        state: {
+          returnTo: '/',
+          backgroundLocation: locationRef.current,
+        } satisfies DiscoveryRouteState,
+      }),
     [navigate],
   )
   const handleSelectLandmark = useCallback(
@@ -57,7 +73,11 @@ export function MapPage() {
   )
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#e8e3d9]">
+    <main
+      className={`fixed inset-0 overflow-hidden bg-[#e8e3d9] ${active ? 'visible' : 'invisible pointer-events-none'}`}
+      inert={!active || undefined}
+      aria-hidden={!active || undefined}
+    >
       <h1 className="sr-only">Explore Paris</h1>
       <MapCanvas
         ref={mapRef}

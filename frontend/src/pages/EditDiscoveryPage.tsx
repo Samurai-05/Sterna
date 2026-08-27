@@ -11,6 +11,7 @@ import {
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
+import { getDiscoveryRouteState } from '@/lib/route-state'
 
 export function EditDiscoveryPage() {
   const { discoveryId } = useParams()
@@ -18,7 +19,7 @@ export function EditDiscoveryPage() {
   const navigate = useNavigate()
   const session = loadSession()
   const returnTo =
-    (location.state as { returnTo?: string } | null)?.returnTo ?? '/collection'
+    getDiscoveryRouteState(location.state).returnTo ?? '/collection'
   const { data: discovery, isLoading } = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
     queryFn: () => getDiscovery(session!.accessToken, discoveryId!),

@@ -7,6 +7,11 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { getPhoto } from '@/lib/api'
+import {
+  defaultMapViewport,
+  getStoredMapViewport,
+  saveMapViewport,
+} from '@/lib/map-viewport'
 import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
 
 setWorkerUrl(maplibreWorkerUrl)
@@ -32,6 +37,7 @@ const disputedZoneClaims: Record<string, string[]> = {
 
 export interface MapCanvasHandle {
   locate: () => void
+  resize: () => void
 }
 
 export interface DiscoveryMarkerData {
@@ -101,6 +107,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
     useImperativeHandle(ref, () => ({
       locate: () => geolocateControl.current?.trigger(),
+      resize: () => map.current?.resize(),
     }))
 
     useEffect(() => {
@@ -108,12 +115,24 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         return
       }
 
+      const viewport = getStoredMapViewport() ?? defaultMapViewport
       const instance = new Map({
         container: mapContainer.current,
         style: mapStyle,
-        center: [2.3522, 48.8566],
-        zoom: 12,
+        center: viewport.center,
+        zoom: viewport.zoom,
       })
+
+      const saveCurrentViewport = () => {
+        const center = instance.getCenter()
+        saveMapViewport({
+          center: [center.lng, center.lat],
+          zoom: instance.getZoom(),
+        })
+      }
+
+      instance.on('moveend', saveCurrentViewport)
+      instance.on('zoomend', saveCurrentViewport)
 
       const geolocate = new GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
@@ -209,6 +228,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       map.current = instance
 
       return () => {
+        saveCurrentViewport()
+        instance.off('moveend', saveCurrentViewport)
+        instance.off('zoomend', saveCurrentViewport)
         applyExploredStatesRef.current = () => {}
         geolocateControl.current = null
         map.current = null
