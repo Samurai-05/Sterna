@@ -18,6 +18,12 @@ export interface DiscoveryResponse {
   imageObjectKey: string;
   /** Display name of the author (FR-31), so a group map can label its markers. */
   authorUserName: string;
+  /**
+   * ISO 3166-1 alpha-3, from PostGIS containment against `countries` (issue
+   * #59 / ADR-005). Null when the point is genuinely nowhere near any country
+   * — open ocean, past COUNTRY_MATCH_BUFFER_METERS from every coastline.
+   */
+  countryCode: string | null;
   discoveredAt: string;
   createdAt: string;
   updatedAt: string;
@@ -34,10 +40,46 @@ interface DiscoveryRow {
   latitude: string;
   image_object_key: string;
   author_user_name: string;
+  country_code: string | null;
   discovered_at: Date;
   created_at: Date;
   updated_at: Date;
 }
+
+/**
+ * Metres a point may fall outside every country polygon and still be
+ * assigned the nearest one.
+ *
+ * `countries` is seeded from the same simplified ~1.5MB boundary dataset the
+ * map's veil layer renders (see migration 1787734648000), so a discovery
+ * pinned right at a coastline can land just outside the real polygon even
+ * though it is clearly on land — a resolution limit of the dataset, not of
+ * ST_Contains. Bare ST_Contains would leave such a discovery countryless
+ * (and its country permanently shown unexplored), so COUNTRY_LOOKUP_CTE falls
+ * back to the nearest country within this buffer. 5km comfortably covers
+ * that simplification error without snapping a genuinely open-ocean point to
+ * whatever coastline happens to be closest.
+ */
+const COUNTRY_MATCH_BUFFER_METERS = 5000;
+
+/**
+ * Expects a `point_geom(geom)` CTE already in scope and appends
+ * `matched_country(a3)`, the nearest/containing country for that point.
+ *
+ * ST_Contains is checked first (ORDER BY ... DESC): an island whose nearest
+ * polygon vertex is still further than a coastal mainland point should not
+ * lose to it on raw distance.
+ */
+const COUNTRY_LOOKUP_CTE = `
+  matched_country AS (
+    SELECT c.a3
+    FROM countries c, point_geom p
+    WHERE ST_Contains(c.geom, p.geom)
+       OR ST_DWithin(c.geom::geography, p.geom::geography, ${COUNTRY_MATCH_BUFFER_METERS})
+    ORDER BY ST_Contains(c.geom, p.geom) DESC, c.geom <-> p.geom
+    LIMIT 1
+  )
+`;
 
 /**
  * The columns every read below returns, spelled once.
@@ -58,6 +100,7 @@ const DISCOVERY_PROJECTION = `
     ST_Y(d.location) AS latitude,
     d.image_object_key,
     u.user_name AS author_user_name,
+    d.country_code,
     d.discovered_at,
     d.created_at,
     d.updated_at
@@ -128,6 +171,10 @@ export class DiscoveriesService {
 
     const [row] = await this.discoveries.query<DiscoveryRow[]>(
       `
+        WITH point_geom AS (
+          SELECT ST_SetSRID(ST_MakePoint($6, $7), 4326) AS geom
+        ),
+        ${COUNTRY_LOOKUP_CTE}
         INSERT INTO discoveries (
           user_id,
           group_id,
@@ -136,18 +183,13 @@ export class DiscoveriesService {
           category,
           location,
           image_object_key,
-          discovered_at
+          discovered_at,
+          country_code
         )
-        VALUES (
-          $1,
-          $2,
-          $3,
-          $4,
-          $5,
-          ST_SetSRID(ST_MakePoint($6, $7), 4326),
-          $8,
-          $9
-        )
+        SELECT
+          $1, $2, $3, $4, $5, point_geom.geom, $8, $9, matched_country.a3
+        FROM point_geom
+        LEFT JOIN matched_country ON true
         RETURNING
           id,
           user_id,
@@ -160,6 +202,7 @@ export class DiscoveriesService {
           image_object_key,
           (SELECT user_name FROM users
             WHERE users.id = discoveries.user_id) AS author_user_name,
+          country_code,
           discovered_at,
           created_at,
           updated_at
@@ -193,6 +236,7 @@ export class DiscoveriesService {
           ST_X(location) AS longitude,
           ST_Y(location) AS latitude,
           image_object_key,
+          country_code,
           discovered_at,
           created_at,
           updated_at
@@ -212,20 +256,28 @@ export class DiscoveriesService {
   ): Promise<DiscoveryResponse> {
     const [row] = await this.discoveries.query<DiscoveryRow[]>(
       `
-        WITH updated AS (
-          UPDATE discoveries
-          SET
-            title = COALESCE($3, title),
-            description = CASE WHEN $4::boolean THEN $5 ELSE description END,
-            category = COALESCE($6, category),
-            location = ST_SetSRID(
-              ST_MakePoint(
-                COALESCE($7, ST_X(location)),
-                COALESCE($8, ST_Y(location))
-              ),
-              4326
-            )
+        WITH point_geom AS (
+          SELECT ST_SetSRID(
+            ST_MakePoint(
+              COALESCE($7, ST_X(location)),
+              COALESCE($8, ST_Y(location))
+            ),
+            4326
+          ) AS geom
+          FROM discoveries
           WHERE id = $1 AND user_id = $2
+        ),
+        ${COUNTRY_LOOKUP_CTE},
+        updated AS (
+          UPDATE discoveries d
+          SET
+            title = COALESCE($3, d.title),
+            description = CASE WHEN $4::boolean THEN $5 ELSE d.description END,
+            category = COALESCE($6, d.category),
+            location = point_geom.geom,
+            country_code = (SELECT a3 FROM matched_country)
+          FROM point_geom
+          WHERE d.id = $1 AND d.user_id = $2
           RETURNING *
         )
         SELECT
@@ -238,6 +290,7 @@ export class DiscoveriesService {
           ST_X(location) AS longitude,
           ST_Y(location) AS latitude,
           image_object_key,
+          country_code,
           discovered_at,
           created_at,
           updated_at
@@ -300,6 +353,7 @@ export class DiscoveriesService {
       latitude: Number(row.latitude),
       imageObjectKey: row.image_object_key,
       authorUserName: row.author_user_name,
+      countryCode: row.country_code,
       discoveredAt: discoveredAt.toISOString(),
       createdAt: createdAt.toISOString(),
       updatedAt: updatedAt.toISOString(),

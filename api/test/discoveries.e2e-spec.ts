@@ -16,6 +16,7 @@ interface DiscoveryResponse {
   longitude: number;
   latitude: number;
   imageObjectKey: string;
+  countryCode: string | null;
   discoveredAt: string;
 }
 
@@ -115,6 +116,33 @@ describe('DiscoveriesController (e2e)', () => {
         discoveredAt: '2026-08-25T12:00:00.000Z',
       }),
     );
+    // Lausanne — real PostGIS containment (issue #59), not a stub.
+    expect(body.countryCode).toBe('CHE');
+  });
+
+  // A coastal point close enough to land that it's clearly not open ocean,
+  // but which the simplified boundary polygon doesn't actually contain —
+  // the bug this migration fixes (a discovery near the Sardinian coast used
+  // to leave Italy permanently marked unexplored on the map).
+  it('assigns the nearest country to a discovery just outside its coastline polygon', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/discoveries')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        groupId: null,
+        title: 'Phi Beach',
+        description: null,
+        category: 'Landscape',
+        longitude: 9.4669802,
+        latitude: 41.1418826,
+        imageObjectKey: 'discoveries/e2e-phi-beach.jpg',
+        discoveredAt: '2026-08-25T12:00:00.000Z',
+      })
+      .expect(201);
+
+    const body = response.body as DiscoveryResponse;
+
+    expect(body.countryCode).toBe('ITA');
   });
 
   it('lists only the caller discoveries with PostGIS coordinates', async () => {

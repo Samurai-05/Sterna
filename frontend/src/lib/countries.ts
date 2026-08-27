@@ -1,19 +1,3 @@
-type Position = [number, number]
-
-interface CountryFeatureCollection {
-  features: CountryFeature[]
-}
-
-interface CountryFeature {
-  geometry: {
-    type: 'Polygon' | 'MultiPolygon'
-    coordinates: Position[][] | Position[][][]
-  }
-  properties: {
-    A3?: string
-  }
-}
-
 const countryNamesByCode: Record<string, string> = {
   AFG: 'Afghanistan',
   AGO: 'Angola',
@@ -238,8 +222,14 @@ const countryNamesByCode: Record<string, string> = {
   ZWE: 'Zimbabwe',
 }
 
-let countriesPromise: Promise<CountryFeature[]> | null = null
-
+/**
+ * Country codes come from PostGIS now (issue #59 / ADR-005 —
+ * DiscoveriesService resolves them at write time), so this file is just the
+ * A3 -> display name lookup. The old client-side point-in-polygon detection
+ * this used to also provide (findCountryCodeForPoint, checked against
+ * countries.geo.json in the browser) is gone: it was imprecise near
+ * coastlines and is fully superseded by the backend's ST_Contains lookup.
+ */
 export function getCountryName(countryCode?: string | null): string | null {
   const normalizedCode = countryCode?.trim().toUpperCase()
 
@@ -248,72 +238,4 @@ export function getCountryName(countryCode?: string | null): string | null {
   }
 
   return countryNamesByCode[normalizedCode] ?? null
-}
-
-export async function findCountryCodeForPoint(
-  point: Position,
-): Promise<string | null> {
-  const countries = await loadCountries()
-  const country = countries.find((feature) => containsPoint(feature, point))
-
-  return country?.properties.A3 ?? null
-}
-
-async function loadCountries(): Promise<CountryFeature[]> {
-  countriesPromise ??= fetch('/countries.geo.json')
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Unable to load country boundaries.')
-      }
-
-      return response.json() as Promise<CountryFeatureCollection>
-    })
-    .then((collection) => collection.features)
-
-  return countriesPromise
-}
-
-function containsPoint(feature: CountryFeature, point: Position): boolean {
-  if (feature.geometry.type === 'Polygon') {
-    return isInsidePolygon(point, feature.geometry.coordinates as Position[][])
-  }
-
-  return (feature.geometry.coordinates as Position[][][]).some((polygon) =>
-    isInsidePolygon(point, polygon),
-  )
-}
-
-function isInsidePolygon(point: Position, polygon: Position[][]): boolean {
-  const [outerRing, ...holes] = polygon
-
-  if (!outerRing || !isInsideRing(point, outerRing)) {
-    return false
-  }
-
-  return !holes.some((hole) => isInsideRing(point, hole))
-}
-
-function isInsideRing([longitude, latitude]: Position, ring: Position[]) {
-  let inside = false
-
-  for (
-    let index = 0, previous = ring.length - 1;
-    index < ring.length;
-    previous = index++
-  ) {
-    const [longitudeA, latitudeA] = ring[index]
-    const [longitudeB, latitudeB] = ring[previous]
-    const intersects =
-      latitudeA > latitude !== latitudeB > latitude &&
-      longitude <
-        ((longitudeB - longitudeA) * (latitude - latitudeA)) /
-          (latitudeB - latitudeA) +
-          longitudeA
-
-    if (intersects) {
-      inside = !inside
-    }
-  }
-
-  return inside
 }

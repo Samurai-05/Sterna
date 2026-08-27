@@ -1,6 +1,5 @@
 import type { AuthSession, AuthenticatedUser } from '@/lib/session'
 import type { Discovery, DiscoveryCategory, Landmark } from '@/lib/mock-data'
-import { findCountryCodeForPoint } from '@/lib/countries'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -95,6 +94,7 @@ interface ApiDiscovery {
   latitude: number
   imageObjectKey: string
   authorUserName?: string
+  countryCode: string | null
   discoveredAt: string
   createdAt: string
   updatedAt: string
@@ -149,7 +149,7 @@ export async function getDiscoveries(
     },
   })
 
-  return Promise.all(discoveries.map(toDiscovery))
+  return discoveries.map(toDiscovery)
 }
 
 export async function getDiscovery(
@@ -282,7 +282,7 @@ export async function createDiscovery(input: {
   return toDiscovery(discovery)
 }
 
-async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
+function toDiscovery(discovery: ApiDiscovery): Discovery {
   const authorName = discovery.authorUserName ?? `User ${discovery.userId}`
   const category = discovery.category
     ? (categoryByApiValue[discovery.category] ?? 'other')
@@ -291,7 +291,6 @@ async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
     discovery.longitude,
     discovery.latitude,
   ]
-  const countryCode = await findCountryCodeForPoint(coordinates)
 
   return {
     id: Number(discovery.id),
@@ -306,7 +305,10 @@ async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
     initials: initialsOf(authorName),
     relativeDate: formatRelativeDate(discovery.discoveredAt),
     coordinates,
-    countryCode: countryCode ?? 'UNK',
+    // PostGIS-derived (issue #59 / ADR-005) — see DiscoveriesService for how
+    // a coastal point that misses every polygon still resolves to the
+    // nearest country instead of going unmatched.
+    countryCode: discovery.countryCode ?? 'UNK',
   }
 }
 
@@ -466,7 +468,7 @@ export async function getGroupDiscoveries(
     { headers: { Authorization: `Bearer ${accessToken}` } },
   )
 
-  return Promise.all(discoveries.map(toDiscovery))
+  return discoveries.map(toDiscovery)
 }
 
 export function getActiveMap(accessToken: string): Promise<ActiveMap> {
