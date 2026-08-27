@@ -6,6 +6,7 @@ import { renderWithProviders } from './test/renderWithProviders'
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllEnvs()
   window.localStorage.clear()
 })
 
@@ -93,6 +94,41 @@ describe('authentication pages', () => {
     expect(
       screen.getByRole('heading', { name: 'Keep your discoveries close' }),
     ).toBeInTheDocument()
+  })
+
+  it('skips authentication when the environment flag is enabled', async () => {
+    vi.stubEnv('VITE_ENABLE_AUTH_SKIP', 'true')
+
+    renderAt('/auth')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }))
+
+    expect(
+      await screen.findByRole('heading', { name: 'Explore Paris' }),
+    ).toBeInTheDocument()
+    expect(window.localStorage.getItem('sterna.auth')).toContain(
+      'dev-skip-token',
+    )
+  })
+
+  it('does not show the skip action when the environment flag is disabled', () => {
+    vi.stubEnv('DEV', true)
+    vi.stubEnv('VITE_ENABLE_AUTH_SKIP', 'false')
+
+    renderAt('/auth')
+
+    expect(
+      screen.queryByRole('button', { name: 'Skip' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows the skip action when explicitly enabled outside development', () => {
+    vi.stubEnv('DEV', false)
+    vi.stubEnv('VITE_ENABLE_AUTH_SKIP', 'true')
+
+    renderAt('/auth')
+
+    expect(screen.getByRole('button', { name: 'Skip' })).toBeInTheDocument()
   })
 
   it('toggles password visibility from the password input control', () => {
