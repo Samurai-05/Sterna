@@ -7,6 +7,7 @@ export interface Discovery {
   category: DiscoveryCategory
   location: string
   imageId: string
+  imageObjectKey?: string
   description: string
   author: string
   initials: string

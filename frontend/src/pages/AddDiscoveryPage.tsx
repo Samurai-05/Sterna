@@ -7,7 +7,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { createDiscovery } from '@/lib/api'
+import { createDiscovery, uploadPhoto } from '@/lib/api'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
 import { type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
@@ -55,12 +55,52 @@ export function AddDiscoveryPage() {
     : browserPhotoUrl
 
   const mutation = useMutation({
-    mutationFn: createDiscovery,
+    mutationFn: async () => {
+      if (!session) throw new Error('Log in before saving a discovery.')
+
+      let photo: Blob
+      let fileName: string
+
+      if (browserPhoto) {
+        photo = browserPhoto
+        fileName = browserPhoto.name
+      } else if (nativePhoto) {
+        const response = await fetch(Capacitor.convertFileSrc(nativePhoto.path))
+        if (!response.ok) throw new Error('Unable to read the selected photo.')
+        const nativeBlob = await response.blob()
+        photo = nativeBlob.type
+          ? nativeBlob
+          : new Blob([nativeBlob], { type: nativePhoto.mimeType })
+        fileName = nativePhoto.fileName
+      } else {
+        throw new Error('Select a photo before saving the discovery.')
+      }
+
+      const uploadedPhoto = await uploadPhoto(
+        session.accessToken,
+        photo,
+        fileName,
+      )
+
+      return createDiscovery({
+        accessToken: session.accessToken,
+        title,
+        description: description.trim() || null,
+        category,
+        longitude: Number(longitude),
+        latitude: Number(latitude),
+        imageObjectKey: uploadedPhoto.objectKey,
+        discoveredAt: uploadedPhoto.exif?.takenAt ?? new Date().toISOString(),
+      })
+    },
     onSuccess: (discovery) => {
       queryClient.invalidateQueries({
         queryKey: ['discoveries', session?.user.id],
       })
-      navigate(`/discoveries/${discovery.id}`)
+      navigate(`/discoveries/${discovery.id}`, {
+        state: { returnTo: '/' },
+        replace: true,
+      })
     },
     onError: (error) => {
       setFormMessage(
@@ -78,16 +118,12 @@ export function AddDiscoveryPage() {
       return
     }
 
-    mutation.mutate({
-      accessToken: session.accessToken,
-      title,
-      description: description.trim() || null,
-      category,
-      longitude: Number(longitude),
-      latitude: Number(latitude),
-      imageObjectKey: `discoveries/manual-${Date.now()}.jpg`,
-      discoveredAt: new Date().toISOString(),
-    })
+    if (!photoSelected) {
+      setFormMessage('Select a photo before saving the discovery.')
+      return
+    }
+
+    mutation.mutate()
   }
 
   return (
@@ -106,10 +142,7 @@ export function AddDiscoveryPage() {
           </div>
         </div>
       )}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6 px-5"
-      >
+      <form onSubmit={handleSubmit} className="space-y-6 px-5">
         <section>
           <p className="mb-2 text-sm font-semibold">Photo</p>
           <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/45 bg-green-50 text-center text-sm text-muted-foreground">
@@ -222,11 +255,18 @@ export function AddDiscoveryPage() {
             </label>
           </div>
         </section>
-        <Button type="submit" disabled={mutation.isPending} className="h-12 w-full">
+        <Button
+          type="submit"
+          disabled={mutation.isPending}
+          className="h-12 w-full"
+        >
           {mutation.isPending ? 'Saving discovery...' : 'Save discovery'}
         </Button>
         {formMessage && (
-          <p role="status" className="text-center text-sm text-muted-foreground">
+          <p
+            role="status"
+            className="text-center text-sm text-muted-foreground"
+          >
             {formMessage}
           </p>
         )}

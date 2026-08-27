@@ -108,6 +108,16 @@ interface ApiPoi {
   imageUrl: string | null
 }
 
+interface UploadPhotoResponse {
+  objectKey: string
+  url: string
+  exif: {
+    latitude: number
+    longitude: number
+    takenAt: string | null
+  } | null
+}
+
 const categoryByApiValue: Record<string, DiscoveryCategory> = {
   Landscape: 'landscape',
   Monument: 'monument',
@@ -191,6 +201,46 @@ export function deleteDiscovery(
   })
 }
 
+export async function uploadPhoto(
+  accessToken: string,
+  photo: Blob,
+  fileName: string,
+): Promise<UploadPhotoResponse> {
+  const formData = new FormData()
+  formData.append('file', photo, fileName)
+
+  const response = await fetch(`${apiBaseUrl}/api/photos`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: formData,
+  })
+
+  if (!response.ok) {
+    throw await responseError(response)
+  }
+
+  return (await response.json()) as UploadPhotoResponse
+}
+
+export async function getPhoto(
+  accessToken: string,
+  imageObjectKey: string,
+): Promise<Blob> {
+  const filename = imageObjectKey.split('/').at(-1)
+  if (!filename) throw new Error('Invalid photo key.')
+
+  const response = await fetch(
+    `${apiBaseUrl}/api/photos/${encodeURIComponent(filename)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+
+  if (!response.ok) {
+    throw await responseError(response)
+  }
+
+  return response.blob()
+}
+
 export async function getPois(): Promise<Landmark[]> {
   const pois = await request<ApiPoi[]>('/api/pois')
 
@@ -243,6 +293,7 @@ async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
     category,
     location: `${discovery.latitude.toFixed(4)}, ${discovery.longitude.toFixed(4)}`,
     imageId: 'photo-1500530855697-b586d89ba3ee',
+    imageObjectKey: discovery.imageObjectKey,
     description: discovery.description ?? '',
     author: `User ${discovery.userId}`,
     initials: 'U',
@@ -250,6 +301,20 @@ async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
     coordinates,
     countryCode: countryCode ?? 'UNK',
   }
+}
+
+async function responseError(response: Response): Promise<ApiError> {
+  let message = response.statusText || 'Something went wrong.'
+
+  try {
+    const body = (await response.json()) as ApiErrorBody
+    if (Array.isArray(body.message)) message = body.message.join(' ')
+    else if (body.message) message = body.message
+  } catch {
+    // Non-JSON errors keep the HTTP status text.
+  }
+
+  return new ApiError(message, response.status)
 }
 
 function toLandmark(poi: ApiPoi): Landmark {
