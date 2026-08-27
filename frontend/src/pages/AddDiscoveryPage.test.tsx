@@ -1,75 +1,22 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithProviders } from '@/test/renderWithProviders'
-import { saveSession } from '@/lib/session'
+import { uploadPhoto } from '@/lib/api'
+import { saveSession, clearSession } from '@/lib/session'
 import { AddDiscoveryPage } from './AddDiscoveryPage'
 
-const { createDiscoveryMock, uploadPhotoMock } = vi.hoisted(() => ({
-  createDiscoveryMock: vi.fn(),
-  uploadPhotoMock: vi.fn(),
-}))
-
-vi.mock('@/lib/api', () => ({
-  createDiscovery: createDiscoveryMock,
-  uploadPhoto: uploadPhotoMock,
-}))
-
-vi.mock('@/components/LocationPickerMap', () => ({
-  LocationPickerMap: ({
-    coordinates,
-    onChange,
-  }: {
-    coordinates: [number, number]
-    onChange: (coordinates: [number, number]) => void
-  }) => (
-    <div>
-      <output>
-        {coordinates[1].toFixed(5)}, {coordinates[0].toFixed(5)}
-      </output>
-      <button
-        type="button"
-        aria-label="Choose another location"
-        onClick={() => onChange([7.1, 47.1])}
-      />
-    </div>
-  ),
-}))
-
-const photoUpload = {
-  objectKey: 'photos/photo.jpg',
-  url: '/api/photos/photo.jpg',
-  exif: null as {
-    latitude: number
-    longitude: number
-    takenAt: string | null
-  } | null,
-}
-
-function renderAuthenticatedAddPage() {
-  saveSession({
-    accessToken: 'test-token',
-    user: {
-      id: '1',
-      email: 'explorer@sterna.app',
-      userName: 'Explorer',
-      createdAt: '2026-08-26T08:00:00.000Z',
-    },
-  })
-
-  return renderWithProviders(<AddDiscoveryPage />)
-}
-
-function selectBrowserPhoto(name = 'photo.jpg') {
-  const photo = new File(['photo'], name, { type: 'image/jpeg' })
-  fireEvent.change(document.querySelector('input[type="file"]')!, {
-    target: { files: [photo] },
-  })
-}
+vi.mock('@/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api')>()
+  return {
+    ...actual,
+    uploadPhoto: vi.fn(),
+  }
+})
 
 afterEach(() => {
-  window.localStorage.clear()
-  vi.clearAllMocks()
+  clearSession()
+  vi.restoreAllMocks()
 })
 
 describe('AddDiscoveryPage', () => {
@@ -90,113 +37,83 @@ describe('AddDiscoveryPage', () => {
       ],
     })
 
-    expect(
-      screen.getByRole('img', { name: 'Selected discovery photo' }),
-    ).toHaveAttribute('src', expect.stringContaining('photo.jpg'))
+    expect(screen.getByRole('img', { name: 'Selected discovery photo' })).toHaveAttribute(
+      'src',
+      expect.stringContaining('photo.jpg'),
+    )
     expect(screen.getByText('Photo selected')).toBeInTheDocument()
+    expect(screen.queryByText('Choose a photo from your device')).not.toBeInTheDocument()
+  })
+
+  it('proposes the location found in a geotagged photo, once logged in', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    vi.mocked(uploadPhoto).mockResolvedValue({
+      objectKey: 'photos/geotagged.jpg',
+      url: '/api/photos/geotagged.jpg',
+      exif: {
+        latitude: 35.6586,
+        longitude: 139.7454,
+        takenAt: '2026-05-01T10:00:00.000Z',
+      },
+    })
+
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+
+    const fileInput = document.querySelector('input[type="file"]')
+    if (!fileInput) throw new Error('Photo input not found.')
+    const photo = new File(['fake-bytes'], 'tokyo-tower.jpg', {
+      type: 'image/jpeg',
+    })
+    fireEvent.change(fileInput, { target: { files: [photo] } })
+
     expect(
-      screen.queryByText('Choose a photo from your device'),
-    ).not.toBeInTheDocument()
+      await screen.findByText(
+        'Location detected from the photo. Tap or drag the pin to adjust it.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('35.65860, 139.74540')).toBeInTheDocument()
+    expect(uploadPhoto).toHaveBeenCalledWith('test-token', photo, 'tokyo-tower.jpg')
   })
 
-  it('proposes the EXIF GPS coordinates before the discovery is saved', async () => {
-    uploadPhotoMock.mockResolvedValue({
-      ...photoUpload,
-      exif: {
-        latitude: 46.948,
-        longitude: 7.4474,
-        takenAt: '2026-08-20T14:02:11.000Z',
+  it('keeps manual placement available when a photo has no GPS metadata', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        createdAt: '2026-08-26T08:00:00.000Z',
       },
     })
-    renderAuthenticatedAddPage()
-
-    selectBrowserPhoto()
-
-    await waitFor(() => {
-      expect(screen.getAllByText('46.94800, 7.44740')).not.toHaveLength(0)
-    })
-  })
-
-  it('preserves a manual location change when saving after an EXIF proposal', async () => {
-    uploadPhotoMock.mockResolvedValue({
-      ...photoUpload,
-      exif: {
-        latitude: 46.948,
-        longitude: 7.4474,
-        takenAt: null,
-      },
-    })
-    createDiscoveryMock.mockResolvedValue({ id: 42 })
-    renderAuthenticatedAddPage()
-
-    selectBrowserPhoto()
-    await waitFor(() => {
-      expect(screen.getAllByText('46.94800, 7.44740')).not.toHaveLength(0)
+    vi.mocked(uploadPhoto).mockResolvedValue({
+      objectKey: 'photos/no-gps.jpg',
+      url: '/api/photos/no-gps.jpg',
+      exif: null,
     })
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Choose another location' }),
-    )
-    fireEvent.change(screen.getByPlaceholderText('Name your discovery'), {
-      target: { value: 'A manual location' },
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+
+    const fileInput = document.querySelector('input[type="file"]')
+    if (!fileInput) throw new Error('Photo input not found.')
+    const photo = new File(['fake-bytes'], 'no-gps.jpg', {
+      type: 'image/jpeg',
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save discovery' }))
+    fireEvent.change(fileInput, { target: { files: [photo] } })
 
-    await waitFor(() => expect(createDiscoveryMock).toHaveBeenCalledOnce())
-    expect(createDiscoveryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ longitude: 7.1, latitude: 47.1 }),
-    )
-  })
+    await screen.findByText('Photo selected')
 
-  it('still creates a discovery when the photo has no EXIF GPS coordinates', async () => {
-    uploadPhotoMock.mockResolvedValue(photoUpload)
-    createDiscoveryMock.mockResolvedValue({ id: 42 })
-    renderAuthenticatedAddPage()
-
-    selectBrowserPhoto()
-    await waitFor(() => expect(uploadPhotoMock).toHaveBeenCalledOnce())
-    fireEvent.change(screen.getByPlaceholderText('Name your discovery'), {
-      target: { value: 'No GPS photo' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Save discovery' }))
-
-    await waitFor(() => expect(createDiscoveryMock).toHaveBeenCalledOnce())
-    expect(createDiscoveryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ longitude: 2.3522, latitude: 48.8566 }),
-    )
-  })
-
-  it('does not replace a manual location when a replacement photo has EXIF GPS', async () => {
-    uploadPhotoMock
-      .mockResolvedValueOnce({
-        ...photoUpload,
-        exif: {
-          latitude: 46.948,
-          longitude: 7.4474,
-          takenAt: null,
-        },
-      })
-      .mockResolvedValueOnce({
-        ...photoUpload,
-        exif: {
-          latitude: 48.8566,
-          longitude: 2.3522,
-          takenAt: null,
-        },
-      })
-    renderAuthenticatedAddPage()
-
-    selectBrowserPhoto('first.jpg')
-    await waitFor(() => {
-      expect(screen.getAllByText('46.94800, 7.44740')).not.toHaveLength(0)
-    })
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Choose another location' }),
-    )
-    selectBrowserPhoto('replacement.jpg')
-
-    await waitFor(() => expect(uploadPhotoMock).toHaveBeenCalledTimes(2))
-    expect(screen.getAllByText('47.10000, 7.10000')).not.toHaveLength(0)
+    expect(
+      screen.getByText(
+        'Tap the map to drop a pin where this was discovered, or drag the pin to adjust it.',
+      ),
+    ).toBeInTheDocument()
   })
 })

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import {
   GeolocateControl,
   Map,
@@ -13,28 +13,38 @@ setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
 
+export interface LocationPickerMapHandle {
+  /** Recenters the map and moves the pin without waiting for a tap/drag. */
+  flyTo: (coordinates: [number, number], zoom?: number) => void
+}
+
 interface LocationPickerMapProps {
   coordinates: [number, number]
   onChange: (coordinates: [number, number]) => void
   className?: string
 }
 
-// Lets the user drop/drag a pin instead of typing coordinates. The map is
-// created once, while the marker follows controlled `coordinates` updates.
-export function LocationPickerMap({
-  coordinates,
-  onChange,
-  className,
-}: LocationPickerMapProps) {
+// Lets the user drop/drag a pin instead of typing coordinates. `coordinates`
+// only sets the initial position (the map is only created once, like
+// MapCanvas) — use the `flyTo` handle to move the pin programmatically
+// afterwards (e.g. once a photo's EXIF location comes back).
+export const LocationPickerMap = forwardRef<
+  LocationPickerMapHandle,
+  LocationPickerMapProps
+>(function LocationPickerMap({ coordinates, onChange, className }, ref) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<Map | null>(null)
-  const pin = useRef<Marker | null>(null)
+  const marker = useRef<Marker | null>(null)
   const initialCoordinates = useRef(coordinates)
   const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
-  useEffect(() => {
-    onChangeRef.current = onChange
-  }, [onChange])
+  useImperativeHandle(ref, () => ({
+    flyTo: (nextCoordinates, zoom = 15) => {
+      marker.current?.setLngLat(nextCoordinates)
+      map.current?.flyTo({ center: nextCoordinates, zoom })
+    },
+  }))
 
   useEffect(() => {
     if (!mapContainer.current || navigator.userAgent.includes('jsdom')) {
@@ -59,50 +69,36 @@ export function LocationPickerMap({
     })
     instance.addControl(geolocate, 'top-right')
 
-    const marker = new Marker({ draggable: true, color: '#2d5a3d' })
+    const pin = new Marker({ draggable: true, color: '#2d5a3d' })
       .setLngLat(initialCoordinates.current)
       .addTo(instance)
 
-    map.current = instance
-    pin.current = marker
-
-    marker.on('dragend', () => {
-      const { lng, lat } = marker.getLngLat()
+    pin.on('dragend', () => {
+      const { lng, lat } = pin.getLngLat()
       onChangeRef.current([lng, lat])
     })
 
     instance.on('click', (event) => {
-      marker.setLngLat(event.lngLat)
+      pin.setLngLat(event.lngLat)
       onChangeRef.current([event.lngLat.lng, event.lngLat.lat])
     })
 
     geolocate.on('geolocate', (event) => {
       const { longitude, latitude } = event.coords
-      marker.setLngLat([longitude, latitude])
+      pin.setLngLat([longitude, latitude])
       instance.flyTo({ center: [longitude, latitude], zoom: 15 })
       onChangeRef.current([longitude, latitude])
     })
 
+    map.current = instance
+    marker.current = pin
+
     return () => {
       map.current = null
-      pin.current = null
+      marker.current = null
       instance.remove()
     }
   }, [])
-
-  useEffect(() => {
-    const instance = map.current
-    const marker = pin.current
-    if (!instance || !marker) return
-
-    const current = marker.getLngLat()
-    if (current.lng === coordinates[0] && current.lat === coordinates[1]) {
-      return
-    }
-
-    marker.setLngLat(coordinates)
-    instance.flyTo({ center: coordinates })
-  }, [coordinates])
 
   return (
     <div
@@ -112,4 +108,4 @@ export function LocationPickerMap({
       className={className}
     />
   )
-}
+})
