@@ -15,9 +15,16 @@ import { Button } from '@/components/ui/button'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
 import { categoryLabel } from '@/lib/mock-data'
+import { getDiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
-export function DiscoveryDetailPage() {
+type DiscoveryDetailPageProps = {
+  presentation?: 'page' | 'overlay'
+}
+
+export function DiscoveryDetailPage({
+  presentation = 'page',
+}: DiscoveryDetailPageProps) {
   const { discoveryId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -27,9 +34,20 @@ export function DiscoveryDetailPage() {
   // Set when the discovery was opened from a group's shared map, where it may
   // belong to another member.
   const groupId = searchParams.get('group')
-  const returnTo =
-    (location.state as { returnTo?: string } | null)?.returnTo ?? '/collection'
-  const handleBack = () => navigate(returnTo, { replace: true })
+  const routeState = getDiscoveryRouteState(location.state)
+  const returnTo = routeState.returnTo ?? '/collection'
+  const handleBack = () => {
+    if (routeState.backgroundLocation) {
+      navigate(-1)
+      return
+    }
+
+    navigate(returnTo, { replace: true })
+  }
+  const pageClassName =
+    presentation === 'overlay'
+      ? 'fixed inset-0 z-50 h-dvh overflow-y-auto bg-background pb-8'
+      : 'min-h-dvh bg-background pb-8'
 
   const personalQuery = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
@@ -60,13 +78,13 @@ export function DiscoveryDetailPage() {
       queryClient.invalidateQueries({
         queryKey: ['group-discoveries', session?.user.id],
       })
-      navigate(returnTo, { replace: true })
+      handleBack()
     },
   })
 
   if (isLoading) {
     return (
-      <main className="min-h-dvh bg-background pb-8">
+      <main className={pageClassName}>
         <PageHeader title="Discovery" onBack={handleBack} />
         <div className="px-5 text-sm text-muted-foreground">Loading...</div>
       </main>
@@ -75,7 +93,7 @@ export function DiscoveryDetailPage() {
 
   if (!discovery) {
     return (
-      <main className="min-h-dvh bg-background pb-8">
+      <main className={pageClassName}>
         <PageHeader title="Discovery" onBack={handleBack} />
         <div className="px-5 text-sm text-muted-foreground">
           Discovery not found.
@@ -89,7 +107,7 @@ export function DiscoveryDetailPage() {
     discovery.userId === undefined || discovery.userId === session?.user.id
 
   return (
-    <main className="min-h-dvh bg-background">
+    <main className={pageClassName}>
       <PageHeader title="Discovery" onBack={handleBack} />
       <article className="px-5">
         <DiscoveryPhoto
