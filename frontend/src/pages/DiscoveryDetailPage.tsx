@@ -78,6 +78,9 @@ export function DiscoveryDetailPage({
       queryClient.invalidateQueries({
         queryKey: ['group-discoveries', session?.user.id],
       })
+      queryClient.invalidateQueries({
+        queryKey: ['pois', session?.user.id],
+      })
       handleBack()
     },
   })

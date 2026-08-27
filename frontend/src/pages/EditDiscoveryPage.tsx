@@ -106,6 +106,7 @@ function EditDiscoveryForm({
         updatedDiscovery,
       )
       queryClient.invalidateQueries({ queryKey: ['discoveries', userId] })
+      queryClient.invalidateQueries({ queryKey: ['pois', userId] })
       navigate(`/discoveries/${updatedDiscovery.id}`, {
         state: { returnTo },
         replace: true,
