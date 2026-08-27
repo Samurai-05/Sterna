@@ -19,19 +19,22 @@ interface LocationPickerMapProps {
   className?: string
 }
 
-// Lets the user drop/drag a pin instead of typing coordinates. Initial
-// position only (the map is only created once, like MapCanvas) — later
-// `coordinates` updates from outside (e.g. a parent resetting the form)
-// aren't reflected back onto the pin.
+// Lets the user drop/drag a pin instead of typing coordinates. The map is
+// created once, while the marker follows controlled `coordinates` updates.
 export function LocationPickerMap({
   coordinates,
   onChange,
   className,
 }: LocationPickerMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
+  const map = useRef<Map | null>(null)
+  const pin = useRef<Marker | null>(null)
   const initialCoordinates = useRef(coordinates)
   const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
 
   useEffect(() => {
     if (!mapContainer.current || navigator.userAgent.includes('jsdom')) {
@@ -56,31 +59,50 @@ export function LocationPickerMap({
     })
     instance.addControl(geolocate, 'top-right')
 
-    const pin = new Marker({ draggable: true, color: '#2d5a3d' })
+    const marker = new Marker({ draggable: true, color: '#2d5a3d' })
       .setLngLat(initialCoordinates.current)
       .addTo(instance)
 
-    pin.on('dragend', () => {
-      const { lng, lat } = pin.getLngLat()
+    map.current = instance
+    pin.current = marker
+
+    marker.on('dragend', () => {
+      const { lng, lat } = marker.getLngLat()
       onChangeRef.current([lng, lat])
     })
 
     instance.on('click', (event) => {
-      pin.setLngLat(event.lngLat)
+      marker.setLngLat(event.lngLat)
       onChangeRef.current([event.lngLat.lng, event.lngLat.lat])
     })
 
     geolocate.on('geolocate', (event) => {
       const { longitude, latitude } = event.coords
-      pin.setLngLat([longitude, latitude])
+      marker.setLngLat([longitude, latitude])
       instance.flyTo({ center: [longitude, latitude], zoom: 15 })
       onChangeRef.current([longitude, latitude])
     })
 
     return () => {
+      map.current = null
+      pin.current = null
       instance.remove()
     }
   }, [])
+
+  useEffect(() => {
+    const instance = map.current
+    const marker = pin.current
+    if (!instance || !marker) return
+
+    const current = marker.getLngLat()
+    if (current.lng === coordinates[0] && current.lat === coordinates[1]) {
+      return
+    }
+
+    marker.setLngLat(coordinates)
+    instance.flyTo({ center: coordinates })
+  }, [coordinates])
 
   return (
     <div

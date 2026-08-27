@@ -1,7 +1,7 @@
 import { Camera, Check, ImagePlus, MapPin } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
@@ -17,11 +17,56 @@ type AddDiscoveryLocationState = {
   selectedPhoto?: SelectedPhoto
 }
 
+type UploadedPhoto = Awaited<ReturnType<typeof uploadPhoto>>
+
+async function readPhotoForUpload(
+  nativePhoto: SelectedPhoto | undefined,
+  browserPhoto: File | null,
+): Promise<{ photo: Blob; fileName: string }> {
+  if (browserPhoto) {
+    return { photo: browserPhoto, fileName: browserPhoto.name }
+  }
+
+  if (nativePhoto) {
+    const response = await fetch(Capacitor.convertFileSrc(nativePhoto.path))
+    if (!response.ok) throw new Error('Unable to read the selected photo.')
+    const nativeBlob = await response.blob()
+
+    return {
+      photo: nativeBlob.type
+        ? nativeBlob
+        : new Blob([nativeBlob], { type: nativePhoto.mimeType }),
+      fileName: nativePhoto.fileName,
+    }
+  }
+
+  throw new Error('Select a photo before saving the discovery.')
+}
+
+function getExifCoordinates(
+  exif: UploadedPhoto['exif'],
+): [number, number] | null {
+  if (!exif) return null
+  if (
+    !Number.isFinite(exif.latitude) ||
+    !Number.isFinite(exif.longitude) ||
+    exif.latitude < -90 ||
+    exif.latitude > 90 ||
+    exif.longitude < -180 ||
+    exif.longitude > 180
+  ) {
+    return null
+  }
+
+  return [exif.longitude, exif.latitude]
+}
+
 export function AddDiscoveryPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
   const session = loadSession()
+  const accessToken = session?.accessToken
 
   const selectedPhoto = (location.state as AddDiscoveryLocationState | null)
     ?.selectedPhoto
@@ -36,6 +81,12 @@ export function AddDiscoveryPage() {
     2.3522, 48.8566,
   ])
   const [formMessage, setFormMessage] = useState('')
+  const [uploadedPhoto, setUploadedPhoto] = useState<UploadedPhoto | null>(null)
+  const [photoUploadStatus, setPhotoUploadStatus] = useState<
+    'idle' | 'uploading' | 'ready' | 'error'
+  >(session && selectedPhoto ? 'uploading' : 'idle')
+  const manualLocationChanged = useRef(false)
+  const photoUploadRequest = useRef(0)
 
   const browserPhotoUrl = useMemo(
     () => (browserPhoto ? URL.createObjectURL(browserPhoto) : null),
@@ -56,33 +107,53 @@ export function AddDiscoveryPage() {
     ? Capacitor.convertFileSrc(nativePhoto.path)
     : browserPhotoUrl
 
+  useEffect(() => {
+    const requestId = ++photoUploadRequest.current
+
+    if (!accessToken || !photoSelected) {
+      return
+    }
+
+    let active = true
+
+    void (async () => {
+      try {
+        const { photo, fileName } = await readPhotoForUpload(
+          nativePhoto,
+          browserPhoto,
+        )
+        const result = await uploadPhoto(accessToken, photo, fileName)
+        if (!active || photoUploadRequest.current !== requestId) return
+
+        setUploadedPhoto(result)
+        setPhotoUploadStatus('ready')
+        const exifCoordinates = getExifCoordinates(result.exif)
+        if (exifCoordinates && !manualLocationChanged.current) {
+          setCoordinates(exifCoordinates)
+        }
+      } catch (error) {
+        if (!active || photoUploadRequest.current !== requestId) return
+        setPhotoUploadStatus('error')
+        setFormMessage(
+          error instanceof Error
+            ? error.message
+            : 'Unable to process the selected photo.',
+        )
+      }
+    })()
+
+    return () => {
+      active = false
+    }
+  }, [accessToken, browserPhoto, nativePhoto, photoSelected])
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!session) throw new Error('Log in before saving a discovery.')
 
-      let photo: Blob
-      let fileName: string
-
-      if (browserPhoto) {
-        photo = browserPhoto
-        fileName = browserPhoto.name
-      } else if (nativePhoto) {
-        const response = await fetch(Capacitor.convertFileSrc(nativePhoto.path))
-        if (!response.ok) throw new Error('Unable to read the selected photo.')
-        const nativeBlob = await response.blob()
-        photo = nativeBlob.type
-          ? nativeBlob
-          : new Blob([nativeBlob], { type: nativePhoto.mimeType })
-        fileName = nativePhoto.fileName
-      } else {
-        throw new Error('Select a photo before saving the discovery.')
+      if (!uploadedPhoto) {
+        throw new Error('Unable to process the selected photo.')
       }
-
-      const uploadedPhoto = await uploadPhoto(
-        session.accessToken,
-        photo,
-        fileName,
-      )
 
       return createDiscovery({
         accessToken: session.accessToken,
@@ -150,11 +221,18 @@ export function AddDiscoveryPage() {
           <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/45 bg-green-50 text-center text-sm text-muted-foreground">
             <input
               type="file"
+              aria-label="Choose discovery photo"
               accept="image/jpeg,image/png,image/webp"
               className="sr-only"
               onChange={(event) => {
+                const nextPhoto = event.target.files?.[0] ?? null
+                setUploadedPhoto(null)
+                setPhotoUploadStatus(
+                  nextPhoto && accessToken ? 'uploading' : 'idle',
+                )
+                setFormMessage('')
                 setNativePhoto(undefined)
-                setBrowserPhoto(event.target.files?.[0] ?? null)
+                setBrowserPhoto(nextPhoto)
               }}
             />
             {photoUrl ? (
@@ -225,13 +303,16 @@ export function AddDiscoveryPage() {
             Destination: Personal map
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Tap the map to drop a pin where this was discovered, or drag the
-            pin to adjust it.
+            Tap the map to drop a pin where this was discovered, or drag the pin
+            to adjust it.
           </p>
           <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
             <LocationPickerMap
               coordinates={coordinates}
-              onChange={setCoordinates}
+              onChange={(nextCoordinates) => {
+                manualLocationChanged.current = true
+                setCoordinates(nextCoordinates)
+              }}
               className="h-full w-full"
             />
           </div>
@@ -241,10 +322,14 @@ export function AddDiscoveryPage() {
         </section>
         <Button
           type="submit"
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || photoUploadStatus === 'uploading'}
           className="h-12 w-full"
         >
-          {mutation.isPending ? 'Saving discovery...' : 'Save discovery'}
+          {photoUploadStatus === 'uploading'
+            ? 'Processing photo...'
+            : mutation.isPending
+              ? 'Saving discovery...'
+              : 'Save discovery'}
         </Button>
         {formMessage && (
           <p
