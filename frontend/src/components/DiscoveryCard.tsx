@@ -3,21 +3,25 @@ import { Link, useLocation } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
+import { discoveryPath } from '@/lib/discovery-path'
 import { categoryLabel, type Discovery } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 
 export function DiscoveryCard({
   discovery,
+  groupId,
   className,
 }: {
   discovery: Discovery
+  /** Set when the card sits on a group's shared map. */
+  groupId?: string
   className?: string
 }) {
   const location = useLocation()
 
   return (
     <Link
-      to={`/discoveries/${discovery.id}`}
+      to={discoveryPath(discovery.id, groupId)}
       state={{ returnTo: location.pathname }}
       className={cn(
         'group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99]',

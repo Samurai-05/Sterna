@@ -1,4 +1,4 @@
-import { LocateFixed, Search } from 'lucide-react'
+import { LocateFixed, Search, UsersRound } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -12,7 +12,9 @@ import {
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
-import { getDiscoveries } from '@/lib/api'
+import { getDiscoveries, getGroupDiscoveries } from '@/lib/api'
+import { discoveryPath } from '@/lib/discovery-path'
+import { useActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
@@ -34,9 +36,18 @@ export function MapPage({ active }: { active: boolean }) {
   const session = loadSession()
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'
+  const { data: activeMap } = useActiveMap()
+  const activeGroupId = activeMap?.groupId ?? null
+  // The map renders whichever destination is active: the personal map, or the
+  // group's shared map with every member's discoveries.
   const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries', session?.user.id],
-    queryFn: () => getDiscoveries(session!.accessToken),
+    queryKey: activeGroupId
+      ? ['group-discoveries', session?.user.id, activeGroupId]
+      : ['discoveries', session?.user.id],
+    queryFn: () =>
+      activeGroupId
+        ? getGroupDiscoveries(session!.accessToken, activeGroupId)
+        : getDiscoveries(session!.accessToken),
     enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
@@ -59,13 +70,13 @@ export function MapPage({ active }: { active: boolean }) {
 
   const handleSelectDiscovery = useCallback(
     (id: number) =>
-      navigate(`/discoveries/${id}`, {
+      navigate(discoveryPath(id, activeGroupId), {
         state: {
           returnTo: '/',
           backgroundLocation: locationRef.current,
         } satisfies DiscoveryRouteState,
       }),
-    [navigate],
+    [navigate, activeGroupId],
   )
   const handleSelectLandmark = useCallback(
     (id: string) => navigate(`/landmarks/${id}`, { state: { from: 'map' } }),
@@ -103,9 +114,11 @@ export function MapPage({ active }: { active: boolean }) {
             className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/75 bg-card/95 px-3 text-sm font-semibold shadow-sm backdrop-blur"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {userInitial}
+              {activeGroupId ? <UsersRound className="size-4" /> : userInitial}
             </span>
-            <span className="truncate">Personal map</span>
+            <span className="truncate">
+              {activeMap?.name ?? 'Personal map'}
+            </span>
           </Link>
           <Button
             asChild
