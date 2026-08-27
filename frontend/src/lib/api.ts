@@ -1,9 +1,5 @@
 import type { AuthSession, AuthenticatedUser } from '@/lib/session'
-import type {
-  Discovery,
-  DiscoveryCategory,
-  Landmark,
-} from '@/lib/mock-data'
+import type { Discovery, DiscoveryCategory, Landmark } from '@/lib/mock-data'
 import { findCountryCodeForPoint } from '@/lib/countries'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -50,6 +46,10 @@ async function request<TResponse>(
     throw new ApiError(message, response.status)
   }
 
+  if (response.status === 204) {
+    return undefined as TResponse
+  }
+
   return (await response.json()) as TResponse
 }
 
@@ -74,7 +74,9 @@ export function login(input: {
   })
 }
 
-export function getCurrentUser(accessToken: string): Promise<AuthenticatedUser> {
+export function getCurrentUser(
+  accessToken: string,
+): Promise<AuthenticatedUser> {
   return request<AuthenticatedUser>('/api/auth/me', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -126,7 +128,9 @@ const apiValueByCategory: Record<DiscoveryCategory, string> = {
   other: 'Other',
 }
 
-export async function getDiscoveries(accessToken: string): Promise<Discovery[]> {
+export async function getDiscoveries(
+  accessToken: string,
+): Promise<Discovery[]> {
   const discoveries = await request<ApiDiscovery[]>('/api/discoveries', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -134,6 +138,57 @@ export async function getDiscoveries(accessToken: string): Promise<Discovery[]> 
   })
 
   return Promise.all(discoveries.map(toDiscovery))
+}
+
+export async function getDiscovery(
+  accessToken: string,
+  discoveryId: string,
+): Promise<Discovery> {
+  const discovery = await request<ApiDiscovery>(
+    `/api/discoveries/${discoveryId}`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  )
+
+  return toDiscovery(discovery)
+}
+
+export async function updateDiscovery(input: {
+  accessToken: string
+  discoveryId: string
+  title: string
+  description: string | null
+  category: DiscoveryCategory
+  longitude: number
+  latitude: number
+}): Promise<Discovery> {
+  const discovery = await request<ApiDiscovery>(
+    `/api/discoveries/${input.discoveryId}`,
+    {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${input.accessToken}` },
+      body: JSON.stringify({
+        title: input.title,
+        description: input.description,
+        category: apiValueByCategory[input.category],
+        longitude: input.longitude,
+        latitude: input.latitude,
+      }),
+    },
+  )
+
+  return toDiscovery(discovery)
+}
+
+export function deleteDiscovery(
+  accessToken: string,
+  discoveryId: string,
+): Promise<void> {
+  return request<void>(`/api/discoveries/${discoveryId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
 }
 
 export async function getPois(): Promise<Landmark[]> {
@@ -174,9 +229,12 @@ export async function createDiscovery(input: {
 
 async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
   const category = discovery.category
-    ? categoryByApiValue[discovery.category] ?? 'other'
+    ? (categoryByApiValue[discovery.category] ?? 'other')
     : 'other'
-  const coordinates: [number, number] = [discovery.longitude, discovery.latitude]
+  const coordinates: [number, number] = [
+    discovery.longitude,
+    discovery.latitude,
+  ]
   const countryCode = await findCountryCodeForPoint(coordinates)
 
   return {

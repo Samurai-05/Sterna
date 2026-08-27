@@ -181,6 +181,92 @@ describe('DiscoveriesController (e2e)', () => {
     await request(app.getHttpServer()).get('/api/discoveries').expect(401);
   });
 
+  it('lets only the owner read, update and delete a discovery', async () => {
+    const createdResponse = await request(app.getHttpServer())
+      .post('/api/discoveries')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        groupId: null,
+        title: 'Private discovery',
+        description: 'Before update',
+        category: 'Landscape',
+        longitude: 6.5,
+        latitude: 46.5,
+        imageObjectKey: 'discoveries/e2e-private.jpg',
+        discoveredAt: '2026-08-25T15:00:00.000Z',
+      })
+      .expect(201);
+
+    const created = createdResponse.body as DiscoveryResponse;
+
+    await request(app.getHttpServer())
+      .get(`/api/discoveries/${created.id}`)
+      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .patch(`/api/discoveries/${created.id}`)
+      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .send({ title: 'Stolen discovery' })
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .delete(`/api/discoveries/${created.id}`)
+      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .expect(404);
+
+    const updatedResponse = await request(app.getHttpServer())
+      .patch(`/api/discoveries/${created.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'Updated private discovery',
+        description: null,
+        category: 'Culture',
+        longitude: 7.1,
+        latitude: 47.1,
+      })
+      .expect(200);
+
+    expect(updatedResponse.body).toEqual(
+      expect.objectContaining({
+        id: created.id,
+        userId,
+        title: 'Updated private discovery',
+        description: null,
+        category: 'Culture',
+        longitude: 7.1,
+        latitude: 47.1,
+      }),
+    );
+
+    await request(app.getHttpServer())
+      .get(`/api/discoveries/${created.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200)
+      .expect(({ body }: { body: DiscoveryResponse }) => {
+        expect(body.title).toBe('Updated private discovery');
+      });
+
+    await request(app.getHttpServer())
+      .delete(`/api/discoveries/${created.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(204);
+
+    await request(app.getHttpServer())
+      .get(`/api/discoveries/${created.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(404);
+  });
+
+  it('rejects detail, update and deletion without a bearer token', async () => {
+    await request(app.getHttpServer()).get('/api/discoveries/1').expect(401);
+    await request(app.getHttpServer())
+      .patch('/api/discoveries/1')
+      .send({ title: 'Unauthorized update' })
+      .expect(401);
+    await request(app.getHttpServer()).delete('/api/discoveries/1').expect(401);
+  });
+
   it('rejects discovery creation without a bearer token', async () => {
     await request(app.getHttpServer())
       .post('/api/discoveries')
