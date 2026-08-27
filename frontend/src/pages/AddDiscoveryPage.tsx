@@ -12,6 +12,7 @@ import {
 } from '@/components/LocationPickerMap'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { useBackHandler } from '@/lib/back-navigation'
 import { createDiscovery, getGroups, uploadPhoto } from '@/lib/api'
 import {
   activeMapName,
@@ -80,6 +81,14 @@ export function AddDiscoveryPage() {
   const { data: activeMap, isPending: isLoadingActiveMap } = useActiveMap()
   const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
+  useBackHandler(
+    () => {
+      if (!isMapPickerOpen) return false
+      if (!setActiveMap.isPending) setIsMapPickerOpen(false)
+      return true
+    },
+    isMapPickerOpen,
+  )
   // Until the active map is known, and while a switch is still in flight, the
   // destination is unsettled — saving now could file the discovery under the
   // previous map.

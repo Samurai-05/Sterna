@@ -41,7 +41,10 @@ export function BottomNavigation({
             if (onAddDiscovery) {
               onAddDiscovery()
             } else {
-              void createDiscoveryPhotoAction({ navigate })
+              void createDiscoveryPhotoAction({
+                navigate,
+                returnTo: pathname,
+              })
             }
           }}
           aria-label="Add discovery"
@@ -81,6 +84,7 @@ function NavigationLink({
   return (
     <Link
       to={to}
+      replace
       className={cn(
         'flex min-h-11 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors',
         active ? 'text-primary' : 'text-muted-foreground',

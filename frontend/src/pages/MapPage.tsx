@@ -7,6 +7,7 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { MapCanvas, type MapCanvasHandle } from '@/components/MapCanvas'
 import { MapSwitcherSheet } from '@/components/MapSwitcherSheet'
 import { Button } from '@/components/ui/button'
+import { useBackHandler } from '@/lib/back-navigation'
 import {
   categories,
   discoveries,
@@ -54,6 +55,14 @@ export function MapPage({ active }: { active: boolean }) {
   } = useActiveMap()
   const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
+  useBackHandler(
+    () => {
+      if (!isMapPickerOpen) return false
+      if (!setActiveMap.isPending) setIsMapPickerOpen(false)
+      return true
+    },
+    isMapPickerOpen,
+  )
   const { data: groups } = useQuery({
     queryKey: ['groups', session?.user.id],
     queryFn: () => getGroups(session!.accessToken),

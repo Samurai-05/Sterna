@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
@@ -7,6 +7,47 @@ import { renderWithProviders } from './test/renderWithProviders'
 
 const { mapCanvasLifecycle } = vi.hoisted(() => ({
   mapCanvasLifecycle: { mounts: 0, unmounts: 0, resizes: 0 },
+}))
+
+const { nativeBack } = vi.hoisted(() => {
+  const state: {
+    callback: ((event: { canGoBack: boolean }) => void) | null
+    addListener: ReturnType<typeof vi.fn>
+    exitApp: ReturnType<typeof vi.fn>
+  } = {
+    callback: null,
+    addListener: vi.fn(),
+    exitApp: vi.fn(),
+  }
+
+  state.addListener.mockImplementation(
+    async (
+      _event: string,
+      callback: (event: { canGoBack: boolean }) => void,
+    ) => {
+      state.callback = callback
+      return { remove: vi.fn() }
+    },
+  )
+  state.exitApp.mockResolvedValue(undefined)
+  return { nativeBack: state }
+})
+
+vi.mock('@capacitor/app', () => ({
+  App: nativeBack,
+}))
+
+vi.mock('@capacitor/core', () => ({
+  Capacitor: {
+    getPlatform: () => 'android',
+    convertFileSrc: (path: string) => path,
+  },
+  SystemBarType: { StatusBar: 'status', NavigationBar: 'navigation' },
+  SystemBars: {
+    show: vi.fn().mockResolvedValue(undefined),
+    setStyle: vi.fn().mockResolvedValue(undefined),
+  },
+  SystemBarsStyle: { Dark: 'dark', Light: 'light' },
 }))
 
 vi.mock('@/components/MapCanvas', async () => {
@@ -64,6 +105,9 @@ describe('App', () => {
     mapCanvasLifecycle.mounts = 0
     mapCanvasLifecycle.unmounts = 0
     mapCanvasLifecycle.resizes = 0
+    nativeBack.callback = null
+    nativeBack.addListener.mockClear()
+    nativeBack.exitApp.mockClear()
     saveSession({
       accessToken: 'test-token',
       user: {
@@ -78,6 +122,13 @@ describe('App', () => {
   afterEach(() => {
     window.localStorage.clear()
   })
+
+  async function pressHardwareBack() {
+    await waitFor(() => expect(nativeBack.callback).toEqual(expect.any(Function)))
+    await act(async () => {
+      nativeBack.callback?.({ canGoBack: true })
+    })
+  }
 
   it('redirects a signed-out visit to the authentication entry screen', () => {
     window.localStorage.clear()
@@ -302,6 +353,77 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
     ).toBeInTheDocument()
+  })
+
+  it('uses hardware back to return from a map discovery without remounting the map', async () => {
+    renderWithProviders(<App />, { route: '/' })
+    const mapCanvas = screen.getByRole('button', {
+      name: 'View discovery 1',
+    })
+
+    fireEvent.click(mapCanvas)
+    await pressHardwareBack()
+
+    expect(screen.getByRole('button', { name: 'View discovery 1' })).toBe(
+      mapCanvas,
+    )
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+  })
+
+  it('uses hardware back to return from a discovery to the collection', async () => {
+    renderWithProviders(<App />, {
+      initialEntries: ['/collection', '/discoveries/1'],
+      initialIndex: 1,
+    })
+
+    await pressHardwareBack()
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+    ).toBeInTheDocument()
+  })
+
+  it('uses hardware back to return from a map point of interest', async () => {
+    renderWithProviders(<App />, {
+      initialEntries: ['/', { pathname: '/landmarks/eiffel', state: { from: 'map' } }],
+      initialIndex: 1,
+    })
+
+    await pressHardwareBack()
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+    ).toBeInTheDocument()
+  })
+
+  it('closes an open map picker before navigating on hardware back', async () => {
+    renderWithProviders(<App />, { route: '/' })
+
+    fireEvent.click(screen.getByRole('button', { name: /Personal map/ }))
+    expect(screen.getByRole('dialog', { name: 'Choose a map' })).toBeInTheDocument()
+
+    await pressHardwareBack()
+
+    expect(
+      screen.queryByRole('dialog', { name: 'Choose a map' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Explore Paris' })).toBeInTheDocument()
+    expect(nativeBack.exitApp).not.toHaveBeenCalled()
+  })
+
+  it('does not accumulate history when switching between root tabs', async () => {
+    renderWithProviders(<App />, { route: '/' })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Collection' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Groups' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Me' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Map' }))
+
+    await pressHardwareBack()
+
+    expect(nativeBack.addListener).toHaveBeenCalledOnce()
+    expect(nativeBack.exitApp).toHaveBeenCalledOnce()
+    expect(screen.getByRole('heading', { level: 1, name: 'Explore Paris' })).toBeInTheDocument()
   })
 
   it('returns to the map, not whatever else is in history, when backing out of a discovery opened from the map', () => {

@@ -23,20 +23,33 @@ export async function createDiscoveryPhotoAction({
   platform = Capacitor.getPlatform(),
   open = openNativePhotoCapture,
   navigate,
+  returnTo,
 }: {
   platform?: string
   open?: () => Promise<SelectedPhoto | null>
-  navigate: (to: string, options?: { state: { selectedPhoto: SelectedPhoto } }) => void
+  navigate: (
+    to: string,
+    options?: {
+      state: { selectedPhoto?: SelectedPhoto; returnTo?: string }
+    },
+  ) => void
+  returnTo?: string
 }) {
   if (platform !== 'android') {
-    navigate('/add')
+    if (returnTo) {
+      navigate('/add', { state: { returnTo } })
+    } else {
+      navigate('/add')
+    }
     return
   }
 
   try {
     const selectedPhoto = await open()
     if (selectedPhoto) {
-      navigate('/add', { state: { selectedPhoto } })
+      navigate('/add', {
+        state: { selectedPhoto, ...(returnTo ? { returnTo } : {}) },
+      })
     }
   } catch (error) {
     console.error('Unable to open native photo capture', error)

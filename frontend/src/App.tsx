@@ -3,6 +3,10 @@ import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router'
 
 import { BottomNavigation } from '@/components/BottomNavigation'
 import {
+  BackNavigationProvider,
+  useHardwareBackNavigation,
+} from '@/lib/back-navigation'
+import {
   applySystemBarAppearance,
   getSystemBarAppearance,
 } from '@/lib/system-bars'
@@ -28,6 +32,14 @@ import { WelcomePage } from '@/pages/WelcomePage'
 const mainRoutes = new Set(['/', '/collection', '/groups', '/profile'])
 
 function App() {
+  return (
+    <BackNavigationProvider>
+      <AppRoutes />
+    </BackNavigationProvider>
+  )
+}
+
+function AppRoutes() {
   const location = useLocation()
   const { pathname } = location
   const showBottomNavigation =
@@ -65,6 +77,7 @@ function AuthenticatedAppShell({
 }: {
   showBottomNavigation: boolean
 }) {
+  useHardwareBackNavigation()
   const location = useLocation()
   const routeState = getDiscoveryRouteState(location.state)
   const isMapDiscoveryOverlay =

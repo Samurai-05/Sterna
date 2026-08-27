@@ -2,8 +2,6 @@ import { CalendarDays, MapPin, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Link,
-  useLocation,
-  useNavigate,
   useParams,
   useSearchParams,
 } from 'react-router'
@@ -12,10 +10,10 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { useAppBack } from '@/lib/back-navigation'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
 import { categoryLabel } from '@/lib/mock-data'
-import { getDiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
 type DiscoveryDetailPageProps = {
@@ -26,23 +24,15 @@ export function DiscoveryDetailPage({
   presentation = 'page',
 }: DiscoveryDetailPageProps) {
   const { discoveryId } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const appBack = useAppBack()
   const session = loadSession()
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   // Set when the discovery was opened from a group's shared map, where it may
   // belong to another member.
   const groupId = searchParams.get('group')
-  const routeState = getDiscoveryRouteState(location.state)
-  const returnTo = routeState.returnTo ?? '/collection'
   const handleBack = () => {
-    if (routeState.backgroundLocation) {
-      navigate(-1)
-      return
-    }
-
-    navigate(returnTo, { replace: true })
+    appBack()
   }
   const pageClassName =
     presentation === 'overlay'

@@ -29,7 +29,7 @@ describe('createDiscoveryPhotoAction', () => {
     })
   })
 
-  it('does not navigate when native capture is cancelled', async () => {
+  it('returns to the originating screen when native capture is cancelled by back', async () => {
     const navigate = vi.fn()
     const open = vi.fn().mockResolvedValue(null)
 
@@ -54,5 +54,19 @@ describe('createDiscoveryPhotoAction', () => {
 
     expect(open).not.toHaveBeenCalled()
     expect(navigate).toHaveBeenCalledWith('/add')
+  })
+
+  it('keeps the originating root tab when opening the discovery form', async () => {
+    const navigate = vi.fn()
+
+    await createDiscoveryPhotoAction({
+      platform: 'web',
+      navigate,
+      returnTo: '/collection',
+    })
+
+    expect(navigate).toHaveBeenCalledWith('/add', {
+      state: { returnTo: '/collection' },
+    })
   })
 })

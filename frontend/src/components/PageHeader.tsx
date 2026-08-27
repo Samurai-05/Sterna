@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
-import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import { useAppBack } from '@/lib/back-navigation'
 import { cn } from '@/lib/utils'
 
 export function PageHeader({
@@ -19,7 +19,7 @@ export function PageHeader({
   className?: string
   titleClassName?: string
 }) {
-  const navigate = useNavigate()
+  const appBack = useAppBack()
 
   return (
     <header
@@ -34,7 +34,7 @@ export function PageHeader({
           variant="ghost"
           size="icon"
           className="size-11"
-          onClick={() => (onBack ? onBack() : navigate(backTo!))}
+          onClick={() => (onBack ? onBack() : appBack())}
           aria-label="Go back"
         >
           <ArrowLeft className="size-5" />
