@@ -1,12 +1,19 @@
 import { CalendarDays, MapPin, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { deleteDiscovery, getDiscovery } from '@/lib/api'
+import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
+import { discoveryPath } from '@/lib/discovery-path'
 import { categoryLabel } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 
@@ -16,14 +23,31 @@ export function DiscoveryDetailPage() {
   const location = useLocation()
   const session = loadSession()
   const queryClient = useQueryClient()
+  const [searchParams] = useSearchParams()
+  // Set when the discovery was opened from a group's shared map, where it may
+  // belong to another member.
+  const groupId = searchParams.get('group')
   const returnTo =
     (location.state as { returnTo?: string } | null)?.returnTo ?? '/collection'
   const handleBack = () => navigate(returnTo, { replace: true })
-  const { data: discovery, isLoading } = useQuery({
+
+  const personalQuery = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
     queryFn: () => getDiscovery(session!.accessToken, discoveryId!),
-    enabled: Boolean(session && discoveryId),
+    enabled: Boolean(session && discoveryId && !groupId),
   })
+
+  // Shares its cache with the group map, so opening a card is usually instant.
+  const groupQuery = useQuery({
+    queryKey: ['group-discoveries', session?.user.id, groupId],
+    queryFn: () => getGroupDiscoveries(session!.accessToken, groupId!),
+    select: (items) =>
+      items.find((item) => String(item.id) === discoveryId) ?? null,
+    enabled: Boolean(session && discoveryId && groupId),
+  })
+
+  const discovery = groupId ? groupQuery.data : personalQuery.data
+  const isLoading = groupId ? groupQuery.isLoading : personalQuery.isLoading
   const deleteMutation = useMutation({
     mutationFn: () => deleteDiscovery(session!.accessToken, discoveryId!),
     onSuccess: () => {
@@ -32,6 +56,9 @@ export function DiscoveryDetailPage() {
       })
       queryClient.invalidateQueries({
         queryKey: ['discoveries', session?.user.id],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['group-discoveries', session?.user.id],
       })
       navigate(returnTo, { replace: true })
     },
@@ -56,6 +83,10 @@ export function DiscoveryDetailPage() {
       </main>
     )
   }
+
+  // The sample fixtures carry no userId; treat those as the viewer's own.
+  const isAuthor =
+    discovery.userId === undefined || discovery.userId === session?.user.id
 
   return (
     <main className="min-h-dvh bg-background">
@@ -93,28 +124,39 @@ export function DiscoveryDetailPage() {
         <p className="mt-6 text-[16px] leading-6 text-foreground">
           {discovery.description}
         </p>
-        <Button asChild variant="outline" className="mt-6 h-11 w-full">
-          <Link to={`/discoveries/${discovery.id}/edit`} state={{ returnTo }}>
-            Edit discovery
-          </Link>
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={deleteMutation.isPending}
-          className="mt-3 h-11 w-full"
-          onClick={() => {
-            if (window.confirm('Delete this discovery permanently?')) {
-              deleteMutation.mutate()
-            }
-          }}
-        >
-          <Trash2 />
-          {deleteMutation.isPending ? 'Deleting...' : 'Delete discovery'}
-        </Button>
-        {deleteMutation.isError && (
-          <p role="status" className="mt-3 text-sm text-destructive">
-            Unable to delete discovery.
+        {isAuthor ? (
+          <>
+            <Button asChild variant="outline" className="mt-6 h-11 w-full">
+              <Link
+                to={`/discoveries/${discovery.id}/edit`}
+                state={{ returnTo: discoveryPath(discovery.id, groupId) }}
+              >
+                Edit discovery
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              className="mt-3 h-11 w-full"
+              onClick={() => {
+                if (window.confirm('Delete this discovery permanently?')) {
+                  deleteMutation.mutate()
+                }
+              }}
+            >
+              <Trash2 />
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete discovery'}
+            </Button>
+            {deleteMutation.isError && (
+              <p role="status" className="mt-3 text-sm text-destructive">
+                Unable to delete discovery.
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="mt-6 text-sm text-muted-foreground">
+            Only {discovery.author} can edit or delete this discovery.
           </p>
         )}
       </article>

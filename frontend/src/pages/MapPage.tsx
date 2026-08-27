@@ -13,6 +13,7 @@ import {
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { getDiscoveries, getGroupDiscoveries } from '@/lib/api'
+import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import { loadSession } from '@/lib/session'
 
@@ -58,8 +59,10 @@ export function MapPage() {
 
   const handleSelectDiscovery = useCallback(
     (id: number) =>
-      navigate(`/discoveries/${id}`, { state: { returnTo: '/' } }),
-    [navigate],
+      navigate(discoveryPath(id, activeGroupId), {
+        state: { returnTo: '/' },
+      }),
+    [navigate, activeGroupId],
   )
   const handleSelectLandmark = useCallback(
     (id: string) => navigate(`/landmarks/${id}`, { state: { from: 'map' } }),

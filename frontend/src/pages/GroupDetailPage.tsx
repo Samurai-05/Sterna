@@ -232,7 +232,11 @@ export function GroupDetailPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {groupDiscoveries?.map((discovery) => (
-                <DiscoveryCard key={discovery.id} discovery={discovery} />
+                <DiscoveryCard
+                  key={discovery.id}
+                  discovery={discovery}
+                  groupId={group.id}
+                />
               ))}
             </div>
           )}

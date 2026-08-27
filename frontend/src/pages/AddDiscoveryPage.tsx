@@ -75,9 +75,13 @@ export function AddDiscoveryPage() {
   >('default')
   const [formMessage, setFormMessage] = useState('')
 
-  const { data: activeMap } = useActiveMap()
+  const { data: activeMap, isPending: isLoadingActiveMap } = useActiveMap()
   const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
+  // Until the active map is known, and while a switch is still in flight, the
+  // destination is unsettled — saving now could file the discovery under the
+  // previous map.
+  const isDestinationSettled = !isLoadingActiveMap && !setActiveMap.isPending
   const { data: groups } = useQuery({
     queryKey: ['groups', session?.user.id],
     queryFn: () => getGroups(session!.accessToken),
@@ -207,6 +211,11 @@ export function AddDiscoveryPage() {
       return
     }
 
+    if (!isDestinationSettled) {
+      setFormMessage('Hold on, the destination map is still being set.')
+      return
+    }
+
     mutation.mutate()
   }
 
@@ -234,7 +243,8 @@ export function AddDiscoveryPage() {
       <form onSubmit={handleSubmit} className="space-y-6 px-5">
         <section className="rounded-2xl border border-border bg-card p-4">
           <p className="text-sm font-semibold">
-            Saving to: {activeMap?.name ?? 'Personal map'}
+            Saving to:{' '}
+            {isLoadingActiveMap ? '...' : (activeMap?.name ?? 'Personal map')}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Pick another destination to move this discovery, and your active
@@ -366,7 +376,7 @@ export function AddDiscoveryPage() {
         </section>
         <Button
           type="submit"
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || !isDestinationSettled}
           className="h-12 w-full"
         >
           {mutation.isPending ? 'Saving discovery...' : 'Save discovery'}

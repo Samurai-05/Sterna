@@ -292,6 +292,7 @@ async function toDiscovery(discovery: ApiDiscovery): Promise<Discovery> {
 
   return {
     id: Number(discovery.id),
+    userId: discovery.userId,
     name: discovery.title,
     category,
     location: `${discovery.latitude.toFixed(4)}, ${discovery.longitude.toFixed(4)}`,

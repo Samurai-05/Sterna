@@ -15,6 +15,7 @@ vi.mock('./lib/api', async () => {
     createGroup: vi.fn(),
     joinGroup: vi.fn(),
     getGroupDiscoveries: vi.fn(),
+    getDiscovery: vi.fn(),
     getActiveMap: vi.fn(),
     setActiveMap: vi.fn(),
     getDiscoveries: vi.fn(),
@@ -165,6 +166,60 @@ describe('group detail', () => {
   })
 })
 
+const otherMembersDiscovery = {
+  id: 22,
+  userId: '2',
+  name: "Marc's find",
+  category: 'monument' as const,
+  location: '48.8000, 2.3000',
+  imageId: 'photo-1500530855697-b586d89ba3ee',
+  description: '',
+  author: 'Marc',
+  initials: 'M',
+  relativeDate: 'today',
+  coordinates: [2.3, 48.8] as [number, number],
+  countryCode: 'FRA',
+}
+
+describe('opening a discovery from a group map', () => {
+  it('reads it through the group instead of the owner-scoped route', async () => {
+    api.getGroupDiscoveries.mockResolvedValue([otherMembersDiscovery])
+    renderAt('/discoveries/22?group=12')
+
+    expect(await screen.findByText("Marc's find")).toBeInTheDocument()
+    // GET /api/discoveries/:id only ever returns the caller's own discoveries.
+    expect(api.getDiscovery).not.toHaveBeenCalled()
+    expect(api.getGroupDiscoveries).toHaveBeenCalled()
+  })
+
+  it("does not offer edit or delete on another member's discovery", async () => {
+    api.getGroupDiscoveries.mockResolvedValue([otherMembersDiscovery])
+    renderAt('/discoveries/22?group=12')
+
+    await screen.findByText("Marc's find")
+    expect(
+      screen.queryByRole('link', { name: 'Edit discovery' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Delete discovery/ }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByText(/Only Marc can edit or delete/),
+    ).toBeInTheDocument()
+  })
+
+  it("keeps edit and delete on the viewer's own discovery", async () => {
+    api.getGroupDiscoveries.mockResolvedValue([
+      { ...otherMembersDiscovery, userId: '1', author: 'Emma' },
+    ])
+    renderAt('/discoveries/22?group=12')
+
+    expect(
+      await screen.findByRole('link', { name: 'Edit discovery' }),
+    ).toBeInTheDocument()
+  })
+})
+
 describe('creating and joining', () => {
   it('sends the typed name and description', async () => {
     api.createGroup.mockResolvedValue(detail)
@@ -208,5 +263,40 @@ describe('creating and joining', () => {
     fireEvent.change(field, { target: { value: 'ab3k-9qz2' } })
 
     expect(field).toHaveValue('AB3K-9QZ2')
+  })
+})
+
+describe('choosing the destination map before saving', () => {
+  it('blocks saving until the active map is known', async () => {
+    // getActiveMap left unresolved: the destination is not settled yet.
+    api.getActiveMap.mockReturnValue(new Promise(() => {}))
+    renderAt('/add')
+
+    expect(
+      await screen.findByRole('button', { name: 'Save discovery' }),
+    ).toBeDisabled()
+  })
+
+  it('blocks saving while a destination switch is in flight', async () => {
+    api.setActiveMap.mockReturnValue(new Promise(() => {}))
+    renderAt('/add')
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /Paris Weekend/ }),
+    )
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Save discovery' })).toBeDisabled(),
+    )
+  })
+
+  it('enables saving once the active map has loaded', async () => {
+    renderAt('/add')
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Save discovery' }),
+      ).toBeEnabled(),
+    )
   })
 })

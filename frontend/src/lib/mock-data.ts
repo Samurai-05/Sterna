@@ -3,6 +3,8 @@ export type DiscoveryCategory =
 
 export interface Discovery {
   id: number
+  /** Absent on the local sample fixtures, always set on API data. */
+  userId?: string
   name: string
   category: DiscoveryCategory
   location: string
