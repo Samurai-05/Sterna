@@ -109,7 +109,7 @@ interface ApiPoi {
   imageUrl: string | null
 }
 
-interface UploadPhotoResponse {
+export interface UploadPhotoResponse {
   objectKey: string
   url: string
   exif: {
