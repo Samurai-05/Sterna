@@ -1,18 +1,12 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { Trophy } from 'lucide-react'
-import {
-  GeolocateControl,
-  Map,
-  Marker,
-  NavigationControl,
-  Popup,
-  setWorkerUrl,
-} from 'maplibre-gl'
+import { GeolocateControl, Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { getPhoto } from '@/lib/api'
 import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
 
 setWorkerUrl(maplibreWorkerUrl)
@@ -45,6 +39,7 @@ export interface DiscoveryMarkerData {
   name: string
   category: DiscoveryCategory
   imageId: string
+  imageObjectKey?: string
   coordinates: [number, number]
 }
 
@@ -59,7 +54,7 @@ function createPhotoPreviewElement(
   name: string,
   imageId: string,
   onSelect: () => void,
-) {
+): { element: HTMLButtonElement; image: HTMLImageElement } {
   const button = document.createElement('button')
   button.type = 'button'
   button.setAttribute('aria-label', `View ${name}`)
@@ -73,7 +68,7 @@ function createPhotoPreviewElement(
   img.className = 'size-full object-cover'
 
   button.appendChild(img)
-  return button
+  return { element: button, image: img }
 }
 
 interface MapCanvasProps {
@@ -82,6 +77,7 @@ interface MapCanvasProps {
   exploredCountryCodes?: string[]
   onSelectDiscovery?: (id: number) => void
   onSelectLandmark?: (id: string) => void
+  photoAccessToken?: string
 }
 
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
@@ -92,6 +88,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       exploredCountryCodes = [],
       onSelectDiscovery,
       onSelectLandmark,
+      photoAccessToken,
     },
     ref,
   ) {
@@ -117,11 +114,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         center: [2.3522, 48.8566],
         zoom: 12,
       })
-
-      instance.addControl(
-        new NavigationControl({ showCompass: false }),
-        'bottom-right',
-      )
 
       const geolocate = new GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
@@ -238,6 +230,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       const markers: Marker[] = []
       const roots: Root[] = []
       const photoPopups: Popup[] = []
+      const photoObjectUrls: string[] = []
+      let active = true
 
       const updatePhotoPopups = () => {
         const shouldShow = instance.getZoom() >= photoPreopenZoom
@@ -270,6 +264,25 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         )
         roots.push(root)
 
+        const preview = createPhotoPreviewElement(
+          discovery.name,
+          discovery.imageId,
+          () => onSelectDiscovery?.(discovery.id),
+        )
+
+        if (photoAccessToken && discovery.imageObjectKey) {
+          void getPhoto(photoAccessToken, discovery.imageObjectKey)
+            .then((blob) => {
+              if (!active) return
+              const objectUrl = URL.createObjectURL(blob)
+              photoObjectUrls.push(objectUrl)
+              preview.image.src = objectUrl
+            })
+            .catch(() => {
+              // Keep the fallback image when an old or missing key cannot load.
+            })
+        }
+
         photoPopups.push(
           new Popup({
             closeButton: false,
@@ -279,11 +292,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             className: 'sterna-map-photo-popup',
           })
             .setLngLat(discovery.coordinates)
-            .setDOMContent(
-              createPhotoPreviewElement(discovery.name, discovery.imageId, () =>
-                onSelectDiscovery?.(discovery.id),
-              ),
-            ),
+            .setDOMContent(preview.element),
         )
       }
 
@@ -307,6 +316,12 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         )
         roots.push(root)
 
+        const preview = createPhotoPreviewElement(
+          landmark.name,
+          landmark.imageId,
+          () => onSelectLandmark?.(landmark.id),
+        )
+
         photoPopups.push(
           new Popup({
             closeButton: false,
@@ -316,11 +331,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             className: 'sterna-map-photo-popup',
           })
             .setLngLat(landmark.coordinates)
-            .setDOMContent(
-              createPhotoPreviewElement(landmark.name, landmark.imageId, () =>
-                onSelectLandmark?.(landmark.id),
-              ),
-            ),
+            .setDOMContent(preview.element),
         )
       }
 
@@ -328,6 +339,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       instance.on('zoom', updatePhotoPopups)
 
       return () => {
+        active = false
         instance.off('zoom', updatePhotoPopups)
         photoPopups.forEach((popup) => popup.remove())
         markers.forEach((marker) => marker.remove())
@@ -335,8 +347,15 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         // commit of an unrelated update (e.g. this page unmounting on
         // navigation), which logs a "synchronously unmount" warning.
         roots.forEach((root) => queueMicrotask(() => root.unmount()))
+        photoObjectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl))
       }
-    }, [discoveries, landmarks, onSelectDiscovery, onSelectLandmark])
+    }, [
+      discoveries,
+      landmarks,
+      onSelectDiscovery,
+      onSelectLandmark,
+      photoAccessToken,
+    ])
 
     return (
       <div className="absolute inset-0">

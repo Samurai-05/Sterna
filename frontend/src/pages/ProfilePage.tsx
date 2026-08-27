@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
-import profileEmma from '@/assets/mock/profile-emma.jpg'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { Button } from '@/components/ui/button'
@@ -60,7 +59,6 @@ const categoryVisuals: Record<
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const [profileImageFailed, setProfileImageFailed] = useState(false)
   const [session, setSession] = useState(() => loadSession())
   const accessToken = session?.accessToken
 
@@ -120,24 +118,14 @@ export function ProfilePage() {
 
     const nextSession = { accessToken, user: currentUser }
     saveSession(nextSession)
-    setSession((storedSession) => {
-      if (!storedSession) return storedSession
-      if (
-        storedSession.user.id === currentUser.id &&
-        storedSession.user.email === currentUser.email &&
-        storedSession.user.userName === currentUser.userName
-      ) {
-        return storedSession
-      }
-
-      return nextSession
-    })
   }, [accessToken, currentUser])
 
   useEffect(() => {
-    if (currentUserError instanceof ApiError && currentUserError.status === 401) {
+    if (
+      currentUserError instanceof ApiError &&
+      currentUserError.status === 401
+    ) {
       clearSession()
-      setSession(null)
       navigate('/auth', { replace: true })
     }
   }, [currentUserError, navigate])
@@ -169,16 +157,7 @@ export function ProfilePage() {
               aria-label="Open account settings"
               className="flex size-[68px] shrink-0 -translate-x-2.5 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-[#C4622D] font-display text-[26px] font-semibold text-primary-foreground shadow-sm outline-none transition-transform focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
             >
-              {profileImageFailed ? (
-                displayedInitial
-              ) : (
-                <img
-                  src={profileEmma}
-                  alt={displayedUserName}
-                  className="size-16 rounded-full object-cover"
-                  onError={() => setProfileImageFailed(true)}
-                />
-              )}
+              <span aria-hidden="true">{displayedInitial}</span>
             </button>
           </div>
           <div
