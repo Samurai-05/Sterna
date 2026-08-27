@@ -2,7 +2,13 @@ import { screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Discovery } from '@/lib/mock-data'
-import { getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
+import {
+  getActiveMap,
+  getCurrentUser,
+  getDiscoveries,
+  getGroupDiscoveries,
+  getPois,
+} from '@/lib/api'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { ProfilePage } from './ProfilePage'
@@ -13,11 +19,15 @@ vi.mock('@/lib/api', () => ({
   },
   getCurrentUser: vi.fn(),
   getDiscoveries: vi.fn(),
+  getActiveMap: vi.fn(),
+  getGroupDiscoveries: vi.fn(),
   getPois: vi.fn(),
 }))
 
+const getActiveMapMock = vi.mocked(getActiveMap)
 const getCurrentUserMock = vi.mocked(getCurrentUser)
 const getDiscoveriesMock = vi.mocked(getDiscoveries)
+const getGroupDiscoveriesMock = vi.mocked(getGroupDiscoveries)
 const getPoisMock = vi.mocked(getPois)
 
 function makeDiscovery(
@@ -57,6 +67,8 @@ describe('ProfilePage', () => {
       userName: 'Explorer',
       createdAt: '2026-08-26T08:00:00.000Z',
     })
+    getActiveMapMock.mockResolvedValue({ groupId: null, name: null })
+    getGroupDiscoveriesMock.mockResolvedValue([])
     getPoisMock.mockResolvedValue([])
   })
 
@@ -85,5 +97,28 @@ describe('ProfilePage', () => {
     expect(countriesSection.queryByText('2.3522')).not.toBeInTheDocument()
     expect(countriesSection.queryByText('8.3522')).not.toBeInTheDocument()
     expect(countriesSection.queryByText('UNK')).not.toBeInTheDocument()
+  })
+
+  it('uses the active group map for exploration statistics', async () => {
+    getActiveMapMock.mockResolvedValue({ groupId: '12', name: 'Swiss weekend' })
+    getGroupDiscoveriesMock.mockResolvedValue([
+      makeDiscovery(8, 'CHE', '46.9480, 7.4474'),
+    ])
+    getPoisMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    await screen.findByText('Swiss weekend')
+    await screen.findByText('Discovery 8')
+    const overview = screen.getByRole('region', {
+      name: 'Profile overview',
+    })
+    expect(within(overview).getAllByText('1')).toHaveLength(2)
+    expect(
+      screen.getByRole('region', { name: 'Countries explored' }),
+    ).toHaveTextContent('Switzerland')
+    expect(screen.getByText('Swiss weekend')).toBeInTheDocument()
+    expect(getDiscoveriesMock).not.toHaveBeenCalled()
+    expect(getGroupDiscoveriesMock).toHaveBeenCalledWith('test-token', '12')
   })
 })

@@ -7,7 +7,14 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { ApiError, getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
+import {
+  ApiError,
+  getCurrentUser,
+  getDiscoveries,
+  getGroupDiscoveries,
+  getPois,
+} from '@/lib/api'
+import { activeMapName, useActiveMap } from '@/hooks/useActiveMap'
 import { getCountryName } from '@/lib/countries'
 import {
   categories,
@@ -62,25 +69,42 @@ export function ProfilePage() {
   const navigate = useNavigate()
   const [session, setSession] = useState(() => loadSession())
   const accessToken = session?.accessToken
+  const {
+    data: activeMap,
+    isError: isActiveMapError,
+    isPending: isLoadingActiveMap,
+  } = useActiveMap()
+  const activeGroupId = activeMap?.groupId ?? null
 
   const { data: currentUser, error: currentUserError } = useQuery({
     queryKey: ['current-user', session?.accessToken],
     queryFn: () => getCurrentUser(accessToken!),
     enabled: Boolean(accessToken),
   })
-  const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries', session?.user.id],
-    queryFn: () => getDiscoveries(accessToken!),
-    enabled: Boolean(accessToken),
+  const { data: backendDiscoveries, isError: isDiscoveriesError } = useQuery({
+    queryKey: activeGroupId
+      ? ['group-discoveries', session?.user.id, activeGroupId]
+      : ['discoveries', session?.user.id],
+    queryFn: () =>
+      activeGroupId
+        ? getGroupDiscoveries(accessToken!, activeGroupId)
+        : getDiscoveries(accessToken!),
+    enabled: Boolean(accessToken) && !isLoadingActiveMap,
   })
-  const { data: backendPois } = useQuery({
+  const { data: backendPois, isError: isPoisError } = useQuery({
     queryKey: ['pois', session?.user.id],
     queryFn: () => getPois(accessToken!),
-    enabled: Boolean(accessToken),
+    enabled: Boolean(accessToken) && !isLoadingActiveMap,
   })
 
-  const sourceDiscoveries = backendDiscoveries ?? discoveries
-  const sourceLandmarks = backendPois ?? landmarks
+  const sourceDiscoveries =
+    backendDiscoveries ??
+    (isDiscoveriesError && activeGroupId === null ? discoveries : [])
+  const sourceLandmarks =
+    backendPois ??
+    (isPoisError && (activeGroupId === null || isActiveMapError)
+      ? landmarks
+      : [])
   const displayedUser = currentUser ?? session?.user
   const displayedUserName = displayedUser?.userName ?? ''
   const displayedInitial = displayedUserName.trim().charAt(0).toUpperCase()
@@ -151,6 +175,9 @@ export function ProfilePage() {
               </h2>
               <p className="mt-2 font-sans text-sm leading-5 text-primary-foreground/70">
                 Explorer · Since {memberSinceYear}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-primary-foreground/85">
+                {activeMapName(activeMap)}
               </p>
             </div>
             <button
@@ -226,6 +253,7 @@ export function ProfilePage() {
               <DiscoveryCard
                 key={discovery.id}
                 discovery={discovery}
+                groupId={activeGroupId ?? undefined}
                 className="w-[min(80vw,20rem)] shrink-0 snap-start"
               />
             ))}

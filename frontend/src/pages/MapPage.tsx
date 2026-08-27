@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { MapCanvas, type MapCanvasHandle } from '@/components/MapCanvas'
+import { MapSwitcherSheet } from '@/components/MapSwitcherSheet'
 import { Button } from '@/components/ui/button'
 import {
   categories,
@@ -12,15 +13,25 @@ import {
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
-import { getDiscoveries, getGroupDiscoveries, getPois } from '@/lib/api'
+import {
+  getDiscoveries,
+  getGroupDiscoveries,
+  getGroups,
+  getPois,
+} from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
-import { useActiveMap } from '@/hooks/useActiveMap'
+import {
+  activeMapName,
+  useActiveMap,
+  useSetActiveMap,
+} from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
 export function MapPage({ active }: { active: boolean }) {
   const [activeCategory, setActiveCategory] =
     useState<DiscoveryCategory | null>(null)
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false)
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -36,11 +47,21 @@ export function MapPage({ active }: { active: boolean }) {
   const session = loadSession()
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'
-  const { data: activeMap } = useActiveMap()
+  const {
+    data: activeMap,
+    isError: isActiveMapError,
+    isPending: isLoadingActiveMap,
+  } = useActiveMap()
+  const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
+  const { data: groups } = useQuery({
+    queryKey: ['groups', session?.user.id],
+    queryFn: () => getGroups(session!.accessToken),
+    enabled: Boolean(session),
+  })
   // The map renders whichever destination is active: the personal map, or the
   // group's shared map with every member's discoveries.
-  const { data: backendDiscoveries } = useQuery({
+  const { data: backendDiscoveries, isError: isDiscoveriesError } = useQuery({
     queryKey: activeGroupId
       ? ['group-discoveries', session?.user.id, activeGroupId]
       : ['discoveries', session?.user.id],
@@ -48,14 +69,29 @@ export function MapPage({ active }: { active: boolean }) {
       activeGroupId
         ? getGroupDiscoveries(session!.accessToken, activeGroupId)
         : getDiscoveries(session!.accessToken),
-    enabled: Boolean(session),
+    enabled: Boolean(session) && !isLoadingActiveMap,
   })
-  const { data: backendPois } = useQuery({
+  const { data: backendPois, isError: isPoisError } = useQuery({
     queryKey: ['pois', session?.user.id],
     queryFn: () => getPois(session!.accessToken),
-    enabled: Boolean(session),
+    enabled: Boolean(session) && !isLoadingActiveMap,
   })
-  const sourceDiscoveries = backendDiscoveries ?? discoveries
+  const sourceDiscoveries = useMemo(
+    () =>
+      backendDiscoveries ??
+      (isDiscoveriesError && (activeGroupId === null || isActiveMapError)
+        ? discoveries
+        : []),
+    [activeGroupId, backendDiscoveries, isActiveMapError, isDiscoveriesError],
+  )
+  const sourceLandmarks = useMemo(
+    () =>
+      backendPois ??
+      (isPoisError && (activeGroupId === null || isActiveMapError)
+        ? landmarks
+        : []),
+    [activeGroupId, backendPois, isActiveMapError, isPoisError],
+  )
   const exploredCountryCodes = useMemo(
     () => [
       ...new Set(sourceDiscoveries.map((discovery) => discovery.countryCode)),
@@ -87,6 +123,14 @@ export function MapPage({ active }: { active: boolean }) {
     (id: string) => navigate(`/landmarks/${id}`, { state: { from: 'map' } }),
     [navigate],
   )
+  const handleSelectMap = useCallback(
+    (groupId: string | null) => {
+      setActiveMap.mutate(groupId, {
+        onSuccess: () => setIsMapPickerOpen(false),
+      })
+    },
+    [setActiveMap],
+  )
 
   return (
     <main
@@ -98,7 +142,7 @@ export function MapPage({ active }: { active: boolean }) {
       <MapCanvas
         ref={mapRef}
         discoveries={visibleDiscoveries}
-        landmarks={backendPois ?? landmarks}
+        landmarks={sourceLandmarks}
         exploredCountryCodes={exploredCountryCodes}
         photoAccessToken={session?.accessToken}
         onSelectDiscovery={handleSelectDiscovery}
@@ -114,17 +158,21 @@ export function MapPage({ active }: { active: boolean }) {
         className="sterna-map-controls relative z-10 px-4 pt-4"
       >
         <div className="flex items-center gap-2">
-          <Link
-            to="/groups"
-            className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/75 bg-card/95 px-3 text-sm font-semibold shadow-sm backdrop-blur"
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            aria-expanded={isMapPickerOpen}
+            onClick={() => {
+              setActiveMap.reset()
+              setIsMapPickerOpen(true)
+            }}
+            className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/75 bg-card/95 px-3 text-left text-sm font-semibold shadow-sm backdrop-blur"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {activeGroupId ? <UsersRound className="size-4" /> : userInitial}
             </span>
-            <span className="truncate">
-              {activeMap?.name ?? 'Personal map'}
-            </span>
-          </Link>
+            <span className="truncate">{activeMapName(activeMap)}</span>
+          </button>
           <Button
             asChild
             size="icon"
@@ -155,6 +203,17 @@ export function MapPage({ active }: { active: boolean }) {
           ))}
         </div>
       </div>
+
+      {isMapPickerOpen && (
+        <MapSwitcherSheet
+          activeGroupId={activeGroupId}
+          groups={groups}
+          isPending={setActiveMap.isPending}
+          isError={setActiveMap.isError}
+          onClose={() => setIsMapPickerOpen(false)}
+          onSelect={handleSelectMap}
+        />
+      )}
 
       <div className="absolute bottom-28 right-4 z-20">
         <Button

@@ -352,8 +352,10 @@ describe('App', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renders the profile exploration summary and supporting details', () => {
+  it('renders the profile exploration summary and supporting details', async () => {
     renderWithProviders(<App />, { route: '/profile' })
+
+    await screen.findByText('Street in Le Marais')
 
     expect(
       screen.queryByRole('heading', { level: 1, name: 'Profile' }),
@@ -399,11 +401,14 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows each category as a labeled mobile-friendly progress row', () => {
+  it('shows each category as a labeled mobile-friendly progress row', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const categorySection = screen.getByRole('region', {
       name: 'Discoveries by category',
+    })
+    await within(categorySection).findByRole('progressbar', {
+      name: 'Monument discoveries: 2',
     })
     const progressBars = within(categorySection).getAllByRole('progressbar')
 
