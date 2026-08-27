@@ -8,6 +8,7 @@ import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ApiError, getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
+import { getCountryName } from '@/lib/countries'
 import {
   categories,
   discoveries,
@@ -73,8 +74,9 @@ export function ProfilePage() {
     enabled: Boolean(accessToken),
   })
   const { data: backendPois } = useQuery({
-    queryKey: ['pois'],
-    queryFn: getPois,
+    queryKey: ['pois', session?.user.id],
+    queryFn: () => getPois(accessToken!),
+    enabled: Boolean(accessToken),
   })
 
   const sourceDiscoveries = backendDiscoveries ?? discoveries
@@ -91,10 +93,9 @@ export function ProfilePage() {
   )
   const exploredCountries = [
     ...new Set(
-      sourceDiscoveries.map(
-        (discovery) =>
-          discovery.location.split(', ').at(-1) ?? discovery.location,
-      ),
+      sourceDiscoveries
+        .map((discovery) => getCountryName(discovery.countryCode))
+        .filter((country): country is string => Boolean(country)),
     ),
   ]
   const categoryCounts = categories

@@ -229,4 +229,7 @@ DISCOVERIES.location
 POIS.location
 ```
 
-This relationship will later be evaluated using PostGIS, for example with a distance-based spatial query.
+This relationship is evaluated with a PostGIS distance query. For the MVP, a
+discovery within 150 metres reveals the POI in the same active context. The
+status is derived rather than stored on `POIS`, because the same POI may be
+discovered on one personal or group map and undiscovered on another.

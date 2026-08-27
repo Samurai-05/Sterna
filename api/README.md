@@ -262,6 +262,7 @@ the baseline schema; `AddGroupInviteCode1787734647000` added the one column the 
 | `DELETE /api/groups/{id}/members/me` | Leave (FR-33). 204 |
 | `GET /api/groups/{id}/discoveries` | The group's shared map (FR-29), each discovery carrying its author (FR-31) |
 | `GET /api/active-map` | The map new discoveries go to (FR-27) |
+| `GET /api/pois` | The 195 predefined POIs with a discovery status calculated for the caller's active map |
 | `PUT /api/active-map` | Change it with `{ groupId }`, or `{ groupId: null }` for the personal map (FR-28) |
 
 **A personal map is not a group.** It is the absence of one: a discovery with `group_id = NULL`

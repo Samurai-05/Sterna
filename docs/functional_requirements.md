@@ -208,7 +208,7 @@ A point of interest must not be considered discovered in another map automatical
 
 **Priority: SHOULD**
 
-Once discovered, a point of interest should appear on the corresponding map and the user should be able to view its information.
+All predefined points of interest should appear on the corresponding map and the user should be able to view their information. An undiscovered point of interest must use a greyed-out image; a discovered point of interest must use its colour image.
 
 ### FR-22 - Exploration Statistics
 

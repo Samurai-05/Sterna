@@ -34,8 +34,8 @@ interface CountryFeatureCollection {
  * contains the point, rather than just swapping the JS ray-casting for
  * PostGIS's ST_Contains and keeping the same blind spot.
  */
-export class AddCountryDetection1787734648000 implements MigrationInterface {
-  name = 'AddCountryDetection1787734648000';
+export class AddCountryDetection1787734649000 implements MigrationInterface {
+  name = 'AddCountryDetection1787734649000';
 
   /**
    * Metres a point may sit outside every country polygon and still count.
@@ -58,7 +58,7 @@ export class AddCountryDetection1787734648000 implements MigrationInterface {
       CREATE INDEX idx_countries_geom ON countries USING GIST (geom)
     `);
 
-    await AddCountryDetection1787734648000.seedCountries(queryRunner);
+    await AddCountryDetection1787734649000.seedCountries(queryRunner);
 
     await queryRunner.query(`
       ALTER TABLE discoveries
@@ -85,7 +85,7 @@ export class AddCountryDetection1787734648000 implements MigrationInterface {
           LIMIT 1
       )
     `,
-      [AddCountryDetection1787734648000.BUFFER_METERS],
+      [AddCountryDetection1787734649000.BUFFER_METERS],
     );
   }
 

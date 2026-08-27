@@ -1,15 +1,69 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
+
+const { mapCanvasLifecycle } = vi.hoisted(() => ({
+  mapCanvasLifecycle: { mounts: 0, unmounts: 0, resizes: 0 },
+}))
+
+vi.mock('@/components/MapCanvas', async () => {
+  const React = await import('react')
+
+  return {
+    MapCanvas: React.forwardRef<
+      { locate: () => void; resize: () => void },
+      { onSelectDiscovery?: (id: number) => void }
+    >(function MapCanvasMock({ onSelectDiscovery }, ref) {
+      React.useEffect(() => {
+        mapCanvasLifecycle.mounts += 1
+        return () => {
+          mapCanvasLifecycle.unmounts += 1
+        }
+      }, [])
+
+      React.useImperativeHandle(
+        ref,
+        () => ({
+          locate: () => {},
+          resize: () => {
+            mapCanvasLifecycle.resizes += 1
+          },
+        }),
+        [],
+      )
+
+      return (
+        <button
+          type="button"
+          aria-label="View discovery 1"
+          onClick={() => onSelectDiscovery?.(1)}
+        >
+          Map canvas
+        </button>
+      )
+    }),
+  }
+})
+
+vi.mock('@/lib/photo-capture', () => ({
+  createDiscoveryPhotoAction: ({
+    navigate,
+  }: {
+    navigate: (to: string) => void
+  }) => navigate('/add'),
+}))
 
 describe('App', () => {
   // A signed-out visit to "/" redirects to the authentication entry screen,
   // so these tests act as an already-signed-in user reaching the map, the
   // same way a returning user would.
   beforeEach(() => {
+    mapCanvasLifecycle.mounts = 0
+    mapCanvasLifecycle.unmounts = 0
+    mapCanvasLifecycle.resizes = 0
     saveSession({
       accessToken: 'test-token',
       user: {
@@ -29,6 +83,7 @@ describe('App', () => {
     window.localStorage.clear()
     renderWithProviders(<App />, { route: '/' })
 
+    expect(mapCanvasLifecycle).toEqual({ mounts: 0, unmounts: 0, resizes: 0 })
     expect(
       screen.getByRole('heading', {
         level: 1,
@@ -121,12 +176,116 @@ describe('App', () => {
     )
   })
 
+  it('keeps the map mounted behind a discovery opened from the map', () => {
+    renderWithProviders(<App />, { route: '/' })
+
+    const mapCanvas = screen.getByRole('button', {
+      name: 'View discovery 1',
+    })
+    const mapPage = screen
+      .getByRole('heading', { level: 1, name: 'Explore Paris' })
+      .closest('main')!
+
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+
+    fireEvent.click(mapCanvas)
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Discovery' }),
+    ).toBeInTheDocument()
+    expect(mapPage).toContainElement(mapCanvas)
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+    expect(mapPage).toHaveAttribute('inert')
+    expect(mapPage).toHaveAttribute('aria-hidden', 'true')
+    expect(
+      screen.queryByRole('group', { name: 'Map controls' }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+
+    expect(screen.getByRole('button', { name: 'View discovery 1' })).toBe(
+      mapCanvas,
+    )
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+    expect(mapPage).not.toHaveAttribute('inert')
+    expect(mapPage).not.toHaveAttribute('aria-hidden')
+  })
+
   it('renders the collection through its application route', () => {
     renderWithProviders(<App />, { route: '/collection' })
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
     ).toBeInTheDocument()
+  })
+
+  it('keeps one map canvas through authenticated navigation and resizes it on return', () => {
+    renderWithProviders(<App />, { route: '/' })
+    const mapPage = screen
+      .getByRole('heading', { level: 1, name: 'Explore Paris' })
+      .closest('main')!
+
+    expect(mapCanvasLifecycle).toEqual({ mounts: 1, unmounts: 0, resizes: 1 })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Collection' }))
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+    ).toBeInTheDocument()
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+    expect(mapPage).toHaveAttribute('inert')
+    expect(mapPage).toHaveAttribute('aria-hidden', 'true')
+    expect(
+      screen.queryByRole('group', { name: 'Map controls' }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('link', { name: 'Map' }))
+    expect(mapCanvasLifecycle).toEqual({ mounts: 1, unmounts: 0, resizes: 2 })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Groups' }))
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Groups' }),
+    ).toBeInTheDocument()
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Map' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Me' }))
+    expect(
+      screen.getByRole('button', { name: 'Open account settings' }),
+    ).toBeInTheDocument()
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+
+    fireEvent.click(screen.getByRole('link', { name: 'Map' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Search places' }))
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Search a place' }),
+    ).toBeInTheDocument()
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Add discovery' }))
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'New discovery' }),
+    ).toBeInTheDocument()
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+    expect(mapCanvasLifecycle).toEqual({ mounts: 1, unmounts: 0, resizes: 6 })
+  })
+
+  it('unmounts the persistent map when logging out', () => {
+    renderWithProviders(<App />, { route: '/profile' })
+
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Keep your discoveries close',
+      }),
+    ).toBeInTheDocument()
+    expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 1 })
   })
 
   it('returns to the map when backing out of a discovery opened from the map', () => {
@@ -168,11 +327,29 @@ describe('App', () => {
       initialIndex: 1,
     })
 
+    expect(
+      screen.queryByRole('button', { name: 'View discovery 1' }),
+    ).not.toBeInTheDocument()
+
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
     ).toBeInTheDocument()
+  })
+
+  it('renders a direct discovery visit as a normal page', () => {
+    renderWithProviders(<App />, { route: '/discoveries/1' })
+
+    const discoveryPage = screen
+      .getByRole('heading', { level: 1, name: 'Discovery' })
+      .closest('main')!
+
+    expect(discoveryPage).toHaveClass('min-h-dvh')
+    expect(discoveryPage).not.toHaveClass('fixed')
+    expect(
+      screen.queryByRole('button', { name: 'View discovery 1' }),
+    ).not.toBeInTheDocument()
   })
 
   it('renders the profile exploration summary and supporting details', () => {

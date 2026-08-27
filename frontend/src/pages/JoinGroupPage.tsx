@@ -4,29 +4,31 @@ import { useNavigate } from 'react-router'
 
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { createGroup } from '@/lib/api'
+import { ApiError, joinGroup } from '@/lib/api'
 import { loadSession } from '@/lib/session'
 
-const fieldClassName =
-  'h-12 w-full rounded-xl border border-border bg-card px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30'
-
-export function CreateGroupPage() {
+export function JoinGroupPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const session = loadSession()
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [formMessage, setFormMessage] = useState('')
 
   const mutation = useMutation({
-    mutationFn: createGroup,
+    mutationFn: joinGroup,
     onSuccess: (group) => {
       queryClient.invalidateQueries({ queryKey: ['groups', session?.user.id] })
       navigate(`/groups/${group.id}`, { replace: true })
     },
     onError: (error) => {
+      // The API answers 404 for any code it cannot resolve, malformed included.
+      if (error instanceof ApiError && error.status === 404) {
+        setFormMessage('No group matches this code.')
+        return
+      }
+
       setFormMessage(
-        error instanceof Error ? error.message : 'Unable to create the group.',
+        error instanceof Error ? error.message : 'Unable to join the group.',
       )
     },
   })
@@ -36,46 +38,38 @@ export function CreateGroupPage() {
     setFormMessage('')
 
     if (!session) {
-      setFormMessage('Log in before creating a group.')
+      setFormMessage('Log in before joining a group.')
       return
     }
 
     mutation.mutate({
       accessToken: session.accessToken,
-      name: name.trim(),
-      description: description.trim() || null,
+      inviteCode: inviteCode.trim(),
     })
   }
 
   return (
     <main className="min-h-dvh bg-background">
-      <PageHeader title="Create a group" backTo="/groups" />
+      <PageHeader title="Join a group" backTo="/groups" />
       <form onSubmit={handleSubmit} className="space-y-6 px-5">
         <p className="text-sm leading-5 text-muted-foreground">
-          A group has a shared map where each member can add discoveries. You
-          will get an invitation code to share once it is created.
+          Ask a member for the group's invitation code, then enter it here.
         </p>
         <label className="block space-y-2 text-sm font-semibold">
-          Group name
+          Invitation code
           <input
             required
             autoFocus
-            maxLength={100}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Paris Weekend"
-            className={fieldClassName}
-          />
-        </label>
-        <label className="block space-y-2 text-sm font-semibold">
-          Description (optional)
-          <textarea
-            rows={3}
-            maxLength={500}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="What is this group about?"
-            className="w-full rounded-xl border border-border bg-card p-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
+            maxLength={12}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            value={inviteCode}
+            onChange={(event) =>
+              setInviteCode(event.target.value.toUpperCase())
+            }
+            placeholder="AB3K-9QZ2"
+            className="h-12 w-full rounded-xl border border-border bg-card px-3 text-center text-lg font-semibold tracking-[0.3em] outline-none focus:ring-2 focus:ring-ring/30"
           />
         </label>
         <Button
@@ -83,7 +77,7 @@ export function CreateGroupPage() {
           className="h-12 w-full"
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? 'Creating group...' : 'Create group'}
+          {mutation.isPending ? 'Joining group...' : 'Join group'}
         </Button>
         {formMessage && (
           <p role="status" className="text-sm leading-5 text-destructive">

@@ -1,7 +1,7 @@
-import { LocateFixed, Search } from 'lucide-react'
+import { LocateFixed, Search, UsersRound } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { MapCanvas, type MapCanvasHandle } from '@/components/MapCanvas'
@@ -12,20 +12,47 @@ import {
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
-import { getDiscoveries } from '@/lib/api'
+import { getDiscoveries, getGroupDiscoveries, getPois } from '@/lib/api'
+import { discoveryPath } from '@/lib/discovery-path'
+import { useActiveMap } from '@/hooks/useActiveMap'
+import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
-export function MapPage() {
+export function MapPage({ active }: { active: boolean }) {
   const [activeCategory, setActiveCategory] =
     useState<DiscoveryCategory | null>(null)
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
+  const location = useLocation()
+  const locationRef = useRef(location)
+  useEffect(() => {
+    locationRef.current = location
+  }, [location])
+  useEffect(() => {
+    if (active) {
+      mapRef.current?.resize()
+    }
+  }, [active])
   const session = loadSession()
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'
+  const { data: activeMap } = useActiveMap()
+  const activeGroupId = activeMap?.groupId ?? null
+  // The map renders whichever destination is active: the personal map, or the
+  // group's shared map with every member's discoveries.
   const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries', session?.user.id],
-    queryFn: () => getDiscoveries(session!.accessToken),
+    queryKey: activeGroupId
+      ? ['group-discoveries', session?.user.id, activeGroupId]
+      : ['discoveries', session?.user.id],
+    queryFn: () =>
+      activeGroupId
+        ? getGroupDiscoveries(session!.accessToken, activeGroupId)
+        : getDiscoveries(session!.accessToken),
+    enabled: Boolean(session),
+  })
+  const { data: backendPois } = useQuery({
+    queryKey: ['pois', session?.user.id],
+    queryFn: () => getPois(session!.accessToken),
     enabled: Boolean(session),
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
@@ -48,8 +75,13 @@ export function MapPage() {
 
   const handleSelectDiscovery = useCallback(
     (id: number) =>
-      navigate(`/discoveries/${id}`, { state: { returnTo: '/' } }),
-    [navigate],
+      navigate(discoveryPath(id, activeGroupId), {
+        state: {
+          returnTo: '/',
+          backgroundLocation: locationRef.current,
+        } satisfies DiscoveryRouteState,
+      }),
+    [navigate, activeGroupId],
   )
   const handleSelectLandmark = useCallback(
     (id: string) => navigate(`/landmarks/${id}`, { state: { from: 'map' } }),
@@ -57,12 +89,16 @@ export function MapPage() {
   )
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#e8e3d9]">
+    <main
+      className={`fixed inset-0 overflow-hidden bg-[#e8e3d9] ${active ? 'visible' : 'invisible pointer-events-none'}`}
+      inert={!active || undefined}
+      aria-hidden={!active || undefined}
+    >
       <h1 className="sr-only">Explore Paris</h1>
       <MapCanvas
         ref={mapRef}
         discoveries={visibleDiscoveries}
-        landmarks={landmarks}
+        landmarks={backendPois ?? landmarks}
         exploredCountryCodes={exploredCountryCodes}
         photoAccessToken={session?.accessToken}
         onSelectDiscovery={handleSelectDiscovery}
@@ -83,9 +119,11 @@ export function MapPage() {
             className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/75 bg-card/95 px-3 text-sm font-semibold shadow-sm backdrop-blur"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {userInitial}
+              {activeGroupId ? <UsersRound className="size-4" /> : userInitial}
             </span>
-            <span className="truncate">Personal map</span>
+            <span className="truncate">
+              {activeMap?.name ?? 'Personal map'}
+            </span>
           </Link>
           <Button
             asChild
