@@ -21,6 +21,7 @@ const discoveryExample = {
   longitude: 6.6412,
   latitude: 46.7785,
   imageObjectKey: 'discoveries/lake.jpg',
+  authorUserName: 'Ada',
   discoveredAt: '2026-08-25T12:00:00.000Z',
   createdAt: '2026-08-25T12:01:00.000Z',
   updatedAt: '2026-08-25T12:01:00.000Z',
@@ -34,10 +35,13 @@ export class DiscoveriesController {
   @Get()
   @ApiAuthenticated()
   @ApiOperation({
-    summary: 'List the signed-in user\'s discoveries',
+    summary: "List the signed-in user's discoveries",
     description:
-      'Reads only discoveries authored by the signed-in user and extracts ' +
-      'coordinates with PostGIS.',
+      'The personal map: every discovery the caller authored, extracted with ' +
+      'PostGIS. Discoveries the caller recorded in a group are included — ' +
+      "they belong to the group map *and* stay on their author's own map — " +
+      "while other members' discoveries never appear here (NFR-24). For a " +
+      "group's shared map, use GET /api/groups/{groupId}/discoveries.",
   })
   @ApiOkResponse({
     description: 'Discoveries authored by the signed-in user.',
@@ -54,7 +58,11 @@ export class DiscoveriesController {
   @ApiOperation({
     summary: 'Create a discovery',
     description:
-      'Stores a user discovery and writes its coordinates as a PostGIS Point.',
+      'Stores a discovery and writes its coordinates as a PostGIS Point. ' +
+      'Send `groupId` to record it on a group map, or null/omit it for the ' +
+      "personal map (FR-30) — the client's active map is what it should be " +
+      'sending, read from GET /api/active-map. A groupId the caller does not ' +
+      'belong to is answered 404.',
   })
   @ApiCreatedResponse({
     description: 'Discovery created.',

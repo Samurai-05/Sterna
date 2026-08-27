@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { buildDataSourceOptions } from './config/data-source-options';
 import { validate } from './config/env.validation';
 import { DiscoveriesModule } from './discoveries/discoveries.module';
+import { GroupsModule } from './groups/groups.module';
 import { HealthModule } from './health/health.module';
 import { PhotosModule } from './photos/photos.module';
 import { PoisModule } from './pois/pois.module';
@@ -31,6 +32,7 @@ import { PoisModule } from './pois/pois.module';
     }),
     AuthModule,
     DiscoveriesModule,
+    GroupsModule,
     HealthModule,
     PhotosModule,
     PoisModule,
