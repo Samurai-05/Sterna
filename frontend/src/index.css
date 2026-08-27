@@ -214,13 +214,14 @@ input:-webkit-autofill:focus {
     );
 }
 
-.sterna-app-shell > main:not(.sterna-auth-screen) {
+.sterna-app-shell > main:not(.sterna-auth-screen):not(.sterna-auth-welcome) {
   padding-right: var(--sterna-safe-area-right);
   padding-bottom: calc(2rem + var(--sterna-safe-area-bottom));
   padding-left: var(--sterna-safe-area-left);
 }
 
-.sterna-app-shell--with-bottom-navigation > main:not(.sterna-auth-screen) {
+.sterna-app-shell--with-bottom-navigation
+  > main:not(.sterna-auth-screen):not(.sterna-auth-welcome) {
   padding-bottom: calc(4.5rem + var(--sterna-safe-area-bottom));
 }
 
