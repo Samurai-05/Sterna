@@ -305,13 +305,19 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           <button
             type="button"
             aria-label={`View ${landmark.name}`}
-            className={`size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#c4622d]' : 'border-white bg-stone-400'}`}
+            className={`relative size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#c4622d]' : 'border-white bg-stone-400 grayscale'}`}
             onClick={() => onSelectLandmark?.(landmark.id)}
           >
             <img
               src={markerImage}
               alt=""
-              className={`size-full object-cover ${landmark.discovered ? '' : 'grayscale opacity-65'}`}
+              aria-hidden="true"
+              className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
+            />
+            <img
+              src={markerImage}
+              alt=""
+              className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
             />
             <span className="sr-only">
               {landmark.discovered ? 'Discovered' : 'Undiscovered'}
@@ -331,8 +337,15 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           () => onSelectLandmark?.(landmark.id),
         )
         preview.image.src = markerImage
+        preview.image.classList.remove('object-cover')
+        preview.image.classList.add('relative', 'object-contain')
+        preview.element.style.backgroundColor = '#d6d3d1'
+        preview.element.style.backgroundImage = `linear-gradient(rgba(255,255,255,.25), rgba(255,255,255,.25)), url("${markerImage.replaceAll('"', '%22')}")`
+        preview.element.style.backgroundPosition = 'center'
+        preview.element.style.backgroundSize = 'cover'
         if (!landmark.discovered) {
           preview.image.classList.add('grayscale', 'opacity-65')
+          preview.element.style.filter = 'grayscale(1)'
         }
 
         photoPopups.push(

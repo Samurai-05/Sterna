@@ -23,12 +23,24 @@ export function LandmarkDetailPage() {
     <main className="min-h-dvh bg-background">
       <PageHeader title="Point of interest" backTo="/" />
       <article className="px-5">
-        <img
-          src={landmark.imageUrl ?? imageUrl(landmark.imageId)}
-          alt={landmark.name}
-          className="aspect-[4/3] w-full rounded-2xl object-cover"
-        />
-        <div className={`mt-5 flex items-center gap-2 text-sm font-semibold ${landmark.discovered ? 'text-[#b8572b]' : 'text-muted-foreground'}`}>
+        <div
+          className={`relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-stone-200 ${landmark.discovered ? '' : 'grayscale'}`}
+        >
+          <img
+            src={landmark.imageUrl ?? imageUrl(landmark.imageId)}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 size-full scale-110 object-cover opacity-55 blur-xl"
+          />
+          <img
+            src={landmark.imageUrl ?? imageUrl(landmark.imageId)}
+            alt={landmark.name}
+            className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
+          />
+        </div>
+        <div
+          className={`mt-5 flex items-center gap-2 text-sm font-semibold ${landmark.discovered ? 'text-[#b8572b]' : 'text-muted-foreground'}`}
+        >
           <Trophy className="size-4" />
           {landmark.discovered ? 'Discovered' : 'Undiscovered'}
         </div>

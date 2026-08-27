@@ -21,7 +21,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 1.49194,
     latitude: 42.48417,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Margineda.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Margineda.jpg?width=1600',
   },
   {
     countryCode: 'AE',
@@ -31,7 +31,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 55.27506,
     latitude: 25.19519,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dubai%20Fountain%207.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dubai%20Fountain%207.JPG?width=1600',
   },
   {
     countryCode: 'AF',
@@ -41,7 +41,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 67.8268,
     latitude: 34.83204,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Buddha%20of%20Bamiyan.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Buddha%20of%20Bamiyan.jpg?width=1600',
   },
   {
     countryCode: 'AG',
@@ -51,7 +51,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -61.8376,
     latitude: 17.1165,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Holy%20Family%20Catholic%20Church.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Holy%20Family%20Catholic%20Church.jpg?width=1600',
   },
   {
     countryCode: 'AL',
@@ -61,7 +61,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 20.01663,
     latitude: 39.75707,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Butrint%2C%20Albania.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Butrint%2C%20Albania.jpg?width=1600',
   },
   {
     countryCode: 'AM',
@@ -71,7 +71,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 44.81859,
     latitude: 40.14047,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monasterio%20de%20Geghard%2C%20Armenia%2C%202016-10-02%2C%20DD%2063.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monasterio%20de%20Geghard%2C%20Armenia%2C%202016-10-02%2C%20DD%2063.jpg?width=1600',
   },
   {
     countryCode: 'AO',
@@ -81,7 +81,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 16.00333,
     latitude: -9.07583,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kalandula%20Falls%20C.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kalandula%20Falls%20C.jpg?width=1600',
   },
   {
     countryCode: 'AR',
@@ -91,7 +91,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -54.43667,
     latitude: -25.69528,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20Foz%20de%20Igua%C3%A7u%2026%20Nov%202005.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20Foz%20de%20Igua%C3%A7u%2026%20Nov%202005.jpg?width=1600',
   },
   {
     countryCode: 'AT',
@@ -101,7 +101,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 16.31227,
     latitude: 48.18479,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Schloss%20Sch%C3%B6nbrunn%20Wien%202014%20%28Zuschnitt%202%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Schloss%20Sch%C3%B6nbrunn%20Wien%202014%20%28Zuschnitt%202%29.jpg?width=1600',
   },
   {
     countryCode: 'AU',
@@ -111,7 +111,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 151.21068,
     latitude: -33.85223,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sydney%20harbour%20bridge%20new%20south%20wales.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sydney%20harbour%20bridge%20new%20south%20wales.jpg?width=1600',
   },
   {
     countryCode: 'AZ',
@@ -121,7 +121,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 49.83333,
     latitude: 40.36611,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Azerbaigian-baku3.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Azerbaigian-baku3.jpg?width=1600',
   },
   {
     countryCode: 'BA',
@@ -131,7 +131,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 17.81503,
     latitude: 43.33728,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mostar%20Old%20Town%20Panorama%202007.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mostar%20Old%20Town%20Panorama%202007.jpg?width=1600',
   },
   {
     countryCode: 'BB',
@@ -141,7 +141,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -59.61522,
     latitude: 13.09942,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nidhe%20Israel%20Synagogue.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nidhe%20Israel%20Synagogue.JPG?width=1600',
   },
   {
     countryCode: 'BD',
@@ -151,7 +151,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 88.97694,
     latitude: 25.03111,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%E0%A6%AA%E0%A6%BE%E0%A6%B9%E0%A6%BE%E0%A6%A1%E0%A6%BC%E0%A6%AA%E0%A7%81%E0%A6%B0%20%E0%A6%AC%E0%A7%8C%E0%A6%A6%E0%A7%8D%E0%A6%A7%20%E0%A6%AC%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%B0%2022.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%E0%A6%AA%E0%A6%BE%E0%A6%B9%E0%A6%BE%E0%A6%A1%E0%A6%BC%E0%A6%AA%E0%A7%81%E0%A6%B0%20%E0%A6%AC%E0%A7%8C%E0%A6%A6%E0%A7%8D%E0%A6%A7%20%E0%A6%AC%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%B0%2022.jpg?width=1600',
   },
   {
     countryCode: 'BE',
@@ -161,7 +161,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 3.3889,
     latitude: 50.6065,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tournai%20pan.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tournai%20pan.jpg?width=1600',
   },
   {
     countryCode: 'BF',
@@ -171,7 +171,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -3.56306,
     latitude: 10.31028,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2016.05-441-131ap%20wall%20Lorop%C3%A9ni%20Ruins%20nr.Lorop%C3%A9ni%28Poni%20Prv.%29%2CBF%20sun15may2016-1106h.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2016.05-441-131ap%20wall%20Lorop%C3%A9ni%20Ruins%20nr.Lorop%C3%A9ni%28Poni%20Prv.%29%2CBF%20sun15may2016-1106h.jpg?width=1600',
   },
   {
     countryCode: 'BG',
@@ -181,7 +181,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 23.33297,
     latitude: 42.69584,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/AlexanderNevskyCathedral-Sofia-6.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/AlexanderNevskyCathedral-Sofia-6.jpg?width=1600',
   },
   {
     countryCode: 'BH',
@@ -191,7 +191,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 50.52056,
     latitude: 26.23361,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bahrain%20Fort%207.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bahrain%20Fort%207.jpg?width=1600',
   },
   {
     countryCode: 'BI',
@@ -201,7 +201,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 30.08,
     latitude: -3.83,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/La%20chute%20de%20karera%20nyakayi%201%20%C3%A0%20Rutana.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/La%20chute%20de%20karera%20nyakayi%201%20%C3%A0%20Rutana.jpg?width=1600',
   },
   {
     countryCode: 'BJ',
@@ -211,7 +211,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 1.98806,
     latitude: 7.18556,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Abomey%202006%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Abomey%202006%201.jpg?width=1600',
   },
   {
     countryCode: 'BN',
@@ -221,7 +221,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 114.93914,
     latitude: 4.88958,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sultan%20Omar%20Ali%20Saifuddien%20Mosque%3B%202002.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sultan%20Omar%20Ali%20Saifuddien%20Mosque%3B%202002.jpg?width=1600',
   },
   {
     countryCode: 'BO',
@@ -231,7 +231,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -68.67333,
     latitude: -16.55472,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zonnepoort%20tiwanaku.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zonnepoort%20tiwanaku.jpg?width=1600',
   },
   {
     countryCode: 'BR',
@@ -241,7 +241,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -43.21046,
     latitude: -22.95192,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Christ%20the%20Redeemer%20-%20Cristo%20Redentor.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Christ%20the%20Redeemer%20-%20Cristo%20Redentor.jpg?width=1600',
   },
   {
     countryCode: 'BS',
@@ -251,7 +251,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -75.00861,
     latitude: 23.10639,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dean%20Blue%20Hole%20Long%20Island%20Bahamas%2020110210.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dean%20Blue%20Hole%20Long%20Island%20Bahamas%2020110210.JPG?width=1600',
   },
   {
     countryCode: 'BT',
@@ -261,7 +261,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 89.36333,
     latitude: 27.49167,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Paro%20Taktsang%2C%20Bhutan%20%28edited%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Paro%20Taktsang%2C%20Bhutan%20%28edited%29.jpg?width=1600',
   },
   {
     countryCode: 'BW',
@@ -271,7 +271,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 21.75417,
     latitude: -18.77167,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tsodilo%20rock%20paintings%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tsodilo%20rock%20paintings%201.jpg?width=1600',
   },
   {
     countryCode: 'BY',
@@ -281,7 +281,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 26.47289,
     latitude: 53.45127,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mir%20Castle%202018.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mir%20Castle%202018.jpg?width=1600',
   },
   {
     countryCode: 'BZ',
@@ -291,7 +291,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -87.53444,
     latitude: 17.31556,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Blue%20Hole.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Blue%20Hole.jpg?width=1600',
   },
   {
     countryCode: 'CA',
@@ -301,7 +301,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -79.38715,
     latitude: 43.64275,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/CN%20Tower%20from%20Puente%20de%20Luz%2C%20Toronto%2C%20Ontario%2C%202025-08-25%2001.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/CN%20Tower%20from%20Puente%20de%20Luz%2C%20Toronto%2C%20Ontario%2C%202025-08-25%2001.jpg?width=1600',
   },
   {
     countryCode: 'CD',
@@ -311,7 +311,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 29.25,
     latitude: -1.51667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lava%20Lake%20Nyiragongo%202.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lava%20Lake%20Nyiragongo%202.jpg?width=1600',
   },
   {
     countryCode: 'CF',
@@ -321,7 +321,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 18.578,
     latitude: 4.37,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Une%20foule%20devant%20la%20Cath%C3%A9drale%20de%20Bangui%2C%20le%207%20mai%202018.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Une%20foule%20devant%20la%20Cath%C3%A9drale%20de%20Bangui%2C%20le%207%20mai%202018.jpg?width=1600',
   },
   {
     countryCode: 'CG',
@@ -331,7 +331,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 14.5,
     latitude: -4.83333,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chutes%20Livingstone.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chutes%20Livingstone.jpg?width=1600',
   },
   {
     countryCode: 'CH',
@@ -341,7 +341,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 7.65861,
     latitude: 45.97639,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cervino%20cloud.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cervino%20cloud.jpg?width=1600',
   },
   {
     countryCode: 'CI',
@@ -351,7 +351,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -5.29694,
     latitude: 6.81111,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basilique%20notre%20Dame%20de%20la%20Paix%20de%20Yamoussoukro%2016.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basilique%20notre%20Dame%20de%20la%20Paix%20de%20Yamoussoukro%2016.jpg?width=1600',
   },
   {
     countryCode: 'CL',
@@ -361,7 +361,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -109.36399,
     latitude: -27.11423,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ahu%20Tongariki.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ahu%20Tongariki.jpg?width=1600',
   },
   {
     countryCode: 'CM',
@@ -371,7 +371,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 9.1725,
     latitude: 4.21667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Le%20Char%20des%20Dieux%20-%20Fako%20Mountain%20-%20Mount%20Cameroon%20National%20Park%20-%20R%C3%A9gion%20du%20Sud-ouest.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Le%20Char%20des%20Dieux%20-%20Fako%20Mountain%20-%20Mount%20Cameroon%20National%20Park%20-%20R%C3%A9gion%20du%20Sud-ouest.jpg?width=1600',
   },
   {
     countryCode: 'CN',
@@ -381,7 +381,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 111.00367,
     latitude: 30.82386,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ThreeGorgesDam-China2009.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ThreeGorgesDam-China2009.jpg?width=1600',
   },
   {
     countryCode: 'CO',
@@ -391,7 +391,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -75.3225,
     latitude: 4.89528,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nevado%20del%20Ruiz%201985.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nevado%20del%20Ruiz%201985.jpg?width=1600',
   },
   {
     countryCode: 'CR',
@@ -401,7 +401,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -83.4775,
     latitude: 8.91139,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Parque%20de%20las%20Esferas%20de%20Costa%20Rica.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Parque%20de%20las%20Esferas%20de%20Costa%20Rica.JPG?width=1600',
   },
   {
     countryCode: 'CU',
@@ -411,7 +411,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -75.8703,
     latitude: 19.96871,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castillo%20del%20Morro%20by%20Glogg%204.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castillo%20del%20Morro%20by%20Glogg%204.jpg?width=1600',
   },
   {
     countryCode: 'CV',
@@ -421,7 +421,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -24.34037,
     latitude: 14.94927,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pico-94-117-13.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pico-94-117-13.jpg?width=1600',
   },
   {
     countryCode: 'CY',
@@ -431,7 +431,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 33.34372,
     latitude: 34.79673,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khirokitia2.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khirokitia2.jpg?width=1600',
   },
   {
     countryCode: 'CZ',
@@ -441,7 +441,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 14.4,
     latitude: 50.09,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castillo%20de%20Praga%2C%20Praga%2C%20Rep%C3%BAblica%20Checa%2C%202022-07-02%2C%20DD%20209.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castillo%20de%20Praga%2C%20Praga%2C%20Rep%C3%BAblica%20Checa%2C%202022-07-02%2C%20DD%20209.jpg?width=1600',
   },
   {
     countryCode: 'DE',
@@ -451,7 +451,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 13.37772,
     latitude: 52.51627,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Brandenburger%20Tor%20morgens.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Brandenburger%20Tor%20morgens.jpg?width=1600',
   },
   {
     countryCode: 'DJ',
@@ -461,7 +461,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 42.49583,
     latitude: 11.57194,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ardoukoba.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ardoukoba.jpg?width=1600',
   },
   {
     countryCode: 'DK',
@@ -471,7 +471,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 12.82164,
     latitude: 55.57644,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%C3%98resund%20Bridge%20from%20the%20air%20in%20September%202015.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%C3%98resund%20Bridge%20from%20the%20air%20in%20September%202015.jpg?width=1600',
   },
   {
     countryCode: 'DM',
@@ -481,7 +481,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -61.39722,
     latitude: 15.50333,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Morne%20Diablotins.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Morne%20Diablotins.jpg?width=1600',
   },
   {
     countryCode: 'DO',
@@ -491,7 +491,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -69.88171,
     latitude: 18.4732,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortaleza%20Ozama%20RD%2011%202017%206493.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortaleza%20Ozama%20RD%2011%202017%206493.jpg?width=1600',
   },
   {
     countryCode: 'DZ',
@@ -501,7 +501,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 9,
     latitude: 25.66667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tassili%20Desert%20Algeria.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tassili%20Desert%20Algeria.jpg?width=1600',
   },
   {
     countryCode: 'EC',
@@ -511,7 +511,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -78.8175,
     latitude: -1.46917,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volc%C3%A1n%20Chimborazo%20desde%20Riobamba.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volc%C3%A1n%20Chimborazo%20desde%20Riobamba.jpg?width=1600',
   },
   {
     countryCode: 'EE',
@@ -521,7 +521,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 24.73722,
     latitude: 59.43556,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Toompea%20linnus.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Toompea%20linnus.jpg?width=1600',
   },
   {
     countryCode: 'EG',
@@ -531,7 +531,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 31.13422,
     latitude: 29.97915,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kheops-Pyramid.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kheops-Pyramid.jpg?width=1600',
   },
   {
     countryCode: 'ER',
@@ -541,7 +541,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 39.66056,
     latitude: 15.26361,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/MapHymiariteKingdom.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/MapHymiariteKingdom.jpg?width=1600',
   },
   {
     countryCode: 'ES',
@@ -551,7 +551,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 2.17433,
     latitude: 41.40369,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SF%20maig%202026.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SF%20maig%202026.jpg?width=1600',
   },
   {
     countryCode: 'ET',
@@ -561,7 +561,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 37.46972,
     latitude: 12.60806,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ET%20Gondar%20asv2018-02%20img02%20Fasil%20Ghebbi.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ET%20Gondar%20asv2018-02%20img02%20Fasil%20Ghebbi.jpg?width=1600',
   },
   {
     countryCode: 'FI',
@@ -571,7 +571,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 24.98444,
     latitude: 60.14361,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Suomenlinna.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Suomenlinna.jpg?width=1600',
   },
   {
     countryCode: 'FJ',
@@ -581,7 +581,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 178.42574,
     latitude: -18.14967,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fiji%20Museum%20in%20Suva.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fiji%20Museum%20in%20Suva.jpg?width=1600',
   },
   {
     countryCode: 'FM',
@@ -591,7 +591,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 158.33222,
     latitude: 6.84194,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nan%20madol.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nan%20madol.jpg?width=1600',
   },
   {
     countryCode: 'FR',
@@ -601,7 +601,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 2.29448,
     latitude: 48.8583,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tour%20Eiffel%20Wikimedia%20Commons.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tour%20Eiffel%20Wikimedia%20Commons.jpg?width=1600',
   },
   {
     countryCode: 'GA',
@@ -611,7 +611,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 12.58905,
     latitude: 0.29074,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/DIGITAL%20CROSSING%20-%20KONGOU%2003.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/DIGITAL%20CROSSING%20-%20KONGOU%2003.jpg?width=1600',
   },
   {
     countryCode: 'GB',
@@ -621,7 +621,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -1.82611,
     latitude: 51.17889,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stonehenge%20Total.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stonehenge%20Total.jpg?width=1600',
   },
   {
     countryCode: 'GD',
@@ -631,7 +631,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -61.67528,
     latitude: 12.16222,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Saint%20Catherine%20Summit.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Saint%20Catherine%20Summit.jpg?width=1600',
   },
   {
     countryCode: 'GE',
@@ -641,7 +641,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 42.76806,
     latitude: 42.29472,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gelati%20Monastery%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gelati%20Monastery%201.jpg?width=1600',
   },
   {
     countryCode: 'GH',
@@ -651,7 +651,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 0.05944,
     latitude: 6.29972,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Akosombo%20Dam.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Akosombo%20Dam.jpg?width=1600',
   },
   {
     countryCode: 'GM',
@@ -661,7 +661,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -16.68494,
     latitude: 13.45773,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gambia%20Kanifing%20Municipal%202020-04-16%20085%20-%20Mapillary%20%28KuVEMVusr0T1Z8k3%20Xr1-w%29%20%28cropped%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gambia%20Kanifing%20Municipal%202020-04-16%20085%20-%20Mapillary%20%28KuVEMVusr0T1Z8k3%20Xr1-w%29%20%28cropped%29.jpg?width=1600',
   },
   {
     countryCode: 'GN',
@@ -671,7 +671,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -11.17,
     latitude: 10.7291,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chutes%20du%20Tinkisso%20%28Guin%C3%A9e%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chutes%20du%20Tinkisso%20%28Guin%C3%A9e%29.jpg?width=1600',
   },
   {
     countryCode: 'GQ',
@@ -681,7 +681,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 8.76667,
     latitude: 3.58333,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pico%20Basil%C3%A9.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pico%20Basil%C3%A9.jpg?width=1600',
   },
   {
     countryCode: 'GR',
@@ -691,7 +691,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 23.7266,
     latitude: 37.97153,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Parthenon%20in%20Athens.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Parthenon%20in%20Athens.jpg?width=1600',
   },
   {
     countryCode: 'GT',
@@ -701,7 +701,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -89.62361,
     latitude: 17.22209,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tikal%203.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tikal%203.jpg?width=1600',
   },
   {
     countryCode: 'GW',
@@ -711,7 +711,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -15.5812,
     latitude: 11.86008,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kathedrale%20von%20Bissau.png?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kathedrale%20von%20Bissau.png?width=1600',
   },
   {
     countryCode: 'GY',
@@ -721,7 +721,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -59.48228,
     latitude: 5.17811,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/GuyanaKaieteurFalls2004.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/GuyanaKaieteurFalls2004.jpg?width=1600',
   },
   {
     countryCode: 'HN',
@@ -731,7 +731,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -89.14244,
     latitude: 14.83796,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cop%C3%A1n%20Stela%20B.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cop%C3%A1n%20Stela%20B.jpg?width=1600',
   },
   {
     countryCode: 'HR',
@@ -741,7 +741,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 16.43833,
     latitude: 43.50806,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Diocletian%27s%20Palace%20%28original%20appearance%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Diocletian%27s%20Palace%20%28original%20appearance%29.jpg?width=1600',
   },
   {
     countryCode: 'HT',
@@ -751,7 +751,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -72.2186,
     latitude: 19.60469,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sans-Souci%20Palace%20front.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sans-Souci%20Palace%20front.jpg?width=1600',
   },
   {
     countryCode: 'HU',
@@ -761,7 +761,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 19.03972,
     latitude: 47.49611,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/20190502%20Zamek%20w%20Budapeszcie%200647%201862%20DxO.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/20190502%20Zamek%20w%20Budapeszcie%200647%201862%20DxO.jpg?width=1600',
   },
   {
     countryCode: 'ID',
@@ -771,7 +771,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 110.20384,
     latitude: -7.60793,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Borobudur-Nothwest-view.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Borobudur-Nothwest-view.jpg?width=1600',
   },
   {
     countryCode: 'IE',
@@ -781,7 +781,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -6.47557,
     latitude: 53.69473,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Irelands%20history.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Irelands%20history.jpg?width=1600',
   },
   {
     countryCode: 'IL',
@@ -791,7 +791,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 35.20417,
     latitude: 31.7725,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Israel%20museum.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Israel%20museum.JPG?width=1600',
   },
   {
     countryCode: 'IN',
@@ -801,7 +801,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 78.04194,
     latitude: 27.175,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Taj%20Mahal%2C%20Agra%2C%20India%20edit3.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Taj%20Mahal%2C%20Agra%2C%20India%20edit3.jpg?width=1600',
   },
   {
     countryCode: 'IQ',
@@ -811,7 +811,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 43.15278,
     latitude: 36.35944,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nineveh%20mashki%20gate%20from%20west.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nineveh%20mashki%20gate%20from%20west.JPG?width=1600',
   },
   {
     countryCode: 'IR',
@@ -821,7 +821,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 52.89139,
     latitude: 29.93444,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D8%AA%D8%AE%D8%AA%20%D8%AC%D9%85%D8%B4%D9%8A%D8%AF%20%D8%AF%D8%B1%D9%88%D8%A7%D8%B2%D9%87%20%D9%85%D9%84%D9%84%20Persepolice%20Fars%20Marvdasht%20Shiraz%20-%20panoramio.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D8%AA%D8%AE%D8%AA%20%D8%AC%D9%85%D8%B4%D9%8A%D8%AF%20%D8%AF%D8%B1%D9%88%D8%A7%D8%B2%D9%87%20%D9%85%D9%84%D9%84%20Persepolice%20Fars%20Marvdasht%20Shiraz%20-%20panoramio.jpg?width=1600',
   },
   {
     countryCode: 'IS',
@@ -831,7 +831,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -19.66583,
     latitude: 63.99222,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2006-05-21-153901%20Iceland%20St%C3%B3rin%C3%BApur.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2006-05-21-153901%20Iceland%20St%C3%B3rin%C3%BApur.jpg?width=1600',
   },
   {
     countryCode: 'IT',
@@ -841,7 +841,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 12.49222,
     latitude: 41.89028,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Colosseo%202020.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Colosseo%202020.jpg?width=1600',
   },
   {
     countryCode: 'JM',
@@ -851,7 +851,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -77.13806,
     latitude: 18.41583,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dunns%20River%20Falls%20climb.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dunns%20River%20Falls%20climb.JPG?width=1600',
   },
   {
     countryCode: 'JO',
@@ -861,7 +861,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 35.44028,
     latitude: 30.32889,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Treasury%2C%20Petra%2C%20Jordan5.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Treasury%2C%20Petra%2C%20Jordan5.jpg?width=1600',
   },
   {
     countryCode: 'JP',
@@ -871,7 +871,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 138.7275,
     latitude: 35.36056,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kodaki%20fuji%20frm%20shojinko%20refurb.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kodaki%20fuji%20frm%20shojinko%20refurb.jpg?width=1600',
   },
   {
     countryCode: 'KE',
@@ -881,7 +881,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 36.45694,
     latitude: -0.91528,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Copy%20of%20IMG%201654.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Copy%20of%20IMG%201654.jpg?width=1600',
   },
   {
     countryCode: 'KG',
@@ -891,7 +891,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 75.25038,
     latitude: 42.74648,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burana%20Tower%2C%20Kyrgyzstan.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burana%20Tower%2C%20Kyrgyzstan.jpg?width=1600',
   },
   {
     countryCode: 'KH',
@@ -901,7 +901,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 103.86667,
     latitude: 13.4125,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Angkor%20wat%20temple.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Angkor%20wat%20temple.jpg?width=1600',
   },
   {
     countryCode: 'KI',
@@ -911,7 +911,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 173.12142,
     latitude: 1.3665,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Te%20Umanibong.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Te%20Umanibong.jpg?width=1600',
   },
   {
     countryCode: 'KM',
@@ -921,7 +921,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 43.35306,
     latitude: -11.76028,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Karthala%20volcano-Comoros.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Karthala%20volcano-Comoros.jpg?width=1600',
   },
   {
     countryCode: 'KN',
@@ -931,7 +931,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -62.8,
     latitude: 17.36667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ISS022-E-39042%20-%20View%20of%20the%20Lesser%20Antilles.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ISS022-E-39042%20-%20View%20of%20the%20Lesser%20Antilles.jpg?width=1600',
   },
   {
     countryCode: 'KP',
@@ -941,7 +941,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 128.07722,
     latitude: 41.99278,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baitou%20Mountain%20Tianchi.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baitou%20Mountain%20Tianchi.jpg?width=1600',
   },
   {
     countryCode: 'KR',
@@ -951,7 +951,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 126.99167,
     latitude: 37.57944,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%EC%B0%BD%EB%8D%95%EA%B6%81%20%EC%A0%84%EA%B2%BD%20%282012%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%EC%B0%BD%EB%8D%95%EA%B6%81%20%EC%A0%84%EA%B2%BD%20%282012%29.jpg?width=1600',
   },
   {
     countryCode: 'KW',
@@ -961,7 +961,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 47.97833,
     latitude: 29.36972,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuwait%20City%20Grand%20Mosque%20Exterior%20South%20Facade%205.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuwait%20City%20Grand%20Mosque%20Exterior%20South%20Facade%205.jpg?width=1600',
   },
   {
     countryCode: 'KZ',
@@ -971,7 +971,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 68.27104,
     latitude: 43.29764,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%A5%D0%B0%D0%BD%D0%B0%D0%BA%D0%B0%20%D0%90%D1%85%D0%BC%D0%B5%D0%B4%D0%B0%20%D0%AF%D1%81%D0%B0%D0%B2%D0%B8%202010%20003.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%A5%D0%B0%D0%BD%D0%B0%D0%BA%D0%B0%20%D0%90%D1%85%D0%BC%D0%B5%D0%B4%D0%B0%20%D0%AF%D1%81%D0%B0%D0%B2%D0%B8%202010%20003.jpg?width=1600',
   },
   {
     countryCode: 'LA',
@@ -981,7 +981,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 103.1525,
     latitude: 19.43111,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/20171115%20Plain%20of%20Jars%20Laos%202540%20DxO.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/20171115%20Plain%20of%20Jars%20Laos%202540%20DxO.jpg?width=1600',
   },
   {
     countryCode: 'LB',
@@ -991,7 +991,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 35.64685,
     latitude: 34.1195,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Byblos%20Libanon%202003.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Byblos%20Libanon%202003.JPG?width=1600',
   },
   {
     countryCode: 'LC',
@@ -1001,7 +1001,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -61.046,
     latitude: 13.838,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20north%20from%20Gros%20Piton.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20north%20from%20Gros%20Piton.jpg?width=1600',
   },
   {
     countryCode: 'LI',
@@ -1011,7 +1011,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 9.52444,
     latitude: 47.13944,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Liechtenstein%20asv2022-10%20img22%20Vaduz%20Schloss.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Liechtenstein%20asv2022-10%20img22%20Vaduz%20Schloss.jpg?width=1600',
   },
   {
     countryCode: 'LK',
@@ -1021,7 +1021,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 80.64917,
     latitude: 7.85667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dambulla-temple%20daurat1.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dambulla-temple%20daurat1.jpg?width=1600',
   },
   {
     countryCode: 'LR',
@@ -1031,7 +1031,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -11.25111,
     latitude: 6.73528,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake%20Piso.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake%20Piso.jpg?width=1600',
   },
   {
     countryCode: 'LS',
@@ -1041,7 +1041,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 28.05167,
     latitude: -29.86861,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Maletsunyanefalls.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Maletsunyanefalls.JPG?width=1600',
   },
   {
     countryCode: 'LT',
@@ -1051,7 +1051,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 23.41667,
     latitude: 56.01528,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Berg%20der%20kreuze%2001.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Berg%20der%20kreuze%2001.JPG?width=1600',
   },
   {
     countryCode: 'LU',
@@ -1061,7 +1061,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 6.13156,
     latitude: 49.60967,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Luxembourg%20City%20Eurotrip%20%28133169443%29.jpeg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Luxembourg%20City%20Eurotrip%20%28133169443%29.jpeg?width=1600',
   },
   {
     countryCode: 'LV',
@@ -1071,7 +1071,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 24.10444,
     latitude: 56.94917,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2025%20Riga%20Cathedral%20%2802%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2025%20Riga%20Cathedral%20%2802%29.jpg?width=1600',
   },
   {
     countryCode: 'LY',
@@ -1081,7 +1081,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 21.85,
     latitude: 32.81667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Archaeological%20Site%20of%20Cyrene-109025.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Archaeological%20Site%20of%20Cyrene-109025.jpg?width=1600',
   },
   {
     countryCode: 'MA',
@@ -1091,7 +1091,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -5.5548,
     latitude: 34.0725,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volubilis%201990.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volubilis%201990.jpg?width=1600',
   },
   {
     countryCode: 'MC',
@@ -1101,7 +1101,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 7.42028,
     latitude: 43.73142,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palais%20Princier%20de%20Monaco.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palais%20Princier%20de%20Monaco.jpg?width=1600',
   },
   {
     countryCode: 'MD',
@@ -1111,7 +1111,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 28.30548,
     latitude: 48.16122,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%A1%D0%BE%D1%80%D0%BE%D0%BA%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BA%D1%80%D0%B5%D0%BF%D0%BE%D1%81%D1%82%D1%8C%20Cetatea%20Soroca%20Soroca%20Fortress%20%2844738809521%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%A1%D0%BE%D1%80%D0%BE%D0%BA%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BA%D1%80%D0%B5%D0%BF%D0%BE%D1%81%D1%82%D1%8C%20Cetatea%20Soroca%20Soroca%20Fortress%20%2844738809521%29.jpg?width=1600',
   },
   {
     countryCode: 'ME',
@@ -1121,7 +1121,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 18.23694,
     latitude: 43.655,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jeden%20ze%20stecku%20na%20Radimlji.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jeden%20ze%20stecku%20na%20Radimlji.jpg?width=1600',
   },
   {
     countryCode: 'MG',
@@ -1131,7 +1131,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 49.155,
     latitude: -12.595,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Entr%C3%A9e%20du%20parc%20national%20Montagne%20d%27Ambre.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Entr%C3%A9e%20du%20parc%20national%20Montagne%20d%27Ambre.jpg?width=1600',
   },
   {
     countryCode: 'MH',
@@ -1141,7 +1141,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 171.37853,
     latitude: 7.10215,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20the%20Assumption%2C%20Majuro.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20the%20Assumption%2C%20Majuro.jpg?width=1600',
   },
   {
     countryCode: 'MK',
@@ -1151,7 +1151,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 20.96667,
     latitude: 42.00583,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tetovo%20Bunte%20Moschee.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tetovo%20Bunte%20Moschee.jpg?width=1600',
   },
   {
     countryCode: 'ML',
@@ -1161,7 +1161,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -4.55556,
     latitude: 13.90528,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Mosque%20of%20Djenn%C3%A9%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Mosque%20of%20Djenn%C3%A9%201.jpg?width=1600',
   },
   {
     countryCode: 'MM',
@@ -1171,7 +1171,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 94.86,
     latitude: 21.1725,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bagan%2C%20Myanmar%2C%20Htilominlo%20Temple%20and%20other%20Buddhist%20stupas%20in%20Bagan%20plain.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bagan%2C%20Myanmar%2C%20Htilominlo%20Temple%20and%20other%20Buddhist%20stupas%20in%20Bagan%20plain.jpg?width=1600',
   },
   {
     countryCode: 'MN',
@@ -1181,7 +1181,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 102.84333,
     latitude: 47.20167,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Niebo%20nad%20budynkami%20klasztoru%20Erdene%20Dzuu%2002.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Niebo%20nad%20budynkami%20klasztoru%20Erdene%20Dzuu%2002.jpg?width=1600',
   },
   {
     countryCode: 'MR',
@@ -1191,7 +1191,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -10.41039,
     latitude: 17.42436,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aoudaghost.png..jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aoudaghost.png..jpg?width=1600',
   },
   {
     countryCode: 'MT',
@@ -1201,7 +1201,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 14.2691,
     latitude: 36.04727,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ggantija%20Temple%20on%20Gozo%20%28cropped%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ggantija%20Temple%20on%20Gozo%20%28cropped%29.jpg?width=1600',
   },
   {
     countryCode: 'MU',
@@ -1211,7 +1211,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 57.57725,
     latitude: -20.10815,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mon%20Plaisir%20im%20Sir%20Seewoosagur%20Ramgoolam%20Botanical%20Garden.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mon%20Plaisir%20im%20Sir%20Seewoosagur%20Ramgoolam%20Botanical%20Garden.jpg?width=1600',
   },
   {
     countryCode: 'MV',
@@ -1221,7 +1221,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 73.5125,
     latitude: 4.17806,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Male%27%20Hukuru%20Miskiy%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Male%27%20Hukuru%20Miskiy%201.jpg?width=1600',
   },
   {
     countryCode: 'MW',
@@ -1231,7 +1231,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 34.27917,
     latitude: -14.29333,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chongoni%20rock%20art.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chongoni%20rock%20art.jpg?width=1600',
   },
   {
     countryCode: 'MX',
@@ -1241,7 +1241,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -88.56861,
     latitude: 20.68306,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chichen%20Itza%203.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chichen%20Itza%203.jpg?width=1600',
   },
   {
     countryCode: 'MY',
@@ -1251,7 +1251,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 101.68391,
     latitude: 3.2374,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Batu%20Caves%20stairs%202022-05.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Batu%20Caves%20stairs%202022-05.jpg?width=1600',
   },
   {
     countryCode: 'MZ',
@@ -1261,7 +1261,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 34.71667,
     latitude: -20.15,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sofala1683.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sofala1683.jpg?width=1600',
   },
   {
     countryCode: 'NA',
@@ -1271,7 +1271,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 14.37258,
     latitude: -20.59558,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rock%20Paintig%20Twyfelfontein%20Namibia.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rock%20Paintig%20Twyfelfontein%20Namibia.jpg?width=1600',
   },
   {
     countryCode: 'NE',
@@ -1281,7 +1281,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 7.98836,
     latitude: 16.9742,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/1997%20277-9A%20Agadez%20mosque%20cropped.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/1997%20277-9A%20Agadez%20mosque%20cropped.jpg?width=1600',
   },
   {
     countryCode: 'NG',
@@ -1291,7 +1291,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 4.55063,
     latitude: 7.75491,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Osun%20Osogbo%20forest%2C%20river%20and%20sacred%20groove%2012.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Osun%20Osogbo%20forest%2C%20river%20and%20sacred%20groove%2012.jpg?width=1600',
   },
   {
     countryCode: 'NI',
@@ -1301,7 +1301,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -86.5385,
     latitude: 12.4247,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Momotombo.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Momotombo.jpg?width=1600',
   },
   {
     countryCode: 'NL',
@@ -1311,7 +1311,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 4.88528,
     latitude: 52.36,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rijksmuseum%20in%20Amsterdam.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rijksmuseum%20in%20Amsterdam.jpg?width=1600',
   },
   {
     countryCode: 'NO',
@@ -1321,7 +1321,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 7.3225,
     latitude: 61.29806,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2023-07-04-Stabkirche%20Urnes-6781.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2023-07-04-Stabkirche%20Urnes-6781.jpg?width=1600',
   },
   {
     countryCode: 'NP',
@@ -1331,7 +1331,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 85.36194,
     latitude: 27.72139,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bouddhanath%2C%202009.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bouddhanath%2C%202009.jpg?width=1600',
   },
   {
     countryCode: 'NR',
@@ -1341,7 +1341,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 166.91479,
     latitude: -0.54511,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%E7%B8%BD%E7%B5%B1%E3%80%8C%E6%B5%B7%E6%B4%8B%E6%B0%91%E4%B8%BB%E4%B9%8B%E6%97%85%E3%80%8D%E5%8F%83%E8%A7%80%E8%AB%BE%E9%AD%AF%E5%8D%9A%E7%89%A9%E9%A4%A8%2004.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%E7%B8%BD%E7%B5%B1%E3%80%8C%E6%B5%B7%E6%B4%8B%E6%B0%91%E4%B8%BB%E4%B9%8B%E6%97%85%E3%80%8D%E5%8F%83%E8%A7%80%E8%AB%BE%E9%AD%AF%E5%8D%9A%E7%89%A9%E9%A4%A8%2004.jpg?width=1600',
   },
   {
     countryCode: 'NZ',
@@ -1351,7 +1351,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 167.86667,
     latitude: -44.61667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/00%201371%20New%20Zealand%20-%20Milford%20Sound.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/00%201371%20New%20Zealand%20-%20Milford%20Sound.jpg?width=1600',
   },
   {
     countryCode: 'OM',
@@ -1361,7 +1361,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 57.3007,
     latitude: 22.9644,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bahla%20Fort.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bahla%20Fort.jpg?width=1600',
   },
   {
     countryCode: 'PA',
@@ -1371,7 +1371,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -82.543,
     latitude: 8.808,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volcan%20baru.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volcan%20baru.jpg?width=1600',
   },
   {
     countryCode: 'PE',
@@ -1381,7 +1381,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -72.54556,
     latitude: -13.16333,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Machu%20Picchu%2C%202023%20%28012%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Machu%20Picchu%2C%202023%20%28012%29.jpg?width=1600',
   },
   {
     countryCode: 'PG',
@@ -1391,7 +1391,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 144.33,
     latitude: -5.7825,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuk%20New%20Guinea%202002.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuk%20New%20Guinea%202002.jpg?width=1600',
   },
   {
     countryCode: 'PH',
@@ -1401,7 +1401,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 120.35,
     latitude: 15.13,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pinatubo%20Crater%20Lake%20%28052005%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pinatubo%20Crater%20Lake%20%28052005%29.jpg?width=1600',
   },
   {
     countryCode: 'PK',
@@ -1411,7 +1411,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 68.13889,
     latitude: 27.32917,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mohenjodaro%20Sindh.jpeg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mohenjodaro%20Sindh.jpeg?width=1600',
   },
   {
     countryCode: 'PL',
@@ -1421,7 +1421,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 19.9366,
     latitude: 50.0544,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wawel%20on%20Wisla.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wawel%20on%20Wisla.JPG?width=1600',
   },
   {
     countryCode: 'PS',
@@ -1431,7 +1431,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 35.23583,
     latitude: 31.77611,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jerusalem-2013-Temple%20Mount-Al-Aqsa%20Mosque%20%28NE%20exposure%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jerusalem-2013-Temple%20Mount-Al-Aqsa%20Mosque%20%28NE%20exposure%29.jpg?width=1600',
   },
   {
     countryCode: 'PT',
@@ -1441,7 +1441,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -9.21583,
     latitude: 38.69139,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Belem%20Tower%20-%20April%202019%20%282%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Belem%20Tower%20-%20April%202019%20%282%29.jpg?width=1600',
   },
   {
     countryCode: 'PW',
@@ -1451,7 +1451,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 134.50424,
     latitude: 7.36204,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Japan%20Palau%20Friendship%20Bridge.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Japan%20Palau%20Friendship%20Bridge.jpg?width=1600',
   },
   {
     countryCode: 'PY',
@@ -1461,7 +1461,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -54.59,
     latitude: -25.40778,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ItaipuAerea2AAL.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ItaipuAerea2AAL.jpg?width=1600',
   },
   {
     countryCode: 'QA',
@@ -1471,7 +1471,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 51.02722,
     latitude: 25.98339,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ruins%20in%20Zubarah%20on%20a%20cloudy%20day.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ruins%20in%20Zubarah%20on%20a%20cloudy%20day.jpg?width=1600',
   },
   {
     countryCode: 'RO',
@@ -1481,7 +1481,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 25.3671,
     latitude: 45.515,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bran%20Castle%20TB1.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bran%20Castle%20TB1.jpg?width=1600',
   },
   {
     countryCode: 'RS',
@@ -1491,7 +1491,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 20.46855,
     latitude: 44.79808,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hram%20Beograd.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hram%20Beograd.JPG?width=1600',
   },
   {
     countryCode: 'RU',
@@ -1501,7 +1501,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 37.61778,
     latitude: 55.75167,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moscow%2005-2012%20Kremlin%2022.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moscow%2005-2012%20Kremlin%2022.jpg?width=1600',
   },
   {
     countryCode: 'RW',
@@ -1511,7 +1511,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 29.45,
     latitude: -1.5,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Karisimbi2.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Karisimbi2.jpg?width=1600',
   },
   {
     countryCode: 'SA',
@@ -1521,7 +1521,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 39.82611,
     latitude: 21.4225,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khalili%20Collection%20Hajj%20and%20Arts%20of%20Pilgrimage%20arc.pp%200211.04%20CROP.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khalili%20Collection%20Hajj%20and%20Arts%20of%20Pilgrimage%20arc.pp%200211.04%20CROP.jpg?width=1600',
   },
   {
     countryCode: 'SB',
@@ -1531,7 +1531,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 157.9725,
     latitude: -8.99361,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/May%2014%20Kavachi%20eruption.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/May%2014%20Kavachi%20eruption.jpg?width=1600',
   },
   {
     countryCode: 'SC',
@@ -1541,7 +1541,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 55.4516,
     latitude: -4.61977,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20the%20Immaculate%20Conception%2C%20Seychelles%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20the%20Immaculate%20Conception%2C%20Seychelles%201.jpg?width=1600',
   },
   {
     countryCode: 'SD',
@@ -1551,7 +1551,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 31.8276,
     latitude: 18.5368,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gebel%20Barkal.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gebel%20Barkal.jpg?width=1600',
   },
   {
     countryCode: 'SE',
@@ -1561,7 +1561,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 17.88638,
     latitude: 59.32169,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Drottningholm%20Palace%20%28by%20Pudelek%29%203.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Drottningholm%20Palace%20%28by%20Pudelek%29%203.jpg?width=1600',
   },
   {
     countryCode: 'SG',
@@ -1571,7 +1571,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 103.8162,
     latitude: 1.3151,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Singapore%20Botanic%20Gardens%20Palm%20Valley.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Singapore%20Botanic%20Gardens%20Palm%20Valley.jpg?width=1600',
   },
   {
     countryCode: 'SI',
@@ -1581,7 +1581,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 14.09472,
     latitude: 46.36444,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20image%20of%20Lake%20Bled%20%28view%20from%20the%20southwest%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20image%20of%20Lake%20Bled%20%28view%20from%20the%20southwest%29.jpg?width=1600',
   },
   {
     countryCode: 'SK',
@@ -1591,7 +1591,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 20.76833,
     latitude: 49.00056,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SK%20SN%20Spis%20castle%202024%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SK%20SN%20Spis%20castle%202024%201.jpg?width=1600',
   },
   {
     countryCode: 'SL',
@@ -1601,7 +1601,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -13.23568,
     latitude: 8.49003,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/St.%20George%27s%20Cathedral%20Freetown.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/St.%20George%27s%20Cathedral%20Freetown.jpg?width=1600',
   },
   {
     countryCode: 'SM',
@@ -1611,7 +1611,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 12.44694,
     latitude: 43.93722,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20San%20Marino%20-%20Exterior.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20San%20Marino%20-%20Exterior.jpg?width=1600',
   },
   {
     countryCode: 'SN',
@@ -1621,7 +1621,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -17.495,
     latitude: 14.72222,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20African%20Renaissance%20Monument.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20African%20Renaissance%20Monument.jpg?width=1600',
   },
   {
     countryCode: 'SO',
@@ -1631,7 +1631,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 45.34161,
     latitude: 2.03574,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cattedrale%20di%20Mogadiscio.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cattedrale%20di%20Mogadiscio.jpg?width=1600',
   },
   {
     countryCode: 'SR',
@@ -1641,7 +1641,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -55.15986,
     latitude: 5.82856,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moschee-Keizerstraat-Suriname.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moschee-Keizerstraat-Suriname.jpg?width=1600',
   },
   {
     countryCode: 'SS',
@@ -1651,7 +1651,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 31.6003,
     latitude: 4.82727,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kator%20church.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kator%20church.jpg?width=1600',
   },
   {
     countryCode: 'ST',
@@ -1661,7 +1661,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 6.53333,
     latitude: 0.26667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Otok%20sv.%20Tome%20-E-8383.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Otok%20sv.%20Tome%20-E-8383.JPG?width=1600',
   },
   {
     countryCode: 'SV',
@@ -1671,7 +1671,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -89.35616,
     latitude: 13.82749,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ES%20Joya%20Ceren%2005%202012%20Estructura%209%20Area%202%20Tamazcal%20wide%20angle%201479.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ES%20Joya%20Ceren%2005%202012%20Estructura%209%20Area%202%20Tamazcal%20wide%20angle%201479.JPG?width=1600',
   },
   {
     countryCode: 'SY',
@@ -1681,7 +1681,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 38.26979,
     latitude: 34.55038,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palmira%20al%20capvespre%20%282495033007%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palmira%20al%20capvespre%20%282495033007%29.jpg?width=1600',
   },
   {
     countryCode: 'SZ',
@@ -1691,7 +1691,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 31.26,
     latitude: -26.076,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Maguga%20Dam%20at%20Komati%20River%2C%20Eswatini.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Maguga%20Dam%20at%20Komati%20River%2C%20Eswatini.jpg?width=1600',
   },
   {
     countryCode: 'TD',
@@ -1701,7 +1701,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 18.55111,
     latitude: 19.78944,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Emi%20Koussi%20inner%20crater.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Emi%20Koussi%20inner%20crater.jpg?width=1600',
   },
   {
     countryCode: 'TG',
@@ -1711,7 +1711,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 1.43475,
     latitude: 7.42364,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Barrage%20-de%20Nangb%C3%A9to%2007.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Barrage%20-de%20Nangb%C3%A9to%2007.jpg?width=1600',
   },
   {
     countryCode: 'TH',
@@ -1721,7 +1721,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 100.49203,
     latitude: 13.75014,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grand%20Palace%20Bangkok%2C%20Thailand.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grand%20Palace%20Bangkok%2C%20Thailand.jpg?width=1600',
   },
   {
     countryCode: 'TJ',
@@ -1731,7 +1731,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 73.42,
     latitude: 39.04,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%92%D0%B5%D1%80%D1%88%D0%B8%D0%BD%D0%B0%20%D0%A3%D1%80%D1%82%D0%B0%D0%B1%D1%83%D0%B7.%20%D0%92%D0%B4%D0%B0%D0%BB%D0%B8%20-%20%D0%9F%D0%B8%D0%BA%20%D0%9B%D0%B5%D0%BD%D0%B8%D0%BD%D0%B0.%20%D0%92%D0%BD%D0%B8%D0%B7%D1%83%20-%20%D0%BE%D0%B7%D0%B5%D1%80%D0%BE%20%D0%9A%D0%B0%D1%80%D0%B0%D0%BA%D1%83%D0%BB%D1%8C.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%92%D0%B5%D1%80%D1%88%D0%B8%D0%BD%D0%B0%20%D0%A3%D1%80%D1%82%D0%B0%D0%B1%D1%83%D0%B7.%20%D0%92%D0%B4%D0%B0%D0%BB%D0%B8%20-%20%D0%9F%D0%B8%D0%BA%20%D0%9B%D0%B5%D0%BD%D0%B8%D0%BD%D0%B0.%20%D0%92%D0%BD%D0%B8%D0%B7%D1%83%20-%20%D0%BE%D0%B7%D0%B5%D1%80%D0%BE%20%D0%9A%D0%B0%D1%80%D0%B0%D0%BA%D1%83%D0%BB%D1%8C.JPG?width=1600',
   },
   {
     countryCode: 'TL',
@@ -1741,7 +1741,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 125.60832,
     latitude: -8.52053,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Christ%20Dili.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Christ%20Dili.jpg?width=1600',
   },
   {
     countryCode: 'TM',
@@ -1751,7 +1751,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 62.1925,
     latitude: 37.66278,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Merv%20City%20Walls%20%2810%29%20%2844747325714%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Merv%20City%20Walls%20%2810%29%20%2844747325714%29.jpg?width=1600',
   },
   {
     countryCode: 'TN',
@@ -1761,7 +1761,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 10.31294,
     latitude: 36.84701,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tunisie%20Carthage%20Ruines%2008.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tunisie%20Carthage%20Ruines%2008.JPG?width=1600',
   },
   {
     countryCode: 'TO',
@@ -1771,7 +1771,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -175.3925,
     latitude: -20.545,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hunga%20Tonga%20Hunga%20Ha%E2%80%99apai%20%28NGA%2C%202017%29%202.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hunga%20Tonga%20Hunga%20Ha%E2%80%99apai%20%28NGA%2C%202017%29%202.jpg?width=1600',
   },
   {
     countryCode: 'TR',
@@ -1781,7 +1781,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 28.98,
     latitude: 41.00833,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hagia%20Sophia%20Mars%202013.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hagia%20Sophia%20Mars%202013.jpg?width=1600',
   },
   {
     countryCode: 'TT',
@@ -1791,7 +1791,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -61.5314,
     latitude: 10.6619,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20Basilica%20of%20the%20Immaculate%20Conception%20%28Port%20of%20Spain%29.JPG?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20Basilica%20of%20the%20Immaculate%20Conception%20%28Port%20of%20Spain%29.JPG?width=1600',
   },
   {
     countryCode: 'TV',
@@ -1801,7 +1801,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 179.5,
     latitude: -10.75,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Niulakita.png?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Niulakita.png?width=1600',
   },
   {
     countryCode: 'TZ',
@@ -1811,7 +1811,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 37.35917,
     latitude: -3.06667,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mt.%20Kilimanjaro%2012.2006.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mt.%20Kilimanjaro%2012.2006.jpg?width=1600',
   },
   {
     countryCode: 'UA',
@@ -1821,7 +1821,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 30.51444,
     latitude: 50.45278,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/80-391-0151%20Kyiv%20St.Sophia%27s%20Cathedral%20RB%2018%202%20%28cropped%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/80-391-0151%20Kyiv%20St.Sophia%27s%20Cathedral%20RB%2018%202%20%28cropped%29.jpg?width=1600',
   },
   {
     countryCode: 'UG',
@@ -1831,7 +1831,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 32.55333,
     latitude: 0.32917,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kasubi%20Tombs%2020250815%201.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kasubi%20Tombs%2020250815%201.jpg?width=1600',
   },
   {
     countryCode: 'US',
@@ -1841,7 +1841,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -74.04443,
     latitude: 40.68921,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Statue%20of%20Liberty%20and%20a%20sightseeing%20boat%2C%20Liberty%20Island%2C%20New%20York.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Statue%20of%20Liberty%20and%20a%20sightseeing%20boat%2C%20Liberty%20Island%2C%20New%20York.jpg?width=1600',
   },
   {
     countryCode: 'UY',
@@ -1851,7 +1851,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -55.766,
     latitude: -34.744,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Iglesia%20Atl%C3%A1ntida%20Dieste%207.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Iglesia%20Atl%C3%A1ntida%20Dieste%207.jpg?width=1600',
   },
   {
     countryCode: 'UZ',
@@ -1861,7 +1861,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 66.96889,
     latitude: 39.64833,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%92%D0%B5%D1%87%D0%B5%D1%80%D0%BD%D0%B8%D0%B9%20%D0%93%D1%83%D1%80-%D0%AD%D0%BC%D0%B8%D1%80.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%92%D0%B5%D1%87%D0%B5%D1%80%D0%BD%D0%B8%D0%B9%20%D0%93%D1%83%D1%80-%D0%AD%D0%BC%D0%B8%D1%80.jpg?width=1600',
   },
   {
     countryCode: 'VA',
@@ -1871,7 +1871,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 12.45342,
     latitude: 41.90222,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basilica%20di%20San%20Pietro%20in%20Vaticano%20September%202015-1a.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basilica%20di%20San%20Pietro%20in%20Vaticano%20September%202015-1a.jpg?width=1600',
   },
   {
     countryCode: 'VC',
@@ -1881,7 +1881,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -61.18333,
     latitude: 13.33333,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Soufriere.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Soufriere.jpg?width=1600',
   },
   {
     countryCode: 'VE',
@@ -1891,7 +1891,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -62.53622,
     latitude: 5.97006,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SaltoAngel4.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SaltoAngel4.jpg?width=1600',
   },
   {
     countryCode: 'VN',
@@ -1901,7 +1901,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 106.2876,
     latitude: 17.4572,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Son%20Doong%20Cave%205.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Son%20Doong%20Cave%205.jpg?width=1600',
   },
   {
     countryCode: 'VU',
@@ -1911,7 +1911,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 169.44167,
     latitude: -19.53333,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Yasur%20eruption%202006%2C%20Tanna%20Island%2C%20Vanuatu%2C%20VAN%200516.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Yasur%20eruption%202006%2C%20Tanna%20Island%2C%20Vanuatu%2C%20VAN%200516.jpg?width=1600',
   },
   {
     countryCode: 'WS',
@@ -1921,7 +1921,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -172.32444,
     latitude: -13.735,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20from%20Pulemelei%20Mound%20-%20Samoa.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20from%20Pulemelei%20Mound%20-%20Samoa.jpg?width=1600',
   },
   {
     countryCode: 'YE',
@@ -1931,7 +1931,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 44.21493,
     latitude: 15.35309,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Old%20City%2C%20Sana%27a%2C%20Yemen%20%2815335600470%29.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Old%20City%2C%20Sana%27a%2C%20Yemen%20%2815335600470%29.jpg?width=1600',
   },
   {
     countryCode: 'ZA',
@@ -1941,7 +1941,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 28.8941,
     latitude: -28.7522,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tugela%20Falls.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tugela%20Falls.jpg?width=1600',
   },
   {
     countryCode: 'ZM',
@@ -1951,7 +1951,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 31.23955,
     latitude: -8.59642,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kalambo%20Falls.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kalambo%20Falls.jpg?width=1600',
   },
   {
     countryCode: 'ZW',
@@ -1961,6 +1961,6 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 25.85806,
     latitude: -17.92478,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cataratas%20Victoria%2C%20Zambia-Zimbabue%2C%202018-07-27%2C%20DD%2005.jpg?width=960',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cataratas%20Victoria%2C%20Zambia-Zimbabue%2C%202018-07-27%2C%20DD%2005.jpg?width=1600',
   },
 ];

@@ -15,10 +15,16 @@ const sovereignStatesQuery = `
   }
 `;
 
-async function fetchJson(url) {
+async function fetchJson(url, attempt = 0) {
   const response = await fetch(url, {
     headers: { 'User-Agent': 'Sterna-MVP/1.0 (POI catalogue generator)' },
   });
+  if (response.status === 429 && attempt < 4) {
+    const retryAfter =
+      Number(response.headers.get('retry-after')) || 2 ** attempt;
+    await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+    return fetchJson(url, attempt + 1);
+  }
   if (!response.ok)
     throw new Error(`${response.status} ${response.statusText}`);
   return response.json();
@@ -321,7 +327,7 @@ const pois = codes.map((countryCode) => {
     description: descriptionFor(row, entity, labels),
     longitude: row[columns.lon],
     latitude: row[columns.lat],
-    imageUrl: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${row[columns.img]}?width=960`,
+    imageUrl: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${row[columns.img]}?width=1600`,
   };
 });
 
