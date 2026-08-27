@@ -1,14 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { Trophy } from 'lucide-react'
-import {
-  GeolocateControl,
-  Map,
-  Marker,
-  NavigationControl,
-  Popup,
-  setWorkerUrl,
-} from 'maplibre-gl'
+import { GeolocateControl, Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -116,11 +109,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         center: [2.3522, 48.8566],
         zoom: 12,
       })
-
-      instance.addControl(
-        new NavigationControl({ showCompass: false }),
-        'bottom-right',
-      )
 
       const geolocate = new GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
