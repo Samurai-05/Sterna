@@ -209,4 +209,20 @@ describe('MapCanvas', () => {
       zoom: 15.5,
     })
   })
+
+  it('uses the current position supplied for a first map opening', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas initialViewport={{ center: [7.4474, 46.948], zoom: 13 }} />,
+    )
+
+    expect(mapInstances[0].options).toMatchObject({
+      center: [7.4474, 46.948],
+      zoom: 13,
+    })
+  })
 })

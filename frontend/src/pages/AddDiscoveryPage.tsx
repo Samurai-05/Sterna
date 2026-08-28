@@ -27,6 +27,7 @@ import {
 } from '@/lib/api'
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
+import { getStoredMapViewport } from '@/lib/map-viewport'
 import { type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
 
@@ -64,6 +65,7 @@ export function AddDiscoveryPage() {
   const queryClient = useQueryClient()
   const session = loadSession()
   const locationPickerRef = useRef<LocationPickerMapHandle>(null)
+  const locationWasChosenRef = useRef(false)
 
   const selectedPhoto = (location.state as AddDiscoveryLocationState | null)
     ?.selectedPhoto
@@ -74,10 +76,11 @@ export function AddDiscoveryPage() {
   const [category, setCategory] = useState<DiscoveryCategory>('other')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [coordinates, setCoordinates] =
-    useState<[number, number]>(defaultCoordinates)
+  const [coordinates, setCoordinates] = useState<[number, number]>(
+    () => getStoredMapViewport()?.center ?? defaultCoordinates,
+  )
   const [locationSource, setLocationSource] = useState<
-    'default' | 'photo' | 'manual' | 'search'
+    'default' | 'current' | 'photo' | 'manual' | 'search'
   >('default')
   const [locationQuery, setLocationQuery] = useState('')
   const [debouncedLocationQuery, setDebouncedLocationQuery] = useState('')
@@ -113,6 +116,23 @@ export function AddDiscoveryPage() {
     return () => window.clearTimeout(timer)
   }, [locationQuery])
 
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      ({ coords }) => {
+        if (locationWasChosenRef.current) return
+        const currentCoordinates: [number, number] = [
+          coords.longitude,
+          coords.latitude,
+        ]
+        setCoordinates(currentCoordinates)
+        setLocationSource('current')
+        locationPickerRef.current?.flyTo(currentCoordinates)
+      },
+      () => undefined,
+      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8000 },
+    )
+  }, [])
+
   const browserPhotoUrl = useMemo(
     () => (browserPhoto ? URL.createObjectURL(browserPhoto) : null),
     [browserPhoto],
@@ -147,6 +167,7 @@ export function AddDiscoveryPage() {
     },
     onSuccess: (uploadedPhoto) => {
       if (uploadedPhoto.exif) {
+        locationWasChosenRef.current = true
         const nextCoordinates: [number, number] = [
           uploadedPhoto.exif.longitude,
           uploadedPhoto.exif.latitude,
@@ -248,6 +269,7 @@ export function AddDiscoveryPage() {
   }
 
   function handleLocationChange(nextCoordinates: [number, number]) {
+    locationWasChosenRef.current = true
     setCoordinates(nextCoordinates)
     setLocationSource('manual')
   }
@@ -258,6 +280,7 @@ export function AddDiscoveryPage() {
     zoom: number,
     label: string,
   ) {
+    locationWasChosenRef.current = true
     const nextCoordinates: [number, number] = [longitude, latitude]
     setCoordinates(nextCoordinates)
     setLocationSource('search')
@@ -400,10 +423,14 @@ export function AddDiscoveryPage() {
               locationSource === 'photo' &&
               'Location detected from the photo. Tap or drag the pin to adjust it.'}
             {!photoUpload.isPending &&
+              locationSource === 'current' &&
+              'Current location detected. Tap or drag the pin to adjust it.'}
+            {!photoUpload.isPending &&
               locationSource === 'search' &&
               'Location selected from search. Tap or drag the pin to fine-tune it.'}
             {!photoUpload.isPending &&
               locationSource !== 'photo' &&
+              locationSource !== 'current' &&
               locationSource !== 'search' &&
               'Tap the map to drop a pin where this was discovered, or drag the pin to adjust it.'}
           </p>

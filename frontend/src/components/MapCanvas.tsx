@@ -10,6 +10,7 @@ import {
   defaultMapViewport,
   getStoredMapViewport,
   saveMapViewport,
+  type MapViewport,
 } from '@/lib/map-viewport'
 import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
 
@@ -80,6 +81,7 @@ function createPhotoPreviewElement(
 }
 
 interface MapCanvasProps {
+  initialViewport?: MapViewport
   discoveries?: DiscoveryMarkerData[]
   landmarks?: LandmarkMarkerData[]
   exploredCountryCodes?: string[]
@@ -97,6 +99,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       onSelectDiscovery,
       onSelectLandmark,
       photoAccessToken,
+      initialViewport,
     },
     ref,
   ) {
@@ -128,7 +131,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         return
       }
 
-      const viewport = getStoredMapViewport() ?? defaultMapViewport
+      const viewport =
+        initialViewport ?? getStoredMapViewport() ?? defaultMapViewport
       const instance = new Map({
         container: mapContainer.current,
         style: mapStyle,
@@ -256,7 +260,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         map.current = null
         instance.remove()
       }
-    }, [])
+    }, [initialViewport])
 
     useEffect(() => {
       exploredCodes.current = exploredCountryCodes

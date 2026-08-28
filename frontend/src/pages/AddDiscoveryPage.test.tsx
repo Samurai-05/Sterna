@@ -6,6 +6,8 @@ import { searchLocations, uploadPhoto } from '@/lib/api'
 import { saveSession, clearSession } from '@/lib/session'
 import { AddDiscoveryPage } from './AddDiscoveryPage'
 
+const originalGeolocation = window.navigator.geolocation
+
 vi.mock('@/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api')>()
   return {
@@ -17,10 +19,43 @@ vi.mock('@/lib/api', async (importOriginal) => {
 
 afterEach(() => {
   clearSession()
+  Object.defineProperty(window.navigator, 'geolocation', {
+    configurable: true,
+    value: originalGeolocation,
+  })
   vi.restoreAllMocks()
 })
 
 describe('AddDiscoveryPage', () => {
+  it('uses the current device position as the initial discovery location', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    Object.defineProperty(window.navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: vi.fn((success) =>
+          success({ coords: { longitude: 7.4474, latitude: 46.948 } }),
+        ),
+      },
+    })
+
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+
+    expect(await screen.findByText('46.94800, 7.44740')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Current location detected. Tap or drag the pin to adjust it.',
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('renders a native photo selected before entering the form', () => {
     renderWithProviders(<AddDiscoveryPage />, {
       initialEntries: [

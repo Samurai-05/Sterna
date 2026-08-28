@@ -15,6 +15,11 @@ import {
 import { getDiscoveries, getGroupDiscoveries, getPois } from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
 import { getMapTarget } from '@/lib/map-target'
+import {
+  defaultMapViewport,
+  getStoredMapViewport,
+  type MapViewport,
+} from '@/lib/map-viewport'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
@@ -22,6 +27,11 @@ import { loadSession } from '@/lib/session'
 export function MapPage({ active }: { active: boolean }) {
   const [activeCategory, setActiveCategory] =
     useState<DiscoveryCategory | null>(null)
+  const [initialViewport, setInitialViewport] = useState<MapViewport | null>(
+    () =>
+      getStoredMapViewport() ??
+      (navigator.geolocation ? null : defaultMapViewport),
+  )
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -31,17 +41,42 @@ export function MapPage({ active }: { active: boolean }) {
     locationRef.current = location
   }, [location])
   useEffect(() => {
+    if (initialViewport) return
+
+    let activeRequest = true
+    const geolocation = navigator.geolocation
+    if (!geolocation) return
+
+    geolocation.getCurrentPosition(
+      ({ coords }) => {
+        if (!activeRequest) return
+        setInitialViewport({
+          center: [coords.longitude, coords.latitude],
+          zoom: 13,
+        })
+      },
+      () => {
+        if (activeRequest) setInitialViewport(defaultMapViewport)
+      },
+      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8000 },
+    )
+
+    return () => {
+      activeRequest = false
+    }
+  }, [initialViewport])
+  useEffect(() => {
     if (active) {
       mapRef.current?.resize()
     }
   }, [active])
   useEffect(() => {
-    if (!active || !mapTarget) return
+    if (!active || !mapTarget || !initialViewport) return
 
     mapRef.current?.flyTo(mapTarget.coordinates, mapTarget.zoom)
     // Consume the target so returning to the map later does not replay it.
     navigate('/', { replace: true, state: null })
-  }, [active, location.key, mapTarget, navigate])
+  }, [active, initialViewport, location.key, mapTarget, navigate])
   const session = loadSession()
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'
@@ -104,16 +139,23 @@ export function MapPage({ active }: { active: boolean }) {
       inert={!active || undefined}
       aria-hidden={!active || undefined}
     >
-      <h1 className="sr-only">Explore Paris</h1>
-      <MapCanvas
-        ref={mapRef}
-        discoveries={visibleDiscoveries}
-        landmarks={backendPois ?? landmarks}
-        exploredCountryCodes={exploredCountryCodes}
-        photoAccessToken={session?.accessToken}
-        onSelectDiscovery={handleSelectDiscovery}
-        onSelectLandmark={handleSelectLandmark}
-      />
+      <h1 className="sr-only">Explore map</h1>
+      {initialViewport ? (
+        <MapCanvas
+          ref={mapRef}
+          initialViewport={initialViewport}
+          discoveries={visibleDiscoveries}
+          landmarks={backendPois ?? landmarks}
+          exploredCountryCodes={exploredCountryCodes}
+          photoAccessToken={session?.accessToken}
+          onSelectDiscovery={handleSelectDiscovery}
+          onSelectLandmark={handleSelectLandmark}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+          Finding your location…
+        </div>
+      )}
       <div
         className="pointer-events-none absolute inset-0 bg-[#f7f5f0]/20"
         aria-hidden="true"
