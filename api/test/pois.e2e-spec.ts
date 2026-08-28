@@ -94,6 +94,31 @@ describe('PoisController (e2e)', () => {
   });
 
   it('marks a POI discovered from a nearby personal discovery', async () => {
+    await dataSource.query(`DELETE FROM groups WHERE name = 'POI test group'`);
+    const [{ id: groupId }] = await dataSource.query<{ id: string }[]>(
+      `INSERT INTO groups (name, invite_code) VALUES ('POI test group', 'POI-E2E-CODE') RETURNING id`,
+    );
+    await dataSource.query(
+      `INSERT INTO group_members (user_id, group_id, role) VALUES ($1, $2, 'member')`,
+      [userId, groupId],
+    );
+    await dataSource.query(
+      `INSERT INTO discoveries (
+        user_id, group_id, title, location, image_object_key, discovered_at
+      ) VALUES ($1, $2, 'Group Eiffel Tower', ST_SetSRID(ST_MakePoint(2.2945, 48.8584), 4326), 'photos/eiffel-group.jpg', NOW())`,
+      [userId, groupId],
+    );
+
+    const personalResponse = await request(app.getHttpServer())
+      .get('/api/pois')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(
+      (personalResponse.body as PoiResponse[]).find(
+        (poi) => poi.title === 'Eiffel Tower',
+      )?.discovered,
+    ).toBe(false);
+
     await dataSource.query(
       `INSERT INTO discoveries (
         user_id, title, location, image_object_key, discovered_at

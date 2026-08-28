@@ -54,6 +54,7 @@ export function MapPage({ active }: { active: boolean }) {
     queryKey: ['pois', session?.user.id],
     queryFn: () => getPois(session!.accessToken),
     enabled: Boolean(session),
+    staleTime: 5 * 60 * 1000,
   })
   const sourceDiscoveries = backendDiscoveries ?? discoveries
   const exploredCountryCodes = useMemo(

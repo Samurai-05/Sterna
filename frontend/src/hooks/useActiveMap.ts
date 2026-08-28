@@ -32,6 +32,7 @@ export function useSetActiveMap() {
       queryClient.invalidateQueries({ queryKey: ['groups', userId] })
       queryClient.invalidateQueries({ queryKey: ['discoveries', userId] })
       queryClient.invalidateQueries({ queryKey: ['group-discoveries', userId] })
+      queryClient.invalidateQueries({ queryKey: ['pois', userId] })
     },
   })
 }

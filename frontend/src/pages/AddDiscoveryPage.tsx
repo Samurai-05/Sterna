@@ -174,6 +174,9 @@ export function AddDiscoveryPage() {
       queryClient.invalidateQueries({
         queryKey: ['group-discoveries', session?.user.id],
       })
+      queryClient.invalidateQueries({
+        queryKey: ['pois', session?.user.id],
+      })
       queryClient.invalidateQueries({ queryKey: ['groups', session?.user.id] })
       navigate(`/discoveries/${discovery.id}`, {
         state: { returnTo: '/' },

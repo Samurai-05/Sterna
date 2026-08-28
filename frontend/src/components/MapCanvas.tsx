@@ -353,34 +353,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         )
         roots.push(root)
 
-        const preview = createPhotoPreviewElement(
-          landmark.name,
-          landmark.imageId,
-          () => onSelectLandmark?.(landmark.id),
-        )
-        preview.image.src = markerImage
-        preview.image.classList.remove('object-cover')
-        preview.image.classList.add('relative', 'object-contain')
-        preview.element.style.backgroundColor = '#d6d3d1'
-        preview.element.style.backgroundImage = `linear-gradient(rgba(255,255,255,.25), rgba(255,255,255,.25)), url("${markerImage.replaceAll('"', '%22')}")`
-        preview.element.style.backgroundPosition = 'center'
-        preview.element.style.backgroundSize = 'cover'
-        if (!landmark.discovered) {
-          preview.image.classList.add('grayscale', 'opacity-65')
-          preview.element.style.filter = 'grayscale(1)'
-        }
-
-        photoPopups.push(
-          new Popup({
-            closeButton: false,
-            closeOnClick: false,
-            offset: 26,
-            anchor: 'bottom',
-            className: 'sterna-map-photo-popup',
-          })
-            .setLngLat(landmark.coordinates)
-            .setDOMContent(preview.element),
-        )
+        // POIs deliberately have no photo popup above their marker. Their
+        // image remains available inside the marker and on the detail page.
       }
 
       updatePhotoPopups()

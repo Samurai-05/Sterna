@@ -14,6 +14,7 @@ export function LandmarkDetailPage() {
     queryKey: ['pois', session?.user.id],
     queryFn: () => getPois(session!.accessToken),
     enabled: Boolean(session),
+    staleTime: 5 * 60 * 1000,
   })
   const sourceLandmarks = backendPois ?? landmarks
   const landmark =

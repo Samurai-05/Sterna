@@ -51,7 +51,11 @@ export class PoisService {
               $2
             )
             AND (
-              (active_map.group_id IS NULL AND discovery.user_id = $1)
+              (
+                active_map.group_id IS NULL
+                AND discovery.user_id = $1
+                AND discovery.group_id IS NULL
+              )
               OR discovery.group_id = active_map.group_id
             )
           ) AS discovered

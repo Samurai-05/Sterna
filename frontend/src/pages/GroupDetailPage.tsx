@@ -61,6 +61,7 @@ export function GroupDetailPage() {
     queryClient.invalidateQueries({ queryKey: ['groups', userId] })
     queryClient.invalidateQueries({ queryKey: ['active-map', userId] })
     queryClient.invalidateQueries({ queryKey: ['discoveries', userId] })
+    queryClient.invalidateQueries({ queryKey: ['pois', userId] })
     queryClient.removeQueries({ queryKey: ['group', userId, groupId] })
     queryClient.removeQueries({
       queryKey: ['group-discoveries', userId, groupId],

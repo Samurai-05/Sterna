@@ -77,6 +77,7 @@ export function ProfilePage() {
     queryKey: ['pois', session?.user.id],
     queryFn: () => getPois(accessToken!),
     enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
   })
 
   const sourceDiscoveries = backendDiscoveries ?? discoveries
