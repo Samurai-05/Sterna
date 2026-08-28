@@ -119,16 +119,16 @@ export class DiscoveriesService {
   /**
    * The caller's personal map.
    *
-   * Filtered on user_id alone, deliberately: a discovery the caller recorded
-   * in a group belongs to that group's shared map *and* stays on its author's
-   * own map. Nobody else's discoveries appear here, group-mates included
-   * (NFR-24).
+   * A personal discovery is identified by the absence of a group. Filtering
+   * on both ownership and group_id prevents discoveries recorded in a group
+   * from leaking onto their author's personal map.
    */
   async findAllByUser(userId: string): Promise<DiscoveryResponse[]> {
     const rows = await this.discoveries.query<DiscoveryRow[]>(
       `
       ${DISCOVERY_PROJECTION}
       WHERE d.user_id = $1
+        AND d.group_id IS NULL
       ORDER BY d.created_at DESC, d.id DESC
     `,
       [userId],

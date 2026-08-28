@@ -262,7 +262,7 @@ describe('Groups (e2e)', () => {
 
   describe('the group map', () => {
     // FR-29, FR-31 and the visibility rule the whole feature turns on.
-    it('shows a member discovery to the group and on the author own map', async () => {
+    it('shows a member discovery only on the group map', async () => {
       const group = await createGroup('Shared map');
 
       await request(app.getHttpServer())
@@ -293,7 +293,7 @@ describe('Groups (e2e)', () => {
       expect(shared?.userId).toBe(linusId);
       expect(shared?.authorUserName).toBe('E2E');
 
-      // And still on its author's personal map.
+      // A group discovery must not leak onto its author's personal map.
       const personal = await request(app.getHttpServer())
         .get('/api/discoveries')
         .set(auth(linus))
@@ -301,7 +301,7 @@ describe('Groups (e2e)', () => {
 
       expect(
         (personal.body as DiscoveryResponse[]).some((found) => found.id === id),
-      ).toBe(true);
+      ).toBe(false);
 
       // But not on anyone else's (NFR-24).
       const owners = await request(app.getHttpServer())

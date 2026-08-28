@@ -22,7 +22,7 @@ export function CollectionPage() {
     queryFn: () => getDiscoveries(session!.accessToken),
     enabled: Boolean(session),
   })
-  const sourceDiscoveries = backendDiscoveries ?? discoveries
+  const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
   const filteredDiscoveries = useMemo(
     () =>
       sourceDiscoveries.filter(

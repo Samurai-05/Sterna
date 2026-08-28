@@ -123,6 +123,14 @@ describe('DiscoveriesService', () => {
   });
 
   describe('findAllByUser', () => {
+    it('only queries discoveries stored on the personal map', async () => {
+      await service.findAllByUser('1');
+
+      expect(statement()).toContain('d.user_id = $1');
+      expect(statement()).toContain('d.group_id IS NULL');
+      expect(params()).toEqual(['1']);
+    });
+
     it('maps the stored country_code onto each discovery', async () => {
       query.mockResolvedValueOnce([
         row(),

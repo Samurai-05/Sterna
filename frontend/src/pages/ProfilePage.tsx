@@ -80,7 +80,7 @@ export function ProfilePage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  const sourceDiscoveries = backendDiscoveries ?? discoveries
+  const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
   const sourceLandmarks = backendPois ?? landmarks
   const displayedUser = currentUser ?? session?.user
   const displayedUserName = displayedUser?.userName ?? ''
