@@ -14,6 +14,7 @@ import {
 } from '@/lib/mock-data'
 import { getDiscoveries, getGroupDiscoveries, getPois } from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
+import { getMapTarget } from '@/lib/map-target'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
@@ -24,6 +25,7 @@ export function MapPage({ active }: { active: boolean }) {
   const mapRef = useRef<MapCanvasHandle>(null)
   const navigate = useNavigate()
   const location = useLocation()
+  const mapTarget = getMapTarget(location.state)
   const locationRef = useRef(location)
   useEffect(() => {
     locationRef.current = location
@@ -33,6 +35,13 @@ export function MapPage({ active }: { active: boolean }) {
       mapRef.current?.resize()
     }
   }, [active])
+  useEffect(() => {
+    if (!active || !mapTarget) return
+
+    mapRef.current?.flyTo(mapTarget.coordinates, mapTarget.zoom)
+    // Consume the target so returning to the map later does not replay it.
+    navigate('/', { replace: true, state: null })
+  }, [active, location.key, mapTarget, navigate])
   const session = loadSession()
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'

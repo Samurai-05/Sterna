@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithProviders } from '@/test/renderWithProviders'
-import { uploadPhoto } from '@/lib/api'
+import { searchLocations, uploadPhoto } from '@/lib/api'
 import { saveSession, clearSession } from '@/lib/session'
 import { AddDiscoveryPage } from './AddDiscoveryPage'
 
@@ -10,6 +10,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api')>()
   return {
     ...actual,
+    searchLocations: vi.fn(),
     uploadPhoto: vi.fn(),
   }
 })
@@ -37,12 +38,13 @@ describe('AddDiscoveryPage', () => {
       ],
     })
 
-    expect(screen.getByRole('img', { name: 'Selected discovery photo' })).toHaveAttribute(
-      'src',
-      expect.stringContaining('photo.jpg'),
-    )
+    expect(
+      screen.getByRole('img', { name: 'Selected discovery photo' }),
+    ).toHaveAttribute('src', expect.stringContaining('photo.jpg'))
     expect(screen.getByText('Photo selected')).toBeInTheDocument()
-    expect(screen.queryByText('Choose a photo from your device')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Choose a photo from your device'),
+    ).not.toBeInTheDocument()
   })
 
   it('proposes the location found in a geotagged photo, once logged in', async () => {
@@ -80,7 +82,11 @@ describe('AddDiscoveryPage', () => {
       ),
     ).toBeInTheDocument()
     expect(screen.getByText('35.65860, 139.74540')).toBeInTheDocument()
-    expect(uploadPhoto).toHaveBeenCalledWith('test-token', photo, 'tokyo-tower.jpg')
+    expect(uploadPhoto).toHaveBeenCalledWith(
+      'test-token',
+      photo,
+      'tokyo-tower.jpg',
+    )
   })
 
   it('keeps manual placement available when a photo has no GPS metadata', async () => {
@@ -113,6 +119,48 @@ describe('AddDiscoveryPage', () => {
     expect(
       screen.getByText(
         'Tap the map to drop a pin where this was discovered, or drag the pin to adjust it.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('moves the discovery location to a selected place search result', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    vi.mocked(searchLocations).mockResolvedValue([
+      {
+        id: 'relation:1688687',
+        label: 'Lausanne, Vaud, Switzerland',
+        type: 'city',
+        longitude: 6.6327,
+        latitude: 46.5218,
+        zoom: 12,
+      },
+    ])
+
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+    fireEvent.change(
+      screen.getByRole('textbox', { name: 'Search for a location' }),
+      { target: { value: 'Lausanne' } },
+    )
+    fireEvent.click(
+      await screen.findByText(
+        'Lausanne, Vaud, Switzerland',
+        {},
+        { timeout: 2000 },
+      ),
+    )
+
+    expect(screen.getByText('46.52180, 6.63270')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Location selected from search. Tap or drag the pin to fine-tune it.',
       ),
     ).toBeInTheDocument()
   })

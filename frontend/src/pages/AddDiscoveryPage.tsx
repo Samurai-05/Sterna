@@ -3,6 +3,7 @@ import {
   Check,
   ImagePlus,
   MapPin,
+  Search,
   UserRound,
   UsersRound,
 } from 'lucide-react'
@@ -18,7 +19,12 @@ import {
 } from '@/components/LocationPickerMap'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
-import { createDiscovery, getGroups, uploadPhoto } from '@/lib/api'
+import {
+  createDiscovery,
+  getGroups,
+  searchLocations,
+  uploadPhoto,
+} from '@/lib/api'
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
 import { type SelectedPhoto } from '@/lib/photo-capture'
@@ -71,8 +77,11 @@ export function AddDiscoveryPage() {
   const [coordinates, setCoordinates] =
     useState<[number, number]>(defaultCoordinates)
   const [locationSource, setLocationSource] = useState<
-    'default' | 'photo' | 'manual'
+    'default' | 'photo' | 'manual' | 'search'
   >('default')
+  const [locationQuery, setLocationQuery] = useState('')
+  const [debouncedLocationQuery, setDebouncedLocationQuery] = useState('')
+  const [showLocationResults, setShowLocationResults] = useState(false)
   const [formMessage, setFormMessage] = useState('')
 
   const { data: activeMap, isPending: isLoadingActiveMap } = useActiveMap()
@@ -87,6 +96,22 @@ export function AddDiscoveryPage() {
     queryFn: () => getGroups(session!.accessToken),
     enabled: Boolean(session),
   })
+  const locationSearch = useQuery({
+    queryKey: ['discovery-location-search', debouncedLocationQuery],
+    queryFn: () =>
+      searchLocations(session!.accessToken, debouncedLocationQuery),
+    enabled: Boolean(session && debouncedLocationQuery && showLocationResults),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    const normalized = locationQuery.trim()
+    const timer = window.setTimeout(
+      () => setDebouncedLocationQuery(normalized.length >= 2 ? normalized : ''),
+      450,
+    )
+    return () => window.clearTimeout(timer)
+  }, [locationQuery])
 
   const browserPhotoUrl = useMemo(
     () => (browserPhoto ? URL.createObjectURL(browserPhoto) : null),
@@ -227,6 +252,20 @@ export function AddDiscoveryPage() {
     setLocationSource('manual')
   }
 
+  function handleLocationResult(
+    longitude: number,
+    latitude: number,
+    zoom: number,
+    label: string,
+  ) {
+    const nextCoordinates: [number, number] = [longitude, latitude]
+    setCoordinates(nextCoordinates)
+    setLocationSource('search')
+    setLocationQuery(label)
+    setShowLocationResults(false)
+    locationPickerRef.current?.flyTo(nextCoordinates, zoom)
+  }
+
   return (
     <main className="min-h-dvh bg-background">
       <PageHeader title="New discovery" backTo="/" />
@@ -356,14 +395,86 @@ export function AddDiscoveryPage() {
             Location
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {photoUpload.isPending &&
-              'Looking for a location in the photo...'}
+            {photoUpload.isPending && 'Looking for a location in the photo...'}
             {!photoUpload.isPending &&
               locationSource === 'photo' &&
               'Location detected from the photo. Tap or drag the pin to adjust it.'}
             {!photoUpload.isPending &&
+              locationSource === 'search' &&
+              'Location selected from search. Tap or drag the pin to fine-tune it.'}
+            {!photoUpload.isPending &&
               locationSource !== 'photo' &&
+              locationSource !== 'search' &&
               'Tap the map to drop a pin where this was discovered, or drag the pin to adjust it.'}
+          </p>
+          <div className="relative mt-3">
+            <label className="flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3 focus-within:ring-2 focus-within:ring-ring/30">
+              <Search className="size-4 text-muted-foreground" />
+              <span className="sr-only">Search for a location</span>
+              <input
+                value={locationQuery}
+                onFocus={() => setShowLocationResults(true)}
+                onChange={(event) => {
+                  setLocationQuery(event.target.value)
+                  setShowLocationResults(true)
+                }}
+                placeholder="Search a country, city or place"
+                className="min-w-0 flex-1 bg-transparent text-sm font-normal outline-none placeholder:text-muted-foreground"
+              />
+            </label>
+            {showLocationResults && locationQuery.trim().length >= 2 && (
+              <div className="absolute inset-x-0 top-12 z-20 max-h-56 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+                {locationSearch.data?.map((result) => (
+                  <button
+                    key={result.id}
+                    type="button"
+                    onClick={() =>
+                      handleLocationResult(
+                        result.longitude,
+                        result.latitude,
+                        result.zoom,
+                        result.label,
+                      )
+                    }
+                    className="block min-h-12 w-full border-b border-border px-3 py-2 text-left text-sm last:border-b-0"
+                  >
+                    <span className="line-clamp-2 font-medium">
+                      {result.label}
+                    </span>
+                    <span className="mt-0.5 block text-xs capitalize text-muted-foreground">
+                      {result.type.replaceAll('_', ' ')}
+                    </span>
+                  </button>
+                ))}
+                {locationSearch.isFetching && (
+                  <p className="px-3 py-3 text-sm text-muted-foreground">
+                    Searching places…
+                  </p>
+                )}
+                {!locationSearch.isFetching &&
+                  locationSearch.data?.length === 0 && (
+                    <p className="px-3 py-3 text-sm text-muted-foreground">
+                      No matching place found.
+                    </p>
+                  )}
+                {locationSearch.isError && (
+                  <p className="px-3 py-3 text-sm text-destructive">
+                    Place search is temporarily unavailable.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Place data ©{' '}
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              OpenStreetMap contributors
+            </a>
           </p>
           <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
             <LocationPickerMap
