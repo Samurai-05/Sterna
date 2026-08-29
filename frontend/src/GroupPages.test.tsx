@@ -16,6 +16,7 @@ vi.mock('./lib/api', async () => {
     joinGroup: vi.fn(),
     getGroupDiscoveries: vi.fn(),
     getDiscovery: vi.fn(),
+    updateDiscovery: vi.fn(),
     getActiveMap: vi.fn(),
     setActiveMap: vi.fn(),
     getDiscoveries: vi.fn(),
@@ -245,10 +246,10 @@ describe('group detail', () => {
         groupId: '12',
       }),
     )
-    expect(await screen.findByText('This is your active map')).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Group' }),
+      await screen.findByText('This is your active map'),
     ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Group' })).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Activate' }),
     ).not.toBeInTheDocument()
@@ -292,9 +293,7 @@ describe('opening a discovery from a group map', () => {
     expect(
       screen.queryByRole('button', { name: /Delete discovery/ }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByText(/Only Marc can edit or delete/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Only Marc can edit or delete/)).toBeInTheDocument()
   })
 
   it("keeps edit and delete on the viewer's own discovery", async () => {
@@ -306,6 +305,48 @@ describe('opening a discovery from a group map', () => {
     expect(
       await screen.findByRole('link', { name: 'Edit discovery' }),
     ).toBeInTheDocument()
+  })
+
+  it('returns to the map after saving an edit opened from the map', async () => {
+    const ownDiscovery = {
+      ...otherMembersDiscovery,
+      userId: '1',
+      author: 'Emma',
+      groupId: null,
+      groupIds: [],
+      personal: true,
+    }
+    api.getDiscovery.mockResolvedValue(ownDiscovery)
+    api.updateDiscovery.mockResolvedValue(ownDiscovery)
+
+    renderWithProviders(<App />, {
+      initialEntries: [
+        {
+          pathname: '/discoveries/22',
+          state: {
+            returnTo: '/',
+            backgroundLocation: {
+              pathname: '/',
+              search: '',
+              hash: '',
+              state: null,
+              key: 'map',
+            },
+          },
+        },
+      ],
+    })
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Edit discovery' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
+    await screen.findByRole('heading', { name: 'Discovery' })
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: 'Explore map' }),
+      ).toBeVisible(),
+    )
   })
 })
 
@@ -366,17 +407,32 @@ describe('choosing the destination map before saving', () => {
     ).toBeDisabled()
   })
 
-  it('blocks saving while a destination switch is in flight', async () => {
-    api.setActiveMap.mockReturnValue(new Promise(() => {}))
+  it('selects the active group by default and lets it be deselected', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
     renderAt('/add')
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /Paris Weekend/ }),
-    )
-
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Save discovery' })).toBeDisabled(),
-    )
+    const activeGroup = await screen.findByRole('button', {
+      name: 'Add to Paris Weekend',
+    })
+    expect(activeGroup).toHaveAttribute('aria-pressed', 'true')
+    expect(activeGroup).toBeEnabled()
+    expect(
+      screen.getAllByRole('button', {
+        name: 'Add to Paris Weekend',
+      }),
+    ).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Add to Personal map' }))
+    fireEvent.click(activeGroup)
+    expect(activeGroup).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByText(/Saving to:/)).not.toBeInTheDocument()
+    expect(
+      screen
+        .getByRole('heading', { name: 'Explore map', hidden: true })
+        .closest('main'),
+    ).toHaveClass('opacity-0')
   })
 
   it('enables saving once the active map has loaded', async () => {

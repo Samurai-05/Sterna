@@ -10,6 +10,7 @@ interface DiscoveryResponse {
   id: string;
   userId: string;
   groupId: string | null;
+  groupIds: string[];
   title: string;
   description: string | null;
   category: string | null;

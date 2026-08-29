@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GroupsService } from '../groups/groups.service';
@@ -10,6 +14,8 @@ export interface DiscoveryResponse {
   id: string;
   userId: string;
   groupId: string | null;
+  groupIds: string[];
+  personal: boolean;
   title: string;
   description: string | null;
   category: string | null;
@@ -33,6 +39,8 @@ interface DiscoveryRow {
   id: string;
   user_id: string;
   group_id: string | null;
+  group_ids: string[];
+  is_personal: boolean;
   title: string;
   description: string | null;
   category: string | null;
@@ -93,6 +101,16 @@ const DISCOVERY_PROJECTION = `
     d.id,
     d.user_id,
     d.group_id,
+    d.is_personal,
+    COALESCE(
+      ARRAY(
+        SELECT dg.group_id::text
+        FROM discovery_groups dg
+        WHERE dg.discovery_id = d.id
+        ORDER BY dg.group_id
+      ),
+      ARRAY[]::text[]
+    ) AS group_ids,
     d.title,
     d.description,
     d.category,
@@ -119,16 +137,15 @@ export class DiscoveriesService {
   /**
    * The caller's personal map.
    *
-   * A personal discovery is identified by the absence of a group. Filtering
-   * on both ownership and group_id prevents discoveries recorded in a group
-   * from leaking onto their author's personal map.
+   * Personal visibility is independent from group sharing, so the same
+   * discovery can appear here and on one or more group maps.
    */
   async findAllByUser(userId: string): Promise<DiscoveryResponse[]> {
     const rows = await this.discoveries.query<DiscoveryRow[]>(
       `
       ${DISCOVERY_PROJECTION}
       WHERE d.user_id = $1
-        AND d.group_id IS NULL
+        AND d.is_personal
       ORDER BY d.created_at DESC, d.id DESC
     `,
       [userId],
@@ -148,7 +165,12 @@ export class DiscoveriesService {
     const rows = await this.discoveries.query<DiscoveryRow[]>(
       `
       ${DISCOVERY_PROJECTION}
-      WHERE d.group_id = $1
+      WHERE EXISTS (
+        SELECT 1
+        FROM discovery_groups dg
+        WHERE dg.discovery_id = d.id
+          AND dg.group_id = $1
+      )
       ORDER BY d.created_at DESC, d.id DESC
     `,
       [groupId],
@@ -161,12 +183,22 @@ export class DiscoveriesService {
     userId: string,
     dto: CreateDiscoveryDto,
   ): Promise<DiscoveryResponse> {
-    if (dto.groupId) {
+    const groupIds = this.normalizeGroupIds([
+      ...(dto.groupId ? [dto.groupId] : []),
+      ...(dto.groupIds ?? []),
+    ]);
+    const personal = dto.personal ?? dto.groupId == null;
+
+    if (!personal && groupIds.length === 0) {
+      throw new BadRequestException('Select at least one destination map.');
+    }
+
+    for (const groupId of groupIds) {
       // fk_discoveries_group_membership would catch this too, but as a raw
       // constraint violation — a 500 telling the client nothing. Checking here
       // makes a discovery aimed at someone else's group the same 404 as every
       // other way of touching it (NFR-19, NFR-25).
-      await this.groups.requireMembership(userId, dto.groupId);
+      await this.groups.requireMembership(userId, groupId);
     }
 
     const [row] = await this.discoveries.query<DiscoveryRow[]>(
@@ -174,8 +206,9 @@ export class DiscoveriesService {
         WITH point_geom AS (
           SELECT ST_SetSRID(ST_MakePoint($6, $7), 4326) AS geom
         ),
-        ${COUNTRY_LOOKUP_CTE}
-        INSERT INTO discoveries (
+        ${COUNTRY_LOOKUP_CTE},
+        inserted AS (
+          INSERT INTO discoveries (
           user_id,
           group_id,
           title,
@@ -184,28 +217,44 @@ export class DiscoveriesService {
           location,
           image_object_key,
           discovered_at,
-          country_code
+          country_code,
+          is_personal
+        )
+          SELECT
+            $1, $2, $3, $4, $5, point_geom.geom, $8, $9,
+            matched_country.a3, $10
+          FROM point_geom
+          LEFT JOIN matched_country ON true
+          RETURNING *
+        ),
+        shared AS (
+          INSERT INTO discovery_groups (discovery_id, group_id)
+          SELECT inserted.id, shared_group.group_id
+          FROM inserted
+          CROSS JOIN UNNEST($11::bigint[]) AS shared_group(group_id)
+          RETURNING group_id
         )
         SELECT
-          $1, $2, $3, $4, $5, point_geom.geom, $8, $9, matched_country.a3
-        FROM point_geom
-        LEFT JOIN matched_country ON true
-        RETURNING
-          id,
-          user_id,
-          group_id,
-          title,
-          description,
-          category,
-          ST_X(location) AS longitude,
-          ST_Y(location) AS latitude,
-          image_object_key,
-          (SELECT user_name FROM users
-            WHERE users.id = discoveries.user_id) AS author_user_name,
-          country_code,
-          discovered_at,
-          created_at,
-          updated_at
+          inserted.id,
+          inserted.user_id,
+          inserted.group_id,
+          inserted.is_personal,
+          ARRAY(
+            SELECT shared.group_id::text FROM shared ORDER BY shared.group_id
+          ) AS group_ids,
+          inserted.title,
+          inserted.description,
+          inserted.category,
+          ST_X(inserted.location) AS longitude,
+          ST_Y(inserted.location) AS latitude,
+          inserted.image_object_key,
+          users.user_name AS author_user_name,
+          inserted.country_code,
+          inserted.discovered_at,
+          inserted.created_at,
+          inserted.updated_at
+        FROM inserted
+        JOIN users ON users.id = inserted.user_id
       `,
       [
         userId,
@@ -217,6 +266,8 @@ export class DiscoveriesService {
         dto.latitude,
         dto.imageObjectKey,
         dto.discoveredAt,
+        personal,
+        groupIds,
       ],
     );
 
@@ -226,22 +277,8 @@ export class DiscoveriesService {
   async findOneByUser(id: string, userId: string): Promise<DiscoveryResponse> {
     const [row] = await this.discoveries.query<DiscoveryRow[]>(
       `
-        SELECT
-          id,
-          user_id,
-          group_id,
-          title,
-          description,
-          category,
-          ST_X(location) AS longitude,
-          ST_Y(location) AS latitude,
-          image_object_key,
-          country_code,
-          discovered_at,
-          created_at,
-          updated_at
-        FROM discoveries
-        WHERE id = $1 AND user_id = $2
+        ${DISCOVERY_PROJECTION}
+        WHERE d.id = $1 AND d.user_id = $2
       `,
       [id, userId],
     );
@@ -254,6 +291,25 @@ export class DiscoveriesService {
     userId: string,
     dto: UpdateDiscoveryDto,
   ): Promise<DiscoveryResponse> {
+    let nextGroupIds: string[] = [];
+    const replacesGroups = dto.groupIds !== undefined;
+    const replacesPersonal = dto.personal !== undefined;
+    if (replacesGroups || replacesPersonal) {
+      const existing = await this.findOneByUser(id, userId);
+      nextGroupIds = this.normalizeGroupIds(dto.groupIds ?? existing.groupIds);
+      const nextPersonal = dto.personal ?? existing.personal;
+
+      if (!nextPersonal && nextGroupIds.length === 0) {
+        throw new BadRequestException('Select at least one destination map.');
+      }
+    }
+
+    if (replacesGroups) {
+      for (const groupId of nextGroupIds) {
+        await this.groups.requireMembership(userId, groupId);
+      }
+    }
+
     const [row] = await this.discoveries.query<DiscoveryRow[]>(
       `
         WITH point_geom AS (
@@ -275,21 +331,57 @@ export class DiscoveriesService {
             description = CASE WHEN $4::boolean THEN $5 ELSE d.description END,
             category = COALESCE($6, d.category),
             location = point_geom.geom,
-            country_code = (SELECT a3 FROM matched_country)
+            country_code = (SELECT a3 FROM matched_country),
+            is_personal = CASE
+              WHEN $11::boolean THEN $12
+              ELSE d.is_personal
+            END
           FROM point_geom
           WHERE d.id = $1 AND d.user_id = $2
           RETURNING *
+        ),
+        added_groups AS (
+          INSERT INTO discovery_groups (discovery_id, group_id)
+          SELECT updated.id, shared_group.group_id
+          FROM updated
+          CROSS JOIN UNNEST($10::bigint[]) AS shared_group(group_id)
+          WHERE $9::boolean
+          ON CONFLICT (discovery_id, group_id) DO NOTHING
+          RETURNING group_id
+        ),
+        removed_groups AS (
+          DELETE FROM discovery_groups dg
+          USING updated
+          WHERE $9::boolean
+            AND dg.discovery_id = updated.id
+            AND NOT (dg.group_id = ANY($10::bigint[]))
+          RETURNING dg.group_id
         )
         SELECT
           id,
           user_id,
           group_id,
+          is_personal,
+          CASE
+            WHEN $9::boolean THEN $10::text[]
+            ELSE COALESCE(
+              ARRAY(
+                SELECT dg.group_id::text
+                FROM discovery_groups dg
+                WHERE dg.discovery_id = updated.id
+                ORDER BY dg.group_id
+              ),
+              ARRAY[]::text[]
+            )
+          END AS group_ids,
           title,
           description,
           category,
           ST_X(location) AS longitude,
           ST_Y(location) AS latitude,
           image_object_key,
+          (SELECT user_name FROM users WHERE users.id = updated.user_id)
+            AS author_user_name,
           country_code,
           discovered_at,
           created_at,
@@ -305,6 +397,10 @@ export class DiscoveriesService {
         dto.category ?? null,
         dto.longitude ?? null,
         dto.latitude ?? null,
+        replacesGroups,
+        nextGroupIds,
+        dto.personal !== undefined,
+        dto.personal ?? false,
       ],
     );
 
@@ -346,6 +442,8 @@ export class DiscoveriesService {
       id: row.id,
       userId: row.user_id,
       groupId: row.group_id,
+      groupIds: row.group_ids ?? [],
+      personal: row.is_personal,
       title: row.title,
       description: row.description,
       category: row.category,
@@ -358,5 +456,11 @@ export class DiscoveriesService {
       createdAt: createdAt.toISOString(),
       updatedAt: updatedAt.toISOString(),
     };
+  }
+
+  private normalizeGroupIds(groupIds: string[]): string[] {
+    return [...new Set(groupIds)].sort((left, right) =>
+      left.localeCompare(right, undefined, { numeric: true }),
+    );
   }
 }

@@ -166,7 +166,7 @@ export function MapPage({ active }: { active: boolean }) {
 
   return (
     <main
-      className={`fixed inset-0 overflow-hidden bg-[#e8e3d9] ${active ? 'visible' : 'invisible pointer-events-none'}`}
+      className={`fixed inset-0 overflow-hidden bg-[#e8e3d9] ${active ? 'visible opacity-100' : 'invisible pointer-events-none opacity-0'}`}
       inert={!active || undefined}
       aria-hidden={!active || undefined}
     >

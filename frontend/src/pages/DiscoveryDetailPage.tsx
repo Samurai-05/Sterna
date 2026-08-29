@@ -13,7 +13,6 @@ import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
-import { discoveryPath } from '@/lib/discovery-path'
 import { categoryLabel } from '@/lib/mock-data'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
@@ -150,7 +149,7 @@ export function DiscoveryDetailPage({
             <Button asChild variant="outline" className="mt-6 h-11 w-full">
               <Link
                 to={`/discoveries/${discovery.id}/edit`}
-                state={{ returnTo: discoveryPath(discovery.id, groupId) }}
+                state={{ returnTo }}
               >
                 Edit discovery
               </Link>

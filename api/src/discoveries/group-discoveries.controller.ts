@@ -34,8 +34,8 @@ export class GroupDiscoveriesController {
     description:
       'Every discovery recorded in this group, by any member, each carrying ' +
       'its author (FR-29, FR-31). Members only: a non-member is answered ' +
-      '404, and personal discoveries never appear here — only the ones ' +
-      'saved to this group do (NFR-25).',
+      '404. Only discoveries saved or explicitly shared to this group appear ' +
+      'here, whether or not they also remain personal (NFR-25).',
   })
   @ApiOkResponse({ description: 'The discoveries on the group map.' })
   @ApiNotFoundResponse({ description: GROUP_NOT_FOUND })

@@ -259,9 +259,9 @@ describe('GroupsService', () => {
 
       await service.remove('1', '7');
 
-      expect(
-        indexOfStatement('UPDATE discoveries SET group_id = NULL'),
-      ).toBeLessThan(indexOfStatement('DELETE FROM group_members'));
+      expect(indexOfStatement('UPDATE discoveries')).toBeLessThan(
+        indexOfStatement('DELETE FROM group_members'),
+      );
       expect(indexOfStatement('DELETE FROM group_members')).toBeLessThan(
         indexOfStatement('DELETE FROM groups'),
       );
@@ -293,6 +293,9 @@ describe('GroupsService', () => {
 
       expect(update?.[1]).toEqual(['2', '7']);
       expect(indexOfStatement('UPDATE discoveries')).toBeLessThan(
+        indexOfStatement('DELETE FROM group_members'),
+      );
+      expect(indexOfStatement('DELETE FROM discovery_groups')).toBeLessThan(
         indexOfStatement('DELETE FROM group_members'),
       );
     });

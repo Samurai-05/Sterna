@@ -1,4 +1,7 @@
 import {
+  ArrayUnique,
+  IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsLatitude,
@@ -14,6 +17,16 @@ export class CreateDiscoveryDto {
   @IsOptional()
   @Matches(/^\d+$/)
   groupId?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @Matches(/^\d+$/, { each: true })
+  groupIds?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  personal?: boolean;
 
   @IsString()
   @Length(1, 150)

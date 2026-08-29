@@ -5,6 +5,12 @@ export interface Discovery {
   id: number
   /** Absent on the local sample fixtures, always set on API data. */
   userId?: string
+  /** Original destination; null means the personal map. */
+  groupId?: string | null
+  /** Every group map this discovery is shared with. */
+  groupIds?: string[]
+  /** Whether the discovery also appears on its author's personal map. */
+  personal?: boolean
   name: string
   category: DiscoveryCategory
   location: string

@@ -54,9 +54,14 @@ export class PoisService {
               (
                 active_map.group_id IS NULL
                 AND discovery.user_id = $1
-                AND discovery.group_id IS NULL
+                AND discovery.is_personal
               )
-              OR discovery.group_id = active_map.group_id
+              OR EXISTS (
+                SELECT 1
+                FROM discovery_groups discovery_group
+                WHERE discovery_group.discovery_id = discovery.id
+                  AND discovery_group.group_id = active_map.group_id
+              )
             )
           ) AS discovered
         FROM pois poi

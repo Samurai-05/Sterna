@@ -1,18 +1,11 @@
-import {
-  Camera,
-  Check,
-  ImagePlus,
-  MapPin,
-  Search,
-  UserRound,
-  UsersRound,
-} from 'lucide-react'
+import { Camera, Check, ImagePlus, MapPin, Search } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { DiscoveryGroupSelector } from '@/components/DiscoveryGroupSelector'
 import {
   LocationPickerMap,
   type LocationPickerMapHandle,
@@ -26,7 +19,7 @@ import {
   uploadPhoto,
 } from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
-import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
+import { useActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
 import { getStoredMapViewport } from '@/lib/map-viewport'
 import { type SelectedPhoto } from '@/lib/photo-capture'
@@ -87,14 +80,23 @@ export function AddDiscoveryPage() {
   const [debouncedLocationQuery, setDebouncedLocationQuery] = useState('')
   const [showLocationResults, setShowLocationResults] = useState(false)
   const [formMessage, setFormMessage] = useState('')
+  const [sharedGroupIds, setSharedGroupIds] = useState<string[]>([])
+  const [includePersonal, setIncludePersonal] = useState(false)
 
   const { data: activeMap, isPending: isLoadingActiveMap } = useActiveMap()
-  const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
-  // Until the active map is known, and while a switch is still in flight, the
-  // destination is unsettled — saving now could file the discovery under the
-  // previous map.
-  const isDestinationSettled = !isLoadingActiveMap && !setActiveMap.isPending
+  const [destinationsTouched, setDestinationsTouched] = useState(false)
+  const selectedGroupIds = destinationsTouched
+    ? sharedGroupIds
+    : activeGroupId
+      ? [activeGroupId]
+      : []
+  const personalSelected = destinationsTouched
+    ? includePersonal
+    : activeGroupId === null
+  // Until the active map is known, saving could file the discovery under the
+  // personal map instead of its intended group.
+  const isDestinationSettled = !isLoadingActiveMap
   const { data: groups } = useQuery({
     queryKey: ['groups', session?.user.id],
     queryFn: () => getGroups(session!.accessToken),
@@ -201,9 +203,15 @@ export function AddDiscoveryPage() {
         throw new Error('Wait for the photo to finish uploading.')
       }
 
+      const primaryGroupId = selectedGroupIds[0] ?? null
+
       return createDiscovery({
         accessToken: session.accessToken,
-        groupId: activeGroupId,
+        groupId: primaryGroupId,
+        groupIds: selectedGroupIds.filter(
+          (groupId) => groupId !== primaryGroupId,
+        ),
+        personal: personalSelected,
         title,
         description: description.trim() || null,
         category,
@@ -224,7 +232,7 @@ export function AddDiscoveryPage() {
         queryKey: ['pois', session?.user.id],
       })
       queryClient.invalidateQueries({ queryKey: ['groups', session?.user.id] })
-      navigate(discoveryPath(discovery.id, activeGroupId), {
+      navigate(discoveryPath(discovery.id, discovery.groupId), {
         state: { returnTo: '/' },
         replace: true,
       })
@@ -262,6 +270,11 @@ export function AddDiscoveryPage() {
 
     if (!isDestinationSettled) {
       setFormMessage('Hold on, the destination map is still being set.')
+      return
+    }
+
+    if (!personalSelected && selectedGroupIds.length === 0) {
+      setFormMessage('Select at least one destination map.')
       return
     }
 
@@ -307,35 +320,21 @@ export function AddDiscoveryPage() {
       )}
       <form onSubmit={handleSubmit} className="space-y-6 px-5">
         <section className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-sm font-semibold">
-            Saving to:{' '}
-            {isLoadingActiveMap ? '...' : (activeMap?.name ?? 'Personal map')}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pick another destination to move this discovery, and your active
-            map, to it.
-          </p>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            <DestinationChip
-              active={activeGroupId === null}
-              disabled={setActiveMap.isPending}
-              onClick={() => setActiveMap.mutate(null)}
-            >
-              <UserRound className="size-4" />
-              Personal map
-            </DestinationChip>
-            {groups?.map((group) => (
-              <DestinationChip
-                key={group.id}
-                active={activeGroupId === group.id}
-                disabled={setActiveMap.isPending}
-                onClick={() => setActiveMap.mutate(group.id)}
-              >
-                <UsersRound className="size-4" />
-                {group.name}
-              </DestinationChip>
-            ))}
-          </div>
+          <DiscoveryGroupSelector
+            groups={groups}
+            selectedGroupIds={selectedGroupIds}
+            personalSelected={personalSelected}
+            onPersonalChange={(selected) => {
+              setSharedGroupIds(selectedGroupIds)
+              setIncludePersonal(selected)
+              setDestinationsTouched(true)
+            }}
+            onChange={(groupIds) => {
+              setSharedGroupIds(groupIds)
+              setIncludePersonal(personalSelected)
+              setDestinationsTouched(true)
+            }}
+          />
         </section>
         <section>
           <p className="mb-2 text-sm font-semibold">Photo</p>
@@ -492,17 +491,6 @@ export function AddDiscoveryPage() {
               </div>
             )}
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Place data ©{' '}
-            <a
-              href="https://www.openstreetmap.org/copyright"
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-            >
-              OpenStreetMap contributors
-            </a>
-          </p>
           <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
             <LocationPickerMap
               ref={locationPickerRef}
@@ -532,29 +520,5 @@ export function AddDiscoveryPage() {
         )}
       </form>
     </main>
-  )
-}
-
-function DestinationChip({
-  active,
-  disabled,
-  onClick,
-  children,
-}: {
-  active: boolean
-  disabled: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground'}`}
-    >
-      {children}
-    </button>
   )
 }

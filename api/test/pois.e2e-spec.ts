@@ -121,8 +121,8 @@ describe('PoisController (e2e)', () => {
 
     await dataSource.query(
       `INSERT INTO discoveries (
-        user_id, title, location, image_object_key, discovered_at
-      ) VALUES ($1, 'Near Eiffel Tower', ST_SetSRID(ST_MakePoint(2.2945, 48.8584), 4326), 'photos/eiffel.jpg', NOW())`,
+        user_id, title, location, image_object_key, discovered_at, is_personal
+      ) VALUES ($1, 'Near Eiffel Tower', ST_SetSRID(ST_MakePoint(2.2945, 48.8584), 4326), 'photos/eiffel.jpg', NOW(), TRUE)`,
       [userId],
     );
 

@@ -29,6 +29,8 @@ const discoveryExample = {
   id: '1',
   userId: '1',
   groupId: null,
+  groupIds: ['7', '12'],
+  personal: true,
   title: 'Vue sur le lac',
   description: 'Balade du dimanche',
   category: 'Landscape',
@@ -52,9 +54,8 @@ export class DiscoveriesController {
   @ApiOperation({
     summary: "List the signed-in user's discoveries",
     description:
-      'The personal map: discoveries authored by the caller whose groupId is ' +
-      'null. Discoveries recorded in a group remain exclusive to that shared ' +
-      'map. For a ' +
+      'The personal map: discoveries authored by the caller and selected for ' +
+      'personal visibility. A discovery may also be shared with groups. For a ' +
       "group's shared map, use GET /api/groups/{groupId}/discoveries.",
   })
   @ApiOkResponse({
@@ -87,8 +88,10 @@ export class DiscoveriesController {
       'Stores a discovery and writes its coordinates as a PostGIS Point. ' +
       'Send `groupId` to record it on a group map, or null/omit it for the ' +
       "personal map (FR-30) — the client's active map is what it should be " +
-      'sending, read from GET /api/active-map. A groupId the caller does not ' +
-      'belong to is answered 404.',
+      'sending, read from GET /api/active-map. Send `groupIds` to share the ' +
+      'same discovery with additional groups, and `personal: true` to keep it ' +
+      'on the personal map too. Any group the caller does not belong to is ' +
+      'answered 404.',
   })
   @ApiCreatedResponse({
     description: 'Discovery created.',
