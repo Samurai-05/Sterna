@@ -1,4 +1,11 @@
-import { LocateFixed, Search, UsersRound } from 'lucide-react'
+import {
+  Check,
+  ChevronDown,
+  LocateFixed,
+  Search,
+  UserRound,
+  UsersRound,
+} from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -12,7 +19,13 @@ import {
   landmarks,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
-import { getDiscoveries, getGroupDiscoveries, getPois } from '@/lib/api'
+import {
+  getDiscoveries,
+  getGroupDiscoveries,
+  getGroups,
+  getPois,
+  type GroupSummary,
+} from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
 import { getMapTarget } from '@/lib/map-target'
 import {
@@ -20,7 +33,7 @@ import {
   getStoredMapViewport,
   type MapViewport,
 } from '@/lib/map-viewport'
-import { useActiveMap } from '@/hooks/useActiveMap'
+import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
@@ -81,7 +94,13 @@ export function MapPage({ active }: { active: boolean }) {
   const userInitial =
     session?.user.userName.trim().charAt(0).toUpperCase() || '?'
   const { data: activeMap } = useActiveMap()
+  const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
+  const { data: groups } = useQuery({
+    queryKey: ['groups', session?.user.id],
+    queryFn: () => getGroups(session!.accessToken),
+    enabled: Boolean(session),
+  })
   // The map renders whichever destination is active: the personal map, or the
   // group's shared map with every member's discoveries.
   const { data: backendDiscoveries } = useQuery({
@@ -169,17 +188,17 @@ export function MapPage({ active }: { active: boolean }) {
         className="sterna-map-controls relative z-10 px-4 pt-4"
       >
         <div className="flex items-center gap-2">
-          <Link
-            to="/groups"
-            className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/75 bg-card/95 px-3 text-sm font-semibold shadow-sm backdrop-blur"
-          >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {activeGroupId ? <UsersRound className="size-4" /> : userInitial}
-            </span>
-            <span className="truncate">
-              {activeMap?.name ?? 'Personal map'}
-            </span>
-          </Link>
+          <ActiveMapSelector
+            activeGroupId={activeGroupId}
+            activeMapName={activeMap?.name ?? 'Personal map'}
+            groups={groups}
+            userInitial={userInitial}
+            isPending={setActiveMap.isPending}
+            isError={setActiveMap.isError}
+            onSelect={(groupId, onSuccess) =>
+              setActiveMap.mutate(groupId, { onSuccess })
+            }
+          />
           <Button
             asChild
             size="icon"
@@ -223,6 +242,173 @@ export function MapPage({ active }: { active: boolean }) {
         </Button>
       </div>
     </main>
+  )
+}
+
+function ActiveMapSelector({
+  activeGroupId,
+  activeMapName,
+  groups,
+  userInitial,
+  isPending,
+  isError,
+  onSelect,
+}: {
+  activeGroupId: string | null
+  activeMapName: string
+  groups: GroupSummary[] | undefined
+  userInitial: string
+  isPending: boolean
+  isError: boolean
+  onSelect: (groupId: string | null, onSuccess: () => void) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const selectorRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (!selectorRef.current?.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [isOpen])
+
+  function select(groupId: string | null) {
+    if (groupId === activeGroupId) {
+      setIsOpen(false)
+      return
+    }
+
+    onSelect(groupId, () => setIsOpen(false))
+  }
+
+  return (
+    <div ref={selectorRef} className="relative min-w-0 flex-1">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-controls="active-map-menu"
+        onClick={() => setIsOpen((open) => !open)}
+        className="flex h-16 w-full items-center gap-3 rounded-2xl border border-white/80 bg-card/95 px-4 text-left shadow-md backdrop-blur transition-colors hover:bg-card"
+      >
+        <MapChoiceIcon personal={!activeGroupId} active>
+          {activeGroupId ? (
+            <UsersRound className="size-5" />
+          ) : (
+            <span className="text-sm font-bold">{userInitial}</span>
+          )}
+        </MapChoiceIcon>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            Active map
+          </span>
+          <span className="mt-0.5 block truncate text-base font-semibold text-foreground">
+            {activeMapName}
+          </span>
+        </span>
+        <ChevronDown
+          className={`size-5 shrink-0 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          id="active-map-menu"
+          role="menu"
+          aria-label="Choose active map"
+          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-40 max-h-[min(24rem,calc(100dvh-8rem))] overflow-y-auto rounded-2xl border border-border/80 bg-card/95 shadow-xl backdrop-blur"
+        >
+          <MapMenuItem
+            active={activeGroupId === null}
+            disabled={isPending}
+            icon={<UserRound className="size-5" />}
+            name="Personal map"
+            onClick={() => select(null)}
+          />
+          {groups?.map((group) => (
+            <MapMenuItem
+              key={group.id}
+              active={activeGroupId === group.id}
+              disabled={isPending}
+              icon={<UsersRound className="size-5" />}
+              name={group.name}
+              onClick={() => select(group.id)}
+            />
+          ))}
+          {isError && (
+            <p role="status" className="border-t px-4 py-3 text-sm text-destructive">
+              Unable to change the active map.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MapMenuItem({
+  active,
+  disabled,
+  icon,
+  name,
+  onClick,
+}: {
+  active: boolean
+  disabled: boolean
+  icon: React.ReactNode
+  name: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitemradio"
+      aria-checked={active}
+      disabled={disabled}
+      onClick={onClick}
+      className={`flex min-h-16 w-full items-center gap-3 border-b border-border/70 px-4 text-left transition-colors last:border-b-0 disabled:opacity-60 ${active ? 'bg-green-50' : 'bg-card hover:bg-muted/70'}`}
+    >
+      <MapChoiceIcon personal={name === 'Personal map'} active={active}>
+        {icon}
+      </MapChoiceIcon>
+      <span className="min-w-0 flex-1 truncate text-base font-semibold">
+        {name}
+      </span>
+      {active && <Check className="size-5 shrink-0 text-primary" />}
+    </button>
+  )
+}
+
+function MapChoiceIcon({
+  personal,
+  active,
+  children,
+}: {
+  personal: boolean
+  active: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <span
+      className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${personal ? 'bg-violet-100 text-violet-800' : active ? 'bg-emerald-100 text-primary' : 'bg-[#fbf1ec] text-[#b8572b]'}`}
+    >
+      {children}
+    </span>
   )
 }
 

@@ -106,7 +106,21 @@ export function GroupDetailPage() {
     return <GroupMessage message="Unable to load this group." />
   }
 
-  const isOwner = group.role === 'owner'
+  const loadedGroup = group
+  const isOwner = loadedGroup.role === 'owner'
+
+  function activateGroup() {
+    setFormMessage('')
+    setActiveMap.mutate(loadedGroup.id, {
+      onSuccess: () => {
+        queryClient.setQueryData(['group', userId, loadedGroup.id], {
+          ...loadedGroup,
+          isActive: true,
+        })
+      },
+      onError: () => setFormMessage('Unable to activate this group.'),
+    })
+  }
 
   async function copyInviteCode(code: string) {
     try {
@@ -123,13 +137,27 @@ export function GroupDetailPage() {
         title="Group"
         backTo="/groups"
         action={
-          isOwner ? (
-            <Button asChild size="icon" variant="ghost" className="size-11">
-              <Link to={`/groups/${group.id}/edit`} aria-label="Edit group">
-                <Pencil className="size-5" />
-              </Link>
-            </Button>
-          ) : undefined
+          <div className="flex items-center gap-1">
+            {!group.isActive && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-10 px-3"
+                disabled={setActiveMap.isPending}
+                onClick={activateGroup}
+              >
+                <Map className="size-4" />
+                {setActiveMap.isPending ? 'Activating...' : 'Activate'}
+              </Button>
+            )}
+            {isOwner && (
+              <Button asChild size="icon" variant="ghost" className="size-11">
+                <Link to={`/groups/${group.id}/edit`} aria-label="Edit group">
+                  <Pencil className="size-5" />
+                </Link>
+              </Button>
+            )}
+          </div>
         }
       />
       <div className="space-y-6 px-5">
@@ -179,24 +207,11 @@ export function GroupDetailPage() {
           )}
         </section>
 
-        {group.isActive ? (
+        {group.isActive && (
           <p className="flex h-12 items-center justify-center gap-2 rounded-xl border border-primary/20 bg-green-50 text-sm font-semibold text-primary">
             <Check className="size-4" />
             This is your active map
           </p>
-        ) : (
-          <Button
-            className="h-12 w-full"
-            disabled={setActiveMap.isPending}
-            onClick={() =>
-              setActiveMap.mutate(group.id, {
-                onSuccess: () => navigate('/'),
-              })
-            }
-          >
-            <Map className="size-4" />
-            {setActiveMap.isPending ? 'Switching...' : 'Set as active map'}
-          </Button>
         )}
 
         <section>

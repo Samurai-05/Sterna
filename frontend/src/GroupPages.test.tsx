@@ -90,28 +90,64 @@ describe('groups list', () => {
     ).toBeGreaterThan(0)
   })
 
-  it('marks the personal map as active when no group is active', async () => {
+  it('shows the personal map and marks it active', async () => {
     renderAt('/groups')
 
-    const personal = await screen.findByRole('button', { name: /Personal map/ })
-    expect(personal).toHaveAttribute('aria-current', 'true')
-    expect(personal).toBeDisabled()
+    const personalMap = await screen.findByLabelText('Personal map')
+    await waitFor(() =>
+      expect(personalMap).toHaveAttribute('aria-current', 'true'),
+    )
+    expect(personalMap).toHaveTextContent('Your private discoveries')
   })
 
-  it('switches the active map when another destination is picked', async () => {
-    api.setActiveMap.mockResolvedValue({ groupId: '12', name: 'Paris Weekend' })
+  it('activates the personal map directly from the maps list', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
+    api.getGroups.mockResolvedValue([{ ...ownedGroup, isActive: true }])
+    api.setActiveMap.mockResolvedValue({ groupId: null, name: null })
     renderAt('/groups')
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /Paris Weekend/ }),
-    )
+    const activatePersonalMap = await screen.findByRole('button', {
+      name: 'Activate personal map',
+    })
+    await waitFor(() => expect(activatePersonalMap).toBeEnabled())
+    fireEvent.click(activatePersonalMap)
 
     await waitFor(() =>
       expect(api.setActiveMap).toHaveBeenCalledWith({
         accessToken: 'test-token',
-        groupId: '12',
+        groupId: null,
       }),
     )
+    expect(await screen.findByLabelText('Personal map')).toHaveAttribute(
+      'aria-current',
+      'true',
+    )
+  })
+
+  it('highlights the active group without activating it from the list', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
+    api.getGroups.mockResolvedValue([{ ...ownedGroup, isActive: true }])
+    renderAt('/groups')
+
+    const group = await screen.findByRole('link', { name: /Paris Weekend/ })
+    expect(group).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByText('Active')).toBeInTheDocument()
+    expect(api.setActiveMap).not.toHaveBeenCalled()
+  })
+
+  it('opens a group without activating it from the groups tab', async () => {
+    renderAt('/groups')
+
+    fireEvent.click(await screen.findByRole('link', { name: /Paris Weekend/ }))
+
+    expect(await screen.findByText('AB3K-9QZ2')).toBeInTheDocument()
+    expect(api.setActiveMap).not.toHaveBeenCalled()
   })
 
   it('invites the user to create or join when they have no group', async () => {
@@ -121,6 +157,36 @@ describe('groups list', () => {
     expect(
       await screen.findByText(/You are not in any group yet/),
     ).toBeInTheDocument()
+  })
+})
+
+describe('map group selector', () => {
+  it('switches maps directly without opening the groups tab', async () => {
+    api.setActiveMap.mockResolvedValue({ groupId: '12', name: 'Paris Weekend' })
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    fireEvent.click(selector)
+    fireEvent.click(
+      await screen.findByRole('menuitemradio', { name: 'Paris Weekend' }),
+    )
+
+    await waitFor(() =>
+      expect(api.setActiveMap).toHaveBeenCalledWith({
+        accessToken: 'test-token',
+        groupId: '12',
+      }),
+    )
+    await waitFor(() => expect(selector).toHaveTextContent('Paris Weekend'))
+    expect(
+      screen.queryByRole('menu', { name: 'Choose active map' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Explore map' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Groups' }),
+    ).not.toBeInTheDocument()
   })
 })
 
@@ -139,7 +205,9 @@ describe('group detail', () => {
     renderAt('/groups/99')
 
     expect(await screen.findByText('Group not found.')).toBeInTheDocument()
-    expect(screen.queryByText('Paris Weekend')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Paris Weekend' }),
+    ).not.toBeInTheDocument()
   })
 
   it('offers the owner a delete action instead of leaving', async () => {
@@ -162,6 +230,27 @@ describe('group detail', () => {
     ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /Delete group/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('activates the group from the header and stays on its detail page', async () => {
+    api.setActiveMap.mockResolvedValue({ groupId: '12', name: 'Paris Weekend' })
+    renderAt('/groups/12')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Activate' }))
+
+    await waitFor(() =>
+      expect(api.setActiveMap).toHaveBeenCalledWith({
+        accessToken: 'test-token',
+        groupId: '12',
+      }),
+    )
+    expect(await screen.findByText('This is your active map')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Group' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Activate' }),
     ).not.toBeInTheDocument()
   })
 })
