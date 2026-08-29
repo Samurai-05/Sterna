@@ -104,7 +104,7 @@ describe('authentication pages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Skip' }))
 
     expect(
-      await screen.findByRole('heading', { name: 'Explore Paris' }),
+      await screen.findByRole('heading', { name: 'Explore map' }),
     ).toBeInTheDocument()
     expect(window.localStorage.getItem('sterna.auth')).toContain(
       'dev-skip-token',
@@ -199,7 +199,7 @@ describe('authentication pages', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Log in' }))
 
-    await screen.findByRole('heading', { name: 'Explore Paris' })
+    await screen.findByRole('heading', { name: 'Explore map' })
     expect(window.localStorage.getItem('sterna.auth')).toContain('test-token')
   })
 })

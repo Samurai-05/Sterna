@@ -52,14 +52,13 @@ export class DiscoveriesController {
   @ApiOperation({
     summary: "List the signed-in user's discoveries",
     description:
-      'The personal map: every discovery the caller authored, extracted with ' +
-      'PostGIS. Discoveries the caller recorded in a group are included — ' +
-      "they belong to the group map *and* stay on their author's own map — " +
-      "while other members' discoveries never appear here (NFR-24). For a " +
+      'The personal map: discoveries authored by the caller whose groupId is ' +
+      'null. Discoveries recorded in a group remain exclusive to that shared ' +
+      'map. For a ' +
       "group's shared map, use GET /api/groups/{groupId}/discoveries.",
   })
   @ApiOkResponse({
-    description: 'Discoveries authored by the signed-in user.',
+    description: "The signed-in user's personal discoveries.",
     schema: { example: [discoveryExample] },
   })
   findAll(

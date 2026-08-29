@@ -100,7 +100,10 @@ export function MapPage({ active }: { active: boolean }) {
     enabled: Boolean(session),
     staleTime: 5 * 60 * 1000,
   })
-  const sourceDiscoveries = backendDiscoveries ?? discoveries
+  // Sample discoveries are only for the signed-out demo. Showing them while
+  // an authenticated query loads or fails makes them look like real personal
+  // discoveries and can visually leak data between map contexts.
+  const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
   const exploredCountryCodes = useMemo(
     () => [
       ...new Set(sourceDiscoveries.map((discovery) => discovery.countryCode)),

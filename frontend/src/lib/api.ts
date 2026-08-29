@@ -158,7 +158,12 @@ export async function getDiscoveries(
     },
   })
 
-  return discoveries.map(toDiscovery)
+  // Keep the personal-map boundary on the client as well as in the API. This
+  // prevents an old/cached API response from reintroducing group discoveries
+  // into the personal map after the server-side fix.
+  return discoveries
+    .filter((discovery) => discovery.groupId === null)
+    .map(toDiscovery)
 }
 
 export function searchLocations(
@@ -487,7 +492,11 @@ export async function getGroupDiscoveries(
     { headers: { Authorization: `Bearer ${accessToken}` } },
   )
 
-  return discoveries.map(toDiscovery)
+  // Be equally strict in the other direction: a personal discovery can never
+  // be rendered as part of a group response.
+  return discoveries
+    .filter((discovery) => discovery.groupId === groupId)
+    .map(toDiscovery)
 }
 
 export function getActiveMap(accessToken: string): Promise<ActiveMap> {

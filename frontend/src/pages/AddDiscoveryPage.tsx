@@ -25,6 +25,7 @@ import {
   searchLocations,
   uploadPhoto,
 } from '@/lib/api'
+import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
 import { getStoredMapViewport } from '@/lib/map-viewport'
@@ -213,7 +214,6 @@ export function AddDiscoveryPage() {
       })
     },
     onSuccess: (discovery) => {
-      // A group discovery lives on two maps: the group's and its author's own.
       queryClient.invalidateQueries({
         queryKey: ['discoveries', session?.user.id],
       })
@@ -224,7 +224,7 @@ export function AddDiscoveryPage() {
         queryKey: ['pois', session?.user.id],
       })
       queryClient.invalidateQueries({ queryKey: ['groups', session?.user.id] })
-      navigate(`/discoveries/${discovery.id}`, {
+      navigate(discoveryPath(discovery.id, activeGroupId), {
         state: { returnTo: '/' },
         replace: true,
       })
