@@ -10,6 +10,7 @@ import {
   defaultMapViewport,
   getStoredMapViewport,
   saveMapViewport,
+  type MapViewport,
 } from '@/lib/map-viewport'
 import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
 
@@ -37,6 +38,7 @@ const disputedZoneClaims: Record<string, string[]> = {
 export interface MapCanvasHandle {
   locate: () => void
   resize: () => void
+  flyTo: (coordinates: [number, number], zoom?: number) => void
 }
 
 export interface DiscoveryMarkerData {
@@ -79,6 +81,7 @@ function createPhotoPreviewElement(
 }
 
 interface MapCanvasProps {
+  initialViewport?: MapViewport
   discoveries?: DiscoveryMarkerData[]
   landmarks?: LandmarkMarkerData[]
   exploredCountryCodes?: string[]
@@ -96,11 +99,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       onSelectDiscovery,
       onSelectLandmark,
       photoAccessToken,
+      initialViewport,
     },
     ref,
   ) {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<Map | null>(null)
+    const pendingTarget = useRef<{
+      coordinates: [number, number]
+      zoom: number
+    } | null>(null)
     const geolocateControl = useRef<GeolocateControl | null>(null)
     const exploredCodes = useRef<string[]>(exploredCountryCodes)
     const appliedCodes = useRef<Set<string>>(new Set())
@@ -109,6 +117,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
     useImperativeHandle(ref, () => ({
       locate: () => geolocateControl.current?.trigger(),
       resize: () => map.current?.resize(),
+      flyTo: (coordinates, zoom = 15) => {
+        if (map.current) {
+          map.current.flyTo({ center: coordinates, zoom })
+        } else {
+          pendingTarget.current = { coordinates, zoom }
+        }
+      },
     }))
 
     useEffect(() => {
@@ -116,7 +131,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         return
       }
 
-      const viewport = getStoredMapViewport() ?? defaultMapViewport
+      const viewport =
+        initialViewport ?? getStoredMapViewport() ?? defaultMapViewport
       const instance = new Map({
         container: mapContainer.current,
         style: mapStyle,
@@ -227,6 +243,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       })
 
       map.current = instance
+      if (pendingTarget.current) {
+        instance.flyTo({
+          center: pendingTarget.current.coordinates,
+          zoom: pendingTarget.current.zoom,
+        })
+        pendingTarget.current = null
+      }
 
       return () => {
         saveCurrentViewport()
@@ -237,7 +260,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         map.current = null
         instance.remove()
       }
-    }, [])
+    }, [initialViewport])
 
     useEffect(() => {
       exploredCodes.current = exploredCountryCodes

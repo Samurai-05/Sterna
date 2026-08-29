@@ -5,6 +5,23 @@ import App from './App'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
 
+vi.mock('@/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api')>()
+  const { discoveries, landmarks } = await import('@/lib/mock-data')
+
+  return {
+    ...actual,
+    getCurrentUser: vi.fn().mockResolvedValue({
+      id: '1',
+      email: 'explorer@sterna.app',
+      userName: 'Explorer',
+      createdAt: '2026-08-26T08:00:00.000Z',
+    }),
+    getDiscoveries: vi.fn().mockResolvedValue(discoveries),
+    getPois: vi.fn().mockResolvedValue(landmarks),
+  }
+})
+
 const { mapCanvasLifecycle } = vi.hoisted(() => ({
   mapCanvasLifecycle: { mounts: 0, unmounts: 0, resizes: 0 },
 }))
@@ -14,8 +31,11 @@ vi.mock('@/components/MapCanvas', async () => {
 
   return {
     MapCanvas: React.forwardRef<
-      { locate: () => void; resize: () => void },
-      { onSelectDiscovery?: (id: number) => void }
+      { locate: () => void; resize: () => void; flyTo: () => void },
+      {
+        initialViewport?: { center: [number, number]; zoom: number }
+        onSelectDiscovery?: (id: number) => void
+      }
     >(function MapCanvasMock({ onSelectDiscovery }, ref) {
       React.useEffect(() => {
         mapCanvasLifecycle.mounts += 1
@@ -28,6 +48,7 @@ vi.mock('@/components/MapCanvas', async () => {
         ref,
         () => ({
           locate: () => {},
+          flyTo: () => {},
           resize: () => {
             mapCanvasLifecycle.resizes += 1
           },
@@ -164,7 +185,7 @@ describe('App', () => {
     renderWithProviders(<App />, { route: '/' })
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+      screen.getByRole('heading', { level: 1, name: 'Explore map' }),
     ).toBeInTheDocument()
   })
 
@@ -183,7 +204,7 @@ describe('App', () => {
       name: 'View discovery 1',
     })
     const mapPage = screen
-      .getByRole('heading', { level: 1, name: 'Explore Paris' })
+      .getByRole('heading', { level: 1, name: 'Explore map' })
       .closest('main')!
 
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
@@ -222,7 +243,7 @@ describe('App', () => {
   it('keeps one map canvas through authenticated navigation and resizes it on return', () => {
     renderWithProviders(<App />, { route: '/' })
     const mapPage = screen
-      .getByRole('heading', { level: 1, name: 'Explore Paris' })
+      .getByRole('heading', { level: 1, name: 'Explore map' })
       .closest('main')!
 
     expect(mapCanvasLifecycle).toEqual({ mounts: 1, unmounts: 0, resizes: 1 })
@@ -300,7 +321,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+      screen.getByRole('heading', { level: 1, name: 'Explore map' }),
     ).toBeInTheDocument()
   })
 
@@ -317,7 +338,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+      screen.getByRole('heading', { level: 1, name: 'Explore map' }),
     ).toBeInTheDocument()
   })
 
@@ -352,7 +373,7 @@ describe('App', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renders the profile exploration summary and supporting details', () => {
+  it('renders the profile exploration summary and supporting details', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     expect(
@@ -383,7 +404,7 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: 'Recent' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Street in Le Marais')).toBeInTheDocument()
+    expect(await screen.findByText('Street in Le Marais')).toBeInTheDocument()
     expect(
       screen.getByText('2 / 2 points of interest discovered'),
     ).toBeInTheDocument()
@@ -399,13 +420,15 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows each category as a labeled mobile-friendly progress row', () => {
+  it('shows each category as a labeled mobile-friendly progress row', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const categorySection = screen.getByRole('region', {
       name: 'Discoveries by category',
     })
-    const progressBars = within(categorySection).getAllByRole('progressbar')
+    const progressBars = await within(categorySection).findAllByRole(
+      'progressbar',
+    )
 
     expect(progressBars).toHaveLength(5)
     expect(

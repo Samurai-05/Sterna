@@ -120,6 +120,15 @@ export interface UploadPhotoResponse {
   } | null
 }
 
+export interface LocationSearchResult {
+  id: string
+  label: string
+  type: string
+  longitude: number
+  latitude: number
+  zoom: number
+}
+
 const categoryByApiValue: Record<string, DiscoveryCategory> = {
   Landscape: 'landscape',
   Monument: 'monument',
@@ -155,6 +164,16 @@ export async function getDiscoveries(
   return discoveries
     .filter((discovery) => discovery.groupId === null)
     .map(toDiscovery)
+}
+
+export function searchLocations(
+  accessToken: string,
+  query: string,
+): Promise<LocationSearchResult[]> {
+  return request<LocationSearchResult[]>(
+    `/api/geocoding/search?q=${encodeURIComponent(query)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
 }
 
 export async function getDiscovery(
