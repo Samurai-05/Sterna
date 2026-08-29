@@ -14,8 +14,11 @@ vi.mock('@/components/MapCanvas', async () => {
 
   return {
     MapCanvas: React.forwardRef<
-      { locate: () => void; resize: () => void },
-      { onSelectDiscovery?: (id: number) => void }
+      { locate: () => void; resize: () => void; flyTo: () => void },
+      {
+        initialViewport?: { center: [number, number]; zoom: number }
+        onSelectDiscovery?: (id: number) => void
+      }
     >(function MapCanvasMock({ onSelectDiscovery }, ref) {
       React.useEffect(() => {
         mapCanvasLifecycle.mounts += 1
@@ -28,6 +31,7 @@ vi.mock('@/components/MapCanvas', async () => {
         ref,
         () => ({
           locate: () => {},
+          flyTo: () => {},
           resize: () => {
             mapCanvasLifecycle.resizes += 1
           },
@@ -164,7 +168,7 @@ describe('App', () => {
     renderWithProviders(<App />, { route: '/' })
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+      screen.getByRole('heading', { level: 1, name: 'Explore map' }),
     ).toBeInTheDocument()
   })
 
@@ -183,7 +187,7 @@ describe('App', () => {
       name: 'View discovery 1',
     })
     const mapPage = screen
-      .getByRole('heading', { level: 1, name: 'Explore Paris' })
+      .getByRole('heading', { level: 1, name: 'Explore map' })
       .closest('main')!
 
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
@@ -222,7 +226,7 @@ describe('App', () => {
   it('keeps one map canvas through authenticated navigation and resizes it on return', () => {
     renderWithProviders(<App />, { route: '/' })
     const mapPage = screen
-      .getByRole('heading', { level: 1, name: 'Explore Paris' })
+      .getByRole('heading', { level: 1, name: 'Explore map' })
       .closest('main')!
 
     expect(mapCanvasLifecycle).toEqual({ mounts: 1, unmounts: 0, resizes: 1 })
@@ -300,7 +304,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+      screen.getByRole('heading', { level: 1, name: 'Explore map' }),
     ).toBeInTheDocument()
   })
 
@@ -317,7 +321,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Explore Paris' }),
+      screen.getByRole('heading', { level: 1, name: 'Explore map' }),
     ).toBeInTheDocument()
   })
 

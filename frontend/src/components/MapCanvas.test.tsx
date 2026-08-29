@@ -9,6 +9,7 @@ const { mapInstances, MockGeolocateControl, MockMap, MockNavigationControl } =
       controls: unknown[]
       emit: (event: string) => void
       resizeCalls: number
+      flyToCalls: Array<{ center: [number, number]; zoom: number }>
     }> = []
 
     class NavigationControl {}
@@ -21,6 +22,7 @@ const { mapInstances, MockGeolocateControl, MockMap, MockNavigationControl } =
       options: { center: [number, number]; zoom: number }
       controls: unknown[] = []
       resizeCalls = 0
+      flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
       listeners = new Map<string, () => void>()
 
       constructor(options: { center: [number, number]; zoom: number }) {
@@ -61,6 +63,10 @@ const { mapInstances, MockGeolocateControl, MockMap, MockNavigationControl } =
 
       resize() {
         this.resizeCalls += 1
+      }
+
+      flyTo(options: { center: [number, number]; zoom: number }) {
+        this.flyToCalls.push(options)
       }
 
       remove() {}
@@ -147,6 +153,21 @@ describe('MapCanvas', () => {
     expect(mapInstances[0].resizeCalls).toBe(1)
   })
 
+  it('flies to a selected search result', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+    const mapRef = createRef<MapCanvasHandle>()
+
+    render(<MapCanvas ref={mapRef} />)
+    mapRef.current?.flyTo([6.6327, 46.5218], 12)
+
+    expect(mapInstances[0].flyToCalls).toEqual([
+      { center: [6.6327, 46.5218], zoom: 12 },
+    ])
+  })
+
   it('does not add MapLibre zoom controls while keeping geolocation controls', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
@@ -186,6 +207,22 @@ describe('MapCanvas', () => {
     expect(mapInstances[1].options).toMatchObject({
       center: [7.4474, 46.948],
       zoom: 15.5,
+    })
+  })
+
+  it('uses the current position supplied for a first map opening', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas initialViewport={{ center: [7.4474, 46.948], zoom: 13 }} />,
+    )
+
+    expect(mapInstances[0].options).toMatchObject({
+      center: [7.4474, 46.948],
+      zoom: 13,
     })
   })
 })
