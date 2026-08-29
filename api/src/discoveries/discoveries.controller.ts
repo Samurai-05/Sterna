@@ -54,7 +54,7 @@ export class DiscoveriesController {
     description:
       'The personal map: discoveries authored by the caller whose groupId is ' +
       'null. Discoveries recorded in a group remain exclusive to that shared ' +
-      "map. For a " +
+      'map. For a ' +
       "group's shared map, use GET /api/groups/{groupId}/discoveries.",
   })
   @ApiOkResponse({
