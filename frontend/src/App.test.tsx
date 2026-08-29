@@ -1,7 +1,9 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
+import { getPois } from '@/lib/api'
+import { landmarks } from '@/lib/mock-data'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
 
@@ -34,9 +36,14 @@ vi.mock('@/components/MapCanvas', async () => {
       { locate: () => void; resize: () => void; flyTo: () => void },
       {
         initialViewport?: { center: [number, number]; zoom: number }
+        discoveries?: unknown[]
+        landmarks?: unknown[]
         onSelectDiscovery?: (id: number) => void
       }
-    >(function MapCanvasMock({ onSelectDiscovery }, ref) {
+    >(function MapCanvasMock(
+      { discoveries = [], landmarks = [], onSelectDiscovery },
+      ref,
+    ) {
       React.useEffect(() => {
         mapCanvasLifecycle.mounts += 1
         return () => {
@@ -63,6 +70,8 @@ vi.mock('@/components/MapCanvas', async () => {
           onClick={() => onSelectDiscovery?.(1)}
         >
           Map canvas
+          <span data-testid="map-discovery-count">{discoveries.length}</span>
+          <span data-testid="map-poi-count">{landmarks.length}</span>
         </button>
       )
     }),
@@ -189,6 +198,35 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
+  it('filters the map down to POIs or one discovery category', async () => {
+    renderWithProviders(<App />, { route: '/' })
+
+    await waitFor(() =>
+      expect(
+        Number(screen.getByTestId('map-poi-count').textContent),
+      ).toBeGreaterThan(0),
+    )
+
+    const poiFilter = screen.getByRole('button', { name: 'POIs' })
+    expect(poiFilter).toHaveClass('bg-card/95')
+    fireEvent.click(poiFilter)
+    expect(poiFilter).toHaveClass('bg-[#FEF9C3]', 'ring-[#EAB308]')
+    expect(screen.getByTestId('map-discovery-count')).toHaveTextContent('0')
+    expect(
+      Number(screen.getByTestId('map-poi-count').textContent),
+    ).toBeGreaterThan(0)
+
+    const animalFilter = screen.getByRole('button', { name: 'Animal' })
+    expect(animalFilter).toHaveClass('bg-card/95')
+    expect(animalFilter).not.toHaveClass('bg-[#CFFAFE]')
+    fireEvent.click(animalFilter)
+    expect(animalFilter).toHaveClass('bg-[#CFFAFE]', 'ring-[#0891B2]', 'ring-2')
+    expect(
+      Number(screen.getByTestId('map-discovery-count').textContent),
+    ).toBeGreaterThan(0)
+    expect(screen.getByTestId('map-poi-count')).toHaveTextContent('0')
+  })
+
   it('keeps map controls below the status bar inset', () => {
     renderWithProviders(<App />, { route: '/' })
 
@@ -235,6 +273,56 @@ describe('App', () => {
   it('renders the collection through its application route', () => {
     renderWithProviders(<App />, { route: '/collection' })
 
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+    ).toBeInTheDocument()
+    const foodFilter = screen.getByRole('button', { name: 'Food' })
+    expect(foodFilter).toHaveClass('bg-card')
+    fireEvent.click(foodFilter)
+    expect(foodFilter).toHaveClass('bg-[#FFEDD5]', 'ring-[#EA580C]')
+  })
+
+  it('shows only discovered POIs in the collection and filters them', async () => {
+    vi.mocked(getPois).mockResolvedValueOnce([
+      landmarks[0],
+      { ...landmarks[1], discovered: false },
+    ])
+    renderWithProviders(<App />, { route: '/collection' })
+    const collectionPage = screen
+      .getByRole('heading', { level: 1, name: 'Your discoveries' })
+      .closest('main')!
+
+    expect(
+      await within(collectionPage).findByRole('link', {
+        name: /Eiffel Tower/,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(collectionPage).queryByRole('link', {
+        name: /Arc de Triomphe/,
+      }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(
+      within(collectionPage).getByRole('button', { name: 'POIs' }),
+    )
+    expect(
+      within(collectionPage).getByRole('button', { name: 'POIs' }),
+    ).toHaveClass('bg-[#FEF9C3]', 'ring-[#EAB308]')
+
+    expect(
+      within(collectionPage).queryByText('Street in Le Marais'),
+    ).not.toBeInTheDocument()
+    expect(within(collectionPage).getByText('1 POI')).toBeInTheDocument()
+
+    fireEvent.click(
+      within(collectionPage).getByRole('link', { name: /Eiffel Tower/ }),
+    )
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Point of interest' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
     expect(
       screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
     ).toBeInTheDocument()
@@ -298,6 +386,9 @@ describe('App', () => {
 
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
 
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Open account settings' }),
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
 
     expect(
@@ -389,22 +480,41 @@ describe('App', () => {
     const accountButton = screen.getByRole('button', {
       name: 'Open account settings',
     })
-    expect(accountButton).toHaveClass('size-[68px]')
+    expect(accountButton).toHaveClass('size-14', 'text-[22px]')
     expect(accountButton).toHaveClass('-translate-x-2.5')
     expect(within(accountButton).getByText('E')).toBeInTheDocument()
-    expect(screen.getByText('Explorer · Since 2026')).toHaveClass('mt-2')
     expect(
-      within(screen.getByLabelText('Exploration statistics')).getByText(
-        'Countries',
-      ).parentElement,
-    ).toHaveClass('before:h-10', 'before:bg-white/15')
-    expect(screen.getByText('Discoveries')).toBeInTheDocument()
-    expect(screen.getByText('Countries')).toBeInTheDocument()
-    expect(screen.getByText('POIs')).toBeInTheDocument()
+      screen.queryByRole('button', { name: 'Log out' }),
+    ).not.toBeInTheDocument()
+    fireEvent.click(accountButton)
+    const accountSheet = screen.getByRole('dialog', { name: 'Account' })
+    expect(accountSheet).toHaveClass(
+      'max-h-[calc(100dvh-1rem)]',
+      'overflow-y-auto',
+      'touch-pan-y',
+    )
+    expect(accountSheet.parentElement).toHaveClass('z-[70]')
+    expect(
+      within(accountSheet).getByRole('button', { name: 'Log out' }),
+    ).toBeInTheDocument()
+    expect(within(accountSheet).getByText('Active')).toBeInTheDocument()
+    expect(
+      within(screen.getByLabelText('Profile overview')).getByText(
+        'Explorer · Since 2026',
+      ),
+    ).toHaveClass('mt-2')
+    expect(
+      screen.queryByLabelText('Exploration statistics'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'POIs' }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { level: 2, name: 'Recent' }),
     ).toBeInTheDocument()
-    expect(await screen.findByText('Street in Le Marais')).toBeInTheDocument()
+    expect(
+      (await screen.findByText('Street in Le Marais')).closest('a'),
+    ).toHaveClass('w-[min(68vw,16rem)]')
     expect(
       screen.getByText('2 / 2 points of interest discovered'),
     ).toBeInTheDocument()
@@ -420,31 +530,55 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows each category as a labeled mobile-friendly progress row', async () => {
+  it('shows absolute category counts without suggesting a maximum', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const categorySection = screen.getByRole('region', {
       name: 'Discoveries by category',
     })
-    const progressBars = await within(categorySection).findAllByRole(
-      'progressbar',
-    )
-
-    expect(progressBars).toHaveLength(5)
     expect(
-      within(categorySection).getByRole('progressbar', {
-        name: 'Monument discoveries: 2',
+      within(categorySection).getByRole('img', {
+        name: 'Distribution of discoveries by category',
       }),
-    ).toHaveAttribute('aria-valuenow', '100')
-    const landscapeProgress = within(categorySection).getByRole('progressbar', {
-      name: 'Landscape discoveries: 1',
-    })
-    expect(landscapeProgress).toHaveAttribute('aria-valuenow', '50')
-    expect(landscapeProgress).toHaveAttribute(
-      'aria-valuetext',
-      '1 discovery in Landscape',
-    )
-    expect(within(categorySection).getByText('Landscape')).toBeInTheDocument()
+    ).toBeInTheDocument()
+    expect(
+      await within(categorySection).findByLabelText('Monument: 2 discoveries'),
+    ).toBeInTheDocument()
+    expect(
+      within(categorySection).getByLabelText('Landscape: 1 discovery'),
+    ).toBeInTheDocument()
+    expect(
+      within(categorySection).queryByRole('progressbar'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('orders profile sections and gives them matching title styles', () => {
+    renderWithProviders(<App />, { route: '/profile' })
+
+    const profilePage = screen
+      .getByRole('region', { name: 'Profile overview' })
+      .closest('main')!
+    const sectionTitles = within(profilePage)
+      .getAllByRole('heading', { level: 2 })
+      .map((heading) => heading.textContent)
+
+    expect(sectionTitles).toEqual([
+      'Explorer',
+      'POIs',
+      'Discoveries by category',
+      'Countries explored',
+      'Recent',
+    ])
+    for (const title of [
+      'POIs',
+      'Discoveries by category',
+      'Countries explored',
+      'Recent',
+    ]) {
+      expect(
+        within(profilePage).getByRole('heading', { level: 2, name: title }),
+      ).toHaveClass('font-display', 'text-[22px]', 'leading-7')
+    }
   })
 
   it('links from recent discoveries to the collection', () => {
@@ -456,15 +590,14 @@ describe('App', () => {
     )
   })
 
-  it('groups identity and primary statistics in the profile overview', () => {
+  it('keeps the profile overview focused on identity', () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const overview = screen.getByRole('region', { name: 'Profile overview' })
 
     expect(within(overview).getByText('Explorer')).toBeInTheDocument()
-    expect(within(overview).getByText('Discoveries')).toBeInTheDocument()
-    expect(within(overview).getByText('Countries')).toBeInTheDocument()
-    expect(within(overview).getByText('POIs')).toBeInTheDocument()
+    expect(within(overview).queryByText('Discoveries')).not.toBeInTheDocument()
+    expect(within(overview).queryByText('Countries')).not.toBeInTheDocument()
   })
 
   it('labels the profile destination Me in the bottom navigation', () => {

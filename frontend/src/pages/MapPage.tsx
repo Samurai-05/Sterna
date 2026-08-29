@@ -2,6 +2,7 @@ import {
   Check,
   ChevronDown,
   LocateFixed,
+  MapPinned,
   Search,
   UserRound,
   UsersRound,
@@ -27,6 +28,11 @@ import {
   type GroupSummary,
 } from '@/lib/api'
 import { discoveryPath } from '@/lib/discovery-path'
+import {
+  categoryAppearance,
+  poiAppearance,
+  type CategoryAppearance,
+} from '@/lib/category-appearance'
 import { getMapTarget } from '@/lib/map-target'
 import {
   defaultMapViewport,
@@ -38,8 +44,9 @@ import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
 export function MapPage({ active }: { active: boolean }) {
-  const [activeCategory, setActiveCategory] =
-    useState<DiscoveryCategory | null>(null)
+  const [activeFilter, setActiveFilter] = useState<
+    DiscoveryCategory | 'pois' | null
+  >(null)
   const [initialViewport, setInitialViewport] = useState<MapViewport | null>(
     () =>
       getStoredMapViewport() ??
@@ -123,6 +130,7 @@ export function MapPage({ active }: { active: boolean }) {
   // an authenticated query loads or fails makes them look like real personal
   // discoveries and can visually leak data between map contexts.
   const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
+  const sourceLandmarks = backendPois ?? (session ? [] : landmarks)
   const exploredCountryCodes = useMemo(
     () => [
       ...new Set(sourceDiscoveries.map((discovery) => discovery.countryCode)),
@@ -130,15 +138,16 @@ export function MapPage({ active }: { active: boolean }) {
     [sourceDiscoveries],
   )
 
-  const visibleDiscoveries = useMemo(
-    () =>
-      activeCategory
-        ? sourceDiscoveries.filter(
-            (discovery) => discovery.category === activeCategory,
-          )
-        : sourceDiscoveries,
-    [activeCategory, sourceDiscoveries],
-  )
+  const visibleDiscoveries = useMemo(() => {
+    if (activeFilter === 'pois') return []
+    if (!activeFilter) return sourceDiscoveries
+
+    return sourceDiscoveries.filter(
+      (discovery) => discovery.category === activeFilter,
+    )
+  }, [activeFilter, sourceDiscoveries])
+  const visibleLandmarks =
+    activeFilter && activeFilter !== 'pois' ? [] : sourceLandmarks
 
   const handleSelectDiscovery = useCallback(
     (id: number) =>
@@ -167,7 +176,7 @@ export function MapPage({ active }: { active: boolean }) {
           ref={mapRef}
           initialViewport={initialViewport}
           discoveries={visibleDiscoveries}
-          landmarks={backendPois ?? landmarks}
+          landmarks={visibleLandmarks}
           exploredCountryCodes={exploredCountryCodes}
           photoAccessToken={session?.accessToken}
           onSelectDiscovery={handleSelectDiscovery}
@@ -203,30 +212,39 @@ export function MapPage({ active }: { active: boolean }) {
             asChild
             size="icon"
             variant="outline"
-            className="size-11 bg-card/95"
+            className="size-12 bg-card/95"
           >
             <Link to="/search" aria-label="Search places">
               <Search className="size-5" />
             </Link>
           </Button>
         </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <FilterChip
-            active={activeCategory === null}
-            onClick={() => setActiveCategory(null)}
+            active={activeFilter === null}
+            onClick={() => setActiveFilter(null)}
           >
             All
           </FilterChip>
           {categories.map((category) => (
             <FilterChip
               key={category.id}
-              active={activeCategory === category.id}
-              onClick={() => setActiveCategory(category.id)}
+              active={activeFilter === category.id}
+              onClick={() => setActiveFilter(category.id)}
+              appearance={categoryAppearance[category.id]}
             >
               <CategoryIcon category={category.id} className="size-4" />
               {category.label}
             </FilterChip>
           ))}
+          <FilterChip
+            active={activeFilter === 'pois'}
+            onClick={() => setActiveFilter('pois')}
+            appearance={poiAppearance}
+          >
+            <MapPinned className={`size-4 ${poiAppearance.icon}`} />
+            POIs
+          </FilterChip>
         </div>
       </div>
 
@@ -304,25 +322,25 @@ function ActiveMapSelector({
         aria-expanded={isOpen}
         aria-controls="active-map-menu"
         onClick={() => setIsOpen((open) => !open)}
-        className="flex h-16 w-full items-center gap-3 rounded-2xl border border-white/80 bg-card/95 px-4 text-left shadow-md backdrop-blur transition-colors hover:bg-card"
+        className="flex h-12 w-full items-center gap-2 rounded-xl border border-white/80 bg-card/95 px-3 text-left shadow-md backdrop-blur transition-colors hover:bg-card"
       >
-        <MapChoiceIcon personal={!activeGroupId} active>
+        <MapChoiceIcon personal={!activeGroupId} active compact>
           {activeGroupId ? (
-            <UsersRound className="size-5" />
+            <UsersRound className="size-4" />
           ) : (
-            <span className="text-sm font-bold">{userInitial}</span>
+            <span className="text-xs font-bold">{userInitial}</span>
           )}
         </MapChoiceIcon>
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+          <span className="block text-[8px] font-bold uppercase leading-none tracking-[0.12em] text-muted-foreground">
             Active map
           </span>
-          <span className="mt-0.5 block truncate text-base font-semibold text-foreground">
+          <span className="mt-0.5 block truncate text-sm font-semibold leading-4 text-foreground">
             {activeMapName}
           </span>
         </span>
         <ChevronDown
-          className={`size-5 shrink-0 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`size-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -351,7 +369,10 @@ function ActiveMapSelector({
             />
           ))}
           {isError && (
-            <p role="status" className="border-t px-4 py-3 text-sm text-destructive">
+            <p
+              role="status"
+              className="border-t px-4 py-3 text-sm text-destructive"
+            >
               Unable to change the active map.
             </p>
           )}
@@ -397,15 +418,17 @@ function MapMenuItem({
 function MapChoiceIcon({
   personal,
   active,
+  compact = false,
   children,
 }: {
   personal: boolean
   active: boolean
+  compact?: boolean
   children: React.ReactNode
 }) {
   return (
     <span
-      className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${personal ? 'bg-violet-100 text-violet-800' : active ? 'bg-emerald-100 text-primary' : 'bg-[#fbf1ec] text-[#b8572b]'}`}
+      className={`flex shrink-0 items-center justify-center ${compact ? 'size-7 rounded-lg' : 'size-10 rounded-xl'} ${personal ? 'bg-violet-100 text-violet-800' : active ? 'bg-emerald-100 text-primary' : 'bg-[#fbf1ec] text-[#b8572b]'}`}
     >
       {children}
     </span>
@@ -415,17 +438,27 @@ function MapChoiceIcon({
 function FilterChip({
   active,
   onClick,
+  appearance,
   children,
 }: {
   active: boolean
   onClick: () => void
+  appearance?: Pick<CategoryAppearance, 'background' | 'ring'>
   children: React.ReactNode
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card/95 text-foreground'}`}
+      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium text-foreground transition-colors ${
+        appearance
+          ? active
+            ? `${appearance.background} border-transparent ring-2 ${appearance.ring}`
+            : 'border-border bg-card/95'
+          : active
+            ? 'border-primary bg-primary text-primary-foreground'
+            : 'border-border bg-card/95'
+      }`}
     >
       {children}
     </button>

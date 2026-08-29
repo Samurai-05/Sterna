@@ -1,66 +1,21 @@
-import { Award, Camera, Globe2, Trophy } from 'lucide-react'
+import { Award, Check, LogOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
-import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ApiError, getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
+import { categoryAppearance } from '@/lib/category-appearance'
 import { getCountryName } from '@/lib/countries'
-import {
-  categories,
-  discoveries,
-  landmarks,
-  type DiscoveryCategory,
-} from '@/lib/mock-data'
+import { categories, discoveries, landmarks } from '@/lib/mock-data'
 import { clearSession, loadSession, saveSession } from '@/lib/session'
-
-const categoryVisuals: Record<
-  DiscoveryCategory,
-  { icon: string; background: string; indicator: string }
-> = {
-  landscape: {
-    icon: 'text-[#2F6B8A]',
-    background: 'bg-[#EAF3F7]',
-    indicator: 'bg-[#2F6B8A]',
-  },
-  monument: {
-    icon: 'text-[#7E6552]',
-    background: 'bg-[#F1E9E4]',
-    indicator: 'bg-[#7E6552]',
-  },
-  food: {
-    icon: 'text-[#B8572B]',
-    background: 'bg-[#FBF1EC]',
-    indicator: 'bg-[#B8572B]',
-  },
-  animal: {
-    icon: 'text-[#3F7A78]',
-    background: 'bg-[#E8F2F1]',
-    indicator: 'bg-[#3F7A78]',
-  },
-  plant: {
-    icon: 'text-[#3F724E]',
-    background: 'bg-[#F0F7F3]',
-    indicator: 'bg-[#3F724E]',
-  },
-  culture: {
-    icon: 'text-[#756B8F]',
-    background: 'bg-[#F1EEF7]',
-    indicator: 'bg-[#756B8F]',
-  },
-  other: {
-    icon: 'text-[#9C7A32]',
-    background: 'bg-[#FBF4E2]',
-    indicator: 'bg-[#9C7A32]',
-  },
-}
 
 export function ProfilePage() {
   const navigate = useNavigate()
   const [session, setSession] = useState(() => loadSession())
+  const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false)
   const accessToken = session?.accessToken
 
   const { data: currentUser, error: currentUserError } = useQuery({
@@ -107,10 +62,27 @@ export function ProfilePage() {
       ).length,
     }))
     .filter((category) => category.count > 0)
-  const highestCategoryCount = Math.max(
-    ...categoryCounts.map((category) => category.count),
-    1,
+  const categoryTotal = categoryCounts.reduce(
+    (total, category) => total + category.count,
+    0,
   )
+  const chartCircumference = 2 * Math.PI * 48
+  const categoryChartSegments = categoryCounts.map((category, index) => {
+    const length = categoryTotal
+      ? (category.count / categoryTotal) * chartCircumference
+      : 0
+    const offset = categoryCounts
+      .slice(0, index)
+      .reduce(
+        (total, previousCategory) =>
+          total +
+          (categoryTotal
+            ? (previousCategory.count / categoryTotal) * chartCircumference
+            : 0),
+        0,
+      )
+    return { ...category, length, offset }
+  })
   const progress = sourceLandmarks.length
     ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
     : 0
@@ -131,6 +103,22 @@ export function ProfilePage() {
       navigate('/auth', { replace: true })
     }
   }, [currentUserError, navigate])
+
+  useEffect(() => {
+    if (!isAccountSheetOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    function closeAccountSheetWithKeyboard(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsAccountSheetOpen(false)
+    }
+
+    document.addEventListener('keydown', closeAccountSheetWithKeyboard)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', closeAccountSheetWithKeyboard)
+    }
+  }, [isAccountSheetOpen])
 
   function handleLogout() {
     clearSession()
@@ -154,105 +142,139 @@ export function ProfilePage() {
                 Explorer · Since {memberSinceYear}
               </p>
             </div>
-            <button
-              type="button"
-              aria-label="Open account settings"
-              className="flex size-[68px] shrink-0 -translate-x-2.5 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-[#C4622D] font-display text-[26px] font-semibold text-primary-foreground shadow-sm outline-none transition-transform focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
-            >
-              <span aria-hidden="true">{displayedInitial}</span>
-            </button>
-          </div>
-          <div
-            className="mt-5 grid grid-cols-3 border-t border-white/20 pt-4 text-center"
-            aria-label="Exploration statistics"
-          >
-            <Stat
-              icon={<Camera />}
-              value={sourceDiscoveries.length}
-              label="Discoveries"
-              inverse
-              separator={false}
-            />
-            <Stat
-              icon={<Globe2 />}
-              value={exploredCountries.length}
-              label="Countries"
-              inverse
-              separator
-            />
-            <Stat
-              icon={<Trophy />}
-              value={discoveredLandmarks.length}
-              label="POIs"
-              inverse
-              separator
-            />
+            <div className="shrink-0">
+              <button
+                type="button"
+                aria-label="Open account settings"
+                aria-expanded={isAccountSheetOpen}
+                aria-controls="profile-account-sheet"
+                onClick={() => setIsAccountSheetOpen(true)}
+                className="flex size-14 -translate-x-2.5 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-[#C4622D] font-display text-[22px] font-semibold text-primary-foreground shadow-sm outline-none transition-transform focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
+              >
+                <span aria-hidden="true">{displayedInitial}</span>
+              </button>
+            </div>
           </div>
         </section>
       </div>
       <div className="-mt-6 space-y-8 rounded-t-3xl bg-card px-5 pb-2 pt-8">
-        <section>
-          {session ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 w-full"
-              onClick={handleLogout}
-            >
-              Log out
-            </Button>
-          ) : (
-            <Button asChild className="h-11 w-full">
-              <Link to="/login">Log in</Link>
-            </Button>
-          )}
-        </section>
-        <section aria-labelledby="recent-discoveries-heading">
-          <div className="mb-3 flex items-center justify-between">
-            <h2
-              id="recent-discoveries-heading"
-              className="font-display text-[22px] font-semibold leading-7"
-            >
-              Recent
-            </h2>
-            <Link
-              to="/collection"
-              className="flex min-h-11 items-center text-sm font-semibold text-primary"
-            >
-              See all
-            </Link>
-          </div>
-          <div className="-mr-5 flex snap-x gap-3 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {sourceDiscoveries.slice(0, 3).map((discovery) => (
-              <DiscoveryCard
-                key={discovery.id}
-                discovery={discovery}
-                className="w-[min(80vw,20rem)] shrink-0 snap-start"
-              />
-            ))}
-          </div>
-        </section>
-        <section
-          className="rounded-2xl border border-border bg-background p-4 shadow-sm"
-          aria-labelledby="exploration-progress-heading"
-        >
+        <section aria-labelledby="pois-heading">
           <h2
-            id="exploration-progress-heading"
-            className="flex items-center gap-2 text-[15px] font-semibold leading-5"
+            id="pois-heading"
+            className="font-display text-[22px] font-semibold leading-7"
           >
-            <Award className="size-5 text-primary" aria-hidden="true" />
-            Exploration progress
+            POIs
           </h2>
-          <Progress
-            className="mt-3"
-            value={progress}
-            aria-label="Point of interest exploration progress"
-            aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
-          />
-          <p className="mt-3 text-sm text-muted-foreground">
-            {discoveredLandmarks.length} / {sourceLandmarks.length} points of
-            interest discovered
-          </p>
+          <div className="mt-3 rounded-2xl border border-border bg-background p-4 shadow-sm">
+            <p className="flex items-center gap-2 text-[15px] font-semibold leading-5">
+              <Award className="size-5 text-primary" aria-hidden="true" />
+              Exploration progress
+            </p>
+            <Progress
+              className="mt-3"
+              value={progress}
+              aria-label="Point of interest exploration progress"
+              aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
+            />
+            <p className="mt-3 text-sm text-muted-foreground">
+              {discoveredLandmarks.length} / {sourceLandmarks.length} points of
+              interest discovered
+            </p>
+          </div>
+        </section>
+        <section aria-labelledby="discoveries-by-category-heading">
+          <h2
+            id="discoveries-by-category-heading"
+            className="font-display text-[22px] font-semibold leading-7"
+          >
+            Discoveries by category
+          </h2>
+          <div className="mt-4 rounded-2xl border border-border bg-background p-4 shadow-sm">
+            <svg
+              viewBox="0 0 128 128"
+              role="img"
+              aria-label="Distribution of discoveries by category"
+              className="mx-auto size-44 max-w-full"
+            >
+              <circle
+                cx="64"
+                cy="64"
+                r="48"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="16"
+                className="text-border/70"
+              />
+              {categoryChartSegments.map((category) => (
+                <circle
+                  key={category.id}
+                  cx="64"
+                  cy="64"
+                  r="48"
+                  fill="none"
+                  stroke={categoryAppearance[category.id].color}
+                  strokeWidth="16"
+                  strokeDasharray={`${category.length} ${chartCircumference - category.length}`}
+                  strokeDashoffset={-category.offset}
+                  transform="rotate(-90 64 64)"
+                >
+                  <title>
+                    {category.label}: {category.count}{' '}
+                    {category.count === 1 ? 'discovery' : 'discoveries'}
+                  </title>
+                </circle>
+              ))}
+              <text
+                x="64"
+                y="61"
+                textAnchor="middle"
+                className="fill-foreground text-[22px] font-bold"
+              >
+                {categoryTotal}
+              </text>
+              <text
+                x="64"
+                y="78"
+                textAnchor="middle"
+                className="fill-muted-foreground text-[9px] font-medium"
+              >
+                discoveries
+              </text>
+            </svg>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {categoryCounts.map((category) => {
+                const appearance = categoryAppearance[category.id]
+                const discoveryLabel =
+                  category.count === 1 ? 'discovery' : 'discoveries'
+                const percentage = categoryTotal
+                  ? Math.round((category.count / categoryTotal) * 100)
+                  : 0
+
+                return (
+                  <div
+                    key={category.id}
+                    aria-label={`${category.label}: ${category.count} ${discoveryLabel}`}
+                    className="flex min-w-0 items-center gap-2 rounded-xl bg-card p-2"
+                  >
+                    <span
+                      className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${appearance.background}`}
+                      aria-hidden="true"
+                    >
+                      <CategoryIcon category={category.id} className="size-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold leading-5">
+                        {category.label}
+                      </span>
+                      <span className="block text-xs leading-4 tabular-nums text-muted-foreground">
+                        {category.count} · {percentage}%
+                      </span>
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </section>
         <section aria-labelledby="countries-explored-heading">
           <h2
@@ -272,90 +294,89 @@ export function ProfilePage() {
             ))}
           </div>
         </section>
-        <section
-          className="pb-2"
-          aria-labelledby="discoveries-by-category-heading"
-        >
-          <h2
-            id="discoveries-by-category-heading"
-            className="font-sans text-lg font-semibold leading-6"
-          >
-            Discoveries by category
-          </h2>
-          <div className="mt-4 space-y-4">
-            {categoryCounts.map((category) => {
-              const visual = categoryVisuals[category.id]
-
-              return (
-                <div
-                  key={category.id}
-                  className="grid grid-cols-[36px_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-3 gap-y-1"
-                >
-                  <span
-                    className={`row-span-2 flex size-9 shrink-0 items-center justify-center self-start rounded-xl ${visual.background}`}
-                    aria-hidden="true"
-                  >
-                    <CategoryIcon
-                      category={category.id}
-                      className={`size-4 ${visual.icon}`}
-                    />
-                  </span>
-                  <span className="min-w-0 truncate text-sm font-semibold leading-5">
-                    {category.label}
-                  </span>
-                  <span className="text-sm font-semibold leading-5 tabular-nums text-muted-foreground">
-                    {category.count}
-                  </span>
-                  <Progress
-                    value={(category.count / highestCategoryCount) * 100}
-                    aria-label={`${category.label} discoveries: ${category.count}`}
-                    aria-valuetext={`${category.count} ${category.count === 1 ? 'discovery' : 'discoveries'} in ${category.label}`}
-                    indicatorClassName={visual.indicator}
-                    className="col-span-2 bg-[#E7E5E0]"
-                  />
-                </div>
-              )
-            })}
+        <section className="pb-2" aria-labelledby="recent-discoveries-heading">
+          <div className="mb-3 flex items-center justify-between">
+            <h2
+              id="recent-discoveries-heading"
+              className="font-display text-[22px] font-semibold leading-7"
+            >
+              Recent
+            </h2>
+            <Link
+              to="/collection"
+              className="flex min-h-11 items-center text-sm font-semibold text-primary"
+            >
+              See all
+            </Link>
+          </div>
+          <div className="-mr-5 flex snap-x gap-3 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {sourceDiscoveries.slice(0, 3).map((discovery) => (
+              <DiscoveryCard
+                key={discovery.id}
+                discovery={discovery}
+                className="w-[min(68vw,16rem)] shrink-0 snap-start"
+              />
+            ))}
           </div>
         </section>
       </div>
+      {isAccountSheetOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end bg-black/35"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsAccountSheetOpen(false)
+            }
+          }}
+        >
+          <section
+            id="profile-account-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-account-sheet-title"
+            className="mx-auto max-h-[calc(100dvh-1rem)] w-full max-w-lg touch-pan-y overflow-y-auto overscroll-contain rounded-t-[28px] bg-card px-5 pb-[max(2rem,var(--sterna-safe-area-bottom))] pt-3 text-foreground shadow-2xl"
+          >
+            <div
+              className="mx-auto h-1 w-14 rounded-full bg-border"
+              aria-hidden="true"
+            />
+            <h2
+              id="profile-account-sheet-title"
+              className="mt-7 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
+            >
+              Account
+            </h2>
+            <div className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-primary bg-green-50 p-4">
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#C4622D] font-display text-xl font-semibold text-white">
+                {displayedInitial}
+              </span>
+              <span className="min-w-0 flex-1">
+                <strong className="block truncate text-base font-semibold">
+                  {displayedUserName}
+                </strong>
+                <span className="mt-1 block text-sm text-muted-foreground">
+                  Explorer · Since {memberSinceYear}
+                </span>
+              </span>
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+                <Check className="size-3.5" />
+                Active
+              </span>
+            </div>
+            <div className="mt-7 border-t border-border pt-7">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 font-semibold text-red-700 transition-colors hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+              >
+                <LogOut className="size-5" />
+                Log out
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
-  )
-}
-
-function Stat({
-  icon,
-  value,
-  label,
-  inverse = false,
-  separator = false,
-}: {
-  icon: React.ReactNode
-  value: string | number
-  label: string
-  inverse?: boolean
-  separator?: boolean
-}) {
-  return (
-    <div
-      className={`relative px-2 ${separator ? 'before:absolute before:left-0 before:top-1/2 before:h-10 before:w-px before:-translate-y-1/2 before:bg-white/15' : ''}`}
-    >
-      <span
-        className={`mx-auto mb-1 flex size-6 items-center justify-center [&>svg]:size-5 ${inverse ? 'text-primary-foreground/80' : 'text-primary'}`}
-        aria-hidden="true"
-      >
-        {icon}
-      </span>
-      <strong
-        className={`block font-sans text-2xl font-bold leading-7 ${inverse ? 'text-primary-foreground' : 'text-foreground'}`}
-      >
-        {value}
-      </strong>
-      <span
-        className={`font-sans text-xs font-medium leading-4 ${inverse ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
-      >
-        {label}
-      </span>
-    </div>
   )
 }

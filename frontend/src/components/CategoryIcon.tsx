@@ -1,23 +1,25 @@
 import {
-  Camera,
-  Flower2,
+  Drama,
   Landmark,
-  Leaf,
-  MapPinned,
-  Palette,
+  Mountain,
+  PawPrint,
+  Shapes,
+  Sprout,
   Utensils,
 } from 'lucide-react'
 
+import { categoryAppearance } from '@/lib/category-appearance'
 import type { DiscoveryCategory } from '@/lib/mock-data'
+import { cn } from '@/lib/utils'
 
 const icons = {
-  landscape: MapPinned,
+  landscape: Mountain,
   monument: Landmark,
   food: Utensils,
-  animal: Camera,
-  plant: Flower2,
-  culture: Palette,
-  other: Leaf,
+  animal: PawPrint,
+  plant: Sprout,
+  culture: Drama,
+  other: Shapes,
 } as const
 
 export function CategoryIcon({
@@ -28,5 +30,10 @@ export function CategoryIcon({
   className?: string
 }) {
   const Icon = icons[category]
-  return <Icon aria-hidden="true" className={className} />
+  return (
+    <Icon
+      aria-hidden="true"
+      className={cn(categoryAppearance[category].icon, className)}
+    />
+  )
 }

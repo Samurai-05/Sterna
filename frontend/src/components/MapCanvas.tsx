@@ -6,6 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { getPhoto } from '@/lib/api'
+import { categoryAppearance } from '@/lib/category-appearance'
 import {
   defaultMapViewport,
   getStoredMapViewport,
@@ -13,6 +14,7 @@ import {
   type MapViewport,
 } from '@/lib/map-viewport'
 import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
+import { cn } from '@/lib/utils'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -293,11 +295,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       for (const discovery of discoveries) {
         const el = document.createElement('div')
         const root = createRoot(el)
+        const appearance = categoryAppearance[discovery.category]
         root.render(
           <button
             type="button"
             aria-label={`View ${discovery.name}`}
-            className="flex size-11 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow-lg"
+            className={cn(
+              'flex size-11 items-center justify-center rounded-full border-2 border-white shadow-lg ring-2',
+              appearance.background,
+              appearance.ring,
+            )}
             onClick={() => onSelectDiscovery?.(discovery.id)}
           >
             <CategoryIcon category={discovery.category} className="size-5" />
@@ -350,7 +357,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           <button
             type="button"
             aria-label={`View ${landmark.name}`}
-            className={`relative size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#c4622d]' : 'border-white bg-stone-400 grayscale'}`}
+            className={`relative size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
             onClick={() => onSelectLandmark?.(landmark.id)}
           >
             <img

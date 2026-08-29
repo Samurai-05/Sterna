@@ -27,8 +27,9 @@ export async function applySystemBarAppearance(
   }
 
   try {
-    await SystemBars.show()
     await Promise.all([
+      SystemBars.show({ bar: SystemBarType.StatusBar }),
+      SystemBars.hide({ bar: SystemBarType.NavigationBar }),
       SystemBars.setStyle({
         bar: SystemBarType.StatusBar,
         style:

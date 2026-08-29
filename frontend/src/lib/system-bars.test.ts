@@ -4,6 +4,7 @@ const capacitorMock = vi.hoisted(() => ({
   getPlatform: vi.fn(),
   setStyle: vi.fn(),
   show: vi.fn(),
+  hide: vi.fn(),
 }))
 
 vi.mock('@capacitor/core', () => ({
@@ -13,6 +14,7 @@ vi.mock('@capacitor/core', () => ({
   SystemBars: {
     setStyle: capacitorMock.setStyle,
     show: capacitorMock.show,
+    hide: capacitorMock.hide,
   },
   SystemBarType: {
     StatusBar: 'StatusBar',
@@ -38,17 +40,19 @@ describe('system bars', () => {
     })
   })
 
-  it('keeps native system bars visible and does nothing in the browser', async () => {
+  it('keeps the status bar visible, hides Android navigation, and does nothing in the browser', async () => {
     capacitorMock.getPlatform.mockReturnValue('android')
     capacitorMock.setStyle.mockResolvedValue(undefined)
     capacitorMock.show.mockResolvedValue(undefined)
+    capacitorMock.hide.mockResolvedValue(undefined)
 
     await applySystemBarAppearance({
       statusBar: 'DARK',
       navigationBar: 'LIGHT',
     })
 
-    expect(capacitorMock.show).toHaveBeenCalledOnce()
+    expect(capacitorMock.show).toHaveBeenCalledWith({ bar: 'StatusBar' })
+    expect(capacitorMock.hide).toHaveBeenCalledWith({ bar: 'NavigationBar' })
     expect(capacitorMock.setStyle).toHaveBeenNthCalledWith(1, {
       bar: 'StatusBar',
       style: 'DARK',
@@ -60,6 +64,7 @@ describe('system bars', () => {
 
     capacitorMock.getPlatform.mockReturnValue('web')
     capacitorMock.show.mockClear()
+    capacitorMock.hide.mockClear()
     capacitorMock.setStyle.mockClear()
 
     await applySystemBarAppearance({
@@ -68,6 +73,7 @@ describe('system bars', () => {
     })
 
     expect(capacitorMock.show).not.toHaveBeenCalled()
+    expect(capacitorMock.hide).not.toHaveBeenCalled()
     expect(capacitorMock.setStyle).not.toHaveBeenCalled()
   })
 })
