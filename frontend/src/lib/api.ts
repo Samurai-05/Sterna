@@ -83,6 +83,19 @@ export function getCurrentUser(
   })
 }
 
+export function deleteAccount(
+  accessToken: string,
+  currentPassword: string,
+): Promise<void> {
+  return request<void>('/api/auth/me', {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ currentPassword }),
+  })
+}
+
 interface ApiDiscovery {
   id: string
   userId: string
