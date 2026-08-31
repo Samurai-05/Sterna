@@ -2,86 +2,103 @@ import { createRef } from 'react'
 import { render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { mapInstances, MockGeolocateControl, MockMap, MockNavigationControl } =
-  vi.hoisted(() => {
-    const instances: Array<{
-      options: { center: [number, number]; zoom: number }
-      controls: unknown[]
-      emit: (event: string) => void
-      resizeCalls: number
-      flyToCalls: Array<{ center: [number, number]; zoom: number }>
-    }> = []
+const {
+  mapInstances,
+  markerInstances,
+  MockGeolocateControl,
+  MockMap,
+  MockNavigationControl,
+} = vi.hoisted(() => {
+  const instances: Array<{
+    options: { center: [number, number]; zoom: number }
+    controls: unknown[]
+    emit: (event: string) => void
+    resizeCalls: number
+    flyToCalls: Array<{ center: [number, number]; zoom: number }>
+  }> = []
+  const markers: Array<{ element?: HTMLElement }> = []
 
-    class NavigationControl {}
+  class NavigationControl {}
 
-    class GeolocateControl {
-      trigger() {}
+  class GeolocateControl {
+    trigger() {}
+  }
+
+  class MapMock {
+    options: { center: [number, number]; zoom: number }
+    controls: unknown[] = []
+    resizeCalls = 0
+    flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
+    listeners = new Map<string, Set<() => void>>()
+
+    constructor(options: { center: [number, number]; zoom: number }) {
+      this.options = options
+      instances.push(this)
     }
 
-    class MapMock {
-      options: { center: [number, number]; zoom: number }
-      controls: unknown[] = []
-      resizeCalls = 0
-      flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
-      listeners = new Map<string, () => void>()
-
-      constructor(options: { center: [number, number]; zoom: number }) {
-        this.options = options
-        instances.push(this)
-      }
-
-      addControl(control: unknown) {
-        this.controls.push(control)
-        return this
-      }
-
-      getSource() {
-        return undefined
-      }
-
-      getCenter() {
-        return { lng: this.options.center[0], lat: this.options.center[1] }
-      }
-
-      getZoom() {
-        return this.options.zoom
-      }
-
-      on(event: string, listener: () => void) {
-        this.listeners.set(event, listener)
-        return this
-      }
-
-      off(event: string) {
-        this.listeners.delete(event)
-        return this
-      }
-
-      emit(event: string) {
-        this.listeners.get(event)?.()
-      }
-
-      resize() {
-        this.resizeCalls += 1
-      }
-
-      flyTo(options: { center: [number, number]; zoom: number }) {
-        this.flyToCalls.push(options)
-      }
-
-      remove() {}
+    addControl(control: unknown) {
+      this.controls.push(control)
+      return this
     }
 
-    return {
-      mapInstances: instances,
-      MockGeolocateControl: GeolocateControl,
-      MockMap: MapMock,
-      MockNavigationControl: NavigationControl,
+    getSource() {
+      return undefined
     }
-  })
+
+    getCenter() {
+      return { lng: this.options.center[0], lat: this.options.center[1] }
+    }
+
+    getZoom() {
+      return this.options.zoom
+    }
+
+    on(event: string, listener: () => void) {
+      if (!this.listeners.has(event)) {
+        this.listeners.set(event, new Set())
+      }
+      this.listeners.get(event)?.add(listener)
+      return this
+    }
+
+    off(event: string, listener: () => void) {
+      this.listeners.get(event)?.delete(listener)
+      return this
+    }
+
+    emit(event: string) {
+      this.listeners.get(event)?.forEach((listener) => listener())
+    }
+
+    resize() {
+      this.resizeCalls += 1
+    }
+
+    flyTo(options: { center: [number, number]; zoom: number }) {
+      this.flyToCalls.push(options)
+    }
+
+    remove() {}
+  }
+
+  return {
+    mapInstances: instances,
+    markerInstances: markers,
+    MockGeolocateControl: GeolocateControl,
+    MockMap: MapMock,
+    MockNavigationControl: NavigationControl,
+  }
+})
 
 vi.mock('maplibre-gl', () => {
   class MarkerMock {
+    element?: HTMLElement
+
+    constructor(options?: { element?: HTMLElement }) {
+      this.element = options?.element
+      markerInstances.push(this)
+    }
+
     setLngLat() {
       return this
     }
@@ -130,6 +147,7 @@ const originalUserAgent = window.navigator.userAgent
 
 afterEach(() => {
   mapInstances.length = 0
+  markerInstances.length = 0
   window.sessionStorage.clear()
   Object.defineProperty(window.navigator, 'userAgent', {
     configurable: true,
@@ -224,5 +242,37 @@ describe('MapCanvas', () => {
       center: [7.4474, 46.948],
       zoom: 13,
     })
+  })
+
+  it('hides POI markers below the minimum zoom and shows them above it', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Eiffel Tower',
+            imageId: 'eiffel',
+            discovered: true,
+            coordinates: [2.2945, 48.8584],
+          },
+        ]}
+      />,
+    )
+
+    const [marker] = markerInstances
+    const element = marker.element as HTMLElement
+
+    mapInstances[0].options.zoom = 9
+    mapInstances[0].emit('zoom')
+    expect(element.style.display).toBe('none')
+
+    mapInstances[0].options.zoom = 10
+    mapInstances[0].emit('zoom')
+    expect(element.style.display).toBe('')
   })
 })
