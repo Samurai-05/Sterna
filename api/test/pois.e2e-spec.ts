@@ -61,6 +61,7 @@ describe('PoisController (e2e)', () => {
 
   it('requires authentication', async () => {
     await request(app.getHttpServer()).get('/api/pois').expect(401);
+    await request(app.getHttpServer()).get('/api/pois/authored').expect(401);
   });
 
   it('lists exactly one seeded point of interest per MVP country', async () => {
@@ -93,7 +94,7 @@ describe('PoisController (e2e)', () => {
     ).not.toContain('Experiencing the place');
   });
 
-  it('marks a POI discovered from a nearby personal discovery', async () => {
+  it('keeps map status isolated while user status includes group discoveries', async () => {
     await dataSource.query(`DELETE FROM groups WHERE name = 'POI test group'`);
     const [{ id: groupId }] = await dataSource.query<{ id: string }[]>(
       `INSERT INTO groups (name, invite_code) VALUES ('POI test group', 'POI-E2E-CODE') RETURNING id`,
@@ -118,6 +119,16 @@ describe('PoisController (e2e)', () => {
         (poi) => poi.title === 'Eiffel Tower',
       )?.discovered,
     ).toBe(false);
+
+    const authoredResponse = await request(app.getHttpServer())
+      .get('/api/pois/authored')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(
+      (authoredResponse.body as PoiResponse[]).find(
+        (poi) => poi.title === 'Eiffel Tower',
+      )?.discovered,
+    ).toBe(true);
 
     await dataSource.query(
       `INSERT INTO discoveries (

@@ -10,14 +10,22 @@ import { Progress } from '@/components/ui/progress'
 import {
   ApiError,
   deleteAccount,
+  getAuthoredDiscoveries,
+  getAuthoredPois,
   getCurrentUser,
-  getDiscoveries,
-  getPois,
 } from '@/lib/api'
 import { categoryAppearance } from '@/lib/category-appearance'
 import { getCountryName } from '@/lib/countries'
 import { categories, discoveries, landmarks } from '@/lib/mock-data'
 import { clearSession, loadSession, saveSession } from '@/lib/session'
+
+const ACTIVITY_MONTH_COUNT = 6
+const ACTIVITY_CHART = {
+  left: 28,
+  right: 304,
+  top: 18,
+  bottom: 126,
+}
 
 export function ProfilePage() {
   const navigate = useNavigate()
@@ -35,19 +43,19 @@ export function ProfilePage() {
     enabled: Boolean(accessToken),
   })
   const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries', session?.user.id],
-    queryFn: () => getDiscoveries(accessToken!),
+    queryKey: ['discoveries', session?.user.id, 'authored'],
+    queryFn: () => getAuthoredDiscoveries(accessToken!),
     enabled: Boolean(accessToken),
   })
   const { data: backendPois } = useQuery({
-    queryKey: ['pois', session?.user.id],
-    queryFn: () => getPois(accessToken!),
+    queryKey: ['pois', session?.user.id, 'authored'],
+    queryFn: () => getAuthoredPois(accessToken!),
     enabled: Boolean(accessToken),
     staleTime: 5 * 60 * 1000,
   })
 
   const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
-  const sourceLandmarks = backendPois ?? landmarks
+  const sourceLandmarks = backendPois ?? (session ? [] : landmarks)
   const displayedUser = currentUser ?? session?.user
   const displayedUserName = displayedUser?.userName ?? ''
   const displayedInitial = displayedUserName.trim().charAt(0).toUpperCase()
@@ -77,23 +85,30 @@ export function ProfilePage() {
     (total, category) => total + category.count,
     0,
   )
-  const chartCircumference = 2 * Math.PI * 48
-  const categoryChartSegments = categoryCounts.map((category, index) => {
-    const length = categoryTotal
-      ? (category.count / categoryTotal) * chartCircumference
-      : 0
-    const offset = categoryCounts
-      .slice(0, index)
-      .reduce(
-        (total, previousCategory) =>
-          total +
-          (categoryTotal
-            ? (previousCategory.count / categoryTotal) * chartCircumference
-            : 0),
-        0,
-      )
-    return { ...category, length, offset }
-  })
+  const categoryMaximum = Math.max(
+    ...categoryCounts.map((category) => category.count),
+    1,
+  )
+  const monthlyActivity = buildMonthlyActivity(sourceDiscoveries)
+  const activityMaximum = Math.max(
+    ...monthlyActivity.map((month) => month.count),
+    1,
+  )
+  const activityPoints = monthlyActivity.map((month, index) => ({
+    ...month,
+    x:
+      ACTIVITY_CHART.left +
+      (index * (ACTIVITY_CHART.right - ACTIVITY_CHART.left)) /
+        (ACTIVITY_MONTH_COUNT - 1),
+    y:
+      ACTIVITY_CHART.bottom -
+      (month.count / activityMaximum) *
+        (ACTIVITY_CHART.bottom - ACTIVITY_CHART.top),
+  }))
+  const activityPolyline = activityPoints
+    .map((point) => `${point.x},${point.y}`)
+    .join(' ')
+  const hasRecentActivity = monthlyActivity.some((month) => month.count > 0)
   const progress = sourceLandmarks.length
     ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
     : 0
@@ -230,90 +245,175 @@ export function ProfilePage() {
             Discoveries by category
           </h2>
           <div className="mt-4 rounded-2xl border border-border bg-background p-4 shadow-sm">
-            <svg
-              viewBox="0 0 128 128"
-              role="img"
-              aria-label="Distribution of discoveries by category"
-              className="mx-auto size-44 max-w-full"
-            >
-              <circle
-                cx="64"
-                cy="64"
-                r="48"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="16"
-                className="text-border/70"
-              />
-              {categoryChartSegments.map((category) => (
-                <circle
-                  key={category.id}
-                  cx="64"
-                  cy="64"
-                  r="48"
-                  fill="none"
-                  stroke={categoryAppearance[category.id].color}
-                  strokeWidth="16"
-                  strokeDasharray={`${category.length} ${chartCircumference - category.length}`}
-                  strokeDashoffset={-category.offset}
-                  transform="rotate(-90 64 64)"
-                >
-                  <title>
-                    {category.label}: {category.count}{' '}
-                    {category.count === 1 ? 'discovery' : 'discoveries'}
-                  </title>
-                </circle>
-              ))}
-              <text
-                x="64"
-                y="61"
-                textAnchor="middle"
-                className="fill-foreground text-[22px] font-bold"
-              >
-                {categoryTotal}
-              </text>
-              <text
-                x="64"
-                y="78"
-                textAnchor="middle"
-                className="fill-muted-foreground text-[9px] font-medium"
-              >
-                discoveries
-              </text>
-            </svg>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {categoryCounts.map((category) => {
-                const appearance = categoryAppearance[category.id]
-                const discoveryLabel =
-                  category.count === 1 ? 'discovery' : 'discoveries'
-                const percentage = categoryTotal
-                  ? Math.round((category.count / categoryTotal) * 100)
-                  : 0
-
-                return (
-                  <div
-                    key={category.id}
-                    aria-label={`${category.label}: ${category.count} ${discoveryLabel}`}
-                    className="flex min-w-0 items-center gap-2 rounded-xl bg-card p-2"
-                  >
-                    <span
-                      className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${appearance.background}`}
-                      aria-hidden="true"
-                    >
-                      <CategoryIcon category={category.id} className="size-4" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold leading-5">
-                        {category.label}
-                      </span>
-                      <span className="block text-xs leading-4 tabular-nums text-muted-foreground">
-                        {category.count} · {percentage}%
-                      </span>
-                    </span>
-                  </div>
-                )
-              })}
+            <div className="flex items-baseline justify-between gap-4">
+              <p className="text-sm font-semibold">Your distribution</p>
+              <p className="text-sm tabular-nums text-muted-foreground">
+                {categoryTotal} total
+              </p>
             </div>
+            {categoryCounts.length ? (
+              <div
+                role="list"
+                aria-label="Discovery distribution by category"
+                className="relative mt-5 grid gap-2"
+                style={{
+                  gridTemplateColumns: `repeat(${categoryCounts.length}, minmax(0, 1fr))`,
+                }}
+              >
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-40 border-t border-border"
+                  aria-hidden="true"
+                />
+                {categoryCounts.map((category) => {
+                  const appearance = categoryAppearance[category.id]
+                  const discoveryLabel =
+                    category.count === 1 ? 'discovery' : 'discoveries'
+                  const relativeHeight =
+                    (category.count / categoryMaximum) * 100
+
+                  return (
+                    <div
+                      key={category.id}
+                      role="listitem"
+                      aria-label={`${category.label}: ${category.count} ${discoveryLabel}`}
+                      className="relative z-10 min-w-0"
+                    >
+                      <div className="flex h-40 flex-col">
+                        <span className="h-6 text-center text-xs font-semibold tabular-nums text-foreground">
+                          {category.count}
+                        </span>
+                        <div className="flex flex-1 items-end px-1">
+                          <div
+                            data-category-bar={category.id}
+                            className="mx-auto w-3/4 min-w-2 max-w-10 rounded-t-md transition-[height] duration-500"
+                            style={{
+                              height: `${relativeHeight}%`,
+                              backgroundColor: appearance.color,
+                            }}
+                            aria-hidden="true"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-2 flex flex-col items-center gap-1 text-center">
+                        <span
+                          className={`flex size-7 items-center justify-center rounded-md ${appearance.background}`}
+                          aria-hidden="true"
+                        >
+                          <CategoryIcon
+                            category={category.id}
+                            className="size-3.5"
+                          />
+                        </span>
+                        <div
+                          className="max-w-full break-words text-[10px] font-medium leading-3 text-muted-foreground"
+                          aria-hidden="true"
+                        >
+                          {category.label}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">
+                No discoveries yet.
+              </p>
+            )}
+          </div>
+        </section>
+        <section aria-labelledby="discovery-activity-heading">
+          <h2
+            id="discovery-activity-heading"
+            className="font-display text-[22px] font-semibold leading-7"
+          >
+            Discovery activity
+          </h2>
+          <div className="mt-4 rounded-2xl border border-border bg-background p-4 shadow-sm">
+            <div className="flex items-baseline justify-between gap-4">
+              <p className="text-sm font-semibold">Monthly creations</p>
+              <p className="text-xs text-muted-foreground">Last 6 months</p>
+            </div>
+            {hasRecentActivity ? (
+              <svg
+                viewBox="0 0 320 166"
+                role="img"
+                aria-label={`Discovery creations by month: ${monthlyActivity
+                  .map((month) => `${month.label}: ${month.count}`)
+                  .join(', ')}`}
+                className="mt-4 h-auto w-full overflow-visible"
+              >
+                <line
+                  x1={ACTIVITY_CHART.left}
+                  x2={ACTIVITY_CHART.right}
+                  y1={ACTIVITY_CHART.top}
+                  y2={ACTIVITY_CHART.top}
+                  className="stroke-border/50"
+                  strokeDasharray="4 5"
+                />
+                <line
+                  x1={ACTIVITY_CHART.left}
+                  x2={ACTIVITY_CHART.right}
+                  y1={ACTIVITY_CHART.bottom}
+                  y2={ACTIVITY_CHART.bottom}
+                  className="stroke-border"
+                />
+                <text
+                  x="4"
+                  y={ACTIVITY_CHART.top + 4}
+                  className="fill-muted-foreground text-[9px] tabular-nums"
+                >
+                  {activityMaximum}
+                </text>
+                <text
+                  x="12"
+                  y={ACTIVITY_CHART.bottom + 4}
+                  className="fill-muted-foreground text-[9px] tabular-nums"
+                >
+                  0
+                </text>
+                <polyline
+                  points={activityPolyline}
+                  fill="none"
+                  stroke="#2D5A3D"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {activityPoints.map((point) => (
+                  <g key={point.key}>
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="4.5"
+                      fill="#FFFFFF"
+                      stroke="#2D5A3D"
+                      strokeWidth="3"
+                    />
+                    <text
+                      x={point.x}
+                      y={Math.max(point.y - 10, 10)}
+                      textAnchor="middle"
+                      className="fill-foreground text-[9px] font-semibold tabular-nums"
+                    >
+                      {point.count}
+                    </text>
+                    <text
+                      x={point.x}
+                      y="151"
+                      textAnchor="middle"
+                      className="fill-muted-foreground text-[9px] font-medium"
+                    >
+                      {point.label}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">
+                No discoveries created in the last 6 months.
+              </p>
+            )}
           </div>
         </section>
         <section aria-labelledby="countries-explored-heading">
@@ -324,14 +424,20 @@ export function ProfilePage() {
             Countries explored
           </h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {exploredCountries.map((country) => (
-              <span
-                key={country}
-                className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium leading-4"
-              >
-                {country}
-              </span>
-            ))}
+            {exploredCountries.length ? (
+              exploredCountries.map((country) => (
+                <span
+                  key={country}
+                  className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium leading-4"
+                >
+                  {country}
+                </span>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No countries explored yet.
+              </p>
+            )}
           </div>
         </section>
         <section className="pb-2" aria-labelledby="recent-discoveries-heading">
@@ -350,13 +456,19 @@ export function ProfilePage() {
             </Link>
           </div>
           <div className="-mr-5 flex snap-x gap-3 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {sourceDiscoveries.slice(0, 3).map((discovery) => (
-              <DiscoveryCard
-                key={discovery.id}
-                discovery={discovery}
-                className="w-[min(68vw,16rem)] shrink-0 snap-start"
-              />
-            ))}
+            {sourceDiscoveries.length ? (
+              sourceDiscoveries.slice(0, 3).map((discovery) => (
+                <DiscoveryCard
+                  key={discovery.id}
+                  discovery={discovery}
+                  className="w-[min(68vw,16rem)] shrink-0 snap-start"
+                />
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No recent discoveries yet.
+              </p>
+            )}
           </div>
         </section>
       </div>
@@ -468,4 +580,40 @@ export function ProfilePage() {
       )}
     </main>
   )
+}
+
+function buildMonthlyActivity(
+  sourceDiscoveries: typeof discoveries,
+  now = new Date(),
+) {
+  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const months = Array.from({ length: ACTIVITY_MONTH_COUNT }, (_, index) => {
+    const month = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() - (ACTIVITY_MONTH_COUNT - 1 - index),
+      1,
+    )
+
+    return {
+      key: `${month.getFullYear()}-${month.getMonth()}`,
+      year: month.getFullYear(),
+      month: month.getMonth(),
+      label: new Intl.DateTimeFormat('en', { month: 'short' }).format(month),
+      count: 0,
+    }
+  })
+  const monthByKey = new Map(months.map((month) => [month.key, month]))
+
+  for (const discovery of sourceDiscoveries) {
+    if (!discovery.createdAt) continue
+    const createdAt = new Date(discovery.createdAt)
+    if (Number.isNaN(createdAt.getTime())) continue
+
+    const month = monthByKey.get(
+      `${createdAt.getFullYear()}-${createdAt.getMonth()}`,
+    )
+    if (month) month.count += 1
+  }
+
+  return months
 }

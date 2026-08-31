@@ -36,4 +36,22 @@ export class PoisController {
   findAll(@CurrentUser() caller: AuthenticatedUser): Promise<PoiResponse[]> {
     return this.pois.findAll(caller.id);
   }
+
+  @Get('authored')
+  @ApiAuthenticated()
+  @ApiOperation({
+    summary: 'List points of interest discovered by the signed-in user',
+    description:
+      'Calculates discovery status from every discovery authored by the user, ' +
+      'independently of the active map and destination maps.',
+  })
+  @ApiOkResponse({
+    description: 'Known points of interest with user-wide discovery status.',
+    schema: { example: poisExample },
+  })
+  findAllAuthored(
+    @CurrentUser() caller: AuthenticatedUser,
+  ): Promise<PoiResponse[]> {
+    return this.pois.findAllAuthoredByUser(caller.id);
+  }
 }
