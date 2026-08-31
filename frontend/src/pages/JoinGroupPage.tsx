@@ -1,10 +1,13 @@
+import { QrCode } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { PageHeader } from '@/components/PageHeader'
+import { QrScanner } from '@/components/QrScanner'
 import { Button } from '@/components/ui/button'
 import { ApiError, joinGroup } from '@/lib/api'
+import { ensureCameraPermission, isQrScanAvailable } from '@/lib/qr-scan'
 import { loadSession } from '@/lib/session'
 
 export function JoinGroupPage() {
@@ -13,6 +16,7 @@ export function JoinGroupPage() {
   const session = loadSession()
   const [inviteCode, setInviteCode] = useState('')
   const [formMessage, setFormMessage] = useState('')
+  const [scanning, setScanning] = useState(false)
 
   const mutation = useMutation({
     mutationFn: joinGroup,
@@ -33,8 +37,7 @@ export function JoinGroupPage() {
     },
   })
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  function joinWithCode(code: string) {
     setFormMessage('')
 
     if (!session) {
@@ -44,8 +47,27 @@ export function JoinGroupPage() {
 
     mutation.mutate({
       accessToken: session.accessToken,
-      inviteCode: inviteCode.trim(),
+      inviteCode: code.trim(),
     })
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    joinWithCode(inviteCode)
+  }
+
+  async function startScanning() {
+    setFormMessage('')
+
+    const granted = await ensureCameraPermission()
+    if (!granted) {
+      setFormMessage(
+        'Camera access was denied. Enter the invitation code instead.',
+      )
+      return
+    }
+
+    setScanning(true)
   }
 
   return (
@@ -79,12 +101,42 @@ export function JoinGroupPage() {
         >
           {mutation.isPending ? 'Joining group...' : 'Join group'}
         </Button>
+        {isQrScanAvailable() && (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 w-full"
+            disabled={mutation.isPending}
+            onClick={() => void startScanning()}
+          >
+            <QrCode className="size-4" />
+            Scan QR code instead
+          </Button>
+        )}
         {formMessage && (
           <p role="status" className="text-sm leading-5 text-destructive">
             {formMessage}
           </p>
         )}
       </form>
+      {scanning && (
+        <QrScanner
+          onScan={(code) => {
+            setScanning(false)
+            setInviteCode(code.toUpperCase())
+            joinWithCode(code)
+          }}
+          onCancel={() => setScanning(false)}
+          onError={(error) => {
+            setScanning(false)
+            setFormMessage(
+              error instanceof Error
+                ? error.message
+                : 'Unable to scan the code. Enter it manually instead.',
+            )
+          }}
+        />
+      )}
     </main>
   )
 }

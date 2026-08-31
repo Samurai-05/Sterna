@@ -257,3 +257,14 @@ input:-webkit-autofill:focus {
   padding: 0;
   pointer-events: auto;
 }
+
+/* While scanning, the native camera renders behind the WebView, so every
+   other element must be hidden except the scanner's own overlay. */
+body.barcode-scanner-active {
+  visibility: hidden;
+  background: transparent;
+}
+
+body.barcode-scanner-active .qr-scanner-overlay {
+  visibility: visible;
+}
