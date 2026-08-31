@@ -8,6 +8,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -180,7 +181,7 @@ export function GroupDetailPage() {
         <section className="rounded-2xl border border-border bg-card p-5">
           <h2 className="sterna-section-title">Invite others</h2>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
-            Share this code. Anyone who enters it joins the group.
+            Share this code, or let them scan the QR code from the app.
           </p>
           <div className="mt-3 flex items-center gap-3">
             <span className="flex h-12 flex-1 items-center justify-center rounded-xl border border-border bg-background text-lg font-semibold tracking-[0.3em]">
@@ -205,6 +206,14 @@ export function GroupDetailPage() {
               Code copied.
             </p>
           )}
+          <div className="mt-4 flex justify-center rounded-xl border border-border bg-background p-4">
+            <QRCodeSVG
+              value={group.inviteCode}
+              size={176}
+              level="M"
+              title="Group invite QR code"
+            />
+          </div>
         </section>
 
         {group.isActive && (

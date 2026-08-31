@@ -201,6 +201,15 @@ describe('group detail', () => {
     expect(screen.getByText('Owner')).toBeInTheDocument()
   })
 
+  it('shows a QR code encoding the raw invite code alongside the text code', async () => {
+    renderAt('/groups/12')
+
+    await screen.findByText('AB3K-9QZ2')
+    const qrCode = screen.getByRole('img', { name: 'Group invite QR code' })
+    expect(qrCode).toBeInTheDocument()
+    expect(qrCode.tagName.toLowerCase()).toBe('svg')
+  })
+
   it('reports a group it cannot see as not found rather than falling back', async () => {
     api.getGroup.mockRejectedValue(new ApiError('No such group.', 404))
     renderAt('/groups/99')
