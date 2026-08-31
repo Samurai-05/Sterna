@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   createDiscovery,
+  getAuthoredDiscoveries,
   getDiscoveries,
   getGroupDiscoveries,
   updateDiscovery,
@@ -44,6 +45,21 @@ describe('discovery map boundaries', () => {
 
     const result = await getGroupDiscoveries('token', '7')
 
+    expect(result.map((discovery) => discovery.id)).toEqual([1, 2])
+  })
+
+  it('keeps every authored discovery in the collection response', async () => {
+    const fetchMock = mockDiscoveryResponse([
+      personalDiscovery,
+      groupDiscovery,
+    ])
+
+    const result = await getAuthoredDiscoveries('token')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/discoveries/authored',
+      expect.any(Object),
+    )
     expect(result.map((discovery) => discovery.id)).toEqual([1, 2])
   })
 })

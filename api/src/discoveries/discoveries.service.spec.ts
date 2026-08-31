@@ -173,6 +173,37 @@ describe('DiscoveriesService', () => {
     });
   });
 
+  describe('findAllAuthoredByUser', () => {
+    it('queries every discovery authored by the user without a map filter', async () => {
+      await service.findAllAuthoredByUser('1');
+
+      expect(statement()).toContain('WHERE d.user_id = $1');
+      expect(statement()).not.toContain('AND d.is_personal');
+      expect(statement()).not.toContain('WHERE EXISTS');
+      expect(params()).toEqual(['1']);
+    });
+
+    it('returns personal and group-only discoveries together', async () => {
+      query.mockResolvedValueOnce([
+        row(),
+        row({
+          id: '10',
+          group_id: '7',
+          group_ids: ['7'],
+          is_personal: false,
+        }),
+      ]);
+
+      const discoveries = await service.findAllAuthoredByUser('1');
+
+      expect(discoveries.map((discovery) => discovery.id)).toEqual(['9', '10']);
+      expect(discoveries[1]).toMatchObject({
+        groupIds: ['7'],
+        personal: false,
+      });
+    });
+  });
+
   describe('findAllByGroup', () => {
     it('loads discoveries explicitly linked to the requested group', async () => {
       await service.findAllByGroup('7');

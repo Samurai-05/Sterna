@@ -166,6 +166,21 @@ export async function getDiscoveries(
     .map(toDiscovery)
 }
 
+export async function getAuthoredDiscoveries(
+  accessToken: string,
+): Promise<Discovery[]> {
+  const discoveries = await request<ApiDiscovery[]>(
+    '/api/discoveries/authored',
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  return discoveries.map(toDiscovery)
+}
+
 export function searchLocations(
   accessToken: string,
   query: string,

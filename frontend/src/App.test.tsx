@@ -19,6 +19,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
       userName: 'Explorer',
       createdAt: '2026-08-26T08:00:00.000Z',
     }),
+    getAuthoredDiscoveries: vi.fn().mockResolvedValue(discoveries),
     getDiscoveries: vi.fn().mockResolvedValue(discoveries),
     getPois: vi.fn().mockResolvedValue(landmarks),
   }

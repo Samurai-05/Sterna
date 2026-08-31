@@ -155,6 +155,23 @@ export class DiscoveriesService {
   }
 
   /**
+   * The caller's collection: every discovery they authored, regardless of
+   * whether it currently appears on their Personal map, group maps, or both.
+   */
+  async findAllAuthoredByUser(userId: string): Promise<DiscoveryResponse[]> {
+    const rows = await this.discoveries.query<DiscoveryRow[]>(
+      `
+      ${DISCOVERY_PROJECTION}
+      WHERE d.user_id = $1
+      ORDER BY d.created_at DESC, d.id DESC
+    `,
+      [userId],
+    );
+
+    return rows.map((row) => this.toResponse(row));
+  }
+
+  /**
    * A group's shared map: every member's discoveries in it, each carrying its
    * author (FR-29, FR-31).
    *
