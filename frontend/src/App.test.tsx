@@ -10,6 +10,28 @@ import { renderWithProviders } from './test/renderWithProviders'
 vi.mock('@/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api')>()
   const { discoveries, landmarks } = await import('@/lib/mock-data')
+  const personalDiscoveries = [
+    {
+      ...discoveries[3],
+      id: 101,
+      name: 'Personal garden',
+      category: 'other',
+      userId: '1',
+      personal: true,
+      groupId: null,
+      groupIds: [],
+    },
+    {
+      ...discoveries[4],
+      id: 102,
+      name: "Alex's personal beach",
+      category: 'culture',
+      userId: '2',
+      personal: true,
+      groupId: null,
+      groupIds: [],
+    },
+  ]
 
   return {
     ...actual,
@@ -19,7 +41,9 @@ vi.mock('@/lib/api', async (importOriginal) => {
       userName: 'Explorer',
       createdAt: '2026-08-26T08:00:00.000Z',
     }),
-    getAuthoredDiscoveries: vi.fn().mockResolvedValue(discoveries),
+    getAuthoredDiscoveries: vi
+      .fn()
+      .mockResolvedValue([...discoveries, ...personalDiscoveries]),
     getAuthoredPois: vi.fn().mockResolvedValue(landmarks),
     getDiscoveries: vi.fn().mockResolvedValue(discoveries),
     getGroups: vi.fn().mockResolvedValue([
@@ -317,10 +341,9 @@ describe('App', () => {
       name: 'Filter discoveries by group: All',
     })
     fireEvent.pointerDown(groupFilter, { button: 0, ctrlKey: false })
-    expect(screen.getByRole('menuitemradio', { name: 'Personal' })).toHaveAttribute(
-      'aria-checked',
-      'false',
-    )
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Personal' }),
+    ).toHaveAttribute('aria-checked', 'false')
     const weekendParisOption = await screen.findByRole('menuitemradio', {
       name: 'Weekend Paris',
     })
@@ -342,7 +365,9 @@ describe('App', () => {
     expect(
       screen.getByRole('button', { name: 'Switch to detailed view' }),
     ).toBeInTheDocument()
-    expect(screen.queryByText('Parisian Croissant')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Parisian Croissant' }),
+    ).not.toBeInTheDocument()
     expect(
       await screen.findByRole('link', { name: /Eiffel Tower/ }),
     ).toBeInTheDocument()
@@ -363,7 +388,7 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('keeps group discoveries out of the Personal Gallery filter', async () => {
+  it("shows only the current user's personal discoveries", async () => {
     renderWithProviders(<App />, { route: '/collection' })
 
     fireEvent.pointerDown(
@@ -374,11 +399,15 @@ describe('App', () => {
     )
     fireEvent.click(screen.getByRole('menuitemradio', { name: 'Personal' }))
 
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('link', { name: 'Street in Le Marais' }),
-      ).not.toBeInTheDocument(),
-    )
+    expect(
+      await screen.findByRole('link', { name: /Personal garden/ }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /Alex's personal beach/ }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /Street in Le Marais/ }),
+    ).not.toBeInTheDocument()
   })
 
   it('keeps existing POI filtering and cards unchanged by the group filter', async () => {
@@ -392,6 +421,17 @@ describe('App', () => {
       .closest('main')!
 
     fireEvent.click(within(galleryPage).getByRole('button', { name: 'POIs' }))
+
+    expect(
+      within(galleryPage).queryByRole('button', {
+        name: /Filter discoveries by group:/,
+      }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(galleryPage).queryByRole('button', {
+        name: /Switch to (photo grid|detailed view)/,
+      }),
+    ).not.toBeInTheDocument()
 
     expect(
       await within(galleryPage).findByRole('link', {
@@ -658,9 +698,9 @@ describe('App', () => {
     const landscape = within(categorySection).getByRole('listitem', {
       name: 'Landscape: 1 discovery',
     })
-    expect(monument.querySelector('[data-category-bar="monument"]')).toHaveStyle(
-      { height: '100%' },
-    )
+    expect(
+      monument.querySelector('[data-category-bar="monument"]'),
+    ).toHaveStyle({ height: '100%' })
     expect(
       landscape.querySelector('[data-category-bar="landscape"]'),
     ).toHaveStyle({ height: '50%' })

@@ -29,7 +29,7 @@ export function GalleryGroupFilter({
           variant="outline"
           size="lg"
           aria-label={`Filter discoveries by group: ${selectedLabel}`}
-          className="min-w-0 max-w-[calc(100vw-6.5rem)] justify-start rounded-xl bg-card px-3 shadow-sm"
+          className="h-11 min-w-0 max-w-[calc(100vw-6.5rem)] justify-start rounded-xl bg-card px-3 shadow-sm"
         >
           <Filter className="size-4 shrink-0 text-primary" aria-hidden="true" />
           <span className="truncate">{selectedLabel}</span>

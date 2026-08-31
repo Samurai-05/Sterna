@@ -1,4 +1,4 @@
-import { Grid2X2, MapPinned, Search } from 'lucide-react'
+import { Grid2X2, List, MapPinned, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useLocation, useSearchParams } from 'react-router'
@@ -175,30 +175,36 @@ export function CollectionPage() {
             POIs
           </CategoryButton>
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <GalleryGroupFilter
-            groups={groups}
-            value={selectedGroup}
-            onValueChange={(group) => updateGalleryState({ group })}
-          />
-          <button
-            type="button"
-            aria-label={
-              view === 'grid'
-                ? 'Switch to detailed view'
-                : 'Switch to photo grid'
-            }
-            aria-pressed={view === 'grid'}
-            onClick={() =>
-              updateGalleryState({
-                view: view === 'grid' ? 'detailed' : 'grid',
-              })
-            }
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-          >
-            <Grid2X2 className="size-4" aria-hidden="true" />
-          </button>
-        </div>
+        {category !== 'pois' && (
+          <div className="flex items-center justify-between gap-3">
+            <GalleryGroupFilter
+              groups={groups}
+              value={selectedGroup}
+              onValueChange={(group) => updateGalleryState({ group })}
+            />
+            <button
+              type="button"
+              aria-label={
+                view === 'grid'
+                  ? 'Switch to detailed view'
+                  : 'Switch to photo grid'
+              }
+              aria-pressed={view === 'grid'}
+              onClick={() =>
+                updateGalleryState({
+                  view: view === 'grid' ? 'detailed' : 'grid',
+                })
+              }
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            >
+              {view === 'grid' ? (
+                <List className="size-4" aria-hidden="true" />
+              ) : (
+                <Grid2X2 className="size-4" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+        )}
         <p className="text-sm text-muted-foreground">
           {isLoading
             ? 'Loading gallery'
