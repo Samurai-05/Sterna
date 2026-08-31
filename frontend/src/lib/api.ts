@@ -16,11 +16,16 @@ export class ApiError extends Error {
   }
 }
 
+/** Resolves API paths for both same-origin web builds and Capacitor builds. */
+export function resolveApiUrl(path: string, baseUrl = apiBaseUrl): string {
+  return `${baseUrl.replace(/\/+$/, '')}${path}`
+}
+
 async function request<TResponse>(
   path: string,
   options: RequestInit = {},
 ): Promise<TResponse> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const response = await fetch(resolveApiUrl(path), {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -29,27 +34,14 @@ async function request<TResponse>(
   })
 
   if (!response.ok) {
-    let message = 'Something went wrong.'
-
-    try {
-      const body = (await response.json()) as ApiErrorBody
-      if (Array.isArray(body.message)) {
-        message = body.message.join(' ')
-      } else if (body.message) {
-        message = body.message
-      }
-    } catch {
-      message = response.statusText
-    }
-
-    throw new ApiError(message, response.status)
+    throw await responseError(response)
   }
 
   if (response.status === 204) {
     return undefined as TResponse
   }
 
-  return (await response.json()) as TResponse
+  return responseJson<TResponse>(response)
 }
 
 export function register(input: {
@@ -267,7 +259,7 @@ export async function uploadPhoto(
   const formData = new FormData()
   formData.append('file', photo, fileName)
 
-  const response = await fetch(`${apiBaseUrl}/api/photos`, {
+  const response = await fetch(resolveApiUrl('/api/photos'), {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}` },
     body: formData,
@@ -277,7 +269,7 @@ export async function uploadPhoto(
     throw await responseError(response)
   }
 
-  return (await response.json()) as UploadPhotoResponse
+  return responseJson<UploadPhotoResponse>(response)
 }
 
 export async function getPhoto(
@@ -288,7 +280,7 @@ export async function getPhoto(
   if (!filename) throw new Error('Invalid photo key.')
 
   const response = await fetch(
-    `${apiBaseUrl}/api/photos/${encodeURIComponent(filename)}`,
+    resolveApiUrl(`/api/photos/${encodeURIComponent(filename)}`),
     { headers: { Authorization: `Bearer ${accessToken}` } },
   )
 
@@ -378,16 +370,38 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
 
 async function responseError(response: Response): Promise<ApiError> {
   let message = response.statusText || 'Something went wrong.'
+  const text = await response.text()
 
   try {
-    const body = (await response.json()) as ApiErrorBody
+    const body = JSON.parse(text) as ApiErrorBody
     if (Array.isArray(body.message)) message = body.message.join(' ')
     else if (body.message) message = body.message
   } catch {
-    // Non-JSON errors keep the HTTP status text.
+    if (isHtml(text)) {
+      message =
+        'The API returned HTML instead of JSON. Check the API URL and reverse proxy configuration.'
+    }
   }
 
   return new ApiError(message, response.status)
+}
+
+async function responseJson<TResponse>(response: Response): Promise<TResponse> {
+  const text = await response.text()
+
+  try {
+    return JSON.parse(text) as TResponse
+  } catch {
+    const message = isHtml(text)
+      ? 'The API returned HTML instead of JSON. Check the API URL and reverse proxy configuration.'
+      : 'The API returned invalid JSON.'
+    throw new ApiError(message, response.status)
+  }
+}
+
+function isHtml(text: string): boolean {
+  const normalized = text.trimStart().toLowerCase()
+  return normalized.startsWith('<!doctype html') || normalized.startsWith('<html')
 }
 
 function toLandmark(poi: ApiPoi): Landmark {
