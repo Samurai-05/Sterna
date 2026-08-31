@@ -299,6 +299,16 @@ export async function getPois(accessToken: string): Promise<Landmark[]> {
   return pois.map(toLandmark)
 }
 
+export async function getAuthoredPois(
+  accessToken: string,
+): Promise<Landmark[]> {
+  const pois = await request<ApiPoi[]>('/api/pois/authored', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  return pois.map(toLandmark)
+}
+
 export async function createDiscovery(input: {
   accessToken: string
   groupId: string | null
@@ -360,6 +370,7 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
     author: authorName,
     initials: initialsOf(authorName),
     relativeDate: formatRelativeDate(discovery.discoveredAt),
+    createdAt: discovery.createdAt,
     coordinates,
     // PostGIS-derived (issue #59 / ADR-005) — see DiscoveriesService for how
     // a coastal point that misses every polygon still resolves to the

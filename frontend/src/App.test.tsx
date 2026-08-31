@@ -2,8 +2,8 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
-import { getPois } from '@/lib/api'
-import { landmarks } from '@/lib/mock-data'
+import { getAuthoredDiscoveries, getAuthoredPois, getPois } from '@/lib/api'
+import { discoveries as sampleDiscoveries, landmarks } from '@/lib/mock-data'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
 
@@ -20,6 +20,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
       createdAt: '2026-08-26T08:00:00.000Z',
     }),
     getAuthoredDiscoveries: vi.fn().mockResolvedValue(discoveries),
+    getAuthoredPois: vi.fn().mockResolvedValue(landmarks),
     getDiscoveries: vi.fn().mockResolvedValue(discoveries),
     getGroups: vi.fn().mockResolvedValue([
       {
@@ -558,6 +559,11 @@ describe('App', () => {
   it('renders the profile exploration summary and supporting details', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
+    await waitFor(() =>
+      expect(getAuthoredDiscoveries).toHaveBeenCalledWith('test-token'),
+    )
+    expect(getAuthoredPois).toHaveBeenCalledWith('test-token')
+
     expect(
       screen.queryByRole('heading', { level: 1, name: 'Profile' }),
     ).not.toBeInTheDocument()
@@ -621,26 +627,82 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows absolute category counts without suggesting a maximum', async () => {
+  it('shows explicit empty states for countries and recent discoveries', async () => {
+    vi.mocked(getAuthoredDiscoveries).mockResolvedValueOnce([])
+
+    renderWithProviders(<App />, { route: '/profile' })
+
+    expect(
+      await screen.findByText('No countries explored yet.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('No recent discoveries yet.')).toBeInTheDocument()
+    expect(
+      screen.getByText('No discoveries created in the last 6 months.'),
+    ).toBeInTheDocument()
+  })
+
+  it('shows discovery counts as a standard vertical bar chart', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const categorySection = screen.getByRole('region', {
       name: 'Discoveries by category',
     })
     expect(
-      within(categorySection).getByRole('img', {
-        name: 'Distribution of discoveries by category',
+      await within(categorySection).findByRole('list', {
+        name: 'Discovery distribution by category',
       }),
     ).toBeInTheDocument()
+    const monument = await within(categorySection).findByRole('listitem', {
+      name: 'Monument: 2 discoveries',
+    })
+    const landscape = within(categorySection).getByRole('listitem', {
+      name: 'Landscape: 1 discovery',
+    })
+    expect(monument.querySelector('[data-category-bar="monument"]')).toHaveStyle(
+      { height: '100%' },
+    )
     expect(
-      await within(categorySection).findByLabelText('Monument: 2 discoveries'),
-    ).toBeInTheDocument()
-    expect(
-      within(categorySection).getByLabelText('Landscape: 1 discovery'),
-    ).toBeInTheDocument()
+      landscape.querySelector('[data-category-bar="landscape"]'),
+    ).toHaveStyle({ height: '50%' })
     expect(
       within(categorySection).queryByRole('progressbar'),
     ).not.toBeInTheDocument()
+    expect(
+      within(categorySection).queryByText(
+        "Bars show each category's share of your discoveries, not a goal or limit.",
+      ),
+    ).not.toBeInTheDocument()
+  })
+
+  it('plots discovery creation activity over the last six months', async () => {
+    const now = new Date()
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 10)
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 10)
+    const currentLabel = new Intl.DateTimeFormat('en', {
+      month: 'short',
+    }).format(currentMonth)
+    const previousLabel = new Intl.DateTimeFormat('en', {
+      month: 'short',
+    }).format(previousMonth)
+    vi.mocked(getAuthoredDiscoveries).mockResolvedValueOnce([
+      { ...sampleDiscoveries[0], createdAt: currentMonth.toISOString() },
+      { ...sampleDiscoveries[1], createdAt: currentMonth.toISOString() },
+      { ...sampleDiscoveries[2], createdAt: previousMonth.toISOString() },
+    ])
+
+    renderWithProviders(<App />, { route: '/profile' })
+
+    const chart = await screen.findByRole('img', {
+      name: /Discovery creations by month:/,
+    })
+    expect(chart).toHaveAttribute(
+      'aria-label',
+      expect.stringContaining(`${previousLabel}: 1`),
+    )
+    expect(chart).toHaveAttribute(
+      'aria-label',
+      expect.stringContaining(`${currentLabel}: 2`),
+    )
   })
 
   it('orders profile sections and gives them matching title styles', () => {
@@ -657,12 +719,14 @@ describe('App', () => {
       'Explorer',
       'POIs',
       'Discoveries by category',
+      'Discovery activity',
       'Countries explored',
       'Recent',
     ])
     for (const title of [
       'POIs',
       'Discoveries by category',
+      'Discovery activity',
       'Countries explored',
       'Recent',
     ]) {

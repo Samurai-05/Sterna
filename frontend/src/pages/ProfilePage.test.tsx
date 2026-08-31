@@ -4,9 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Discovery } from '@/lib/mock-data'
 import {
   deleteAccount,
+  getAuthoredDiscoveries,
+  getAuthoredPois,
   getCurrentUser,
-  getDiscoveries,
-  getPois,
 } from '@/lib/api'
 import { loadSession, saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -17,15 +17,15 @@ vi.mock('@/lib/api', () => ({
     status = 0
   },
   deleteAccount: vi.fn(),
+  getAuthoredDiscoveries: vi.fn(),
+  getAuthoredPois: vi.fn(),
   getCurrentUser: vi.fn(),
-  getDiscoveries: vi.fn(),
-  getPois: vi.fn(),
 }))
 
 const deleteAccountMock = vi.mocked(deleteAccount)
+const getAuthoredDiscoveriesMock = vi.mocked(getAuthoredDiscoveries)
+const getAuthoredPoisMock = vi.mocked(getAuthoredPois)
 const getCurrentUserMock = vi.mocked(getCurrentUser)
-const getDiscoveriesMock = vi.mocked(getDiscoveries)
-const getPoisMock = vi.mocked(getPois)
 
 function makeDiscovery(
   id: number,
@@ -64,7 +64,7 @@ describe('ProfilePage', () => {
       userName: 'Explorer',
       createdAt: '2026-08-26T08:00:00.000Z',
     })
-    getPoisMock.mockResolvedValue([])
+    getAuthoredPoisMock.mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -73,7 +73,7 @@ describe('ProfilePage', () => {
   })
 
   it('shows unique human-readable countries from discovery country codes', async () => {
-    getDiscoveriesMock.mockResolvedValue([
+    getAuthoredDiscoveriesMock.mockResolvedValue([
       makeDiscovery(1, 'FRA', '48.8566, 2.3522'),
       makeDiscovery(2, 'FRA', '48.8606, 2.3364'),
       makeDiscovery(3, 'CHE', '46.9480, 7.4474'),
@@ -95,7 +95,7 @@ describe('ProfilePage', () => {
   })
 
   it('deletes the account and clears the session on confirmation', async () => {
-    getDiscoveriesMock.mockResolvedValue([])
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
     deleteAccountMock.mockResolvedValue(undefined)
 
     renderWithProviders(<ProfilePage />)
@@ -119,7 +119,7 @@ describe('ProfilePage', () => {
   })
 
   it('shows the server error and keeps the session on a failed deletion', async () => {
-    getDiscoveriesMock.mockResolvedValue([])
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
     deleteAccountMock.mockRejectedValue(
       new Error('The current password is incorrect.'),
     )
