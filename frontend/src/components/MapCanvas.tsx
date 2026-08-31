@@ -26,6 +26,10 @@ const countryBorderLayerId = 'country-borders'
 // above the pin instead of waiting for a tap. Below street level (~15) so the
 // photo shows up while still zooming in, not only once fully street-level.
 const photoPreopenZoom = 13
+// Zoom level below which POI markers are hidden. Around city level (~10) so
+// zooming out to country/continent view doesn't clutter the map with pins,
+// while a single city stays browsable.
+const landmarkMinZoom = 10
 
 // countries.geo.json gives two genuinely disputed areas their own feature
 // instead of folding them into either claim's polygon — XCR (Crimea, claimed
@@ -279,6 +283,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       const roots: Root[] = []
       const photoPopups: Popup[] = []
       const photoObjectUrls: string[] = []
+      const landmarkElements: HTMLDivElement[] = []
       let active = true
 
       const updatePhotoPopups = () => {
@@ -289,6 +294,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           } else if (popup.isOpen()) {
             popup.remove()
           }
+        }
+      }
+
+      const updateLandmarkVisibility = () => {
+        const shouldShow = instance.getZoom() >= landmarkMinZoom
+        for (const el of landmarkElements) {
+          el.style.display = shouldShow ? '' : 'none'
         }
       }
 
@@ -382,17 +394,21 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             .addTo(instance),
         )
         roots.push(root)
+        landmarkElements.push(el)
 
         // POIs deliberately have no photo popup above their marker. Their
         // image remains available inside the marker and on the detail page.
       }
 
       updatePhotoPopups()
+      updateLandmarkVisibility()
       instance.on('zoom', updatePhotoPopups)
+      instance.on('zoom', updateLandmarkVisibility)
 
       return () => {
         active = false
         instance.off('zoom', updatePhotoPopups)
+        instance.off('zoom', updateLandmarkVisibility)
         photoPopups.forEach((popup) => popup.remove())
         markers.forEach((marker) => marker.remove())
         // Deferred: unmounting synchronously here can race with React's own
