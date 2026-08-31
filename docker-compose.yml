@@ -1,10 +1,53 @@
 services:
+  # Nginx — the public entry point (ADR-007): serves the built frontend,
+  # terminates TLS and reverse proxies /api to the API container.
+  #
+  # No build: here. Like the api service, this runs the prebuilt image published
+  # by .github/workflows/deploy.yml; the local build lives in the override file.
+  #
+  # The ports default to 80/443 for the VM. A developer cannot bind those
+  # without root, so .env sets 8080/8443 locally. They are set through variables
+  # rather than overridden in docker-compose.override.yml because Compose
+  # *appends* to sequences when merging, which would publish both pairs.
   web:
-    build: ./deploy/placeholder
     image: ghcr.io/samurai-05/sterna-web:latest
-    ports:
-      - "${WEB_PORT:-8080}:80"
+    container_name: app_web
     restart: unless-stopped
+    environment:
+      # Substituted into the Nginx config at container start, and the name the
+      # certificate is issued for.
+      SERVER_NAME: ${SERVER_NAME:-localhost}
+    ports:
+      - "${WEB_PORT:-80}:80"
+      - "${WEB_TLS_PORT:-443}:443"
+    volumes:
+      # Shared with certbot: it writes certificates here, Nginx reads them.
+      - certbot_conf:/etc/letsencrypt
+      # Shared with certbot: it drops ACME challenge files here, Nginx serves them.
+      - certbot_www:/var/www/certbot
+    # The command is deliberately left as the image's default. The entrypoint
+    # only runs /docker-entrypoint.d/ when its first argument is exactly
+    # "nginx", so overriding it here would skip the certificate bootstrap and
+    # the envsubst templating. Reloading for renewals is handled inside the
+    # image instead, by 40-reload-for-renewals.sh.
+    networks:
+      - app_network
+
+  # Obtains and renews the Let's Encrypt certificate over the HTTP-01 challenge.
+  #
+  # Issuance is a one-time manual step (see docs/CONTRIBUTING.md); this service
+  # only handles renewal. `certbot renew` is a no-op until the certificate is
+  # inside its last 30 days, so almost every run does nothing, which is why
+  # twice a day is both harmless and the interval certbot itself recommends.
+  certbot:
+    image: certbot/certbot:latest
+    container_name: app_certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: >
+      /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done"
     networks:
       - app_network
 
@@ -90,9 +133,11 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    # Deliberately no ports: ADR-007 keeps infrastructure services off the
+    # public network, and this VM has a routable address. Photos reach clients
+    # through the authenticated /api/photos/:id route, so nothing outside the
+    # Compose network needs MinIO. The console is published for local
+    # development only, in docker-compose.override.yml.
     volumes:
       - minio_data:/data
     healthcheck:
@@ -127,3 +172,8 @@ networks:
 volumes:
   postgres_data:
   minio_data:
+  # /etc/letsencrypt — the certificates and the certbot account. Losing this
+  # volume means re-issuing, so it must survive `docker compose down`.
+  certbot_conf:
+  # The ACME challenge webroot, written by certbot and served by Nginx.
+  certbot_www:

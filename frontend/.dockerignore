@@ -1,0 +1,27 @@
+# Never ship the host's install: it is reinstalled in the image, and on a
+# different platform it would be silently wrong.
+node_modules
+dist
+coverage
+
+# The native Android shell is packaged by Capacitor, not by this image.
+android
+ios
+
+# Secrets and local overrides. Note that vite.config.ts sets envDir: '..',
+# so the build deliberately finds no .env at all inside the container —
+# see the comment in Dockerfile.
+.env
+.env.*
+
+# Version control and tooling noise
+.git
+.gitignore
+*.log
+*.tsbuildinfo
+.vscode
+.idea
+
+# Docker files themselves are not needed inside the build context
+Dockerfile
+.dockerignore

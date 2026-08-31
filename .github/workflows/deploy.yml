@@ -25,7 +25,11 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: ./deploy/placeholder
+          context: ./frontend
+          # The Nginx entry point with the built PWA baked in. The build stage
+          # needs the dev dependencies, so there is no development target here
+          # the way there is for the API — this is the only target.
+          target: production
           push: true
           tags: |
             ${{ env.IMAGE }}:latest
@@ -76,6 +80,10 @@ jobs:
       MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
       MINIO_BUCKET_NAME: ${{ secrets.MINIO_BUCKET_NAME }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # Not a secret, but it has to be in this environment for Compose to
+      # interpolate it: without it SERVER_NAME falls back to "localhost" and
+      # Nginx would look for a certificate under the wrong name.
+      SERVER_NAME: labo-iot1.iict-heig-vd.ch
     steps:
       - uses: actions/checkout@v4
 
@@ -182,3 +190,32 @@ jobs:
           echo "API did not become healthy within 150s"
           docker compose -f docker-compose.yml logs api --tail 50
           exit 1
+
+      # The API being healthy says nothing about whether anyone can reach it:
+      # Nginx is the only public entry point, and it can come up serving the
+      # wrong thing — overriding its command silently skips the config phase and
+      # boots the stock welcome page, and a bad certificate path stops it dead.
+      # Both of those look like a successful deploy from the API's side alone.
+      #
+      # -k because the certificate is the self-signed placeholder until the
+      # one-time certbot issuance has been run on the VM.
+      - name: Verify the site is reachable through Nginx
+        run: |
+          fail() {
+            echo "$1" >&2
+            docker compose -f docker-compose.yml logs web --tail 50
+            exit 1
+          }
+
+          redirect=$(curl -s -o /dev/null -w '%{http_code}' http://localhost/ || true)
+          [ "$redirect" = "301" ] || fail "HTTP did not redirect to HTTPS (got $redirect)"
+
+          app=$(curl -sk -o /dev/null -w '%{http_code}' https://localhost/ || true)
+          [ "$app" = "200" ] || fail "The app did not load over HTTPS (got $app)"
+
+          # Proves the reverse proxy reaches the API, not just that Nginx is up.
+          api=$(curl -sk -o /dev/null -w '%{http_code}' https://localhost/api/health || true)
+          [ "$api" = "200" ] || fail "/api/health did not answer through Nginx (got $api)"
+
+          echo "Nginx is serving the app and proxying /api"
+

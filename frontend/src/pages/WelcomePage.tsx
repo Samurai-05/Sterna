@@ -1,9 +1,9 @@
 import { Link, useNavigate } from 'react-router'
 
 import backgroundImage from '@/assets/auth-welcome-coast-road-1.jpg'
+import sternaLogo from '@/assets/brand/sterna-logo-white-filled.svg'
 import { Button } from '@/components/ui/button'
 import { saveSession } from '@/lib/session'
-import sternaLogo from '../../../landing/src/assets/brand/sterna-logo-white-filled.svg'
 
 export function WelcomePage() {
   const navigate = useNavigate()
