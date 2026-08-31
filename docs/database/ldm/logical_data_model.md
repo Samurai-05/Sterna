@@ -137,6 +137,7 @@ DISCOVERIES(
     id PK,
     user_id FK -> USERS.id NOT NULL,
     group_id FK -> GROUPS.id NULL,
+    is_personal NOT NULL,
     title NOT NULL,
     description NULL,
     category NULL,
@@ -152,7 +153,11 @@ DISCOVERIES(
 
 * `id`: unique identifier of the discovery.
 * `user_id`: identifier of the user who created the discovery.
-* `group_id`: identifier of the group to which the discovery belongs.
+* `group_id`: optional identifier of the group in which the discovery was
+  originally created. It is retained as provenance and does not determine the
+  maps on which the discovery currently appears.
+* `is_personal`: indicates whether the discovery appears on its author's
+  Personal map.
 * `title`: discovery title.
 * `description`: optional discovery description.
 * `category`: optional discovery category.
@@ -162,21 +167,34 @@ DISCOVERIES(
 * `created_at`: date and time when the discovery was created in Sterna.
 * `updated_at`: date and time when the discovery was last modified.
 
-### Personal vs shared discovery
+### Discovery destinations
 
 ```text
-group_id = NULL
--> Personal discovery
+is_personal = true -> appears on the author's Personal map
 
-group_id != NULL
--> Group discovery
+a row in DISCOVERY_GROUPS -> appears on the corresponding group map
 ```
 
-A Personal map is therefore not stored as a group. It is a logical view containing the user's discoveries whose `group_id` is `NULL`.
+A discovery may therefore appear on the Personal map, on one or more group
+maps, or on both. The same `DISCOVERIES` row is reused for every selected map;
+the discovery itself is not duplicated.
+
+A Personal map is not stored as a group. It is a logical view containing the
+user's discoveries whose `is_personal` value is `true`.
+
+Every discovery must have at least one destination:
+
+```text
+is_personal = true
+OR
+at least one DISCOVERY_GROUPS row exists for the discovery
+```
 
 ### Membership constraint
 
-If a discovery belongs to a group, its author must be a member of that group.
+For every group map on which a discovery appears, its author must be a member
+of that group. In other words, each `DISCOVERY_GROUPS` row must correspond to a
+`GROUP_MEMBERS` row for the discovery's `user_id` and the selected `group_id`.
 
 ### Constraints
 
@@ -185,11 +203,45 @@ PRIMARY KEY (id)
 
 FK user_id -> USERS.id
 FK group_id -> GROUPS.id
+FK (user_id, group_id) -> GROUP_MEMBERS(user_id, group_id)
 ```
+
+The composite foreign key applies only when the provenance `group_id` is not
+null. Associations in `DISCOVERY_GROUPS` are validated against
+`GROUP_MEMBERS` by the application.
 
 ---
 
-## 6. POIS
+## 6. DISCOVERY_GROUPS
+
+```text
+DISCOVERY_GROUPS(
+    discovery_id PK FK -> DISCOVERIES.id NOT NULL,
+    group_id PK FK -> GROUPS.id NOT NULL
+)
+```
+
+### Attributes
+
+* `discovery_id`: identifier of the discovery displayed on a group map.
+* `group_id`: identifier of the group map on which the discovery appears.
+
+### Constraints
+
+```text
+PRIMARY KEY (discovery_id, group_id)
+
+FK discovery_id -> DISCOVERIES.id ON DELETE CASCADE
+FK group_id -> GROUPS.id ON DELETE CASCADE
+```
+
+The composite primary key prevents a discovery from being associated with the
+same group more than once. A discovery may be associated with zero or many
+groups, and a group may contain zero or many discoveries.
+
+---
+
+## 7. POIS
 
 ```text
 POIS(
@@ -231,5 +283,11 @@ POIS.location
 
 This relationship is evaluated with a PostGIS distance query. For the MVP, a
 discovery within 150 metres reveals the POI in the same active context. The
-status is derived rather than stored on `POIS`, because the same POI may be
+active context is determined as follows:
+
+* Personal map: the discovery belongs to the current user and has
+  `is_personal = true`.
+* Group map: the discovery has a `DISCOVERY_GROUPS` row for the active group.
+
+The status is derived rather than stored on `POIS`, because the same POI may be
 discovered on one personal or group map and undiscovered on another.
