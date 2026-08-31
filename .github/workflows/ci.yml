@@ -5,15 +5,42 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the build stage in frontend/Dockerfile.
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --run
+
+      - name: Build
+        run: npm run build
+
+      # Verifies the deployable artifact itself builds, not just the source.
+      # This is what would have caught the import that reached out of
+      # frontend/ into landing/: it resolved on a developer machine but not in
+      # a build context of ./frontend.
       - name: Build web image
         uses: docker/build-push-action@v6
         with:
-          context: ./deploy/placeholder
+          context: ./frontend
+          target: production
           push: false
 
   api:

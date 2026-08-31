@@ -10,6 +10,27 @@
 # the development extras live here.
 
 services:
+  # Build the Nginx entry point locally instead of pulling the published image.
+  # The separate tag keeps this from overwriting the ghcr.io :latest tag, and
+  # pull_policy stops Compose from ever reaching for a registry copy.
+  #
+  # Local ports come from .env (WEB_PORT=8080, WEB_TLS_PORT=8443): binding 80
+  # and 443 needs root on Linux. The certificate is the self-signed one the
+  # image mints on first boot, so expect a browser warning on https://localhost:8443.
+  web:
+    image: sterna-web:dev
+    pull_policy: build
+    build:
+      context: ./frontend
+      target: production
+
+  # The MinIO console is useful while developing and must not be reachable on
+  # the VM, so these ports live here rather than in the base file.
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
   api:
     # Build locally from the Dockerfile's `development` target instead of
     # pulling the published production image. The separate tag keeps the local

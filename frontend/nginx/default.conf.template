@@ -1,0 +1,110 @@
+# Sterna's public entry point (ADR-007).
+#
+# ${SERVER_NAME} is substituted at container start by the Nginx image's
+# 20-envsubst-on-templates.sh. Nginx's own runtime variables ($host, $uri, ...)
+# are written without braces and are left untouched by it.
+
+# ---------------------------------------------------------------------------
+# Port 80 — ACME challenges, and a redirect for everything else.
+# ---------------------------------------------------------------------------
+server {
+    listen 80;
+    # The VM's IPv4 is RFC1918 while its IPv6 is publicly routable, and Let's
+    # Encrypt prefers AAAA records. Without this line HTTP-01 validation cannot
+    # reach us at all.
+    listen [::]:80;
+    server_name ${SERVER_NAME};
+
+    # Must stay on plain HTTP and must not redirect: this is the exact path
+    # Let's Encrypt fetches to prove we control the domain.
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Port 443 — the application.
+# ---------------------------------------------------------------------------
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    # `listen ... http2` is deprecated since Nginx 1.25; this is the current form.
+    http2 on;
+    server_name ${SERVER_NAME};
+
+    # On a fresh VM these point at the throwaway self-signed pair minted by
+    # /docker-entrypoint.d/10-ensure-cert.sh; certbot overwrites them in place
+    # on first issuance and Nginx picks them up on the next reload.
+    ssl_certificate     /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    root  /usr/share/nginx/html;
+    index index.html;
+
+    # The API caps uploads at MAX_PHOTO_BYTES = 10 MB
+    # (api/src/photos/photos.service.ts). Nginx's default is 1 MB, which would
+    # reject ordinary phone photos with an opaque HTML error page before the
+    # request ever reached the API. Sitting just above the API's own limit lets
+    # the API answer oversized uploads with its own JSON error instead.
+    client_max_body_size 12m;
+
+    gzip            on;
+    gzip_vary       on;
+    gzip_min_length 1024;
+    gzip_types      text/plain text/css application/javascript application/json
+                    image/svg+xml application/manifest+json;
+
+    # Docker's embedded DNS server, at a fixed address on user-defined networks
+    # (the stack runs on app_network). Needed for the deferred lookup below.
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    location /api/ {
+        # The upstream host goes through a variable deliberately. With a literal
+        # `proxy_pass http://api:3000`, Nginx resolves the name once at startup
+        # and refuses to boot with "host not found in upstream" whenever the API
+        # container is not already up — which would take the whole site down,
+        # static frontend included, over an API-only outage. A variable defers
+        # the lookup to request time, so an unreachable API degrades to a 502 on
+        # /api alone, and a restarted API container's new IP is picked up within
+        # the resolver's TTL rather than needing an Nginx restart.
+        #
+        # Interpolating $request_uri is required once the upstream is a variable:
+        # it passes the URI through unchanged, which is what the API expects — it
+        # sets a global 'api' prefix in api/src/app-setup.ts, so /api/health here
+        # is /api/health there.
+        set $sterna_api    "api:3000";
+        proxy_pass         http://$sterna_api$request_uri;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    # Vite emits these three unhashed, and vite-plugin-pwa registers the worker
+    # with registerType: 'autoUpdate'. Letting them be cached pins a returning
+    # client to whichever build it first saw.
+    location = /sw.js                { add_header Cache-Control "no-cache"; }
+    location = /registerSW.js        { add_header Cache-Control "no-cache"; }
+    location = /manifest.webmanifest { add_header Cache-Control "no-cache"; }
+
+    # Everything under assets/ carries a content hash in its filename, so it can
+    # be cached indefinitely — a changed file arrives under a new name.
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # Client-side routing: a hard refresh on /groups/<id> must serve the app
+    # rather than 404, and let React Router resolve the path.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
