@@ -22,7 +22,7 @@ export function DiscoveryCard({
   return (
     <Link
       to={discoveryPath(discovery.id, groupId)}
-      state={{ returnTo: location.pathname }}
+      state={{ returnTo: `${location.pathname}${location.search}` }}
       className={cn(
         'group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99]',
         className,

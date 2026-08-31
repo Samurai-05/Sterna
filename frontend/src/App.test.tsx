@@ -21,6 +21,26 @@ vi.mock('@/lib/api', async (importOriginal) => {
     }),
     getAuthoredDiscoveries: vi.fn().mockResolvedValue(discoveries),
     getDiscoveries: vi.fn().mockResolvedValue(discoveries),
+    getGroups: vi.fn().mockResolvedValue([
+      {
+        id: 'weekend-paris',
+        name: 'Weekend Paris',
+        description: null,
+        role: 'member',
+        isActive: false,
+        memberCount: 2,
+        discoveryCount: 1,
+      },
+    ]),
+    getGroupDiscoveries: vi.fn().mockResolvedValue([
+      {
+        ...discoveries[0],
+        id: 7,
+        groupId: 'weekend-paris',
+        groupIds: ['weekend-paris'],
+        personal: false,
+      },
+    ]),
     getPois: vi.fn().mockResolvedValue(landmarks),
   }
 })
@@ -132,7 +152,7 @@ describe('App', () => {
 
   it('redirects a signed-out application route to the authentication entry', () => {
     window.localStorage.clear()
-    renderWithProviders(<App />, { route: '/collection' })
+    renderWithProviders(<App />, { route: '/collection?group=weekend-paris' })
 
     expect(
       screen.getByRole('heading', {
@@ -271,53 +291,105 @@ describe('App', () => {
     expect(mapPage).not.toHaveAttribute('aria-hidden')
   })
 
-  it('renders the collection through its application route', () => {
+  it('renders the Gallery through its application route without a page title', () => {
     renderWithProviders(<App />, { route: '/collection' })
 
+    expect(screen.getByRole('link', { name: 'Gallery' })).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+      screen.queryByRole('heading', { name: 'Your discoveries' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
     ).toBeInTheDocument()
-    const foodFilter = screen.getByRole('button', { name: 'Food' })
-    expect(foodFilter).toHaveClass('bg-card')
-    fireEvent.click(foodFilter)
-    expect(foodFilter).toHaveClass('bg-[#FFEDD5]', 'ring-[#EA580C]')
   })
 
-  it('shows only discovered POIs in the collection and filters them', async () => {
+  it('filters Gallery discoveries in photo grid mode and restores its state after opening a discovery', async () => {
+    renderWithProviders(<App />, { route: '/collection' })
+
+    expect(screen.getByRole('link', { name: 'Gallery' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Your discoveries' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: 'POIs', selected: false }),
+    ).toBeInTheDocument()
+
+    const groupFilter = await screen.findByLabelText(
+      'Filter discoveries by group',
+    )
+    expect(groupFilter).toHaveValue('all')
+    expect(screen.getByRole('option', { name: 'Personal' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('option', { name: 'Weekend Paris' }),
+    ).toBeInTheDocument()
+
+    fireEvent.change(groupFilter, { target: { value: 'weekend-paris' } })
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch to photo grid' }),
+    )
+
+    const galleryPhoto = await screen.findByRole('link', {
+      name: 'Street in Le Marais',
+    })
+    expect(galleryPhoto).toHaveClass('aspect-square')
+    expect(
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Parisian Croissant')).not.toBeInTheDocument()
+
+    fireEvent.click(galleryPhoto)
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Discovery' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+    expect(
+      await screen.findByLabelText('Filter discoveries by group'),
+    ).toHaveValue('weekend-paris')
+    expect(
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the existing discovered POI presentation separate from Gallery discovery controls', async () => {
     vi.mocked(getPois).mockResolvedValueOnce([
       landmarks[0],
       { ...landmarks[1], discovered: false },
     ])
     renderWithProviders(<App />, { route: '/collection' })
-    const collectionPage = screen
-      .getByRole('heading', { level: 1, name: 'Your discoveries' })
+    const galleryPage = screen
+      .getByRole('tablist', { name: 'Gallery content' })
       .closest('main')!
 
+    fireEvent.click(within(galleryPage).getByRole('tab', { name: 'POIs' }))
     expect(
-      await within(collectionPage).findByRole('link', {
+      within(galleryPage).getByRole('tab', { name: 'POIs', selected: true }),
+    ).toBeInTheDocument()
+    expect(
+      within(galleryPage).queryByLabelText('Filter discoveries by group'),
+    ).not.toBeInTheDocument()
+
+    expect(
+      await within(galleryPage).findByRole('link', {
         name: /Eiffel Tower/,
       }),
     ).toBeInTheDocument()
     expect(
-      within(collectionPage).queryByRole('link', {
+      within(galleryPage).queryByRole('link', {
         name: /Arc de Triomphe/,
       }),
     ).not.toBeInTheDocument()
 
-    fireEvent.click(
-      within(collectionPage).getByRole('button', { name: 'POIs' }),
-    )
     expect(
-      within(collectionPage).getByRole('button', { name: 'POIs' }),
-    ).toHaveClass('bg-[#FEF9C3]', 'ring-[#EAB308]')
-
-    expect(
-      within(collectionPage).queryByText('Street in Le Marais'),
+      within(galleryPage).queryByText('Street in Le Marais'),
     ).not.toBeInTheDocument()
-    expect(within(collectionPage).getByText('1 POI')).toBeInTheDocument()
+    expect(within(galleryPage).getByText('1 POI')).toBeInTheDocument()
 
     fireEvent.click(
-      within(collectionPage).getByRole('link', { name: /Eiffel Tower/ }),
+      within(galleryPage).getByRole('link', { name: /Eiffel Tower/ }),
     )
     expect(
       screen.getByRole('heading', { level: 1, name: 'Point of interest' }),
@@ -325,7 +397,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+      screen.getByRole('tab', { name: 'POIs', selected: true }),
     ).toBeInTheDocument()
   })
 
@@ -337,9 +409,9 @@ describe('App', () => {
 
     expect(mapCanvasLifecycle).toEqual({ mounts: 1, unmounts: 0, resizes: 1 })
 
-    fireEvent.click(screen.getByRole('link', { name: 'Collection' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Gallery' }))
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
     ).toBeInTheDocument()
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
     expect(mapPage).toHaveAttribute('inert')
@@ -434,7 +506,7 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('returns to the collection when backing out of a discovery opened from the collection', () => {
+  it('returns to the Gallery when backing out of a discovery opened from the Gallery', () => {
     renderWithProviders(<App />, {
       initialEntries: ['/collection', '/discoveries/1'],
       initialIndex: 1,
@@ -447,7 +519,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
     ).toBeInTheDocument()
   })
 

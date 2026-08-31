@@ -6,7 +6,7 @@ import { createDiscoveryPhotoAction } from '@/lib/photo-capture'
 
 const items = [
   { to: '/', label: 'Map', icon: Map },
-  { to: '/collection', label: 'Collection', icon: Grid2X2 },
+  { to: '/collection', label: 'Gallery', icon: Grid2X2 },
   { to: '/groups', label: 'Groups', icon: UsersRound },
   { to: '/profile', label: 'Me', icon: UserRound },
 ]
