@@ -21,7 +21,7 @@ automatically built, verified and deployed without manual intervention.
 
 ## CI — Continuous Integration
 
-Runs on every pull request:
+Runs on pull requests targeting `main` and on pushes to `main`:
 
 - **Build** of the application.
 - **Automated tests.**
@@ -31,6 +31,11 @@ Runs on every pull request:
     Sprint 1 produces testable code, per `NFR-30` / `NFR-31`.
 - **CI is required for merge.** A pull request cannot be merged into `main`
   unless the pipeline passes, so a broken build cannot reach `main`.
+- **Android debug build.** The dedicated Android job builds Android web assets
+  with `npm run build:android`, synchronizes Capacitor, and compiles with
+  `./gradlew assembleDebug` from `frontend/android`. Pull requests validate the
+  build; on a push to `main`, the generated debug APK is published as the
+  `sterna-debug-apk` GitHub Actions artifact.
 
 ## CD — Continuous Deployment
 

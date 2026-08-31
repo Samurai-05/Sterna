@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   frontend:
@@ -115,3 +117,11 @@ jobs:
       - name: Assemble debug APK
         working-directory: ./frontend/android
         run: ./gradlew assembleDebug
+
+      - name: Upload Android debug APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sterna-debug-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
