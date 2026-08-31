@@ -68,6 +68,24 @@ export class DiscoveriesController {
     return this.discoveries.findAllByUser(caller.id);
   }
 
+  @Get('authored')
+  @ApiAuthenticated()
+  @ApiOperation({
+    summary: 'List every discovery authored by the signed-in user',
+    description:
+      "The user's collection, including discoveries that appear only on one " +
+      'or more group maps.',
+  })
+  @ApiOkResponse({
+    description: 'Every discovery authored by the signed-in user.',
+    schema: { example: [discoveryExample] },
+  })
+  findAllAuthored(
+    @CurrentUser() caller: AuthenticatedUser,
+  ): Promise<DiscoveryResponse[]> {
+    return this.discoveries.findAllAuthoredByUser(caller.id);
+  }
+
   @Get(':id')
   @ApiAuthenticated()
   @ApiOperation({ summary: 'Get one discovery owned by the signed-in user' })

@@ -6,7 +6,7 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { PageHeader } from '@/components/PageHeader'
 import { PoiCard } from '@/components/PoiCard'
-import { getDiscoveries, getPois } from '@/lib/api'
+import { getAuthoredDiscoveries, getPois } from '@/lib/api'
 import {
   categoryAppearance,
   poiAppearance,
@@ -29,8 +29,8 @@ export function CollectionPage() {
   const [category, setCategory] = useState<CollectionFilter>(null)
   const session = loadSession()
   const discoveriesQuery = useQuery({
-    queryKey: ['discoveries', session?.user.id],
-    queryFn: () => getDiscoveries(session!.accessToken),
+    queryKey: ['discoveries', session?.user.id, 'authored'],
+    queryFn: () => getAuthoredDiscoveries(session!.accessToken),
     enabled: Boolean(session),
   })
   const poisQuery = useQuery({
