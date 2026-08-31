@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
@@ -17,6 +17,9 @@ vi.mock('./lib/api', async () => {
     getGroupDiscoveries: vi.fn(),
     getDiscovery: vi.fn(),
     updateDiscovery: vi.fn(),
+    deleteDiscovery: vi.fn(),
+    deleteGroup: vi.fn(),
+    leaveGroup: vi.fn(),
     getActiveMap: vi.fn(),
     setActiveMap: vi.fn(),
     getDiscoveries: vi.fn(),
@@ -70,6 +73,9 @@ beforeEach(() => {
   api.getActiveMap.mockResolvedValue({ groupId: null, name: null })
   api.getDiscoveries.mockResolvedValue([])
   api.getPois.mockResolvedValue([])
+  api.deleteDiscovery.mockResolvedValue(undefined)
+  api.deleteGroup.mockResolvedValue(undefined)
+  api.leaveGroup.mockResolvedValue(undefined)
 })
 
 afterEach(() => {
@@ -231,6 +237,39 @@ describe('group detail', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('opens an application dialog before deleting an owned group', async () => {
+    renderAt('/groups/12')
+
+    fireEvent.click(await screen.findByRole('button', { name: /Delete group/ }))
+
+    expect(
+      screen.getByRole('alertdialog', { name: 'Delete group?' }),
+    ).toBeInTheDocument()
+    expect(api.deleteGroup).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    expect(api.deleteGroup).not.toHaveBeenCalled()
+  })
+
+  it('deletes an owned group once after the application dialog is confirmed', async () => {
+    renderAt('/groups/12')
+
+    fireEvent.click(await screen.findByRole('button', { name: /Delete group/ }))
+    fireEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Delete group',
+      }),
+    )
+
+    await waitFor(() =>
+      expect(api.deleteGroup).toHaveBeenCalledWith('test-token', '12'),
+    )
+    expect(api.deleteGroup).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+  })
+
   it('offers a plain member the leave action', async () => {
     api.getGroup.mockResolvedValue({ ...detail, role: 'member' as const })
     renderAt('/groups/12')
@@ -241,6 +280,27 @@ describe('group detail', () => {
     expect(
       screen.queryByRole('button', { name: /Delete group/ }),
     ).not.toBeInTheDocument()
+  })
+
+  it('leaves a group once after the application dialog is confirmed', async () => {
+    api.getGroup.mockResolvedValue({ ...detail, role: 'member' as const })
+    renderAt('/groups/12')
+
+    fireEvent.click(await screen.findByRole('button', { name: /Leave group/ }))
+    expect(
+      screen.getByRole('alertdialog', { name: 'Leave group?' }),
+    ).toBeInTheDocument()
+    fireEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Leave group',
+      }),
+    )
+
+    await waitFor(() =>
+      expect(api.leaveGroup).toHaveBeenCalledWith('test-token', '12'),
+    )
+    expect(api.leaveGroup).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 
   it('activates the group from the header and stays on its detail page', async () => {
@@ -314,6 +374,36 @@ describe('opening a discovery from a group map', () => {
     expect(
       await screen.findByRole('link', { name: 'Edit discovery' }),
     ).toBeInTheDocument()
+  })
+
+  it('deletes a discovery once after the application dialog is confirmed', async () => {
+    api.getGroupDiscoveries.mockResolvedValue([
+      { ...otherMembersDiscovery, userId: '1', author: 'Emma' },
+    ])
+    renderAt('/discoveries/22?group=12')
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /Delete discovery/ }),
+    )
+    expect(
+      screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    expect(api.deleteDiscovery).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: /Delete discovery/ }))
+    fireEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Delete discovery',
+      }),
+    )
+
+    await waitFor(() =>
+      expect(api.deleteDiscovery).toHaveBeenCalledWith('test-token', '22'),
+    )
+    expect(api.deleteDiscovery).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 
   it('returns to the map after saving an edit opened from the map', async () => {

@@ -1,5 +1,6 @@
 import { CalendarDays, MapPin, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import {
   Link,
   useLocation,
@@ -12,6 +13,7 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
 import { categoryLabel } from '@/lib/mock-data'
 import { getDiscoveryRouteState } from '@/lib/route-state'
@@ -33,6 +35,7 @@ export function DiscoveryDetailPage({
   // Set when the discovery was opened from a group's shared map, where it may
   // belong to another member.
   const groupId = searchParams.get('group')
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const routeState = getDiscoveryRouteState(location.state)
   const returnTo = routeState.returnTo ?? '/collection'
   const handleBack = () => {
@@ -159,11 +162,7 @@ export function DiscoveryDetailPage({
               variant="destructive"
               disabled={deleteMutation.isPending}
               className="mt-3 h-11 w-full"
-              onClick={() => {
-                if (window.confirm('Delete this discovery permanently?')) {
-                  deleteMutation.mutate()
-                }
-              }}
+              onClick={() => setIsDeleteDialogOpen(true)}
             >
               <Trash2 />
               {deleteMutation.isPending ? 'Deleting...' : 'Delete discovery'}
@@ -180,6 +179,18 @@ export function DiscoveryDetailPage({
           </p>
         )}
       </article>
+      <ConfirmActionDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Delete discovery?"
+        description="Delete this discovery permanently?"
+        confirmLabel="Delete discovery"
+        confirmDisabled={deleteMutation.isPending}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false)
+          deleteMutation.mutate()
+        }}
+      />
     </main>
   )
 }
