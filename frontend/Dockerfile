@@ -23,8 +23,8 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 # production — Nginx as the public entry point (ADR-007): it serves the built
 # PWA, terminates TLS and reverse proxies /api to the API container. The API
-# enables no CORS, so the frontend has to be same-origin with it; this image
-# being both is what makes that true.
+# enables narrowly scoped CORS for Capacitor's https://localhost origin; this
+# PWA remains same-origin.
 # ---------------------------------------------------------------------------
 FROM nginx:1.27-alpine AS production
 

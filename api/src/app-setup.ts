@@ -2,11 +2,24 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { setupSwagger } from './swagger';
 
 /**
+ * The packaged Android app runs at Capacitor's secure localhost origin and
+ * sends bearer tokens rather than cookies. The web application stays
+ * same-origin behind Nginx and does not need CORS access.
+ */
+export const corsOptions = {
+  origin: ['https://localhost'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+/**
  * Application-wide configuration, applied by both main.ts and the e2e tests
  * so the tests exercise the same routing and validation rules as the running
  * application instead of a slightly different one.
  */
 export function configureApp(app: INestApplication): void {
+  app.enableCors(corsOptions);
+
   // Nginx routes /api/* to this service (ADR-007), so every route lives
   // under that prefix.
   app.setGlobalPrefix('api');

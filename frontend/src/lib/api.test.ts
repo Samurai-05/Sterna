@@ -4,6 +4,8 @@ import {
   createDiscovery,
   getDiscoveries,
   getGroupDiscoveries,
+  register,
+  resolveApiUrl,
   updateDiscovery,
 } from './api'
 
@@ -45,6 +47,44 @@ describe('discovery map boundaries', () => {
     const result = await getGroupDiscoveries('token', '7')
 
     expect(result.map((discovery) => discovery.id)).toEqual([1, 2])
+  })
+})
+
+describe('API URL resolution', () => {
+  it('keeps web requests relative when no API base URL is configured', () => {
+    expect(resolveApiUrl('/api/auth/register', '')).toBe('/api/auth/register')
+  })
+
+  it('uses the Android API base URL when one is configured', () => {
+    expect(
+      resolveApiUrl(
+        '/api/auth/register',
+        'https://labo-iot1.iict-heig-vd.ch/',
+      ),
+    ).toBe('https://labo-iot1.iict-heig-vd.ch/api/auth/register')
+  })
+})
+
+describe('API response errors', () => {
+  it('reports a successful HTML fallback with its HTTP status instead of throwing a JSON parse error', async () => {
+    vi.spyOn(window, 'fetch').mockResolvedValueOnce(
+      new Response('<!doctype html><html><body>Not found</body></html>', {
+        status: 200,
+        statusText: 'OK',
+        headers: { 'Content-Type': 'text/html' },
+      }),
+    )
+
+    await expect(
+      register({
+        email: 'ada@sterna.test',
+        password: 'correct horse battery staple',
+        userName: 'Ada',
+      }),
+    ).rejects.toMatchObject({
+      status: 200,
+      message: expect.stringContaining('HTML instead of JSON'),
+    })
   })
 })
 
