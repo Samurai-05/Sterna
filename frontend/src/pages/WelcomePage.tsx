@@ -16,6 +16,7 @@ export function WelcomePage() {
         id: 'dev-user',
         email: 'dev@sterna.app',
         userName: 'Dev Explorer',
+        avatarObjectKey: null,
         createdAt: new Date().toISOString(),
       },
     })

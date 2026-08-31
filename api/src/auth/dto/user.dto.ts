@@ -17,6 +17,13 @@ export class UserDto {
   @ApiProperty({ example: 'Ada' })
   userName: string;
 
+  /**
+   * MinIO object key of the profile photo, or null when the account has none.
+   * Fetch the bytes through GET /api/photos/:filename, as for a discovery.
+   */
+  @ApiProperty({ example: 'photos/1f9e2b3a-....jpg', nullable: true })
+  avatarObjectKey: string | null;
+
   /** ISO 8601 instant at which the account was created. */
   @ApiProperty({ example: '2026-08-26T09:14:33.482Z', format: 'date-time' })
   createdAt: string;

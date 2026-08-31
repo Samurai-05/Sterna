@@ -88,6 +88,39 @@ export function deleteAccount(
   })
 }
 
+export function updateProfile(input: {
+  accessToken: string
+  userName?: string
+  avatarObjectKey?: string | null
+}): Promise<AuthenticatedUser> {
+  const changes: { userName?: string; avatarObjectKey?: string | null } = {}
+  if (input.userName !== undefined) changes.userName = input.userName
+  if (input.avatarObjectKey !== undefined) {
+    changes.avatarObjectKey = input.avatarObjectKey
+  }
+
+  return request<AuthenticatedUser>('/api/auth/me', {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${input.accessToken}` },
+    body: JSON.stringify(changes),
+  })
+}
+
+export function changePassword(input: {
+  accessToken: string
+  currentPassword: string
+  newPassword: string
+}): Promise<void> {
+  return request<void>('/api/auth/password', {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${input.accessToken}` },
+    body: JSON.stringify({
+      currentPassword: input.currentPassword,
+      newPassword: input.newPassword,
+    }),
+  })
+}
+
 interface ApiDiscovery {
   id: string
   userId: string
@@ -412,7 +445,9 @@ async function responseJson<TResponse>(response: Response): Promise<TResponse> {
 
 function isHtml(text: string): boolean {
   const normalized = text.trimStart().toLowerCase()
-  return normalized.startsWith('<!doctype html') || normalized.startsWith('<html')
+  return (
+    normalized.startsWith('<!doctype html') || normalized.startsWith('<html')
+  )
 }
 
 function toLandmark(poi: ApiPoi): Landmark {

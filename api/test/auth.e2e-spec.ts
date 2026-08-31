@@ -1,10 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import sharp from 'sharp';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AuthResponseDto } from './../src/auth/dto/auth-response.dto';
 import { UserDto } from './../src/auth/dto/user.dto';
+import { UploadPhotoResponseDto } from './../src/photos/dto/upload-photo-response.dto';
 import { GroupDetailDto } from './../src/groups/dto/group-detail.dto';
 import { GroupRole } from './../src/groups/group-role';
 import {
@@ -30,6 +32,21 @@ describe('AuthController (e2e)', () => {
 
   const login = (body: Record<string, unknown>) =>
     request(app.getHttpServer()).post('/api/auth/login').send(body);
+
+  const jpeg = (): Promise<Buffer> =>
+    sharp({ create: { width: 16, height: 16, channels: 3, background: 'red' } })
+      .jpeg()
+      .toBuffer();
+
+  const uploadPhoto = async (accessToken: string) => {
+    const upload = await request(app.getHttpServer())
+      .post('/api/photos')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', await jpeg(), { filename: 'photo.jpg' })
+      .expect(201);
+
+    return (upload.body as UploadPhotoResponseDto).objectKey;
+  };
 
   beforeAll(async () => {
     app = await createTestApp();
@@ -60,6 +77,7 @@ describe('AuthController (e2e)', () => {
         id: expect.any(String) as string,
         email,
         userName: 'Ada',
+        avatarObjectKey: null,
         createdAt: expect.any(String) as string,
       });
     });
@@ -241,6 +259,74 @@ describe('AuthController (e2e)', () => {
         .send({})
         .expect(400);
     });
+
+    // FR-03: the photo pipeline is shared with discoveries, not a new upload path.
+    it('sets the avatar from a previously uploaded photo', async () => {
+      const session = await registerTestUser(app);
+      const objectKey = await uploadPhoto(session.accessToken);
+
+      const updated = await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .send({ avatarObjectKey: objectKey })
+        .expect(200);
+
+      expect((updated.body as UserDto).avatarObjectKey).toBe(objectKey);
+
+      const profile = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${session.accessToken}`)
+        .expect(200);
+
+      expect((profile.body as UserDto).avatarObjectKey).toBe(objectKey);
+    });
+
+    // ADR-006: replacing the photo must not leave the old object behind in MinIO.
+    it('frees the previous photo object once it is replaced', async () => {
+      const session = await registerTestUser(app);
+      const auth = `Bearer ${session.accessToken}`;
+      const firstObjectKey = await uploadPhoto(session.accessToken);
+      const firstFilename = firstObjectKey.split('/').at(-1);
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', auth)
+        .send({ avatarObjectKey: firstObjectKey })
+        .expect(200);
+
+      const secondObjectKey = await uploadPhoto(session.accessToken);
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', auth)
+        .send({ avatarObjectKey: secondObjectKey })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .get(`/api/photos/${firstFilename}`)
+        .set('Authorization', auth)
+        .expect(404);
+    });
+
+    it('removes the avatar on an explicit null', async () => {
+      const session = await registerTestUser(app);
+      const auth = `Bearer ${session.accessToken}`;
+      const objectKey = await uploadPhoto(session.accessToken);
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', auth)
+        .send({ avatarObjectKey: objectKey })
+        .expect(200);
+
+      const cleared = await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', auth)
+        .send({ avatarObjectKey: null })
+        .expect(200);
+
+      expect((cleared.body as UserDto).avatarObjectKey).toBeNull();
+    });
   });
 
   describe('password changes', () => {
@@ -312,6 +398,34 @@ describe('AuthController (e2e)', () => {
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${session.accessToken}`)
         .expect(401);
+    });
+
+    // The avatar lives on the row itself, not among the caller's discoveries,
+    // so it needs its own cleanup path (ADR-006).
+    it("frees the account's avatar object", async () => {
+      const session = await registerTestUser(app);
+      const auth = `Bearer ${session.accessToken}`;
+      const objectKey = await uploadPhoto(session.accessToken);
+      const filename = objectKey.split('/').at(-1);
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/me')
+        .set('Authorization', auth)
+        .send({ avatarObjectKey: objectKey })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete('/api/auth/me')
+        .set('Authorization', auth)
+        .send({ currentPassword: TEST_PASSWORD })
+        .expect(204);
+
+      // The JWT itself is still valid (ADR-009) — only /auth/me re-checks the
+      // row — so it can still authenticate this direct MinIO-backed check.
+      await request(app.getHttpServer())
+        .get(`/api/photos/${filename}`)
+        .set('Authorization', auth)
+        .expect(404);
     });
 
     it('refuses a deletion whose current password is wrong', async () => {
