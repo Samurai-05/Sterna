@@ -5,7 +5,12 @@ import { ActiveMapDto } from './../src/groups/dto/active-map.dto';
 import { GroupDetailDto } from './../src/groups/dto/group-detail.dto';
 import { GroupSummaryDto } from './../src/groups/dto/group-summary.dto';
 import { GroupRole } from './../src/groups/group-role';
-import { createTestApp, deleteTestUsers, registerTestUser } from './e2e-app';
+import {
+  createTestApp,
+  deleteTestUsers,
+  registerTestUser,
+  uploadTestPhoto,
+} from './e2e-app';
 
 interface DiscoveryResponse {
   id: string;
@@ -33,6 +38,7 @@ describe('Groups (e2e)', () => {
   let linusId: string;
   /** Belongs to no group at all — the NFR-19 probe. */
   let outsider: string;
+  let photoKey: string;
 
   const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
@@ -43,7 +49,8 @@ describe('Groups (e2e)', () => {
     category: 'Other',
     longitude: 6.6412,
     latitude: 46.7785,
-    imageObjectKey: `discoveries/e2e-${title}.jpg`,
+    imageObjectKey: photoKey,
+    locationSource: 'manual',
     discoveredAt: '2026-08-25T12:00:00.000Z',
   });
 
@@ -61,6 +68,7 @@ describe('Groups (e2e)', () => {
     app = await createTestApp();
 
     ada = (await registerTestUser(app)).accessToken;
+    photoKey = await uploadTestPhoto(app, ada);
 
     const member = await registerTestUser(app);
     linus = member.accessToken;

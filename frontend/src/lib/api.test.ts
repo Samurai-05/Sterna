@@ -6,6 +6,7 @@ import {
   getAuthoredPois,
   getDiscoveries,
   getGroupDiscoveries,
+  getPhoto,
   register,
   resolveApiUrl,
   updateDiscovery,
@@ -52,10 +53,7 @@ describe('discovery map boundaries', () => {
   })
 
   it('keeps every authored discovery in the collection response', async () => {
-    const fetchMock = mockDiscoveryResponse([
-      personalDiscovery,
-      groupDiscovery,
-    ])
+    const fetchMock = mockDiscoveryResponse([personalDiscovery, groupDiscovery])
 
     const result = await getAuthoredDiscoveries('token')
 
@@ -99,10 +97,7 @@ describe('API URL resolution', () => {
 
   it('uses the Android API base URL when one is configured', () => {
     expect(
-      resolveApiUrl(
-        '/api/auth/register',
-        'https://labo-iot1.iict-heig-vd.ch/',
-      ),
+      resolveApiUrl('/api/auth/register', 'https://labo-iot1.iict-heig-vd.ch/'),
     ).toBe('https://labo-iot1.iict-heig-vd.ch/api/auth/register')
   })
 })
@@ -130,6 +125,29 @@ describe('API response errors', () => {
   })
 })
 
+describe('authenticated photo variants', () => {
+  it('requests a variant and deduplicates concurrent consumers', async () => {
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue(
+      new Response('image', {
+        status: 200,
+        headers: { 'Content-Type': 'image/webp' },
+      }),
+    )
+
+    const first = getPhoto('token', 'photos/deduped.jpg', 'map')
+    const second = getPhoto('token', 'photos/deduped.jpg', 'map')
+
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/photos/deduped.jpg?variant=map',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer token' },
+      }),
+    )
+  })
+})
+
 describe('discovery group sharing', () => {
   it('sends every selected group when creating a discovery', async () => {
     const fetchMock = mockDiscoveryResponse(personalDiscovery)
@@ -145,12 +163,14 @@ describe('discovery group sharing', () => {
       longitude: 6.6,
       latitude: 46.7,
       imageObjectKey: 'photos/shared.jpg',
+      locationSource: 'manual',
       discoveredAt: '2026-08-28T12:00:00.000Z',
     })
 
     expect(requestBody(fetchMock)).toMatchObject({
       groupIds: ['7', '8'],
       personal: true,
+      locationSource: 'manual',
     })
   })
 

@@ -16,6 +16,7 @@ export interface Discovery {
   location: string
   imageId: string
   imageObjectKey?: string
+  locationSource?: 'exif' | 'current_gps' | 'manual' | null
   description: string
   author: string
   initials: string

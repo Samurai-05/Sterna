@@ -1,9 +1,10 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DiscoveriesService } from './discoveries.service';
 import { Discovery } from './discovery.entity';
 import { GroupsService } from '../groups/groups.service';
+import { PhotosService } from '../photos/photos.service';
 
 /**
  * DiscoveriesService issues raw SQL through Repository<Discovery>.query, so
@@ -15,6 +16,9 @@ import { GroupsService } from '../groups/groups.service';
 describe('DiscoveriesService', () => {
   const query = jest.fn<Promise<unknown[]>, [string, unknown[]?]>();
   const requireMembership = jest.fn();
+  const removePhoto = jest.fn();
+  const isCanonicalPhotoKey = jest.fn();
+  const photoExists = jest.fn();
 
   let service: DiscoveriesService;
 
@@ -37,6 +41,7 @@ describe('DiscoveriesService', () => {
     image_object_key: 'discoveries/phi-beach.jpg',
     author_user_name: 'Ada',
     country_code: 'ITA',
+    location_source: null,
     discovered_at: new Date('2026-08-06T20:31:19.000Z'),
     created_at: new Date('2026-08-27T11:44:41.142Z'),
     updated_at: new Date('2026-08-27T11:44:41.142Z'),
@@ -46,12 +51,22 @@ describe('DiscoveriesService', () => {
   beforeEach(async () => {
     jest.resetAllMocks();
     query.mockResolvedValue([]);
+    isCanonicalPhotoKey.mockReturnValue(true);
+    photoExists.mockResolvedValue(true);
 
     const module = await Test.createTestingModule({
       providers: [
         DiscoveriesService,
         { provide: getRepositoryToken(Discovery), useValue: { query } },
         { provide: GroupsService, useValue: { requireMembership } },
+        {
+          provide: PhotosService,
+          useValue: {
+            remove: removePhoto,
+            isCanonicalObjectKey: isCanonicalPhotoKey,
+            exists: photoExists,
+          },
+        },
       ],
     }).compile();
 
@@ -66,6 +81,7 @@ describe('DiscoveriesService', () => {
       longitude: 9.4669802,
       latitude: 41.1418826,
       imageObjectKey: 'discoveries/phi-beach.jpg',
+      locationSource: 'manual',
       discoveredAt: '2026-08-06T20:31:19.000Z',
     };
 
@@ -98,6 +114,7 @@ describe('DiscoveriesService', () => {
         dto.longitude,
         dto.latitude,
         dto.imageObjectKey,
+        dto.locationSource,
         dto.discoveredAt,
         true,
         [],
@@ -133,6 +150,37 @@ describe('DiscoveriesService', () => {
       expect(query).not.toHaveBeenCalled();
     });
 
+    it('rejects a non-canonical photo key before database insertion', async () => {
+      isCanonicalPhotoKey.mockReturnValue(false);
+
+      await expect(
+        service.create('1', { ...dto, imageObjectKey: 'photos/a.map.webp' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(photoExists).not.toHaveBeenCalled();
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    it('rejects a canonical photo key when the original object is absent', async () => {
+      photoExists.mockResolvedValue(false);
+
+      await expect(service.create('1', dto)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+
+      expect(photoExists).toHaveBeenCalledWith(dto.imageObjectKey);
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    it('persists the final location source with the coordinates', async () => {
+      query.mockResolvedValueOnce([row({ location_source: 'manual' })]);
+
+      await service.create('1', { ...dto, locationSource: 'manual' });
+
+      expect(params()).toContain('manual');
+      expect(statement()).toContain('location_source');
+    });
+
     it('requires membership in every group and stores all selected groups', async () => {
       query.mockResolvedValueOnce([
         row({ group_ids: ['7', '8'], group_id: '7' }),
@@ -147,7 +195,7 @@ describe('DiscoveriesService', () => {
       expect(requireMembership).toHaveBeenCalledTimes(2);
       expect(requireMembership).toHaveBeenCalledWith('1', '7');
       expect(requireMembership).toHaveBeenCalledWith('1', '8');
-      expect(params()?.[10]).toEqual(['7', '8']);
+      expect(params()?.[11]).toEqual(['7', '8']);
       expect(discovery.groupIds).toEqual(['7', '8']);
     });
   });
@@ -255,6 +303,7 @@ describe('DiscoveriesService', () => {
         [],
         false,
         false,
+        true,
       ]);
     });
 
@@ -274,6 +323,7 @@ describe('DiscoveriesService', () => {
         null,
         false,
         [],
+        false,
         false,
         false,
       ]);
@@ -306,7 +356,7 @@ describe('DiscoveriesService', () => {
 
       const discovery = await service.update('9', '1', { personal: false });
 
-      expect(query.mock.calls[1][1]?.slice(-2)).toEqual([true, false]);
+      expect(query.mock.calls[1][1]?.slice(-3, -1)).toEqual([true, false]);
       expect(discovery.personal).toBe(false);
     });
 
@@ -322,6 +372,34 @@ describe('DiscoveriesService', () => {
   });
 
   describe('remove', () => {
+    it('removes the stored photo after deleting the discovery row', async () => {
+      query.mockResolvedValueOnce([
+        { id: '9', image_object_key: 'photos/discovery.jpg' },
+      ]);
+
+      await service.remove('9', '1');
+
+      expect(removePhoto).toHaveBeenCalledWith('photos/discovery.jpg');
+    });
+
+    it('keeps deletion successful when post-delete photo cleanup fails', async () => {
+      const cleanupError = new Error('MinIO unavailable');
+      query.mockResolvedValueOnce([
+        { id: '9', image_object_key: 'photos/discovery.jpg' },
+      ]);
+      removePhoto.mockRejectedValueOnce(cleanupError);
+      const loggerError = jest
+        .spyOn(Logger.prototype, 'error')
+        .mockImplementation();
+
+      await expect(service.remove('9', '1')).resolves.toBeUndefined();
+
+      expect(loggerError).toHaveBeenCalledWith(
+        expect.stringContaining('photos/discovery.jpg'),
+        cleanupError.stack,
+      );
+    });
+
     it('throws when nothing was deleted', async () => {
       query.mockResolvedValueOnce([]);
 

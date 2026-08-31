@@ -17,7 +17,14 @@ import {
   getGroups,
   searchLocations,
   uploadPhoto,
+  type UploadPhotoResponse,
 } from '@/lib/api'
+import {
+  canApplyAutomaticLocation,
+  type LocationUiSource,
+  type PersistedLocationSource,
+  type SelectedLocation,
+} from '@/lib/discovery-location'
 import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
@@ -59,7 +66,9 @@ export function AddDiscoveryPage() {
   const queryClient = useQueryClient()
   const session = loadSession()
   const locationPickerRef = useRef<LocationPickerMapHandle>(null)
-  const locationWasChosenRef = useRef(false)
+  const photoSelectionIdRef = useRef(0)
+  const selectedLocationRef = useRef<SelectedLocation | null>(null)
+  const currentGpsRef = useRef<[number, number] | null>(null)
 
   const selectedPhoto = (location.state as AddDiscoveryLocationState | null)
     ?.selectedPhoto
@@ -70,12 +79,21 @@ export function AddDiscoveryPage() {
   const [category, setCategory] = useState<DiscoveryCategory>('other')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [coordinates, setCoordinates] = useState<[number, number]>(
+  const [mapCenter] = useState<[number, number]>(
     () => getStoredMapViewport()?.center ?? defaultCoordinates,
   )
-  const [locationSource, setLocationSource] = useState<
-    'default' | 'current' | 'photo' | 'manual' | 'search'
-  >('default')
+  const [selectedLocation, setSelectedLocation] =
+    useState<SelectedLocation | null>(null)
+  const [locationUiSource, setLocationUiSource] =
+    useState<LocationUiSource | null>(null)
+  const [takenAt, setTakenAt] = useState<string | null>(null)
+  const [photoSelectionId, setPhotoSelectionId] = useState(0)
+  const [photoUploadState, setPhotoUploadState] = useState<{
+    selectionId: number
+    status: 'idle' | 'pending' | 'success' | 'error'
+    data: UploadPhotoResponse | null
+    error: unknown
+  }>({ selectionId: 0, status: 'idle', data: null, error: null })
   const [locationQuery, setLocationQuery] = useState('')
   const [debouncedLocationQuery, setDebouncedLocationQuery] = useState('')
   const [showLocationResults, setShowLocationResults] = useState(false)
@@ -119,23 +137,6 @@ export function AddDiscoveryPage() {
     return () => window.clearTimeout(timer)
   }, [locationQuery])
 
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      ({ coords }) => {
-        if (locationWasChosenRef.current) return
-        const currentCoordinates: [number, number] = [
-          coords.longitude,
-          coords.latitude,
-        ]
-        setCoordinates(currentCoordinates)
-        setLocationSource('current')
-        locationPickerRef.current?.flyTo(currentCoordinates)
-      },
-      () => undefined,
-      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8000 },
-    )
-  }, [])
-
   const browserPhotoUrl = useMemo(
     () => (browserPhoto ? URL.createObjectURL(browserPhoto) : null),
     [browserPhoto],
@@ -155,30 +156,127 @@ export function AddDiscoveryPage() {
     ? Capacitor.convertFileSrc(nativePhoto.path)
     : browserPhotoUrl
 
+  function setSelectedDiscoveryLocation(
+    nextLocation: SelectedLocation | null,
+    uiSource: LocationUiSource | null = nextLocation?.source ?? null,
+  ) {
+    selectedLocationRef.current = nextLocation
+    setSelectedLocation(nextLocation)
+    setLocationUiSource(uiSource)
+  }
+
+  function applyAutomaticLocation(
+    coordinates: [number, number],
+    source: Exclude<PersistedLocationSource, 'manual'>,
+    selectionId: number,
+  ) {
+    if (photoSelectionIdRef.current !== selectionId) return
+    if (!canApplyAutomaticLocation(selectedLocationRef.current, source)) return
+
+    setSelectedDiscoveryLocation(
+      { coordinates, source },
+      source === 'exif' ? 'photo' : 'current',
+    )
+    locationPickerRef.current?.flyTo(coordinates)
+  }
+
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      ({ coords }) => {
+        const currentCoordinates: [number, number] = [
+          coords.longitude,
+          coords.latitude,
+        ]
+        currentGpsRef.current = currentCoordinates
+        applyAutomaticLocation(
+          currentCoordinates,
+          'current_gps',
+          photoSelectionIdRef.current,
+        )
+      },
+      () => undefined,
+      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8000 },
+    )
+    // The callback reads mutable refs so this permission request runs once per page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (currentGpsRef.current) {
+      applyAutomaticLocation(
+        currentGpsRef.current,
+        'current_gps',
+        photoSelectionId,
+      )
+    }
+    // applyAutomaticLocation intentionally reads refs to avoid stale selections.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoSelectionId])
+
   // Uploads the photo as soon as it's selected (rather than on submit) so its
   // EXIF GPS location — if any — can propose the discovery's position before
   // the user saves, per issue #122 part 1. The result is reused at submit
   // time instead of uploading the same photo twice.
   const photoUpload = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({
+      nativePhoto: photoToUpload,
+      browserPhoto: browserPhotoToUpload,
+    }: {
+      selectionId: number
+      nativePhoto: SelectedPhoto | undefined
+      browserPhoto: File | null
+    }) => {
       if (!session) throw new Error('Log in before uploading a photo.')
       const { photo, fileName } = await readSelectedPhoto(
-        nativePhoto,
-        browserPhoto,
+        photoToUpload,
+        browserPhotoToUpload,
       )
       return uploadPhoto(session.accessToken, photo, fileName)
     },
-    onSuccess: (uploadedPhoto) => {
-      if (uploadedPhoto.exif) {
-        locationWasChosenRef.current = true
-        const nextCoordinates: [number, number] = [
-          uploadedPhoto.exif.longitude,
-          uploadedPhoto.exif.latitude,
-        ]
-        setCoordinates(nextCoordinates)
-        setLocationSource('photo')
-        locationPickerRef.current?.flyTo(nextCoordinates)
+    onMutate: ({ selectionId }) => {
+      if (photoSelectionIdRef.current !== selectionId) return
+      setPhotoUploadState({
+        selectionId,
+        status: 'pending',
+        data: null,
+        error: null,
+      })
+    },
+    onSuccess: (uploadedPhoto, { selectionId }) => {
+      if (photoSelectionIdRef.current !== selectionId) return
+
+      setPhotoUploadState({
+        selectionId,
+        status: 'success',
+        data: uploadedPhoto,
+        error: null,
+      })
+      const metadata = uploadedPhoto.metadata ?? {
+        location: uploadedPhoto.exif
+          ? {
+              latitude: uploadedPhoto.exif.latitude,
+              longitude: uploadedPhoto.exif.longitude,
+            }
+          : null,
+        takenAt: uploadedPhoto.exif?.takenAt ?? null,
       }
+      setTakenAt(metadata.takenAt)
+      if (metadata.location) {
+        applyAutomaticLocation(
+          [metadata.location.longitude, metadata.location.latitude],
+          'exif',
+          selectionId,
+        )
+      }
+    },
+    onError: (error, { selectionId }) => {
+      if (photoSelectionIdRef.current !== selectionId) return
+      setPhotoUploadState({
+        selectionId,
+        status: 'error',
+        data: null,
+        error,
+      })
     },
   })
 
@@ -186,21 +284,29 @@ export function AddDiscoveryPage() {
 
   useEffect(() => {
     if (!isLoggedIn || !photoSelected) return
-    photoUpload.mutate()
+    photoUpload.mutate({
+      selectionId: photoSelectionId,
+      nativePhoto,
+      browserPhoto,
+    })
     // Depend on isLoggedIn (a stable boolean) rather than `session` itself:
     // loadSession() returns a new object every render, which would otherwise
     // re-fire this effect — and re-upload the photo — on every state update
     // triggered by its own onSuccess handler.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, nativePhoto, browserPhoto])
+  }, [isLoggedIn, nativePhoto, browserPhoto, photoSelectionId])
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (!session) throw new Error('Log in before saving a discovery.')
 
-      const uploadedPhoto = photoUpload.data
+      const uploadedPhoto = photoUploadState.data
       if (!uploadedPhoto) {
         throw new Error('Wait for the photo to finish uploading.')
+      }
+
+      if (!selectedLocation) {
+        throw new Error('Choose a real discovery location before saving.')
       }
 
       const primaryGroupId = selectedGroupIds[0] ?? null
@@ -215,10 +321,11 @@ export function AddDiscoveryPage() {
         title,
         description: description.trim() || null,
         category,
-        longitude: coordinates[0],
-        latitude: coordinates[1],
+        longitude: selectedLocation.coordinates[0],
+        latitude: selectedLocation.coordinates[1],
+        locationSource: selectedLocation.source,
         imageObjectKey: uploadedPhoto.objectKey,
-        discoveredAt: uploadedPhoto.exif?.takenAt ?? new Date().toISOString(),
+        discoveredAt: takenAt ?? new Date().toISOString(),
       })
     },
     onSuccess: (discovery) => {
@@ -258,13 +365,25 @@ export function AddDiscoveryPage() {
       return
     }
 
-    if (photoUpload.isPending) {
+    const currentUpload =
+      photoUploadState.selectionId === photoSelectionId
+        ? photoUploadState
+        : null
+
+    if (currentUpload?.status === 'pending') {
       setFormMessage('The photo is still uploading — please wait.')
       return
     }
 
-    if (photoUpload.isError || !photoUpload.data) {
+    if (currentUpload?.status !== 'success' || !currentUpload.data) {
       setFormMessage('The photo failed to upload. Choose it again to retry.')
+      return
+    }
+
+    if (!selectedLocation) {
+      setFormMessage(
+        'Choose a real discovery location on the map or search for a place before saving.',
+      )
       return
     }
 
@@ -282,9 +401,10 @@ export function AddDiscoveryPage() {
   }
 
   function handleLocationChange(nextCoordinates: [number, number]) {
-    locationWasChosenRef.current = true
-    setCoordinates(nextCoordinates)
-    setLocationSource('manual')
+    setSelectedDiscoveryLocation(
+      { coordinates: nextCoordinates, source: 'manual' },
+      'manual',
+    )
   }
 
   function handleLocationResult(
@@ -293,10 +413,11 @@ export function AddDiscoveryPage() {
     zoom: number,
     label: string,
   ) {
-    locationWasChosenRef.current = true
     const nextCoordinates: [number, number] = [longitude, latitude]
-    setCoordinates(nextCoordinates)
-    setLocationSource('search')
+    setSelectedDiscoveryLocation(
+      { coordinates: nextCoordinates, source: 'manual' },
+      'search',
+    )
     setLocationQuery(label)
     setShowLocationResults(false)
     locationPickerRef.current?.flyTo(nextCoordinates, zoom)
@@ -344,9 +465,19 @@ export function AddDiscoveryPage() {
               accept="image/jpeg,image/png,image/webp"
               className="sr-only"
               onChange={(event) => {
+                const nextSelectionId = photoSelectionIdRef.current + 1
+                photoSelectionIdRef.current = nextSelectionId
+                setPhotoSelectionId(nextSelectionId)
                 setNativePhoto(undefined)
                 setBrowserPhoto(event.target.files?.[0] ?? null)
-                photoUpload.reset()
+                setSelectedDiscoveryLocation(null)
+                setTakenAt(null)
+                setPhotoUploadState({
+                  selectionId: nextSelectionId,
+                  status: 'idle',
+                  data: null,
+                  error: null,
+                })
               }}
             />
             {photoUrl ? (
@@ -417,20 +548,23 @@ export function AddDiscoveryPage() {
             Location
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {photoUpload.isPending && 'Looking for a location in the photo...'}
-            {!photoUpload.isPending &&
-              locationSource === 'photo' &&
+            {photoUploadState.status === 'pending' &&
+              'Looking for a location in the photo...'}
+            {photoUploadState.status !== 'pending' &&
+              locationUiSource === 'photo' &&
               'Location detected from the photo. Tap or drag the pin to adjust it.'}
-            {!photoUpload.isPending &&
-              locationSource === 'current' &&
+            {photoUploadState.status !== 'pending' &&
+              locationUiSource === 'current' &&
               'Current location detected. Tap or drag the pin to adjust it.'}
-            {!photoUpload.isPending &&
-              locationSource === 'search' &&
+            {photoUploadState.status !== 'pending' &&
+              locationUiSource === 'search' &&
               'Location selected from search. Tap or drag the pin to fine-tune it.'}
-            {!photoUpload.isPending &&
-              locationSource !== 'photo' &&
-              locationSource !== 'current' &&
-              locationSource !== 'search' &&
+            {photoUploadState.status !== 'pending' &&
+              !selectedLocation &&
+              'No real location selected yet. Tap the map to drop a pin, or search for a place before saving.'}
+            {photoUploadState.status !== 'pending' &&
+              selectedLocation &&
+              !locationUiSource &&
               'Tap the map to drop a pin where this was discovered, or drag the pin to adjust it.'}
           </p>
           <div className="relative mt-3">
@@ -494,13 +628,14 @@ export function AddDiscoveryPage() {
           <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
             <LocationPickerMap
               ref={locationPickerRef}
-              coordinates={coordinates}
+              coordinates={selectedLocation?.coordinates ?? mapCenter}
               onChange={handleLocationChange}
               className="h-full w-full"
             />
           </div>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            {coordinates[1].toFixed(5)}, {coordinates[0].toFixed(5)}
+            {(selectedLocation?.coordinates ?? mapCenter)[1].toFixed(5)},{' '}
+            {(selectedLocation?.coordinates ?? mapCenter)[0].toFixed(5)}
           </p>
         </section>
         <Button

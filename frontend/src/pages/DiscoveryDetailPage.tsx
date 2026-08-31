@@ -118,6 +118,8 @@ export function DiscoveryDetailPage({
         <DiscoveryPhoto
           discovery={discovery}
           alt={discovery.name}
+          variant="detail"
+          width={1200}
           className="aspect-[4/3] w-full rounded-2xl object-cover"
         />
         <div className="mt-5 flex items-start justify-between gap-3">

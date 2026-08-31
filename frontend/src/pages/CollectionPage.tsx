@@ -231,6 +231,7 @@ export function CollectionPage() {
                 <DiscoveryPhoto
                   discovery={discovery}
                   alt={discovery.name}
+                  variant="card"
                   width={480}
                   className="size-full object-cover"
                 />

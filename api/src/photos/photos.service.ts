@@ -18,17 +18,34 @@ export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
 const KEY_PREFIX = 'photos';
 const FILENAME_PATTERN = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
+export const PHOTO_OBJECT_KEY_PATTERN =
+  /^photos\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|png|webp)$/;
+const PHOTO_VARIANTS = ['map', 'card', 'detail'] as const;
+
+export type PhotoVariant = (typeof PHOTO_VARIANTS)[number];
+
+export const PHOTO_VARIANT_WIDTHS: Record<PhotoVariant, number> = {
+  map: 192,
+  card: 640,
+  detail: 1600,
+};
 
 export interface PhotoLocation {
   latitude: number;
   longitude: number;
+}
+
+export interface PhotoMetadata {
+  location: PhotoLocation | null;
   takenAt: string | null;
 }
 
 export interface StoredPhoto {
   objectKey: string;
   url: string;
-  exif: PhotoLocation | null;
+  metadata: PhotoMetadata;
+  /** Kept for clients released before the metadata response was split. */
+  exif: (PhotoLocation & { takenAt: string | null }) | null;
 }
 
 /**
@@ -59,7 +76,7 @@ export class PhotosService {
    * caller will later save in DISCOVERIES.image_object_key.
    */
   async store(file: Express.Multer.File): Promise<StoredPhoto> {
-    const exif = await this.readLocation(file.buffer);
+    const metadata = await this.readMetadata(file.buffer);
     const { buffer, contentType, extension } = await this.normalize(
       file.buffer,
     );
@@ -67,45 +84,115 @@ export class PhotosService {
     const filename = `${randomUUID()}.${extension}`;
     const objectKey = `${KEY_PREFIX}/${filename}`;
 
-    await this.minio.putObject(this.bucket, objectKey, buffer, buffer.length, {
-      'Content-Type': contentType,
-    });
+    try {
+      await this.minio.putObject(
+        this.bucket,
+        objectKey,
+        buffer,
+        buffer.length,
+        {
+          'Content-Type': contentType,
+        },
+      );
 
-    return { objectKey, url: `/api/photos/${filename}`, exif };
+      const stem = objectKey.replace(/\.[^.]+$/, '');
+      for (const variant of PHOTO_VARIANTS) {
+        const variantBuffer = await sharp(buffer)
+          .resize({
+            width: PHOTO_VARIANT_WIDTHS[variant],
+            withoutEnlargement: true,
+          })
+          .webp({ quality: 90 })
+          .toBuffer();
+        const variantKey = `${stem}.${variant}.webp`;
+
+        await this.minio.putObject(
+          this.bucket,
+          variantKey,
+          variantBuffer,
+          variantBuffer.length,
+          { 'Content-Type': 'image/webp' },
+        );
+      }
+    } catch (error) {
+      // MinIO has no transaction spanning these independent objects. Remove
+      // the complete object family so a retry cannot leave orphaned variants.
+      // Keep the upload failure as the error reported to the caller.
+      try {
+        await this.remove(objectKey);
+      } catch {
+        // The original storage error is still the most useful failure here.
+      }
+
+      throw error;
+    }
+
+    return {
+      objectKey,
+      url: `/api/photos/${filename}`,
+      metadata,
+      exif: metadata.location
+        ? { ...metadata.location, takenAt: metadata.takenAt }
+        : null,
+    };
   }
 
   /** Streams a stored photo back out. Used by the read endpoint. */
   async read(
     filename: string,
+    variant?: string,
   ): Promise<{ stream: Readable; contentType: string; size: number }> {
     if (!FILENAME_PATTERN.test(filename)) {
       throw new NotFoundException(`Unknown photo "${filename}".`);
     }
 
-    const objectKey = `${KEY_PREFIX}/${filename}`;
+    if (variant && !PHOTO_VARIANTS.includes(variant as PhotoVariant)) {
+      throw new NotFoundException(`Unknown photo variant "${variant}".`);
+    }
+
+    const originalKey = `${KEY_PREFIX}/${filename}`;
+    const stem = originalKey.replace(/\.[^.]+$/, '');
+    const variantKey = variant ? `${stem}.${variant}.webp` : originalKey;
 
     try {
-      const stat = await this.minio.statObject(this.bucket, objectKey);
-      const stream = await this.minio.getObject(this.bucket, objectKey);
-      // metaData is typed as `any`, so narrow rather than trust it.
-      const contentType: unknown = stat.metaData['content-type'];
-
-      return {
-        stream,
-        contentType:
-          typeof contentType === 'string'
-            ? contentType
-            : 'application/octet-stream',
-        size: stat.size,
-      };
+      return await this.readObject(variantKey);
     } catch (error) {
-      if (isObjectMissing(error)) {
-        throw new NotFoundException(`Unknown photo "${filename}".`);
+      if (!isObjectMissing(error)) {
+        throw error;
       }
 
-      // A MinIO outage must surface as a 500, not as a cacheable 404.
-      throw error;
+      if (variant) {
+        try {
+          return await this.readObject(originalKey);
+        } catch (fallbackError) {
+          if (!isObjectMissing(fallbackError)) {
+            throw fallbackError;
+          }
+        }
+      }
+
+      throw new NotFoundException(`Unknown photo "${filename}".`);
     }
+  }
+
+  private async readObject(objectKey: string): Promise<{
+    stream: Readable;
+    contentType: string;
+    size: number;
+  }> {
+    const stat = await this.minio.statObject(this.bucket, objectKey);
+    const stream = await this.minio.getObject(this.bucket, objectKey);
+    // metaData is typed as `any`, so narrow rather than trust it.
+    const contentType: unknown = stat.metaData['content-type'];
+
+    return {
+      stream,
+      contentType:
+        typeof contentType === 'string'
+          ? contentType
+          : 'application/octet-stream',
+      size: stat.size,
+    };
   }
 
   /**
@@ -125,13 +212,27 @@ export class PhotosService {
     }
   }
 
+  isCanonicalObjectKey(objectKey: string): boolean {
+    return PHOTO_OBJECT_KEY_PATTERN.test(objectKey);
+  }
+
   /**
    * Frees the object behind a discovery that no longer exists. S3-style
    * deletes are idempotent, so a key that is already gone is not an error —
    * only a genuine MinIO failure is.
    */
   async remove(objectKey: string): Promise<void> {
-    await this.minio.removeObject(this.bucket, objectKey);
+    const stem = objectKey.replace(/\.[^.]+$/, '');
+    const results = await Promise.allSettled(
+      [
+        objectKey,
+        ...PHOTO_VARIANTS.map((variant) => `${stem}.${variant}.webp`),
+      ].map((key) => this.minio.removeObject(this.bucket, key)),
+    );
+    const failed = results.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failed) throw failed.reason;
   }
 
   /** Backs the storage health indicator. Throws when MinIO is unreachable. */
@@ -147,28 +248,39 @@ export class PhotosService {
    * FR-06. Never throws: a photo with no GPS tag, or with a corrupt one, must
    * still upload successfully (FR-33 / NFR-33).
    */
-  private async readLocation(buffer: Buffer): Promise<PhotoLocation | null> {
+  private async readMetadata(buffer: Buffer): Promise<PhotoMetadata> {
+    let location: PhotoLocation | null = null;
+    let takenAt: string | null = null;
+
     try {
       const gps = await exifr.gps(buffer);
-
       if (
-        typeof gps?.latitude !== 'number' ||
-        typeof gps?.longitude !== 'number'
+        typeof gps?.latitude === 'number' &&
+        typeof gps?.longitude === 'number' &&
+        Number.isFinite(gps.latitude) &&
+        Number.isFinite(gps.longitude)
       ) {
-        return null;
+        location = { latitude: gps.latitude, longitude: gps.longitude };
       }
-
-      const parsed = (await exifr.parse(buffer, ['DateTimeOriginal'])) as
-        { DateTimeOriginal?: Date } | undefined;
-
-      return {
-        latitude: gps.latitude,
-        longitude: gps.longitude,
-        takenAt: parsed?.DateTimeOriginal?.toISOString() ?? null,
-      };
     } catch {
-      return null;
+      // Missing or malformed GPS must not prevent the independent date read.
     }
+
+    try {
+      const parsed = (await exifr.parse(buffer, ['DateTimeOriginal'])) as
+        { DateTimeOriginal?: Date | string } | undefined;
+      const candidate = parsed?.DateTimeOriginal;
+      if (candidate instanceof Date && !Number.isNaN(candidate.valueOf())) {
+        takenAt = candidate.toISOString();
+      } else if (typeof candidate === 'string') {
+        const date = new Date(candidate);
+        if (!Number.isNaN(date.valueOf())) takenAt = date.toISOString();
+      }
+    } catch {
+      // A malformed date must not discard valid GPS metadata.
+    }
+
+    return { location, takenAt };
   }
 
   /**

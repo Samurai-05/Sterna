@@ -31,6 +31,7 @@ export function DiscoveryCard({
       <DiscoveryPhoto
         discovery={discovery}
         alt=""
+        variant="card"
         width={560}
         className="aspect-[4/3] w-full object-cover"
       />

@@ -41,6 +41,7 @@ describe('PhotosService', () => {
     putObject: jest.fn(),
     statObject: jest.fn(),
     getObject: jest.fn(),
+    removeObject: jest.fn(),
     bucketExists: jest.fn(),
   };
 
@@ -77,6 +78,85 @@ describe('PhotosService', () => {
       );
     });
 
+    it('generates map, card and detail WebP variants without enlarging images', async () => {
+      const source = await sharp({
+        create: {
+          width: 800,
+          height: 400,
+          channels: 3,
+          background: 'red',
+        },
+      })
+        .jpeg()
+        .toBuffer();
+
+      const result = await service.store({
+        buffer: source,
+      } as Express.Multer.File);
+      const calls = minio.putObject.mock.calls as Array<
+        [string, string, Buffer, number, Record<string, string>]
+      >;
+      const originalStem = result.objectKey.replace(/\.[^.]+$/, '');
+
+      expect(calls.map((call) => call[1])).toEqual([
+        result.objectKey,
+        `${originalStem}.map.webp`,
+        `${originalStem}.card.webp`,
+        `${originalStem}.detail.webp`,
+      ]);
+
+      for (const [key, , buffer] of calls.slice(1)) {
+        const metadata = await sharp(buffer).metadata();
+        expect(metadata.format).toBe('webp');
+        expect(metadata.width).toBeLessThanOrEqual(
+          key.includes('.map.') ? 192 : key.includes('.card.') ? 640 : 1600,
+        );
+      }
+    });
+
+    it('removes every object when a variant upload fails', async () => {
+      const uploadError = new Error('card variant storage failed');
+      minio.putObject.mockImplementation(
+        (_bucket: string, key: string): Promise<void> => {
+          if (key.includes('.card.')) return Promise.reject(uploadError);
+          return Promise.resolve();
+        },
+      );
+
+      await expect(
+        service.store({ buffer: await image('jpeg') } as Express.Multer.File),
+      ).rejects.toBe(uploadError);
+
+      const originalKey = (
+        minio.putObject.mock.calls[0] as [string, string]
+      )[1];
+      const stem = originalKey.replace(/\.[^.]+$/, '');
+      const removeCalls = minio.removeObject.mock.calls as Array<
+        [string, string]
+      >;
+      expect(removeCalls.map(([, key]) => key)).toEqual([
+        originalKey,
+        `${stem}.map.webp`,
+        `${stem}.card.webp`,
+        `${stem}.detail.webp`,
+      ]);
+    });
+
+    it('preserves the upload error if rollback cleanup also fails', async () => {
+      const uploadError = new Error('detail variant storage failed');
+      minio.putObject.mockImplementation(
+        (_bucket: string, key: string): Promise<void> => {
+          if (key.includes('.detail.')) return Promise.reject(uploadError);
+          return Promise.resolve();
+        },
+      );
+      minio.removeObject.mockRejectedValue(new Error('cleanup failed'));
+
+      await expect(
+        service.store({ buffer: await image('jpeg') } as Express.Multer.File),
+      ).rejects.toBe(uploadError);
+    });
+
     it('keeps the format of PNG and WebP uploads', async () => {
       const png = await service.store({
         buffer: await image('png'),
@@ -95,16 +175,45 @@ describe('PhotosService', () => {
         buffer: await image('jpeg', geotagged),
       } as Express.Multer.File);
 
-      expect(result.exif?.latitude).toBeCloseTo(46.783, 3);
-      expect(result.exif?.longitude).toBeCloseTo(6.633, 3);
-      expect(result.exif?.takenAt).toMatch(/^2026-08-20T/);
+      expect(result.metadata.location?.latitude).toBeCloseTo(46.783, 3);
+      expect(result.metadata.location?.longitude).toBeCloseTo(6.633, 3);
+      expect(result.metadata.takenAt).toMatch(/^2026-08-20T/);
     });
 
     // FR-33 / NFR-33: a missing GPS tag must never block the upload.
-    it('stores a photo without GPS tags and reports no location', async () => {
+    it('preserves a capture date even when GPS tags are absent', async () => {
+      const result = await service.store({
+        buffer: await image('jpeg', {
+          IFD2: { DateTimeOriginal: '2026:08:20 14:02:11' },
+        }),
+      } as Express.Multer.File);
+
+      expect(result.metadata.location).toBeNull();
+      expect(result.metadata.takenAt).toMatch(/^2026-08-20T/);
+    });
+
+    it('preserves a photo location when the capture date is absent', async () => {
+      const result = await service.store({
+        buffer: await image('jpeg', {
+          IFD3: {
+            GPSLatitudeRef: 'N',
+            GPSLatitude: '46/1 47/1 0/1',
+            GPSLongitudeRef: 'E',
+            GPSLongitude: '6/1 38/1 0/1',
+          },
+        }),
+      } as Express.Multer.File);
+
+      expect(result.metadata.location?.latitude).toBeCloseTo(46.783, 3);
+      expect(result.metadata.takenAt).toBeNull();
+    });
+
+    it('stores a photo without metadata and reports no location or date', async () => {
       await expect(
         service.store({ buffer: await image('jpeg') } as Express.Multer.File),
-      ).resolves.toMatchObject({ exif: null });
+      ).resolves.toMatchObject({
+        metadata: { location: null, takenAt: null },
+      });
     });
 
     // NFR-27: metadata must not reach other users.
@@ -119,6 +228,13 @@ describe('PhotosService', () => {
       )[2];
 
       expect((await sharp(stored).metadata()).exif).toBeUndefined();
+
+      const storedVariants = (
+        minio.putObject.mock.calls as Array<[string, string, Buffer]>
+      ).slice(1);
+      for (const [, , variant] of storedVariants) {
+        expect((await sharp(variant).metadata()).exif).toBeUndefined();
+      }
     });
 
     // NFR-21: the declared MIME type is client-supplied, so the bytes decide.
@@ -159,6 +275,21 @@ describe('PhotosService', () => {
       expect(result.size).toBe(42);
     });
 
+    it('falls back to the original object when a requested variant is absent', async () => {
+      minio.statObject.mockRejectedValueOnce(notFound()).mockResolvedValueOnce({
+        size: 42,
+        metaData: { 'content-type': 'image/jpeg' },
+      });
+      minio.getObject.mockResolvedValue('stream');
+
+      await service.read('6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg', 'card');
+
+      expect(minio.statObject.mock.calls).toEqual([
+        [BUCKET, 'photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.card.webp'],
+        [BUCKET, 'photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg'],
+      ]);
+    });
+
     it('404s on a missing object', async () => {
       minio.statObject.mockRejectedValue(notFound());
 
@@ -185,6 +316,41 @@ describe('PhotosService', () => {
     });
   });
 
+  describe('remove', () => {
+    it('removes the original and every generated variant', async () => {
+      const objectKey = 'photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg';
+
+      await service.remove(objectKey);
+
+      const stem = objectKey.replace(/\.[^.]+$/, '');
+      const removeCalls = minio.removeObject.mock.calls as Array<
+        [string, string]
+      >;
+      expect(removeCalls.map(([, key]) => key)).toEqual([
+        objectKey,
+        `${stem}.map.webp`,
+        `${stem}.card.webp`,
+        `${stem}.detail.webp`,
+      ]);
+    });
+
+    it('attempts every deletion before returning a storage error', async () => {
+      const deletionError = new Error('MinIO deletion failed');
+      minio.removeObject.mockImplementation(
+        (_bucket: string, key: string): Promise<void> =>
+          key.includes('.card.')
+            ? Promise.reject(deletionError)
+            : Promise.resolve(),
+      );
+
+      await expect(
+        service.remove('photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg'),
+      ).rejects.toBe(deletionError);
+
+      expect(minio.removeObject).toHaveBeenCalledTimes(4);
+    });
+  });
+
   describe('exists', () => {
     it('is false for a missing object and true for a present one', async () => {
       minio.statObject.mockResolvedValueOnce({});
@@ -202,6 +368,26 @@ describe('PhotosService', () => {
       await expect(service.exists('photos/a.jpg')).rejects.toThrow(
         /ECONNREFUSED/,
       );
+    });
+  });
+
+  describe('isCanonicalObjectKey', () => {
+    it('accepts only Sterna canonical UUID photo keys', () => {
+      expect(
+        service.isCanonicalObjectKey(
+          'photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg',
+        ),
+      ).toBe(true);
+      expect(
+        service.isCanonicalObjectKey(
+          'photos/6f1c2a700d1e4f0b9d8e2c4a1b3d5e6f.jpg',
+        ),
+      ).toBe(false);
+      expect(
+        service.isCanonicalObjectKey(
+          'photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.map.webp',
+        ),
+      ).toBe(false);
     });
   });
 
