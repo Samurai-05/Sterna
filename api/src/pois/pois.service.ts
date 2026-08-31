@@ -86,4 +86,41 @@ export class PoisService {
       discovered: row.discovered,
     }));
   }
+
+  async findAllAuthoredByUser(userId: string): Promise<PoiResponse[]> {
+    const rows = await this.pois.query<PoiRow[]>(
+      `
+        SELECT
+          poi.id,
+          poi.title,
+          poi.description,
+          ST_X(poi.location) AS longitude,
+          ST_Y(poi.location) AS latitude,
+          poi.image_url,
+          EXISTS (
+            SELECT 1
+            FROM discoveries discovery
+            WHERE discovery.user_id = $1
+              AND ST_DWithin(
+                poi.location::geography,
+                discovery.location::geography,
+                $2
+              )
+          ) AS discovered
+        FROM pois poi
+        ORDER BY poi.title ASC
+      `,
+      [userId, POI_DISCOVERY_RADIUS_METERS],
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      longitude: Number(row.longitude),
+      latitude: Number(row.latitude),
+      imageUrl: row.image_url,
+      discovered: row.discovered,
+    }));
+  }
 }

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createDiscovery,
   getAuthoredDiscoveries,
+  getAuthoredPois,
   getDiscoveries,
   getGroupDiscoveries,
   register,
@@ -63,6 +64,31 @@ describe('discovery map boundaries', () => {
       expect.any(Object),
     )
     expect(result.map((discovery) => discovery.id)).toEqual([1, 2])
+    expect(result[0].createdAt).toBe('2026-08-28T12:00:00.000Z')
+  })
+})
+
+describe('profile boundaries', () => {
+  it('loads POI progress based on every discovery authored by the user', async () => {
+    const fetchMock = mockDiscoveryResponse([
+      {
+        id: '1',
+        title: 'Eiffel Tower',
+        description: null,
+        longitude: 2.2945,
+        latitude: 48.8584,
+        imageUrl: null,
+        discovered: true,
+      },
+    ])
+
+    const result = await getAuthoredPois('token')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/pois/authored',
+      expect.any(Object),
+    )
+    expect(result[0]).toMatchObject({ name: 'Eiffel Tower', discovered: true })
   })
 })
 
