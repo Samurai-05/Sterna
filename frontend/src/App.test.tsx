@@ -10,6 +10,28 @@ import { renderWithProviders } from './test/renderWithProviders'
 vi.mock('@/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api')>()
   const { discoveries, landmarks } = await import('@/lib/mock-data')
+  const personalDiscoveries = [
+    {
+      ...discoveries[3],
+      id: 101,
+      name: 'Personal garden',
+      category: 'other',
+      userId: '1',
+      personal: true,
+      groupId: null,
+      groupIds: [],
+    },
+    {
+      ...discoveries[4],
+      id: 102,
+      name: "Alex's personal beach",
+      category: 'culture',
+      userId: '2',
+      personal: true,
+      groupId: null,
+      groupIds: [],
+    },
+  ]
 
   return {
     ...actual,
@@ -19,9 +41,31 @@ vi.mock('@/lib/api', async (importOriginal) => {
       userName: 'Explorer',
       createdAt: '2026-08-26T08:00:00.000Z',
     }),
-    getAuthoredDiscoveries: vi.fn().mockResolvedValue(discoveries),
+    getAuthoredDiscoveries: vi
+      .fn()
+      .mockResolvedValue([...discoveries, ...personalDiscoveries]),
     getAuthoredPois: vi.fn().mockResolvedValue(landmarks),
     getDiscoveries: vi.fn().mockResolvedValue(discoveries),
+    getGroups: vi.fn().mockResolvedValue([
+      {
+        id: 'weekend-paris',
+        name: 'Weekend Paris',
+        description: null,
+        role: 'member',
+        isActive: false,
+        memberCount: 2,
+        discoveryCount: 1,
+      },
+    ]),
+    getGroupDiscoveries: vi.fn().mockResolvedValue([
+      {
+        ...discoveries[0],
+        id: 7,
+        groupId: 'weekend-paris',
+        groupIds: ['weekend-paris'],
+        personal: false,
+      },
+    ]),
     getPois: vi.fn().mockResolvedValue(landmarks),
   }
 })
@@ -133,7 +177,7 @@ describe('App', () => {
 
   it('redirects a signed-out application route to the authentication entry', () => {
     window.localStorage.clear()
-    renderWithProviders(<App />, { route: '/collection' })
+    renderWithProviders(<App />, { route: '/collection?group=weekend-paris' })
 
     expect(
       screen.getByRole('heading', {
@@ -272,62 +316,148 @@ describe('App', () => {
     expect(mapPage).not.toHaveAttribute('aria-hidden')
   })
 
-  it('renders the collection through its application route', () => {
+  it('keeps the Collection layout while showing Gallery without a page title', () => {
     renderWithProviders(<App />, { route: '/collection' })
 
+    expect(screen.getByRole('link', { name: 'Gallery' })).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+      screen.queryByRole('heading', { name: 'Your discoveries' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
-    const foodFilter = screen.getByRole('button', { name: 'Food' })
-    expect(foodFilter).toHaveClass('bg-card')
-    fireEvent.click(foodFilter)
-    expect(foodFilter).toHaveClass('bg-[#FFEDD5]', 'ring-[#EA580C]')
+    expect(screen.getByRole('button', { name: 'Food' })).toHaveClass('bg-card')
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
   })
 
-  it('shows only discovered POIs in the collection and filters them', async () => {
+  it('filters Gallery discoveries in photo grid mode without changing visible POIs', async () => {
+    renderWithProviders(<App />, { route: '/collection' })
+
+    expect(screen.getByRole('link', { name: 'Gallery' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Your discoveries' }),
+    ).not.toBeInTheDocument()
+    const groupFilter = await screen.findByRole('button', {
+      name: 'Filter discoveries by group: All',
+    })
+    fireEvent.pointerDown(groupFilter, { button: 0, ctrlKey: false })
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Personal' }),
+    ).toHaveAttribute('aria-checked', 'false')
+    const weekendParisOption = await screen.findByRole('menuitemradio', {
+      name: 'Weekend Paris',
+    })
+
+    fireEvent.click(weekendParisOption)
+    expect(
+      screen.getByRole('button', {
+        name: 'Filter discoveries by group: Weekend Paris',
+      }),
+    ).toBeInTheDocument()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch to photo grid' }),
+    )
+
+    const galleryPhoto = await screen.findByRole('link', {
+      name: 'Street in Le Marais',
+    })
+    expect(galleryPhoto).toHaveClass('aspect-square')
+    expect(
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Parisian Croissant' }),
+    ).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('link', { name: /Eiffel Tower/ }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(galleryPhoto)
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Discovery' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+    expect(
+      await screen.findByRole('button', {
+        name: 'Filter discoveries by group: Weekend Paris',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
+    ).toBeInTheDocument()
+  })
+
+  it("shows only the current user's personal discoveries", async () => {
+    renderWithProviders(<App />, { route: '/collection' })
+
+    fireEvent.pointerDown(
+      await screen.findByRole('button', {
+        name: 'Filter discoveries by group: All',
+      }),
+      { button: 0, ctrlKey: false },
+    )
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Personal' }))
+
+    expect(
+      await screen.findByRole('link', { name: /Personal garden/ }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /Alex's personal beach/ }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /Street in Le Marais/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps existing POI filtering and cards unchanged by the group filter', async () => {
     vi.mocked(getPois).mockResolvedValueOnce([
       landmarks[0],
       { ...landmarks[1], discovered: false },
     ])
     renderWithProviders(<App />, { route: '/collection' })
-    const collectionPage = screen
-      .getByRole('heading', { level: 1, name: 'Your discoveries' })
+    const galleryPage = screen
+      .getByRole('textbox', { name: 'Search gallery' })
       .closest('main')!
 
+    fireEvent.click(within(galleryPage).getByRole('button', { name: 'POIs' }))
+
     expect(
-      await within(collectionPage).findByRole('link', {
+      within(galleryPage).queryByRole('button', {
+        name: /Filter discoveries by group:/,
+      }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(galleryPage).queryByRole('button', {
+        name: /Switch to (photo grid|detailed view)/,
+      }),
+    ).not.toBeInTheDocument()
+
+    expect(
+      await within(galleryPage).findByRole('link', {
         name: /Eiffel Tower/,
       }),
     ).toBeInTheDocument()
     expect(
-      within(collectionPage).queryByRole('link', {
+      within(galleryPage).queryByRole('link', {
         name: /Arc de Triomphe/,
       }),
     ).not.toBeInTheDocument()
 
-    fireEvent.click(
-      within(collectionPage).getByRole('button', { name: 'POIs' }),
-    )
     expect(
-      within(collectionPage).getByRole('button', { name: 'POIs' }),
-    ).toHaveClass('bg-[#FEF9C3]', 'ring-[#EAB308]')
-
-    expect(
-      within(collectionPage).queryByText('Street in Le Marais'),
+      within(galleryPage).queryByText('Street in Le Marais'),
     ).not.toBeInTheDocument()
-    expect(within(collectionPage).getByText('1 POI')).toBeInTheDocument()
+    expect(within(galleryPage).getByText('1 POI')).toBeInTheDocument()
 
     fireEvent.click(
-      within(collectionPage).getByRole('link', { name: /Eiffel Tower/ }),
+      within(galleryPage).getByRole('link', { name: /Eiffel Tower/ }),
     )
     expect(
       screen.getByRole('heading', { level: 1, name: 'Point of interest' }),
     ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'POIs' })).toBeInTheDocument()
   })
 
   it('keeps one map canvas through authenticated navigation and resizes it on return', () => {
@@ -338,9 +468,9 @@ describe('App', () => {
 
     expect(mapCanvasLifecycle).toEqual({ mounts: 1, unmounts: 0, resizes: 1 })
 
-    fireEvent.click(screen.getByRole('link', { name: 'Collection' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Gallery' }))
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+      screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
     expect(mapPage).toHaveAttribute('inert')
@@ -435,7 +565,7 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('returns to the collection when backing out of a discovery opened from the collection', () => {
+  it('returns to the Gallery when backing out of a discovery opened from the Gallery', () => {
     renderWithProviders(<App />, {
       initialEntries: ['/collection', '/discoveries/1'],
       initialIndex: 1,
@@ -448,7 +578,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your discoveries' }),
+      screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
   })
 
@@ -568,9 +698,9 @@ describe('App', () => {
     const landscape = within(categorySection).getByRole('listitem', {
       name: 'Landscape: 1 discovery',
     })
-    expect(monument.querySelector('[data-category-bar="monument"]')).toHaveStyle(
-      { height: '100%' },
-    )
+    expect(
+      monument.querySelector('[data-category-bar="monument"]'),
+    ).toHaveStyle({ height: '100%' })
     expect(
       landscape.querySelector('[data-category-bar="landscape"]'),
     ).toHaveStyle({ height: '50%' })
