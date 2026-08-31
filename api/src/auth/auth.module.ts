@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PhotosModule } from '../photos/photos.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -18,6 +19,9 @@ import { User } from './user.entity';
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync(jwtModuleOptions),
+    // deleteAccount() needs PhotosService to free the MinIO objects behind
+    // the discoveries it removes.
+    PhotosModule,
   ],
   controllers: [AuthController],
   providers: [

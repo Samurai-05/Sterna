@@ -1,9 +1,14 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Discovery } from '@/lib/mock-data'
-import { getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
-import { saveSession } from '@/lib/session'
+import {
+  deleteAccount,
+  getCurrentUser,
+  getDiscoveries,
+  getPois,
+} from '@/lib/api'
+import { loadSession, saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { ProfilePage } from './ProfilePage'
 
@@ -11,11 +16,13 @@ vi.mock('@/lib/api', () => ({
   ApiError: class ApiError extends Error {
     status = 0
   },
+  deleteAccount: vi.fn(),
   getCurrentUser: vi.fn(),
   getDiscoveries: vi.fn(),
   getPois: vi.fn(),
 }))
 
+const deleteAccountMock = vi.mocked(deleteAccount)
 const getCurrentUserMock = vi.mocked(getCurrentUser)
 const getDiscoveriesMock = vi.mocked(getDiscoveries)
 const getPoisMock = vi.mocked(getPois)
@@ -85,5 +92,50 @@ describe('ProfilePage', () => {
     expect(countriesSection.queryByText('2.3522')).not.toBeInTheDocument()
     expect(countriesSection.queryByText('8.3522')).not.toBeInTheDocument()
     expect(countriesSection.queryByText('UNK')).not.toBeInTheDocument()
+  })
+
+  it('deletes the account and clears the session on confirmation', async () => {
+    getDiscoveriesMock.mockResolvedValue([])
+    deleteAccountMock.mockResolvedValue(undefined)
+
+    renderWithProviders(<ProfilePage />)
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Open account settings' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'correct horse battery staple' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Delete permanently' }))
+
+    await waitFor(() => {
+      expect(deleteAccountMock).toHaveBeenCalledWith(
+        'test-token',
+        'correct horse battery staple',
+      )
+    })
+    expect(loadSession()).toBeNull()
+  })
+
+  it('shows the server error and keeps the session on a failed deletion', async () => {
+    getDiscoveriesMock.mockResolvedValue([])
+    deleteAccountMock.mockRejectedValue(
+      new Error('The current password is incorrect.'),
+    )
+
+    renderWithProviders(<ProfilePage />)
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Open account settings' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'wrong password' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Delete permanently' }))
+
+    await screen.findByText('The current password is incorrect.')
+    expect(loadSession()).not.toBeNull()
   })
 })

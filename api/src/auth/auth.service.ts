@@ -7,7 +7,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
+import { GroupRole } from '../groups/group-role';
+import { PhotosService } from '../photos/photos.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -81,6 +83,7 @@ export class AuthService {
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly jwt: JwtService,
     private readonly dataSource: DataSource,
+    private readonly photos: PhotosService,
     config: ConfigService,
   ) {
     this.expiresInSeconds =
@@ -203,18 +206,85 @@ export class AuthService {
       throw new BadRequestException('The current password is incorrect.');
     }
 
-    await this.dataSource.transaction(async (manager) => {
+    const objectKeys = await this.dataSource.transaction(async (manager) => {
+      // Groups the caller owns outright don't vanish with them: ownership
+      // passes to another member, or the group is dissolved if the caller
+      // was its only member. Run before the discoveries delete below: a
+      // dissolved group's only discoveries are this user's own, about to be
+      // deleted anyway, and group_members can't go until they are (RESTRICT).
+      const dissolvedGroupIds = await this.reassignOwnedGroups(id, manager);
+
+      const discoveries = await manager.query<
+        { image_object_key: string | null }[]
+      >('SELECT image_object_key FROM discoveries WHERE user_id = $1', [id]);
+
       // fk_discoveries_group_membership is ON DELETE RESTRICT and Postgres
       // checks it immediately, so cascading the membership away while the
       // user's group discoveries still exist aborts the whole statement.
-      // Removing them first is what makes the cascade legal.
+      // Removing them first is what makes the cascade legal — the same trap
+      // documented at GroupsService.remove().
       //
       // TODO(discoveries): move this into the discoveries module once it
-      // exists. The photo objects it orphans in MinIO are a separate cleanup
-      // (ADR-006).
+      // exists.
       await manager.query('DELETE FROM discoveries WHERE user_id = $1', [id]);
+
+      for (const groupId of dissolvedGroupIds) {
+        await manager.query('DELETE FROM group_members WHERE group_id = $1', [
+          groupId,
+        ]);
+        await manager.query('DELETE FROM groups WHERE id = $1', [groupId]);
+      }
+
       await manager.delete(User, { id });
+
+      return discoveries
+        .map((row) => row.image_object_key)
+        .filter((key): key is string => key !== null);
     });
+
+    // MinIO isn't part of the SQL transaction above, so this only runs once
+    // the account and its rows are already gone for good (ADR-006).
+    await Promise.all(objectKeys.map((key) => this.photos.remove(key)));
+  }
+
+  /**
+   * Hands off every group the caller owns to its longest-tenured other
+   * member, and returns the ids of the groups that had no other member — the
+   * caller is responsible for dissolving those once it is legal to (see
+   * deleteAccount()), mirroring GroupsService.remove().
+   */
+  private async reassignOwnedGroups(
+    userId: string,
+    manager: EntityManager,
+  ): Promise<string[]> {
+    const ownedGroups = await manager.query<{ group_id: string }[]>(
+      'SELECT group_id FROM group_members WHERE user_id = $1 AND role = $2',
+      [userId, GroupRole.Owner],
+    );
+
+    const dissolvedGroupIds: string[] = [];
+
+    for (const { group_id: groupId } of ownedGroups) {
+      const [successor] = await manager.query<{ user_id: string }[]>(
+        `SELECT user_id FROM group_members
+          WHERE group_id = $1 AND user_id != $2
+          ORDER BY joined_at ASC, user_id ASC
+          LIMIT 1`,
+        [groupId, userId],
+      );
+
+      if (!successor) {
+        dissolvedGroupIds.push(groupId);
+        continue;
+      }
+
+      await manager.query(
+        'UPDATE group_members SET role = $1 WHERE group_id = $2 AND user_id = $3',
+        [GroupRole.Owner, groupId, successor.user_id],
+      );
+    }
+
+    return dissolvedGroupIds;
   }
 
   /** Mints the token and assembles the response the two entry points share. */

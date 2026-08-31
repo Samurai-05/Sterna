@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
+import { PhotosService } from '../photos/photos.service';
 import { AuthService } from './auth.service';
 import { hashPassword } from './password';
 import { User } from './user.entity';
@@ -38,6 +39,7 @@ describe('AuthService', () => {
   const jwt = { signAsync: jest.fn() };
   const dataSource = { transaction: jest.fn() };
   const manager = { query: jest.fn(), delete: jest.fn() };
+  const photos = { remove: jest.fn() };
 
   let service: AuthService;
 
@@ -56,6 +58,9 @@ describe('AuthService', () => {
     dataSource.transaction.mockImplementation(
       (run: (m: typeof manager) => Promise<void>) => run(manager),
     );
+    // A safe default for the deleteAccount tests that don't care about groups
+    // or discoveries: an empty result set for every SELECT.
+    manager.query.mockResolvedValue([]);
 
     const module = await Test.createTestingModule({
       providers: [
@@ -63,6 +68,7 @@ describe('AuthService', () => {
         { provide: getRepositoryToken(User), useValue: users },
         { provide: JwtService, useValue: jwt },
         { provide: DataSource, useValue: dataSource },
+        { provide: PhotosService, useValue: photos },
         { provide: ConfigService, useValue: { get: () => 604800 } },
       ],
     }).compile();
@@ -366,6 +372,77 @@ describe('AuthService', () => {
         service.deleteAccount('1', 'wrong password'),
       ).rejects.toThrow(/current password is incorrect/);
       expect(dataSource.transaction).not.toHaveBeenCalled();
+    });
+
+    // A group the caller owns must not survive them ownerless.
+    it('hands ownership of an owned group to its longest-tenured other member', async () => {
+      users.findOne.mockResolvedValue(await storedUser());
+      manager.query
+        .mockResolvedValueOnce([{ group_id: 'group-1' }]) // owned groups
+        .mockResolvedValueOnce([{ user_id: 'user-2' }]); // the successor
+
+      await service.deleteAccount('1', PASSWORD);
+
+      expect(manager.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE group_members SET role'),
+        ['owner', 'group-1', 'user-2'],
+      );
+      expect(manager.query).not.toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM groups'),
+        expect.anything(),
+      );
+    });
+
+    // The schema permits zero owners, but nothing should have to notice: a
+    // group the caller solely occupied is dissolved rather than left orphaned.
+    it('dissolves an owned group that has no other member', async () => {
+      users.findOne.mockResolvedValue(await storedUser());
+      manager.query
+        .mockResolvedValueOnce([{ group_id: 'group-1' }]) // owned groups
+        .mockResolvedValueOnce([]); // no successor
+
+      await service.deleteAccount('1', PASSWORD);
+
+      expect(manager.query).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM group_members'),
+        ['group-1'],
+      );
+      expect(manager.query).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM groups'),
+        ['group-1'],
+      );
+    });
+
+    // The MinIO objects behind the deleted discoveries would otherwise be
+    // orphaned forever (ADR-006).
+    it('removes the photo objects behind the deleted discoveries', async () => {
+      users.findOne.mockResolvedValue(await storedUser());
+      manager.query
+        .mockResolvedValueOnce([]) // owned groups
+        .mockResolvedValueOnce([
+          { image_object_key: 'photos/a.jpg' },
+          { image_object_key: null },
+          { image_object_key: 'photos/b.jpg' },
+        ]); // the caller's discoveries
+
+      await service.deleteAccount('1', PASSWORD);
+
+      expect(photos.remove).toHaveBeenCalledTimes(2);
+      expect(photos.remove).toHaveBeenCalledWith('photos/a.jpg');
+      expect(photos.remove).toHaveBeenCalledWith('photos/b.jpg');
+    });
+
+    it('does not touch MinIO until the account and its rows are gone', async () => {
+      users.findOne.mockResolvedValue(await storedUser());
+      manager.query
+        .mockResolvedValueOnce([]) // owned groups
+        .mockResolvedValueOnce([{ image_object_key: 'photos/a.jpg' }]);
+
+      await service.deleteAccount('1', PASSWORD);
+
+      expect(manager.delete.mock.invocationCallOrder[0]).toBeLessThan(
+        photos.remove.mock.invocationCallOrder[0],
+      );
     });
   });
 });

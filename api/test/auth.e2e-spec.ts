@@ -5,6 +5,8 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AuthResponseDto } from './../src/auth/dto/auth-response.dto';
 import { UserDto } from './../src/auth/dto/user.dto';
+import { GroupDetailDto } from './../src/groups/dto/group-detail.dto';
+import { GroupRole } from './../src/groups/group-role';
 import {
   TEST_PASSWORD,
   createTestApp,
@@ -325,6 +327,64 @@ describe('AuthController (e2e)', () => {
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${session.accessToken}`)
         .expect(200);
+    });
+
+    // A group must not survive its owner ownerless (uq_group_members_one_owner_per_group
+    // permits zero, but nothing else should have to notice).
+    it('hands a deleted owner’s group to its longest-tenured other member', async () => {
+      const owner = await registerTestUser(app);
+      const member = await registerTestUser(app);
+
+      const createResponse = await request(app.getHttpServer())
+        .post('/api/groups')
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({ name: 'Handed off' })
+        .expect(201);
+      const group = createResponse.body as GroupDetailDto;
+
+      await request(app.getHttpServer())
+        .post('/api/groups/join')
+        .set('Authorization', `Bearer ${member.accessToken}`)
+        .send({ inviteCode: group.inviteCode })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete('/api/auth/me')
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({ currentPassword: TEST_PASSWORD })
+        .expect(204);
+
+      const detail = await request(app.getHttpServer())
+        .get(`/api/groups/${group.id}`)
+        .set('Authorization', `Bearer ${member.accessToken}`)
+        .expect(200);
+
+      expect((detail.body as GroupDetailDto).role).toBe(GroupRole.Owner);
+    });
+
+    it('dissolves a deleted owner’s group when they were its only member', async () => {
+      const owner = await registerTestUser(app);
+      const outsider = await registerTestUser(app);
+
+      const createResponse = await request(app.getHttpServer())
+        .post('/api/groups')
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({ name: 'Solo' })
+        .expect(201);
+      const group = createResponse.body as GroupDetailDto;
+
+      await request(app.getHttpServer())
+        .delete('/api/auth/me')
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({ currentPassword: TEST_PASSWORD })
+        .expect(204);
+
+      // The invitation code no longer resolves to anything (NO_SUCH_INVITE_CODE).
+      await request(app.getHttpServer())
+        .post('/api/groups/join')
+        .set('Authorization', `Bearer ${outsider.accessToken}`)
+        .send({ inviteCode: group.inviteCode })
+        .expect(404);
     });
   });
 

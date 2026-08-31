@@ -1,12 +1,19 @@
-import { Award, Check, LogOut } from 'lucide-react'
+import { Award, Check, LogOut, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
+import { PasswordInput } from '@/components/auth/PasswordInput'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { Progress } from '@/components/ui/progress'
-import { ApiError, getCurrentUser, getDiscoveries, getPois } from '@/lib/api'
+import {
+  ApiError,
+  deleteAccount,
+  getCurrentUser,
+  getDiscoveries,
+  getPois,
+} from '@/lib/api'
 import { categoryAppearance } from '@/lib/category-appearance'
 import { getCountryName } from '@/lib/countries'
 import { categories, discoveries, landmarks } from '@/lib/mock-data'
@@ -16,6 +23,10 @@ export function ProfilePage() {
   const navigate = useNavigate()
   const [session, setSession] = useState(() => loadSession())
   const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
   const accessToken = session?.accessToken
 
   const { data: currentUser, error: currentUserError } = useQuery({
@@ -110,7 +121,7 @@ export function ProfilePage() {
     document.body.style.overflow = 'hidden'
 
     function closeAccountSheetWithKeyboard(event: KeyboardEvent) {
-      if (event.key === 'Escape') setIsAccountSheetOpen(false)
+      if (event.key === 'Escape') closeAccountSheet()
     }
 
     document.addEventListener('keydown', closeAccountSheetWithKeyboard)
@@ -120,10 +131,39 @@ export function ProfilePage() {
     }
   }, [isAccountSheetOpen])
 
+  function closeAccountSheet() {
+    setIsAccountSheetOpen(false)
+    setIsDeleteConfirmOpen(false)
+    setDeletePassword('')
+    setDeleteError('')
+  }
+
   function handleLogout() {
     clearSession()
     setSession(null)
     navigate('/auth', { replace: true })
+  }
+
+  async function handleDeleteAccount(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!accessToken) return
+
+    setDeleteError('')
+
+    try {
+      setIsDeleting(true)
+      await deleteAccount(accessToken, deletePassword)
+      clearSession()
+      navigate('/auth', { replace: true })
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to delete the account.',
+      )
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -326,7 +366,7 @@ export function ProfilePage() {
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
-              setIsAccountSheetOpen(false)
+              closeAccountSheet()
             }
           }}
         >
@@ -373,6 +413,55 @@ export function ProfilePage() {
                 <LogOut className="size-5" />
                 Log out
               </button>
+
+              {!isDeleteConfirmOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                  className="mt-3 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-transparent px-4 font-semibold text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                >
+                  <Trash2 className="size-5" />
+                  Delete account
+                </button>
+              ) : (
+                <form
+                  onSubmit={(event) => void handleDeleteAccount(event)}
+                  className="mt-3 space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4"
+                >
+                  <p className="text-sm font-semibold text-red-700">
+                    This permanently deletes your account, your discoveries, and
+                    your group memberships. Enter your password to confirm.
+                  </p>
+                  <PasswordInput
+                    id="delete-account-password"
+                    label="Password"
+                    autoComplete="current-password"
+                    value={deletePassword}
+                    onChange={(event) => setDeletePassword(event.target.value)}
+                    error={deleteError || undefined}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDeleteConfirmOpen(false)
+                        setDeletePassword('')
+                        setDeleteError('')
+                      }}
+                      className="min-h-11 flex-1 rounded-xl border border-border bg-background px-4 font-semibold text-foreground transition-colors hover:bg-muted"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isDeleting || !deletePassword}
+                      className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60"
+                    >
+                      {isDeleting ? 'Deleting…' : 'Delete permanently'}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </section>
         </div>

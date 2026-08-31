@@ -125,6 +125,15 @@ export class PhotosService {
     }
   }
 
+  /**
+   * Frees the object behind a discovery that no longer exists. S3-style
+   * deletes are idempotent, so a key that is already gone is not an error —
+   * only a genuine MinIO failure is.
+   */
+  async remove(objectKey: string): Promise<void> {
+    await this.minio.removeObject(this.bucket, objectKey);
+  }
+
   /** Backs the storage health indicator. Throws when MinIO is unreachable. */
   async assertBucketReachable(): Promise<void> {
     const exists = await this.minio.bucketExists(this.bucket);
