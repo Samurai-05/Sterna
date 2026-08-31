@@ -63,6 +63,23 @@ export class User {
   @Column({ name: 'user_name', type: 'varchar', length: 100 })
   userName: string;
 
+  /**
+   * MinIO object key of the profile photo, or null if the account has none.
+   * Produced by PhotosService.store() — same pipeline discoveries use, never a
+   * client-chosen path (ADR-006).
+   */
+  // Initialised rather than left implicit: users.create() in register()
+  // builds the entity in memory before any INSERT runs, and an explicit null
+  // here is what makes the freshly-registered response report null instead
+  // of an absent field, matching every row read back afterwards.
+  @Column({
+    name: 'avatar_object_key',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  avatarObjectKey: string | null = null;
+
   // The type is spelled out because TypeORM's Postgres driver maps
   // @CreateDateColumn to `timestamp` (without time zone) by default, and the
   // baseline column is TIMESTAMPTZ.

@@ -1,4 +1,4 @@
-import { Award, Check, LogOut, Trash2 } from 'lucide-react'
+import { Award, Check, LogOut, Settings, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
+import { UserAvatarImage } from '@/components/UserAvatarImage'
 import { Progress } from '@/components/ui/progress'
 import {
   ApiError,
@@ -206,7 +207,11 @@ export function ProfilePage() {
                 onClick={() => setIsAccountSheetOpen(true)}
                 className="flex size-14 -translate-x-2.5 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-[#C4622D] font-display text-[22px] font-semibold text-primary-foreground shadow-sm outline-none transition-transform focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
               >
-                <span aria-hidden="true">{displayedInitial}</span>
+                <UserAvatarImage
+                  accessToken={accessToken}
+                  avatarObjectKey={displayedUser?.avatarObjectKey}
+                  initial={displayedInitial}
+                />
               </button>
             </div>
           </div>
@@ -457,13 +462,15 @@ export function ProfilePage() {
           </div>
           <div className="-mr-5 flex snap-x gap-3 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {sourceDiscoveries.length ? (
-              sourceDiscoveries.slice(0, 3).map((discovery) => (
-                <DiscoveryCard
-                  key={discovery.id}
-                  discovery={discovery}
-                  className="w-[min(68vw,16rem)] shrink-0 snap-start"
-                />
-              ))
+              sourceDiscoveries
+                .slice(0, 3)
+                .map((discovery) => (
+                  <DiscoveryCard
+                    key={discovery.id}
+                    discovery={discovery}
+                    className="w-[min(68vw,16rem)] shrink-0 snap-start"
+                  />
+                ))
             ) : (
               <p className="text-sm text-muted-foreground">
                 No recent discoveries yet.
@@ -500,8 +507,12 @@ export function ProfilePage() {
               Account
             </h2>
             <div className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-primary bg-green-50 p-4">
-              <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#C4622D] font-display text-xl font-semibold text-white">
-                {displayedInitial}
+              <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#C4622D] font-display text-xl font-semibold text-white">
+                <UserAvatarImage
+                  accessToken={accessToken}
+                  avatarObjectKey={displayedUser?.avatarObjectKey}
+                  initial={displayedInitial}
+                />
               </span>
               <span className="min-w-0 flex-1">
                 <strong className="block truncate text-base font-semibold">
@@ -516,6 +527,14 @@ export function ProfilePage() {
                 Active
               </span>
             </div>
+            <Link
+              to="/profile/edit"
+              onClick={closeAccountSheet}
+              className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background px-4 font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            >
+              <Settings className="size-5" />
+              Edit profile
+            </Link>
             <div className="mt-7 border-t border-border pt-7">
               <button
                 type="button"
