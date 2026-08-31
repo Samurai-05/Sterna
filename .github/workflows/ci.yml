@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   frontend:
@@ -31,6 +33,27 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Synchronize Capacitor Android project
+        run: npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build Android debug APK
+        run: ./gradlew assembleDebug
+        working-directory: ./frontend/android
+
+      - name: Upload Android debug APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sterna-debug-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
 
       # Verifies the deployable artifact itself builds, not just the source.
       # This is what would have caught the import that reached out of
