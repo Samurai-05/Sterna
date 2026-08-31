@@ -150,7 +150,7 @@ export class GroupsService {
         gm.is_active,
         (SELECT COUNT(*) FROM group_members m WHERE m.group_id = g.id)
           AS member_count,
-        (SELECT COUNT(*) FROM discoveries d WHERE d.group_id = g.id)
+        (SELECT COUNT(*) FROM discovery_groups dg WHERE dg.group_id = g.id)
           AS discovery_count
       FROM group_members gm
       JOIN groups g ON g.id = gm.group_id
@@ -216,7 +216,9 @@ export class GroupsService {
       // Before the memberships, or fk_discoveries_group_membership (RESTRICT)
       // aborts the delete below.
       await manager.query(
-        `UPDATE discoveries SET group_id = NULL WHERE group_id = $1`,
+        `UPDATE discoveries
+            SET group_id = NULL, is_personal = TRUE
+          WHERE group_id = $1`,
         [groupId],
       );
       await manager.query(`DELETE FROM group_members WHERE group_id = $1`, [
@@ -239,8 +241,17 @@ export class GroupsService {
       // discoveries move to their personal map rather than disappearing.
       await manager.query(
         `UPDATE discoveries
-            SET group_id = NULL
+            SET group_id = NULL, is_personal = TRUE
           WHERE user_id = $1 AND group_id = $2`,
+        [userId, groupId],
+      );
+
+      await manager.query(
+        `DELETE FROM discovery_groups dg
+          USING discoveries d
+          WHERE dg.discovery_id = d.id
+            AND d.user_id = $1
+            AND dg.group_id = $2`,
         [userId, groupId],
       );
 
@@ -403,7 +414,7 @@ export class GroupsService {
         gm.is_active,
         (SELECT COUNT(*) FROM group_members m WHERE m.group_id = g.id)
           AS member_count,
-        (SELECT COUNT(*) FROM discoveries d WHERE d.group_id = g.id)
+        (SELECT COUNT(*) FROM discovery_groups dg WHERE dg.group_id = g.id)
           AS discovery_count
       FROM group_members gm
       JOIN groups g ON g.id = gm.group_id

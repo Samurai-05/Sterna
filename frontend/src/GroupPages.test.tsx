@@ -16,6 +16,7 @@ vi.mock('./lib/api', async () => {
     joinGroup: vi.fn(),
     getGroupDiscoveries: vi.fn(),
     getDiscovery: vi.fn(),
+    updateDiscovery: vi.fn(),
     getActiveMap: vi.fn(),
     setActiveMap: vi.fn(),
     getDiscoveries: vi.fn(),
@@ -90,28 +91,64 @@ describe('groups list', () => {
     ).toBeGreaterThan(0)
   })
 
-  it('marks the personal map as active when no group is active', async () => {
+  it('shows the personal map and marks it active', async () => {
     renderAt('/groups')
 
-    const personal = await screen.findByRole('button', { name: /Personal map/ })
-    expect(personal).toHaveAttribute('aria-current', 'true')
-    expect(personal).toBeDisabled()
+    const personalMap = await screen.findByLabelText('Personal map')
+    await waitFor(() =>
+      expect(personalMap).toHaveAttribute('aria-current', 'true'),
+    )
+    expect(personalMap).toHaveTextContent('Your private discoveries')
   })
 
-  it('switches the active map when another destination is picked', async () => {
-    api.setActiveMap.mockResolvedValue({ groupId: '12', name: 'Paris Weekend' })
+  it('activates the personal map directly from the maps list', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
+    api.getGroups.mockResolvedValue([{ ...ownedGroup, isActive: true }])
+    api.setActiveMap.mockResolvedValue({ groupId: null, name: null })
     renderAt('/groups')
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /Paris Weekend/ }),
-    )
+    const activatePersonalMap = await screen.findByRole('button', {
+      name: 'Activate personal map',
+    })
+    await waitFor(() => expect(activatePersonalMap).toBeEnabled())
+    fireEvent.click(activatePersonalMap)
 
     await waitFor(() =>
       expect(api.setActiveMap).toHaveBeenCalledWith({
         accessToken: 'test-token',
-        groupId: '12',
+        groupId: null,
       }),
     )
+    expect(await screen.findByLabelText('Personal map')).toHaveAttribute(
+      'aria-current',
+      'true',
+    )
+  })
+
+  it('highlights the active group without activating it from the list', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
+    api.getGroups.mockResolvedValue([{ ...ownedGroup, isActive: true }])
+    renderAt('/groups')
+
+    const group = await screen.findByRole('link', { name: /Paris Weekend/ })
+    expect(group).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByText('Active')).toBeInTheDocument()
+    expect(api.setActiveMap).not.toHaveBeenCalled()
+  })
+
+  it('opens a group without activating it from the groups tab', async () => {
+    renderAt('/groups')
+
+    fireEvent.click(await screen.findByRole('link', { name: /Paris Weekend/ }))
+
+    expect(await screen.findByText('AB3K-9QZ2')).toBeInTheDocument()
+    expect(api.setActiveMap).not.toHaveBeenCalled()
   })
 
   it('invites the user to create or join when they have no group', async () => {
@@ -121,6 +158,36 @@ describe('groups list', () => {
     expect(
       await screen.findByText(/You are not in any group yet/),
     ).toBeInTheDocument()
+  })
+})
+
+describe('map group selector', () => {
+  it('switches maps directly without opening the groups tab', async () => {
+    api.setActiveMap.mockResolvedValue({ groupId: '12', name: 'Paris Weekend' })
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    fireEvent.click(selector)
+    fireEvent.click(
+      await screen.findByRole('menuitemradio', { name: 'Paris Weekend' }),
+    )
+
+    await waitFor(() =>
+      expect(api.setActiveMap).toHaveBeenCalledWith({
+        accessToken: 'test-token',
+        groupId: '12',
+      }),
+    )
+    await waitFor(() => expect(selector).toHaveTextContent('Paris Weekend'))
+    expect(
+      screen.queryByRole('menu', { name: 'Choose active map' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Explore map' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Groups' }),
+    ).not.toBeInTheDocument()
   })
 })
 
@@ -139,7 +206,9 @@ describe('group detail', () => {
     renderAt('/groups/99')
 
     expect(await screen.findByText('Group not found.')).toBeInTheDocument()
-    expect(screen.queryByText('Paris Weekend')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Paris Weekend' }),
+    ).not.toBeInTheDocument()
   })
 
   it('offers the owner a delete action instead of leaving', async () => {
@@ -162,6 +231,27 @@ describe('group detail', () => {
     ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /Delete group/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('activates the group from the header and stays on its detail page', async () => {
+    api.setActiveMap.mockResolvedValue({ groupId: '12', name: 'Paris Weekend' })
+    renderAt('/groups/12')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Activate' }))
+
+    await waitFor(() =>
+      expect(api.setActiveMap).toHaveBeenCalledWith({
+        accessToken: 'test-token',
+        groupId: '12',
+      }),
+    )
+    expect(
+      await screen.findByText('This is your active map'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Group' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Activate' }),
     ).not.toBeInTheDocument()
   })
 })
@@ -203,9 +293,7 @@ describe('opening a discovery from a group map', () => {
     expect(
       screen.queryByRole('button', { name: /Delete discovery/ }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByText(/Only Marc can edit or delete/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Only Marc can edit or delete/)).toBeInTheDocument()
   })
 
   it("keeps edit and delete on the viewer's own discovery", async () => {
@@ -217,6 +305,48 @@ describe('opening a discovery from a group map', () => {
     expect(
       await screen.findByRole('link', { name: 'Edit discovery' }),
     ).toBeInTheDocument()
+  })
+
+  it('returns to the map after saving an edit opened from the map', async () => {
+    const ownDiscovery = {
+      ...otherMembersDiscovery,
+      userId: '1',
+      author: 'Emma',
+      groupId: null,
+      groupIds: [],
+      personal: true,
+    }
+    api.getDiscovery.mockResolvedValue(ownDiscovery)
+    api.updateDiscovery.mockResolvedValue(ownDiscovery)
+
+    renderWithProviders(<App />, {
+      initialEntries: [
+        {
+          pathname: '/discoveries/22',
+          state: {
+            returnTo: '/',
+            backgroundLocation: {
+              pathname: '/',
+              search: '',
+              hash: '',
+              state: null,
+              key: 'map',
+            },
+          },
+        },
+      ],
+    })
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Edit discovery' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
+    await screen.findByRole('heading', { name: 'Discovery' })
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: 'Explore map' }),
+      ).toBeVisible(),
+    )
   })
 })
 
@@ -277,17 +407,32 @@ describe('choosing the destination map before saving', () => {
     ).toBeDisabled()
   })
 
-  it('blocks saving while a destination switch is in flight', async () => {
-    api.setActiveMap.mockReturnValue(new Promise(() => {}))
+  it('selects the active group by default and lets it be deselected', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
     renderAt('/add')
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /Paris Weekend/ }),
-    )
-
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Save discovery' })).toBeDisabled(),
-    )
+    const activeGroup = await screen.findByRole('button', {
+      name: 'Add to Paris Weekend',
+    })
+    expect(activeGroup).toHaveAttribute('aria-pressed', 'true')
+    expect(activeGroup).toBeEnabled()
+    expect(
+      screen.getAllByRole('button', {
+        name: 'Add to Paris Weekend',
+      }),
+    ).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Add to Personal map' }))
+    fireEvent.click(activeGroup)
+    expect(activeGroup).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByText(/Saving to:/)).not.toBeInTheDocument()
+    expect(
+      screen
+        .getByRole('heading', { name: 'Explore map', hidden: true })
+        .closest('main'),
+    ).toHaveClass('opacity-0')
   })
 
   it('enables saving once the active map has loaded', async () => {

@@ -41,7 +41,7 @@ export function DiscoveryCard({
           </h2>
           <CategoryIcon
             category={discovery.category}
-            className="size-4 shrink-0 text-primary"
+            className="size-4 shrink-0"
           />
         </div>
         <p className="flex items-center gap-1 text-xs text-muted-foreground">

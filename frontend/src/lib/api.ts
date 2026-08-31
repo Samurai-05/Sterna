@@ -87,6 +87,8 @@ interface ApiDiscovery {
   id: string
   userId: string
   groupId: string | null
+  groupIds?: string[]
+  personal?: boolean
   title: string
   description: string | null
   category: string | null
@@ -158,11 +160,9 @@ export async function getDiscoveries(
     },
   })
 
-  // Keep the personal-map boundary on the client as well as in the API. This
-  // prevents an old/cached API response from reintroducing group discoveries
-  // into the personal map after the server-side fix.
+  // Keep the personal-map boundary on the client as well as in the API.
   return discoveries
-    .filter((discovery) => discovery.groupId === null)
+    .filter((discovery) => discovery.personal ?? discovery.groupId === null)
     .map(toDiscovery)
 }
 
@@ -198,6 +198,8 @@ export async function updateDiscovery(input: {
   category: DiscoveryCategory
   longitude: number
   latitude: number
+  groupIds: string[]
+  personal: boolean
 }): Promise<Discovery> {
   const discovery = await request<ApiDiscovery>(
     `/api/discoveries/${input.discoveryId}`,
@@ -210,6 +212,8 @@ export async function updateDiscovery(input: {
         category: apiValueByCategory[input.category],
         longitude: input.longitude,
         latitude: input.latitude,
+        groupIds: input.groupIds,
+        personal: input.personal,
       }),
     },
   )
@@ -278,6 +282,8 @@ export async function getPois(accessToken: string): Promise<Landmark[]> {
 export async function createDiscovery(input: {
   accessToken: string
   groupId: string | null
+  groupIds: string[]
+  personal: boolean
   title: string
   description: string | null
   category: DiscoveryCategory
@@ -293,6 +299,8 @@ export async function createDiscovery(input: {
     },
     body: JSON.stringify({
       groupId: input.groupId,
+      groupIds: input.groupIds,
+      personal: input.personal,
       title: input.title,
       description: input.description,
       category: apiValueByCategory[input.category],
@@ -318,6 +326,10 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
 
   return {
     id: Number(discovery.id),
+    groupId: discovery.groupId,
+    groupIds:
+      discovery.groupIds ?? (discovery.groupId ? [discovery.groupId] : []),
+    personal: discovery.personal ?? discovery.groupId === null,
     userId: discovery.userId,
     name: discovery.title,
     category,
@@ -492,10 +504,14 @@ export async function getGroupDiscoveries(
     { headers: { Authorization: `Bearer ${accessToken}` } },
   )
 
-  // Be equally strict in the other direction: a personal discovery can never
-  // be rendered as part of a group response.
+  // Keep the group boundary on the client too: only discoveries explicitly
+  // saved or shared to this group may be rendered on its map.
   return discoveries
-    .filter((discovery) => discovery.groupId === groupId)
+    .filter((discovery) =>
+      (
+        discovery.groupIds ?? (discovery.groupId ? [discovery.groupId] : [])
+      ).includes(groupId),
+    )
     .map(toDiscovery)
 }
 

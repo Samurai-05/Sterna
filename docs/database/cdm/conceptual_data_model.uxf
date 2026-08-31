@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <diagram program="umlet" version="15.1">
-  <zoom_level>10</zoom_level>
+  <zoom_level>8</zoom_level>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>420</x>
-      <y>210</y>
-      <w>120</w>
-      <h>130</h>
+      <x>488</x>
+      <y>352</y>
+      <w>96</w>
+      <h>104</h>
     </coordinates>
     <panel_attributes>User
 -
@@ -22,10 +22,10 @@ updated_at</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>690</x>
-      <y>210</y>
-      <w>130</w>
-      <h>180</h>
+      <x>704</x>
+      <y>352</y>
+      <w>104</w>
+      <h>152</h>
     </coordinates>
     <panel_attributes>Discovery
 -
@@ -37,19 +37,20 @@ location
 image_object_key
 discovered_at
 created_at
-updated_at</panel_attributes>
+updated_at
+is_personal</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>170</x>
-      <y>120</y>
-      <w>630</w>
-      <h>110</h>
+      <x>288</x>
+      <y>280</y>
+      <w>504</w>
+      <h>88</h>
     </coordinates>
     <panel_attributes>lt=-
-m1=0..1
+m1=0..n
 m2=0..n
 contains &gt;</panel_attributes>
     <additional_attributes>10.0;90.0;10.0;20.0;590.0;20.0;590.0;90.0</additional_attributes>
@@ -57,10 +58,10 @@ contains &gt;</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>530</x>
-      <y>250</y>
-      <w>180</w>
-      <h>50</h>
+      <x>576</x>
+      <y>384</y>
+      <w>144</w>
+      <h>40</h>
     </coordinates>
     <panel_attributes>lt=-
 m1=1
@@ -71,10 +72,10 @@ creates &gt;</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>120</x>
-      <y>210</y>
-      <w>120</w>
-      <h>130</h>
+      <x>248</x>
+      <y>352</y>
+      <w>96</w>
+      <h>104</h>
     </coordinates>
     <panel_attributes>Group
 -
@@ -89,10 +90,10 @@ updated_at
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>230</x>
-      <y>250</y>
-      <w>210</w>
-      <h>50</h>
+      <x>336</x>
+      <y>384</y>
+      <w>168</w>
+      <h>40</h>
     </coordinates>
     <panel_attributes>lt=-
 m1=0..n
@@ -103,10 +104,10 @@ m2=1..n
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>270</x>
-      <y>350</y>
-      <w>120</w>
-      <h>80</h>
+      <x>368</x>
+      <y>464</y>
+      <w>96</w>
+      <h>64</h>
     </coordinates>
     <panel_attributes>GroupMember
 -
@@ -118,10 +119,10 @@ is_active</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>320</x>
-      <y>260</y>
-      <w>30</w>
-      <h>110</h>
+      <x>408</x>
+      <y>392</y>
+      <w>24</w>
+      <h>88</h>
     </coordinates>
     <panel_attributes>lt=-
 </panel_attributes>
@@ -130,10 +131,10 @@ is_active</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>870</x>
-      <y>210</y>
-      <w>130</w>
-      <h>130</h>
+      <x>848</x>
+      <y>352</y>
+      <w>104</w>
+      <h>104</h>
     </coordinates>
     <panel_attributes>POI
 -
@@ -149,45 +150,45 @@ created_at
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>80</x>
-      <y>60</y>
-      <w>220</w>
-      <h>60</h>
-    </coordinates>
-    <panel_attributes>Note:
-0 groupe → Personal
-1 groupe → découverte partagée
-bg=orange</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLNote</id>
-    <coordinates>
-      <x>590</x>
-      <y>40</y>
+      <x>216</x>
+      <y>216</y>
       <w>200</w>
-      <h>80</h>
+      <h>64</h>
     </coordinates>
     <panel_attributes>Note:
-The author of a discovery 
-belonging to a group must be 
-a member of that group.
+A discovery must belong to at least 
+one map: either the author's Personal 
+map or at least one group.
 bg=orange</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>230</x>
-      <y>450</y>
-      <w>190</w>
-      <h>100</h>
+      <x>584</x>
+      <y>216</y>
+      <w>192</w>
+      <h>64</h>
     </coordinates>
     <panel_attributes>Note:
-Pour un utilisateur donné,
-au maximum une de ses 
-appartenances à un groupe
-peut avoir is_active = true
+The author of a discovery must 
+be a member of each of the groups 
+to which the discovery is associated.
+bg=orange</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>320</x>
+      <y>544</y>
+      <w>168</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>Note:
+For a given user, at most one of 
+their group memberships can 
+have is_active = true
 bg=orange</panel_attributes>
     <additional_attributes/>
   </element>

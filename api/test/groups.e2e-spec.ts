@@ -11,6 +11,8 @@ interface DiscoveryResponse {
   id: string;
   userId: string;
   groupId: string | null;
+  groupIds: string[];
+  personal: boolean;
   title: string;
   authorUserName: string;
 }
@@ -195,6 +197,15 @@ describe('Groups (e2e)', () => {
         .set(auth(outsider))
         .send(discovery(group.id, 'trespassing'))
         .expect(404);
+
+      await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set(auth(outsider))
+        .send({
+          ...discovery(null, 'shared-trespassing'),
+          groupIds: [group.id],
+        })
+        .expect(404);
     });
   });
 
@@ -334,6 +345,125 @@ describe('Groups (e2e)', () => {
       expect(
         (groupMap.body as DiscoveryResponse[]).some((found) => found.id === id),
       ).toBe(false);
+    });
+
+    it('shares one discovery with several groups and updates those shares', async () => {
+      const first = await createGroup('First shared destination');
+      const second = await createGroup('Second shared destination');
+
+      const createdResponse = await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set(auth(ada))
+        .send({
+          ...discovery(null, 'shared-with-several'),
+          groupIds: [first.id, second.id],
+        })
+        .expect(201);
+
+      const created = createdResponse.body as DiscoveryResponse;
+      expect(created.groupId).toBeNull();
+      expect(created.groupIds).toEqual(
+        expect.arrayContaining([first.id, second.id]),
+      );
+
+      for (const group of [first, second]) {
+        const response = await request(app.getHttpServer())
+          .get(`/api/groups/${group.id}/discoveries`)
+          .set(auth(ada))
+          .expect(200);
+        expect(
+          (response.body as DiscoveryResponse[]).some(
+            (discoveryInGroup) => discoveryInGroup.id === created.id,
+          ),
+        ).toBe(true);
+      }
+
+      await request(app.getHttpServer())
+        .patch(`/api/discoveries/${created.id}`)
+        .set(auth(ada))
+        .send({ groupIds: [second.id] })
+        .expect(200);
+
+      const firstMap = await request(app.getHttpServer())
+        .get(`/api/groups/${first.id}/discoveries`)
+        .set(auth(ada))
+        .expect(200);
+      const secondMap = await request(app.getHttpServer())
+        .get(`/api/groups/${second.id}/discoveries`)
+        .set(auth(ada))
+        .expect(200);
+      const personalMap = await request(app.getHttpServer())
+        .get('/api/discoveries')
+        .set(auth(ada))
+        .expect(200);
+
+      expect(
+        (firstMap.body as DiscoveryResponse[]).some(
+          (discoveryInGroup) => discoveryInGroup.id === created.id,
+        ),
+      ).toBe(false);
+      expect(
+        (secondMap.body as DiscoveryResponse[]).some(
+          (discoveryInGroup) => discoveryInGroup.id === created.id,
+        ),
+      ).toBe(true);
+      expect(
+        (personalMap.body as DiscoveryResponse[]).some(
+          (personalDiscovery) => personalDiscovery.id === created.id,
+        ),
+      ).toBe(true);
+    });
+
+    it('can keep a group discovery on the personal map too', async () => {
+      const group = await createGroup('Personal and shared');
+
+      const createdResponse = await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set(auth(ada))
+        .send({
+          ...discovery(group.id, 'also-personal'),
+          personal: true,
+        })
+        .expect(201);
+
+      const created = createdResponse.body as DiscoveryResponse;
+      expect(created.personal).toBe(true);
+
+      const personalMap = await request(app.getHttpServer())
+        .get('/api/discoveries')
+        .set(auth(ada))
+        .expect(200);
+
+      expect(
+        (personalMap.body as DiscoveryResponse[]).some(
+          (personalDiscovery) => personalDiscovery.id === created.id,
+        ),
+      ).toBe(true);
+
+      const updatedResponse = await request(app.getHttpServer())
+        .patch(`/api/discoveries/${created.id}`)
+        .set(auth(ada))
+        .send({ groupIds: [], personal: true })
+        .expect(200);
+
+      expect((updatedResponse.body as DiscoveryResponse).groupIds).toEqual([]);
+
+      const groupMap = await request(app.getHttpServer())
+        .get(`/api/groups/${group.id}/discoveries`)
+        .set(auth(ada))
+        .expect(200);
+
+      expect(
+        (groupMap.body as DiscoveryResponse[]).some(
+          (groupDiscovery) => groupDiscovery.id === created.id,
+        ),
+      ).toBe(false);
+
+      await request(app.getHttpServer())
+        .patch(`/api/discoveries/${created.id}`)
+        .set(auth(ada))
+        .send({ groupIds: [], personal: false })
+        .expect(400);
     });
   });
 

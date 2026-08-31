@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DiscoveriesService } from './discoveries.service';
@@ -27,6 +27,8 @@ describe('DiscoveriesService', () => {
     id: '9',
     user_id: '1',
     group_id: null,
+    group_ids: [],
+    is_personal: true,
     title: 'Phi Beach',
     description: null,
     category: 'Other',
@@ -97,6 +99,8 @@ describe('DiscoveriesService', () => {
         dto.latitude,
         dto.imageObjectKey,
         dto.discoveredAt,
+        true,
+        [],
       ]);
     });
 
@@ -120,6 +124,32 @@ describe('DiscoveriesService', () => {
       expect(requireMembership).toHaveBeenCalledWith('1', '7');
       expect(query).not.toHaveBeenCalled();
     });
+
+    it('requires at least one destination map', async () => {
+      await expect(
+        service.create('1', { ...dto, personal: false }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    it('requires membership in every group and stores all selected groups', async () => {
+      query.mockResolvedValueOnce([
+        row({ group_ids: ['7', '8'], group_id: '7' }),
+      ]);
+
+      const discovery = await service.create('1', {
+        ...dto,
+        groupId: '7',
+        groupIds: ['8', '7'],
+      });
+
+      expect(requireMembership).toHaveBeenCalledTimes(2);
+      expect(requireMembership).toHaveBeenCalledWith('1', '7');
+      expect(requireMembership).toHaveBeenCalledWith('1', '8');
+      expect(params()?.[10]).toEqual(['7', '8']);
+      expect(discovery.groupIds).toEqual(['7', '8']);
+    });
   });
 
   describe('findAllByUser', () => {
@@ -127,7 +157,7 @@ describe('DiscoveriesService', () => {
       await service.findAllByUser('1');
 
       expect(statement()).toContain('d.user_id = $1');
-      expect(statement()).toContain('d.group_id IS NULL');
+      expect(statement()).toContain('d.is_personal');
       expect(params()).toEqual(['1']);
     });
 
@@ -140,6 +170,16 @@ describe('DiscoveriesService', () => {
       const discoveries = await service.findAllByUser('1');
 
       expect(discoveries.map((d) => d.countryCode)).toEqual(['ITA', null]);
+    });
+  });
+
+  describe('findAllByGroup', () => {
+    it('loads discoveries explicitly linked to the requested group', async () => {
+      await service.findAllByGroup('7');
+
+      expect(statement()).toContain('FROM discovery_groups dg');
+      expect(statement()).toContain('dg.group_id = $1');
+      expect(params()).toEqual(['7']);
     });
   });
 
@@ -180,6 +220,10 @@ describe('DiscoveriesService', () => {
         null,
         2.35,
         48.85,
+        false,
+        [],
+        false,
+        false,
       ]);
     });
 
@@ -197,6 +241,10 @@ describe('DiscoveriesService', () => {
         null,
         null,
         null,
+        false,
+        [],
+        false,
+        false,
       ]);
     });
 
@@ -206,6 +254,39 @@ describe('DiscoveriesService', () => {
       await expect(
         service.update('9', '1', { title: 'Renamed' }),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('validates and replaces group shares, including the original one', async () => {
+      query
+        .mockResolvedValueOnce([row({ group_id: '7', group_ids: ['7', '8'] })])
+        .mockResolvedValueOnce([row({ group_id: '7', group_ids: ['9'] })]);
+
+      const discovery = await service.update('9', '1', { groupIds: ['9'] });
+
+      expect(requireMembership).toHaveBeenCalledWith('1', '9');
+      expect(query.mock.calls[1][1]?.slice(8, 10)).toEqual([true, ['9']]);
+      expect(discovery.groupIds).toEqual(['9']);
+    });
+
+    it('updates personal-map visibility independently from group shares', async () => {
+      query
+        .mockResolvedValueOnce([row({ group_ids: ['7'] })])
+        .mockResolvedValueOnce([row({ is_personal: false })]);
+
+      const discovery = await service.update('9', '1', { personal: false });
+
+      expect(query.mock.calls[1][1]?.slice(-2)).toEqual([true, false]);
+      expect(discovery.personal).toBe(false);
+    });
+
+    it('does not allow every destination to be removed', async () => {
+      query.mockResolvedValueOnce([row({ group_ids: [], is_personal: true })]);
+
+      await expect(
+        service.update('9', '1', { groupIds: [], personal: false }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(query).toHaveBeenCalledTimes(1);
     });
   });
 

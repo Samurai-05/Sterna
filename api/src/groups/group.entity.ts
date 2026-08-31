@@ -16,9 +16,9 @@ import { INVITE_CODE_MAX_LENGTH } from './invite-code';
  * existing table rather than specifying one: anything that does not match the
  * DDL becomes a diff the next `migration:generate` tries to apply.
  *
- * A personal map is not a row here. It is the absence of a group: a discovery
- * whose group_id is NULL belongs to its author's personal map, and a user with
- * no active membership has their personal map active.
+ * A personal map is not a row here. Discovery personal visibility is stored
+ * separately from its group links, and a user with no active membership has
+ * their personal map active.
  */
 @Entity('groups')
 // TypeORM compares check constraints by name only and drops every check on the
