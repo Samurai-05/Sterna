@@ -267,11 +267,11 @@ describe('MapCanvas', () => {
     const [marker] = markerInstances
     const element = marker.element as HTMLElement
 
-    mapInstances[0].options.zoom = 9
+    mapInstances[0].options.zoom = 4
     mapInstances[0].emit('zoom')
     expect(element.style.display).toBe('none')
 
-    mapInstances[0].options.zoom = 10
+    mapInstances[0].options.zoom = 5
     mapInstances[0].emit('zoom')
     expect(element.style.display).toBe('')
   })
