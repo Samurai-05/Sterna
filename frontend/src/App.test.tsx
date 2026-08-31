@@ -291,7 +291,7 @@ describe('App', () => {
     expect(mapPage).not.toHaveAttribute('aria-hidden')
   })
 
-  it('renders the Gallery through its application route without a page title', () => {
+  it('keeps the Collection layout while showing Gallery without a page title', () => {
     renderWithProviders(<App />, { route: '/collection' })
 
     expect(screen.getByRole('link', { name: 'Gallery' })).toBeInTheDocument()
@@ -299,34 +299,37 @@ describe('App', () => {
       screen.queryByRole('heading', { name: 'Your discoveries' }),
     ).not.toBeInTheDocument()
     expect(
-      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
+      screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Food' })).toHaveClass('bg-card')
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
   })
 
-  it('filters Gallery discoveries in photo grid mode and restores its state after opening a discovery', async () => {
+  it('filters Gallery discoveries in photo grid mode without changing visible POIs', async () => {
     renderWithProviders(<App />, { route: '/collection' })
 
     expect(screen.getByRole('link', { name: 'Gallery' })).toBeInTheDocument()
     expect(
       screen.queryByRole('heading', { name: 'Your discoveries' }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('tab', { name: 'POIs', selected: false }),
-    ).toBeInTheDocument()
-
-    const groupFilter = await screen.findByLabelText(
-      'Filter discoveries by group',
+    const groupFilter = await screen.findByRole('button', {
+      name: 'Filter discoveries by group: All',
+    })
+    fireEvent.pointerDown(groupFilter, { button: 0, ctrlKey: false })
+    expect(screen.getByRole('menuitemradio', { name: 'Personal' })).toHaveAttribute(
+      'aria-checked',
+      'false',
     )
-    expect(groupFilter).toHaveValue('all')
-    expect(screen.getByRole('option', { name: 'Personal' })).toBeInTheDocument()
-    expect(
-      await screen.findByRole('option', { name: 'Weekend Paris' }),
-    ).toBeInTheDocument()
+    const weekendParisOption = await screen.findByRole('menuitemradio', {
+      name: 'Weekend Paris',
+    })
 
-    fireEvent.change(groupFilter, { target: { value: 'weekend-paris' } })
+    fireEvent.click(weekendParisOption)
+    expect(
+      screen.getByRole('button', {
+        name: 'Filter discoveries by group: Weekend Paris',
+      }),
+    ).toBeInTheDocument()
     fireEvent.click(
       screen.getByRole('button', { name: 'Switch to photo grid' }),
     )
@@ -339,6 +342,9 @@ describe('App', () => {
       screen.getByRole('button', { name: 'Switch to detailed view' }),
     ).toBeInTheDocument()
     expect(screen.queryByText('Parisian Croissant')).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('link', { name: /Eiffel Tower/ }),
+    ).toBeInTheDocument()
 
     fireEvent.click(galleryPhoto)
     expect(
@@ -347,30 +353,44 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
     expect(
-      await screen.findByLabelText('Filter discoveries by group'),
-    ).toHaveValue('weekend-paris')
+      await screen.findByRole('button', {
+        name: 'Filter discoveries by group: Weekend Paris',
+      }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Switch to detailed view' }),
     ).toBeInTheDocument()
   })
 
-  it('keeps the existing discovered POI presentation separate from Gallery discovery controls', async () => {
+  it('keeps group discoveries out of the Personal Gallery filter', async () => {
+    renderWithProviders(<App />, { route: '/collection' })
+
+    fireEvent.pointerDown(
+      await screen.findByRole('button', {
+        name: 'Filter discoveries by group: All',
+      }),
+      { button: 0, ctrlKey: false },
+    )
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Personal' }))
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('link', { name: 'Street in Le Marais' }),
+      ).not.toBeInTheDocument(),
+    )
+  })
+
+  it('keeps existing POI filtering and cards unchanged by the group filter', async () => {
     vi.mocked(getPois).mockResolvedValueOnce([
       landmarks[0],
       { ...landmarks[1], discovered: false },
     ])
     renderWithProviders(<App />, { route: '/collection' })
     const galleryPage = screen
-      .getByRole('tablist', { name: 'Gallery content' })
+      .getByRole('textbox', { name: 'Search gallery' })
       .closest('main')!
 
-    fireEvent.click(within(galleryPage).getByRole('tab', { name: 'POIs' }))
-    expect(
-      within(galleryPage).getByRole('tab', { name: 'POIs', selected: true }),
-    ).toBeInTheDocument()
-    expect(
-      within(galleryPage).queryByLabelText('Filter discoveries by group'),
-    ).not.toBeInTheDocument()
+    fireEvent.click(within(galleryPage).getByRole('button', { name: 'POIs' }))
 
     expect(
       await within(galleryPage).findByRole('link', {
@@ -396,9 +416,7 @@ describe('App', () => {
     ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
-    expect(
-      screen.getByRole('tab', { name: 'POIs', selected: true }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'POIs' })).toBeInTheDocument()
   })
 
   it('keeps one map canvas through authenticated navigation and resizes it on return', () => {
@@ -411,7 +429,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('link', { name: 'Gallery' }))
     expect(
-      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
+      screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
     expect(mapPage).toHaveAttribute('inert')
@@ -519,7 +537,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     expect(
-      screen.getByRole('tab', { name: 'Discoveries', selected: true }),
+      screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
   })
 

@@ -9,7 +9,7 @@ import {
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 import { AddDiscoveryPage } from '@/pages/AddDiscoveryPage'
-import { GalleryPage } from '@/pages/GalleryPage'
+import { CollectionPage } from '@/pages/CollectionPage'
 import { CreateGroupPage } from '@/pages/CreateGroupPage'
 import { DiscoveryDetailPage } from '@/pages/DiscoveryDetailPage'
 import { EditDiscoveryPage } from '@/pages/EditDiscoveryPage'
@@ -77,7 +77,7 @@ function AuthenticatedAppShell({
       <Routes>
         <Route path="/" element={null} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/collection" element={<GalleryPage />} />
+        <Route path="/collection" element={<CollectionPage />} />
         <Route path="/add" element={<AddDiscoveryPage />} />
         <Route
           path="/discoveries/:discoveryId"
