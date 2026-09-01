@@ -15,6 +15,7 @@ const {
     emit: (event: string) => void
     resizeCalls: number
     flyToCalls: Array<{ center: [number, number]; zoom: number }>
+    resetNorthPitchCalls: number
   }> = []
   const markers: Array<{ element?: HTMLElement }> = []
 
@@ -29,6 +30,7 @@ const {
     controls: unknown[] = []
     resizeCalls = 0
     flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
+    resetNorthPitchCalls = 0
     listeners = new Map<string, Set<() => void>>()
 
     constructor(options: { center: [number, number]; zoom: number }) {
@@ -76,6 +78,10 @@ const {
 
     flyTo(options: { center: [number, number]; zoom: number }) {
       this.flyToCalls.push(options)
+    }
+
+    resetNorthPitch() {
+      this.resetNorthPitchCalls += 1
     }
 
     remove() {}
@@ -184,6 +190,19 @@ describe('MapCanvas', () => {
     expect(mapInstances[0].flyToCalls).toEqual([
       { center: [6.6327, 46.5218], zoom: 12 },
     ])
+  })
+
+  it('resets bearing and pitch to north-up on demand', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+    const mapRef = createRef<MapCanvasHandle>()
+
+    render(<MapCanvas ref={mapRef} />)
+    mapRef.current?.resetNorth()
+
+    expect(mapInstances[0].resetNorthPitchCalls).toBe(1)
   })
 
   it('does not add MapLibre zoom controls while keeping geolocation controls', () => {

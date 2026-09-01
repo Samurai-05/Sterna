@@ -59,6 +59,7 @@ export interface MapCanvasHandle {
   locate: () => void
   resize: () => void
   flyTo: (coordinates: [number, number], zoom?: number) => void
+  resetNorth: () => void
 }
 
 export interface DiscoveryMarkerData {
@@ -145,6 +146,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           pendingTarget.current = { coordinates, zoom }
         }
       },
+      // Rotate/tilt back to north-up, 0° pitch — the "basic view" orientation,
+      // independent of the globe/mercator projection switch.
+      resetNorth: () => map.current?.resetNorthPitch(),
     }))
 
     useEffect(() => {
