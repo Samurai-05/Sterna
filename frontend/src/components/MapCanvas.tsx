@@ -35,6 +35,20 @@ const photoPreopenZoom = 13
 // (~5) so pins stay visible while browsing a country, and only disappear once
 // zoomed out to a continent/world view where they'd overlap and clutter.
 const landmarkMinZoom = 5
+// Below this, the globe would shrink to a speck with mostly empty space
+// around it rather than filling the view — it's the whole point of showing
+// a globe at all. Also the low end of the marker scale range below.
+const globeMinZoom = 1.5
+// Discovery/POI pins shrink continuously between the most zoomed-out globe
+// view and country level, so a full world view isn't dominated by full-size
+// pins, reaching full size by the time browsing a single country.
+const markerMinScale = 0.35
+const markerScaleMaxZoom = 6
+
+function markerScaleForZoom(zoom: number): number {
+  const t = (zoom - globeMinZoom) / (markerScaleMaxZoom - globeMinZoom)
+  return markerMinScale + Math.min(Math.max(t, 0), 1) * (1 - markerMinScale)
+}
 
 // countries.geo.json gives two genuinely disputed areas their own feature
 // instead of folding them into either claim's polygon — XCR (Crimea, claimed
@@ -50,6 +64,7 @@ export interface MapCanvasHandle {
   locate: () => void
   resize: () => void
   flyTo: (coordinates: [number, number], zoom?: number) => void
+  resetNorth: () => void
 }
 
 export interface DiscoveryMarkerData {
@@ -133,6 +148,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           pendingTarget.current = { coordinates, zoom }
         }
       },
+      // Rotate/tilt back to north-up, 0° pitch — the "basic view" orientation,
+      // independent of the globe/mercator projection switch.
+      resetNorth: () => map.current?.resetNorthPitch(),
     }))
 
     useEffect(() => {
@@ -147,6 +165,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         style: mapStyle,
         center: viewport.center,
         zoom: viewport.zoom,
+        minZoom: globeMinZoom,
       })
 
       const saveCurrentViewport = () => {
@@ -198,8 +217,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       applyExploredStatesRef.current = applyExploredStates
 
       instance.on('load', () => {
-        // Render the world as a globe when zoomed out; MapLibre switches back
-        // to the flat projection automatically at closer zoom levels.
+        // Renders as a globe when zoomed out to see the whole world.
+        // MapLibre animates its own switch back to the flat mercator map
+        // around zoom 12, where globe curvature would otherwise hurt
+        // precision — no manual zoom threshold needed here.
         instance.setProjection({ type: 'globe' })
 
         instance.addSource(countriesSourceId, {
@@ -298,8 +319,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       >()
       const landmarkMarkers = new globalThis.Map<
         string,
-        { marker: Marker; root: Root }
+        {
+          marker: Marker
+          root: Root
+          scaledElement: { current: HTMLElement | null }
+        }
       >()
+      // Discovery/POI pins whose visual scale tracks zoom. Only the pin's
+      // inner span goes in here — never the marker's own button — see the
+      // ref callbacks below for why.
+      const scaledMarkerElements = new Set<HTMLElement>()
       let active = true
 
       const disposeRoot = (root: Root) => {
@@ -319,6 +348,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         preview.popup.remove()
         if (preview.objectUrl) URL.revokeObjectURL(preview.objectUrl)
         photoPreviews.delete(id)
+      }
+
+      const updateMarkerScale = () => {
+        const scale = markerScaleForZoom(instance.getZoom())
+        for (const el of scaledMarkerElements) {
+          el.style.transform = `scale(${scale})`
+        }
       }
 
       const updatePhotoPreviews = () => {
@@ -421,44 +457,71 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           landmark.imageId,
           'map',
         )
+        // A box rather than a plain variable: the ref below may attach
+        // synchronously or not, but this entry is only ever read back much
+        // later (on the next moveend/zoomend), by which point React has
+        // certainly committed — see the discovery marker ref for why we
+        // can't rely on timing any more directly than that.
+        const scaledElement: { current: HTMLElement | null } = {
+          current: null,
+        }
         root.render(
           <button
             type="button"
             aria-label={`View ${landmark.name}`}
-            className={`relative size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
+            className="relative size-11"
             onClick={() => onSelectLandmark?.(landmark.id)}
           >
-            <img
-              src={markerImage}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
-            />
-            <img
-              src={markerImage}
-              alt=""
-              className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
-            />
+            <span
+              ref={(node) => {
+                if (!node) return
+                node.style.transform = `scale(${markerScaleForZoom(instance.getZoom())})`
+                scaledElement.current = node
+                scaledMarkerElements.add(node)
+              }}
+              className={`absolute inset-0 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
+            >
+              <img
+                src={markerImage}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
+              />
+              <img
+                src={markerImage}
+                alt=""
+                className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
+              />
+            </span>
             <span className="sr-only">
               {landmark.discovered ? 'Discovered' : 'Undiscovered'}
             </span>
           </button>,
         )
 
-        const marker = new Marker({ element: el })
+        const marker = new Marker({ element: el, opacityWhenCovered: 0 })
           .setLngLat(landmark.coordinates)
           .addTo(instance)
         markers.add(marker)
         roots.add(root)
-        landmarkMarkers.set(landmark.id, { marker, root })
+        landmarkMarkers.set(landmark.id, { marker, root, scaledElement })
+      }
+
+      const removeLandmarkMarker = (id: string) => {
+        const entry = landmarkMarkers.get(id)
+        if (!entry) return
+        if (entry.scaledElement.current) {
+          scaledMarkerElements.delete(entry.scaledElement.current)
+        }
+        removeMarker(entry.marker, entry.root)
+        landmarkMarkers.delete(id)
       }
 
       const updateLandmarkMarkers = () => {
         if (instance.getZoom() < landmarkMinZoom) {
-          for (const { marker, root } of landmarkMarkers.values()) {
-            removeMarker(marker, root)
+          for (const id of [...landmarkMarkers.keys()]) {
+            removeLandmarkMarker(id)
           }
-          landmarkMarkers.clear()
           return
         }
 
@@ -470,11 +533,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           visibleLandmarks.map((landmark) => landmark.id),
         )
 
-        for (const [id, { marker, root }] of landmarkMarkers) {
-          if (!visibleIds.has(id)) {
-            removeMarker(marker, root)
-            landmarkMarkers.delete(id)
-          }
+        for (const id of [...landmarkMarkers.keys()]) {
+          if (!visibleIds.has(id)) removeLandmarkMarker(id)
         }
 
         for (const landmark of visibleLandmarks) {
@@ -489,20 +549,39 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const root = createRoot(el)
         const appearance = categoryAppearance[discovery.category]
         root.render(
+          // The button is the fixed-size 44px tap target MapLibre positions;
+          // only the inner span shrinks visually, so a small pin on a
+          // zoomed-out globe stays comfortably tappable on a touchscreen.
           <button
             type="button"
             aria-label={`View ${discovery.name}`}
-            className={cn(
-              'flex size-11 items-center justify-center rounded-full border-2 border-white shadow-lg ring-2',
-              appearance.background,
-              appearance.ring,
-            )}
+            className="relative size-11"
             onClick={() => onSelectDiscovery?.(discovery.id)}
           >
-            <CategoryIcon category={discovery.category} className="size-5" />
+            <span
+              ref={(node) => {
+                if (!node) return
+                // Set synchronously on attach rather than relying on
+                // updateMarkerScale() running after this render: React does
+                // not guarantee this ref is attached by the time render()
+                // returns, so a marker created between zoom events (e.g. a
+                // discovery arriving from the API after the map is already
+                // zoomed out) could otherwise sit at scale(1) until the next
+                // 'zoom' event ever fires.
+                node.style.transform = `scale(${markerScaleForZoom(instance.getZoom())})`
+                scaledMarkerElements.add(node)
+              }}
+              className={cn(
+                'absolute inset-0 flex items-center justify-center rounded-full border-2 border-white shadow-lg ring-2',
+                appearance.background,
+                appearance.ring,
+              )}
+            >
+              <CategoryIcon category={discovery.category} className="size-5" />
+            </span>
           </button>,
         )
-        const marker = new Marker({ element: el })
+        const marker = new Marker({ element: el, opacityWhenCovered: 0 })
           .setLngLat(discovery.coordinates)
           .addTo(instance)
         markers.add(marker)
@@ -511,10 +590,12 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       updatePhotoPreviews()
       updateLandmarkMarkers()
+      updateMarkerScale()
       instance.on('moveend', updatePhotoPreviews)
       instance.on('zoomend', updatePhotoPreviews)
       instance.on('moveend', updateLandmarkMarkers)
       instance.on('zoomend', updateLandmarkMarkers)
+      instance.on('zoom', updateMarkerScale)
 
       return () => {
         active = false
@@ -522,6 +603,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         instance.off('zoomend', updatePhotoPreviews)
         instance.off('moveend', updateLandmarkMarkers)
         instance.off('zoomend', updateLandmarkMarkers)
+        instance.off('zoom', updateMarkerScale)
         for (const id of photoPreviews.keys()) removePhotoPreview(id)
         for (const marker of markers) marker.remove()
         for (const root of roots) disposeRoot(root)

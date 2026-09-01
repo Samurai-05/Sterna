@@ -1,6 +1,7 @@
 import {
   Check,
   ChevronDown,
+  Compass,
   LocateFixed,
   MapPinned,
   Search,
@@ -251,7 +252,16 @@ export function MapPage({ active }: { active: boolean }) {
         </div>
       </div>
 
-      <div className="absolute bottom-28 right-4 z-20">
+      <div className="absolute bottom-28 right-4 z-20 flex flex-col gap-2">
+        <Button
+          size="icon"
+          variant="outline"
+          className="size-11 rounded-full bg-card shadow-sm"
+          aria-label="Reset orientation to north"
+          onClick={() => mapRef.current?.resetNorth()}
+        >
+          <Compass className="size-5" />
+        </Button>
         <Button
           size="icon"
           variant="outline"
