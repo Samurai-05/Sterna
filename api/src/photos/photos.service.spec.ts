@@ -205,6 +205,40 @@ describe('PhotosService', () => {
       expect(webp.objectKey).toMatch(/\.webp$/);
     });
 
+    it('normalizes Samsung JPEGs with a recoverable sequential SOS warning', async () => {
+      const source = await image('jpeg');
+      const malformed = Buffer.from(source);
+      const sosOffset = malformed.indexOf(Buffer.from([0xff, 0xda]));
+
+      expect(sosOffset).toBeGreaterThanOrEqual(0);
+      // SOS: marker, length, component count, three component selectors,
+      // spectral start, spectral end, successive approximation.
+      malformed[sosOffset + 12] = 0;
+
+      await expect(
+        service.store(UPLOADER, { buffer: malformed } as Express.Multer.File),
+      ).resolves.toMatchObject({
+        metadata: { location: null, takenAt: null },
+      });
+      expect(minio.putObject).toHaveBeenCalled();
+    });
+
+    it('rejects a truncated JPEG after allowing the Samsung SOS warning', async () => {
+      const source = await image('jpeg');
+      const sosOffset = source.indexOf(Buffer.from([0xff, 0xda]));
+      const samsungJpeg = Buffer.from(source);
+
+      expect(sosOffset).toBeGreaterThanOrEqual(0);
+      samsungJpeg[sosOffset + 12] = 0;
+
+      await expect(
+        service.store(UPLOADER, {
+          buffer: samsungJpeg.subarray(0, samsungJpeg.length - 2),
+        } as Express.Multer.File),
+      ).rejects.toThrow();
+      expect(minio.putObject).not.toHaveBeenCalled();
+    });
+
     // FR-06
     it('reads the capture location out of the EXIF tags', async () => {
       const result = await service.store(UPLOADER, {

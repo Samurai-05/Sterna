@@ -8,11 +8,16 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.ext.SdkExtensions;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.View;
@@ -52,6 +57,7 @@ import java.util.concurrent.Executors;
 
 public class PhotoCaptureActivity extends AppCompatActivity {
 
+    private static final String TAG = "PhotoCaptureActivity";
     static final int RESULT_SELECTED = 42;
     static final String EXTRA_PATH = "path";
     static final String EXTRA_MIME_TYPE = "mimeType";
@@ -60,6 +66,10 @@ public class PhotoCaptureActivity extends AppCompatActivity {
 
     private static final int CAMERA_CONTROLS_HEIGHT_DP = 100;
     private static final int EMBEDDED_PICKER_HEIGHT_DP = 180;
+    private static final String[] LOCATION_PERMISSIONS = {
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    };
 
     private FrameLayout rootView;
     private PreviewView previewView;
@@ -75,6 +85,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     private FrameLayout bottomControls;
     private EmbeddedPhotoPickerView embeddedPickerView;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
+    private ActivityResultLauncher<String[]> locationPermissionLauncher;
     private ActivityResultLauncher<PickVisualMediaRequest> galleryLauncher;
     private ExecutorService cameraExecutor;
     private ProcessCameraProvider cameraProvider;
@@ -84,6 +95,10 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     private boolean usingFrontCamera;
     private boolean flashEnabled;
     private boolean captureInProgress;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+    private Location latestLocation;
+    private boolean locationUpdatesStarted;
     private int topSystemInset;
     private int bottomSystemInset;
 
@@ -128,6 +143,15 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                     } else {
                         getPreferences(MODE_PRIVATE).edit().putBoolean("camera_denied", true).apply();
                         showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+                    }
+                });
+        locationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                permissions -> {
+                    if (hasLocationPermission()) {
+                        startLocationUpdates();
+                    } else {
+                        Log.w(TAG, "Location permission denied; capturing without GPS metadata");
                     }
                 });
         galleryLauncher = registerForActivityResult(
@@ -449,6 +473,122 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         }
     }
 
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestOrStartLocation() {
+        if (hasLocationPermission()) {
+            startLocationUpdates();
+        } else {
+            locationPermissionLauncher.launch(LOCATION_PERMISSIONS);
+        }
+    }
+
+    private void startLocationUpdates() {
+        if (locationUpdatesStarted || !hasLocationPermission()) {
+            return;
+        }
+
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (locationManager == null) {
+            Log.w(TAG, "Location service unavailable; capturing without GPS metadata");
+            return;
+        }
+
+        latestLocation = findRecentLastKnownLocation();
+        locationListener = location -> {
+            if (!PhotoCaptureLocation.isRecent(location.getTime(), System.currentTimeMillis())) {
+                return;
+            }
+            if (latestLocation == null || location.getTime() >= latestLocation.getTime()) {
+                latestLocation = location;
+            }
+        };
+
+        boolean requestedUpdates = false;
+        for (String provider : new String[]{
+                LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER
+        }) {
+            try {
+                if (locationManager.isProviderEnabled(provider)) {
+                    locationManager.requestLocationUpdates(
+                            provider, 1_000L, 0f, locationListener, Looper.getMainLooper());
+                    requestedUpdates = true;
+                }
+            } catch (SecurityException | IllegalArgumentException ignored) {
+                // Location can be unavailable even after the permission request, so camera use
+                // must continue without metadata in that case.
+                Log.w(TAG, "Location provider unavailable: " + provider, ignored);
+            }
+        }
+        locationUpdatesStarted = requestedUpdates;
+
+        if (!requestedUpdates) {
+            Log.w(TAG, "No location provider available; capturing without GPS metadata");
+        }
+    }
+
+    private Location findRecentLastKnownLocation() {
+        if (locationManager == null || !hasLocationPermission()) {
+            return null;
+        }
+
+        Location best = null;
+        long now = System.currentTimeMillis();
+        for (String provider : new String[]{
+                LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER
+        }) {
+            try {
+                Location candidate = locationManager.getLastKnownLocation(provider);
+                if (candidate != null
+                        && PhotoCaptureLocation.isRecent(candidate.getTime(), now)
+                        && (best == null || candidate.getTime() > best.getTime())) {
+                    best = candidate;
+                }
+            } catch (SecurityException | IllegalArgumentException ignored) {
+                // A permission/provider state change should not prevent taking a photo.
+                Log.w(TAG, "Unable to read last known location from " + provider, ignored);
+            }
+        }
+        return best;
+    }
+
+    private Location getLocationForCapture() {
+        Location best = latestLocation;
+        Location lastKnown = findRecentLastKnownLocation();
+        if (lastKnown != null && (best == null || lastKnown.getTime() > best.getTime())) {
+            best = lastKnown;
+        }
+        return best != null
+                && PhotoCaptureLocation.isRecent(best.getTime(), System.currentTimeMillis())
+                ? best : null;
+    }
+
+    private void stopLocationUpdates() {
+        if (locationManager != null && locationListener != null) {
+            try {
+                locationManager.removeUpdates(locationListener);
+            } catch (SecurityException ignored) {
+                // Permission may have been revoked while the activity was closing.
+            }
+        }
+        locationUpdatesStarted = false;
+        locationListener = null;
+    }
+
+    private void requestOrStartLocationSafely() {
+        PhotoCaptureLocation.runSafely(
+                this::requestOrStartLocation,
+                exception -> Log.w(
+                        TAG,
+                        "Location initialization failed; capturing without GPS metadata",
+                        exception));
+    }
+
     private void startCamera() {
         ListenableFuture<ProcessCameraProvider> providerFuture =
                 ProcessCameraProvider.getInstance(this);
@@ -457,6 +597,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                 cameraProvider = providerFuture.get();
                 bindCamera();
             } catch (Exception exception) {
+                Log.e(TAG, "Unable to initialize CameraX", exception);
                 showStatus("Camera unavailable. You can still choose a photo from Gallery.");
             }
         }, ContextCompat.getMainExecutor(this));
@@ -476,6 +617,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
             Preview preview = new Preview.Builder().setTargetRotation(getTargetRotation()).build();
             imageCapture = new ImageCapture.Builder()
                     .setTargetRotation(getTargetRotation())
+                    .setJpegQuality(85)
                     .setFlashMode(ImageCapture.FLASH_MODE_OFF)
                     .build();
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
@@ -495,8 +637,12 @@ public class PhotoCaptureActivity extends AppCompatActivity {
             switchCameraButton.setVisibility(hasBackCamera && hasFrontCamera ? View.VISIBLE : View.GONE);
             showStatus("");
         } catch (Exception exception) {
+            Log.e(TAG, "Unable to bind CameraX", exception);
             showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+            return;
         }
+
+        requestOrStartLocationSafely();
     }
 
     private void updateFlashControl(Camera camera) {
@@ -521,7 +667,14 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         shutterButton.setEnabled(false);
         shutterButton.setAlpha(0.55f);
         File output = new File(getCacheDir(), "sterna-camera-" + UUID.randomUUID() + ".jpg");
-        ImageCapture.OutputFileOptions options = new ImageCapture.OutputFileOptions.Builder(output).build();
+        ImageCapture.Metadata metadata = new ImageCapture.Metadata();
+        Location location = getLocationForCapture();
+        if (location != null) {
+            metadata.setLocation(location);
+        }
+        ImageCapture.OutputFileOptions options = new ImageCapture.OutputFileOptions.Builder(output)
+                .setMetadata(metadata)
+                .build();
         imageCapture.takePicture(options, cameraExecutor, new ImageCapture.OnImageSavedCallback() {
             @Override
             public void onImageSaved(ImageCapture.OutputFileResults outputFileResults) {
@@ -610,6 +763,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        stopLocationUpdates();
         super.onDestroy();
         if (cameraExecutor != null) {
             cameraExecutor.shutdown();

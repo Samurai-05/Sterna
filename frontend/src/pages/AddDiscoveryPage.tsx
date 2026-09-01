@@ -1,4 +1,4 @@
-import { Camera, Check, ImagePlus, MapPin, Search } from 'lucide-react'
+import { Check, ImagePlus, MapPin, Search } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -29,9 +29,16 @@ import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
 import { getStoredMapViewport } from '@/lib/map-viewport'
-import { type SelectedPhoto } from '@/lib/photo-capture'
+import { releaseNativePhoto, type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
+
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024
+const SUPPORTED_PHOTO_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+])
 
 type AddDiscoveryLocationState = {
   selectedPhoto?: SelectedPhoto
@@ -40,25 +47,85 @@ type AddDiscoveryLocationState = {
 const defaultCoordinates: [number, number] = [2.3522, 48.8566]
 
 /** Resolves whichever photo the user selected (native or browser) into bytes. */
-async function readSelectedPhoto(
+export async function readSelectedPhoto(
   nativePhoto: SelectedPhoto | undefined,
   browserPhoto: File | null,
 ): Promise<{ photo: Blob; fileName: string }> {
   if (browserPhoto) {
+    if (browserPhoto.size > MAX_PHOTO_BYTES) {
+      throw new Error('Photo is too large.')
+    }
     return { photo: browserPhoto, fileName: browserPhoto.name }
   }
 
   if (nativePhoto) {
-    const response = await fetch(Capacitor.convertFileSrc(nativePhoto.path))
-    if (!response.ok) throw new Error('Unable to read the selected photo.')
-    const nativeBlob = await response.blob()
-    const photo = nativeBlob.type
-      ? nativeBlob
-      : new Blob([nativeBlob], { type: nativePhoto.mimeType })
+    const convertedUrl = Capacitor.convertFileSrc(nativePhoto.path)
+    let nativeBlob: Blob
+    try {
+      const response = await fetch(convertedUrl)
+      if (!response.ok) throw new Error('Unable to read the selected photo.')
+      nativeBlob = await response.blob()
+    } catch (error) {
+      if (error instanceof Error && /selected photo/i.test(error.message)) {
+        throw error
+      }
+      throw new Error('Unable to read captured photo.', { cause: error })
+    }
+    if (nativeBlob.size === 0) throw new Error('Unable to read captured photo.')
+    if (nativeBlob.size > MAX_PHOTO_BYTES) {
+      throw new Error('Photo is too large.')
+    }
+    const pluginMimeType = (nativePhoto.mimeType ?? '').trim().toLowerCase()
+    const blobMimeType = nativeBlob.type.trim().toLowerCase()
+    const reliableMimeType = SUPPORTED_PHOTO_MIME_TYPES.has(pluginMimeType)
+      ? pluginMimeType
+      : nativePhoto.source === 'camera'
+        ? 'image/jpeg'
+        : SUPPORTED_PHOTO_MIME_TYPES.has(blobMimeType)
+          ? blobMimeType
+          : pluginMimeType || blobMimeType
+    if (!SUPPORTED_PHOTO_MIME_TYPES.has(reliableMimeType)) {
+      throw new Error('Unsupported image type.')
+    }
+    const photo =
+      nativeBlob.type === reliableMimeType
+        ? nativeBlob
+        : new Blob([nativeBlob], { type: reliableMimeType })
     return { photo, fileName: nativePhoto.fileName }
   }
 
   throw new Error('Select a photo before saving the discovery.')
+}
+
+export function getPhotoUploadErrorMessage(error: unknown): string {
+  const status =
+    typeof error === 'object' && error !== null && 'status' in error
+      ? (error as { status?: unknown }).status
+      : undefined
+  const message = error instanceof Error ? error.message : ''
+
+  if (
+    status === 413 ||
+    /too large|payload too large|entity too large/i.test(message)
+  ) {
+    return 'Photo is too large.'
+  }
+  if (
+    status === 415 ||
+    /unsupported (file|image)|unsupported.*(type|format)|mime type/i.test(
+      message,
+    )
+  ) {
+    return 'Unsupported image type.'
+  }
+  if (
+    /unable to read|selected photo|captured photo|not a readable image/i.test(
+      message,
+    )
+  ) {
+    return 'Unable to read captured photo.'
+  }
+  return 'Upload failed. Please try again.'
 }
 
 export function AddDiscoveryPage() {
@@ -68,6 +135,7 @@ export function AddDiscoveryPage() {
   const session = loadSession()
   const locationPickerRef = useRef<LocationPickerMapHandle>(null)
   const photoSelectionIdRef = useRef(0)
+  const isMountedRef = useRef(true)
   const selectedLocationRef = useRef<SelectedLocation | null>(null)
   const currentGpsRef = useRef<[number, number] | null>(null)
 
@@ -95,6 +163,9 @@ export function AddDiscoveryPage() {
     data: UploadPhotoResponse | null
     error: unknown
   }>({ selectionId: 0, status: 'idle', data: null, error: null })
+  const nativePhotoRef = useRef<SelectedPhoto | undefined>(undefined)
+  const previousNativePhotoRef = useRef<SelectedPhoto | undefined>(nativePhoto)
+  const pendingNativePhotoPathsRef = useRef(new Set<string>())
   const [locationQuery, setLocationQuery] = useState('')
   const [debouncedLocationQuery, setDebouncedLocationQuery] = useState('')
   const [showLocationResults, setShowLocationResults] = useState(false)
@@ -156,6 +227,33 @@ export function AddDiscoveryPage() {
   const photoUrl = nativePhoto
     ? Capacitor.convertFileSrc(nativePhoto.path)
     : browserPhotoUrl
+
+  useEffect(() => {
+    nativePhotoRef.current = nativePhoto
+  }, [nativePhoto])
+
+  useEffect(() => {
+    const previousPhoto = previousNativePhotoRef.current
+    if (
+      previousPhoto &&
+      previousPhoto.path !== nativePhoto?.path &&
+      !pendingNativePhotoPathsRef.current.has(previousPhoto.path)
+    ) {
+      void releaseNativePhoto(previousPhoto.path)
+    }
+    previousNativePhotoRef.current = nativePhoto
+  }, [nativePhoto])
+
+  useEffect(() => {
+    const pendingNativePhotoPaths = pendingNativePhotoPathsRef.current
+    return () => {
+      isMountedRef.current = false
+      const photo = nativePhotoRef.current
+      if (photo && !pendingNativePhotoPaths.has(photo.path)) {
+        void releaseNativePhoto(photo.path)
+      }
+    }
+  }, [])
 
   function setSelectedDiscoveryLocation(
     nextLocation: SelectedLocation | null,
@@ -234,7 +332,10 @@ export function AddDiscoveryPage() {
       )
       return uploadPhoto(session.accessToken, photo, fileName)
     },
-    onMutate: ({ selectionId }) => {
+    onMutate: ({ selectionId, nativePhoto: photoToUpload }) => {
+      if (photoToUpload) {
+        pendingNativePhotoPathsRef.current.add(photoToUpload.path)
+      }
       if (photoSelectionIdRef.current !== selectionId) return
       setPhotoUploadState({
         selectionId,
@@ -243,8 +344,20 @@ export function AddDiscoveryPage() {
         error: null,
       })
     },
-    onSuccess: (uploadedPhoto, { selectionId }) => {
-      if (photoSelectionIdRef.current !== selectionId) return
+    onSuccess: (
+      uploadedPhoto,
+      { selectionId, nativePhoto: photoToRelease },
+    ) => {
+      if (photoToRelease) {
+        pendingNativePhotoPathsRef.current.delete(photoToRelease.path)
+      }
+      if (
+        !isMountedRef.current ||
+        photoSelectionIdRef.current !== selectionId
+      ) {
+        if (photoToRelease) void releaseNativePhoto(photoToRelease.path)
+        return
+      }
 
       setPhotoUploadState({
         selectionId,
@@ -270,8 +383,17 @@ export function AddDiscoveryPage() {
         )
       }
     },
-    onError: (error, { selectionId }) => {
-      if (photoSelectionIdRef.current !== selectionId) return
+    onError: (error, { selectionId, nativePhoto: photoToRelease }) => {
+      if (photoToRelease) {
+        pendingNativePhotoPathsRef.current.delete(photoToRelease.path)
+      }
+      if (
+        !isMountedRef.current ||
+        photoSelectionIdRef.current !== selectionId
+      ) {
+        if (photoToRelease) void releaseNativePhoto(photoToRelease.path)
+        return
+      }
       setPhotoUploadState({
         selectionId,
         status: 'error',
@@ -285,6 +407,9 @@ export function AddDiscoveryPage() {
 
   useEffect(() => {
     if (!isLoggedIn || !photoSelected) return
+    if (nativePhoto) {
+      pendingNativePhotoPathsRef.current.add(nativePhoto.path)
+    }
     photoUpload.mutate({
       selectionId: photoSelectionId,
       nativePhoto,
@@ -330,6 +455,7 @@ export function AddDiscoveryPage() {
       })
     },
     onSuccess: (discovery) => {
+      if (nativePhoto) void releaseNativePhoto(nativePhoto.path)
       queryClient.invalidateQueries({
         queryKey: ['discoveries', session?.user.id],
       })
@@ -377,7 +503,7 @@ export function AddDiscoveryPage() {
     }
 
     if (currentUpload?.status !== 'success' || !currentUpload.data) {
-      setFormMessage('The photo failed to upload. Choose it again to retry.')
+      setFormMessage(getPhotoUploadErrorMessage(currentUpload?.error))
       return
     }
 
@@ -500,10 +626,31 @@ export function AddDiscoveryPage() {
             </span>
             <span className="text-xs">JPEG, PNG or WebP · 10 MB maximum</span>
           </label>
-          <Button type="button" variant="outline" className="mt-3 h-11 w-full">
-            <Camera className="size-4" />
-            Take a photo
-          </Button>
+          {photoUploadState.status === 'error' && (
+            <div className="mt-3 space-y-2" role="alert">
+              <p className="text-sm text-destructive">
+                {getPhotoUploadErrorMessage(photoUploadState.error)}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full"
+                onClick={() => {
+                  setFormMessage('')
+                  if (nativePhoto) {
+                    pendingNativePhotoPathsRef.current.add(nativePhoto.path)
+                  }
+                  photoUpload.mutate({
+                    selectionId: photoSelectionId,
+                    nativePhoto,
+                    browserPhoto,
+                  })
+                }}
+              >
+                Retry photo upload
+              </Button>
+            </div>
+          )}
         </section>
         <label className="block space-y-2 text-sm font-semibold">
           Title

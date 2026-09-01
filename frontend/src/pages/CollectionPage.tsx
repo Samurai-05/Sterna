@@ -152,7 +152,7 @@ export function CollectionPage() {
 
   return (
     <main className="min-h-dvh bg-background">
-      <div className="space-y-4 px-5 pt-4">
+      <div className="sterna-gallery-content space-y-4 px-5">
         <label className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground focus-within:ring-2 focus-within:ring-ring/30">
           <Search className="size-4" />
           <span className="sr-only">Search gallery</span>

@@ -35,9 +35,7 @@ async function request<TResponse>(
     },
   })
 
-  if (!response.ok) {
-    throw await responseError(response)
-  }
+  if (!response.ok) throw await responseError(response)
 
   if (response.status === 204) {
     return undefined as TResponse
@@ -323,7 +321,6 @@ export async function uploadPhoto(
     headers: { Authorization: `Bearer ${accessToken}` },
     body: formData,
   })
-
   if (!response.ok) {
     throw await responseError(response)
   }

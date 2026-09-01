@@ -9,14 +9,26 @@ export type SelectedPhoto = {
 
 type SternaPhotoCapturePlugin = {
   open: () => Promise<SelectedPhoto | null>
+  release: (options: { path: string }) => Promise<void>
 }
 
-export const SternaPhotoCapture = registerPlugin<SternaPhotoCapturePlugin>(
-  'SternaPhotoCapture',
-)
+export const SternaPhotoCapture =
+  registerPlugin<SternaPhotoCapturePlugin>('SternaPhotoCapture')
 
 export async function openNativePhotoCapture(): Promise<SelectedPhoto | null> {
   return SternaPhotoCapture.open()
+}
+
+export async function releaseNativePhoto(
+  path: string,
+  release = (photoPath: string) =>
+    SternaPhotoCapture.release({ path: photoPath }),
+): Promise<void> {
+  try {
+    await release(path)
+  } catch (error) {
+    console.warn('Unable to release native photo cache file', error)
+  }
 }
 
 export async function createDiscoveryPhotoAction({
@@ -26,7 +38,10 @@ export async function createDiscoveryPhotoAction({
 }: {
   platform?: string
   open?: () => Promise<SelectedPhoto | null>
-  navigate: (to: string, options?: { state: { selectedPhoto: SelectedPhoto } }) => void
+  navigate: (
+    to: string,
+    options?: { state: { selectedPhoto: SelectedPhoto } },
+  ) => void
 }) {
   if (platform !== 'android') {
     navigate('/add')
