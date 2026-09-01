@@ -343,20 +343,36 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const root = createRoot(el)
         const appearance = categoryAppearance[discovery.category]
         root.render(
+          // The button is the fixed-size 44px tap target MapLibre positions;
+          // only the inner span shrinks visually, so a small pin on a
+          // zoomed-out globe stays comfortably tappable on a touchscreen.
           <button
-            ref={(node) => {
-              if (node) scaledMarkerElements.push(node)
-            }}
             type="button"
             aria-label={`View ${discovery.name}`}
-            className={cn(
-              'flex size-11 items-center justify-center rounded-full border-2 border-white shadow-lg ring-2',
-              appearance.background,
-              appearance.ring,
-            )}
+            className="relative size-11"
             onClick={() => onSelectDiscovery?.(discovery.id)}
           >
-            <CategoryIcon category={discovery.category} className="size-5" />
+            <span
+              ref={(node) => {
+                if (!node) return
+                // Set synchronously on attach rather than relying on
+                // updateMarkerScale() running after this render: React does
+                // not guarantee this ref is attached by the time render()
+                // returns, so a marker created between zoom events (e.g. a
+                // discovery arriving from the API after the map is already
+                // zoomed out) could otherwise sit at scale(1) until the next
+                // 'zoom' event ever fires.
+                node.style.transform = `scale(${markerScaleForZoom(instance.getZoom())})`
+                scaledMarkerElements.push(node)
+              }}
+              className={cn(
+                'absolute inset-0 flex items-center justify-center rounded-full border-2 border-white shadow-lg ring-2',
+                appearance.background,
+                appearance.ring,
+              )}
+            >
+              <CategoryIcon category={discovery.category} className="size-5" />
+            </span>
           </button>,
         )
         markers.push(
@@ -410,25 +426,31 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const markerImage = landmark.imageUrl ?? imageUrl(landmark.imageId, 160)
         root.render(
           <button
-            ref={(node) => {
-              if (node) scaledMarkerElements.push(node)
-            }}
             type="button"
             aria-label={`View ${landmark.name}`}
-            className={`relative size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
+            className="relative size-11"
             onClick={() => onSelectLandmark?.(landmark.id)}
           >
-            <img
-              src={markerImage}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
-            />
-            <img
-              src={markerImage}
-              alt=""
-              className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
-            />
+            <span
+              ref={(node) => {
+                if (!node) return
+                node.style.transform = `scale(${markerScaleForZoom(instance.getZoom())})`
+                scaledMarkerElements.push(node)
+              }}
+              className={`absolute inset-0 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
+            >
+              <img
+                src={markerImage}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
+              />
+              <img
+                src={markerImage}
+                alt=""
+                className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
+              />
+            </span>
             <span className="sr-only">
               {landmark.discovered ? 'Discovered' : 'Undiscovered'}
             </span>

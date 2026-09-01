@@ -10,14 +10,17 @@ const {
   MockNavigationControl,
 } = vi.hoisted(() => {
   const instances: Array<{
-    options: { center: [number, number]; zoom: number }
+    options: { center: [number, number]; zoom: number; minZoom?: number }
     controls: unknown[]
     emit: (event: string) => void
     resizeCalls: number
     flyToCalls: Array<{ center: [number, number]; zoom: number }>
     resetNorthPitchCalls: number
   }> = []
-  const markers: Array<{ element?: HTMLElement }> = []
+  const markers: Array<{
+    element?: HTMLElement
+    opacityWhenCovered?: string | number
+  }> = []
 
   class NavigationControl {}
 
@@ -26,14 +29,18 @@ const {
   }
 
   class MapMock {
-    options: { center: [number, number]; zoom: number }
+    options: { center: [number, number]; zoom: number; minZoom?: number }
     controls: unknown[] = []
     resizeCalls = 0
     flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
     resetNorthPitchCalls = 0
     listeners = new Map<string, Set<() => void>>()
 
-    constructor(options: { center: [number, number]; zoom: number }) {
+    constructor(options: {
+      center: [number, number]
+      zoom: number
+      minZoom?: number
+    }) {
       this.options = options
       instances.push(this)
     }
@@ -99,9 +106,14 @@ const {
 vi.mock('maplibre-gl', () => {
   class MarkerMock {
     element?: HTMLElement
+    opacityWhenCovered?: string | number
 
-    constructor(options?: { element?: HTMLElement }) {
+    constructor(options?: {
+      element?: HTMLElement
+      opacityWhenCovered?: string | number
+    }) {
       this.element = options?.element
+      this.opacityWhenCovered = options?.opacityWhenCovered
       markerInstances.push(this)
     }
 
@@ -315,15 +327,162 @@ describe('MapCanvas', () => {
       />,
     )
 
+    // The scale is applied to the marker's inner span, not the button
+    // itself — the button stays a fixed-size tap target (see the next test).
     const [marker] = markerInstances
     const button = marker.element?.firstElementChild as HTMLElement
+    const scaledElement = button.firstElementChild as HTMLElement
 
     mapInstances[0].options.zoom = 1.5
     mapInstances[0].emit('zoom')
-    expect(button.style.transform).toBe('scale(0.35)')
+    expect(scaledElement.style.transform).toBe('scale(0.35)')
 
     mapInstances[0].options.zoom = 6
     mapInstances[0].emit('zoom')
-    expect(button.style.transform).toBe('scale(1)')
+    expect(scaledElement.style.transform).toBe('scale(1)')
+  })
+
+  it('keeps the discovery marker button at a fixed, comfortably tappable size', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        discoveries={[
+          {
+            id: 1,
+            name: 'Eiffel Tower',
+            category: 'monument',
+            imageId: 'eiffel',
+            coordinates: [2.2945, 48.8584],
+          },
+        ]}
+      />,
+    )
+
+    const [marker] = markerInstances
+    const button = marker.element?.firstElementChild as HTMLElement
+
+    // The tap target itself must never be scaled down, even at minimum
+    // zoom — only the pin's visual content (its inner span) shrinks.
+    expect(button.style.transform).toBe('')
+    expect(button.className).toContain('size-11')
+  })
+
+  it('applies the correct marker scale immediately, before any zoom event', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    // Regression test: the scale used to only be applied by updateMarkerScale()
+    // running after root.render(), but React does not guarantee a ref is
+    // attached by the time render() returns. A marker mounted while the map
+    // is already zoomed out — with no 'zoom' event ever following — used to
+    // sit at scale(1) until the next zoom change.
+    render(
+      <MapCanvas
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        discoveries={[
+          {
+            id: 1,
+            name: 'Eiffel Tower',
+            category: 'monument',
+            imageId: 'eiffel',
+            coordinates: [2.2945, 48.8584],
+          },
+        ]}
+      />,
+    )
+
+    const [marker] = markerInstances
+    const button = marker.element?.firstElementChild as HTMLElement
+    const scaledElement = button.firstElementChild as HTMLElement
+
+    expect(scaledElement.style.transform).toBe('scale(0.35)')
+  })
+
+  it('applies the correct scale to a discovery that arrives after the map is already zoomed out', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    // Mirrors discoveries loading from the API after the map has mounted
+    // and the user has already zoomed out, with no further zoom event.
+    const { rerender } = render(
+      <MapCanvas
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        discoveries={[]}
+      />,
+    )
+
+    rerender(
+      <MapCanvas
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        discoveries={[
+          {
+            id: 1,
+            name: 'Eiffel Tower',
+            category: 'monument',
+            imageId: 'eiffel',
+            coordinates: [2.2945, 48.8584],
+          },
+        ]}
+      />,
+    )
+
+    const [marker] = markerInstances
+    const button = marker.element?.firstElementChild as HTMLElement
+    const scaledElement = button.firstElementChild as HTMLElement
+
+    expect(scaledElement.style.transform).toBe('scale(0.35)')
+  })
+
+  it('clamps the map to the globe minimum zoom', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(<MapCanvas />)
+
+    expect(mapInstances[0].options.minZoom).toBe(1.5)
+  })
+
+  it('hides discovery and POI markers outright on the far side of the globe', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        discoveries={[
+          {
+            id: 1,
+            name: 'Eiffel Tower',
+            category: 'monument',
+            imageId: 'eiffel',
+            coordinates: [2.2945, 48.8584],
+          },
+        ]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Statue of Liberty',
+            imageId: 'liberty',
+            discovered: true,
+            coordinates: [-74.0445, 40.6892],
+          },
+        ]}
+      />,
+    )
+
+    expect(markerInstances[0].opacityWhenCovered).toBe(0)
+    expect(markerInstances[1].opacityWhenCovered).toBe(0)
   })
 })
