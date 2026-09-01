@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:android": "tsc -b && vite build --mode android",
+    "generate:countries-fog": "node scripts/generate-countries-fog.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "postinstall": "patch-package",
