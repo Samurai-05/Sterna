@@ -32,6 +32,7 @@ import { getStoredMapViewport } from '@/lib/map-viewport'
 import { releaseNativePhoto, type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
+import { getCurrentDevicePosition } from '@/lib/device-location'
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024
 const SUPPORTED_PHOTO_MIME_TYPES = new Set([
@@ -280,7 +281,11 @@ export function AddDiscoveryPage() {
   }
 
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
+    void getCurrentDevicePosition({
+      enableHighAccuracy: true,
+      maximumAge: 60_000,
+      timeout: 8_000,
+    }).then(
       ({ coords }) => {
         const currentCoordinates: [number, number] = [
           coords.longitude,
@@ -294,7 +299,6 @@ export function AddDiscoveryPage() {
         )
       },
       () => undefined,
-      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8000 },
     )
     // The callback reads mutable refs so this permission request runs once per page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
