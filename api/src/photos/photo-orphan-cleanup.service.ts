@@ -5,11 +5,9 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'minio';
-import { Repository } from 'typeorm';
-import { Discovery } from '../discoveries/discovery.entity';
+import { DataSource } from 'typeorm';
 import { MINIO_CLIENT } from './minio.client';
 import { PHOTO_OBJECT_KEY_PATTERN, PhotosService } from './photos.service';
 
@@ -33,8 +31,7 @@ export class PhotoOrphanCleanupService
   constructor(
     @Inject(MINIO_CLIENT) private readonly minio: Client,
     config: ConfigService,
-    @InjectRepository(Discovery)
-    private readonly discoveries: Repository<Discovery>,
+    private readonly dataSource: DataSource,
     private readonly photos: PhotosService,
   ) {
     this.bucket = config.getOrThrow<string>('MINIO_BUCKET_NAME');
@@ -83,13 +80,17 @@ export class PhotoOrphanCleanupService
 
     let referenced = new Set<string>();
     try {
-      const rows = await this.discoveries.query<
-        Array<{ image_object_key: string }>
-      >(
-        `SELECT image_object_key FROM discoveries WHERE image_object_key = ANY($1::text[])`,
+      const rows = await this.dataSource.query<Array<{ object_key: string }>>(
+        `SELECT image_object_key AS object_key
+         FROM discoveries
+         WHERE image_object_key = ANY($1::text[])
+         UNION
+         SELECT avatar_object_key AS object_key
+         FROM users
+         WHERE avatar_object_key = ANY($1::text[])`,
         [candidates],
       );
-      referenced = new Set(rows.map((row) => row.image_object_key));
+      referenced = new Set(rows.map((row) => row.object_key));
     } catch (error) {
       this.logger.error(
         'Unable to check orphaned photo references; no candidates were removed.',

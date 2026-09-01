@@ -341,7 +341,7 @@ export async function getPhoto(
 
   const cacheKey = `${accessToken}\0${imageObjectKey}\0${variant ?? 'original'}`
   const cached = photoRequestCache.get(cacheKey)
-  if (cached) return cached
+  if (cached) return cached.promise
 
   const query = variant ? `?variant=${encodeURIComponent(variant)}` : ''
   const requestPromise = fetch(
@@ -355,15 +355,20 @@ export async function getPhoto(
     return response.blob()
   })
 
-  photoRequestCache.set(cacheKey, requestPromise)
+  const entry: PhotoCacheEntry = { promise: requestPromise }
+  photoRequestCache.set(cacheKey, entry)
   void requestPromise.then(
     () => {
-      if (photoRequestCache.get(cacheKey) === requestPromise) {
-        photoRequestCache.delete(cacheKey)
+      if (photoRequestCache.get(cacheKey) === entry) {
+        entry.cleanupTimer = setTimeout(() => {
+          if (photoRequestCache.get(cacheKey) === entry) {
+            photoRequestCache.delete(cacheKey)
+          }
+        }, PHOTO_CACHE_TTL_MS)
       }
     },
     () => {
-      if (photoRequestCache.get(cacheKey) === requestPromise) {
+      if (photoRequestCache.get(cacheKey) === entry) {
         photoRequestCache.delete(cacheKey)
       }
     },
@@ -372,7 +377,21 @@ export async function getPhoto(
   return requestPromise
 }
 
-const photoRequestCache = new Map<string, Promise<Blob>>()
+export const PHOTO_CACHE_TTL_MS = 60 * 1000
+
+type PhotoCacheEntry = {
+  promise: Promise<Blob>
+  cleanupTimer?: ReturnType<typeof setTimeout>
+}
+
+const photoRequestCache = new Map<string, PhotoCacheEntry>()
+
+export function clearPhotoCache(): void {
+  for (const entry of photoRequestCache.values()) {
+    if (entry.cleanupTimer) clearTimeout(entry.cleanupTimer)
+  }
+  photoRequestCache.clear()
+}
 
 export async function getPois(accessToken: string): Promise<Landmark[]> {
   const pois = await request<ApiPoi[]>('/api/pois', {
