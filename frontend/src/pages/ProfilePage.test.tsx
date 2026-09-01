@@ -103,7 +103,28 @@ describe('ProfilePage', () => {
       screen.getByRole('group', { name: 'Countries: 2' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'POIs: 0' })).toBeInTheDocument()
+    expect(
+      screen
+        .getByRole('group', { name: 'Discoveries: 4' })
+        .closest('[role="list"]'),
+    ).toBeNull()
     expect(screen.queryByText('Countries explored')).not.toBeInTheDocument()
+  })
+
+  it('keeps settings explicit without competing with the identity on narrow screens', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    const settingsButton = await screen.findByRole('button', {
+      name: 'Open account settings',
+    })
+
+    expect(settingsButton).toHaveClass('absolute')
+    expect(settingsButton).toHaveAttribute('title', 'Settings')
+    expect(
+      screen.queryByText('Settings', { selector: 'span' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows POI progress and orders recent discoveries by discovery date', async () => {
@@ -162,6 +183,29 @@ describe('ProfilePage', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('does not show the empty state while authored discoveries are loading', async () => {
+    let resolveDiscoveries!: (value: Discovery[]) => void
+    getAuthoredDiscoveriesMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDiscoveries = resolve
+      }),
+    )
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      screen.queryByText('Your world starts here.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Add discovery' }),
+    ).not.toBeInTheDocument()
+
+    resolveDiscoveries([])
+    expect(
+      await screen.findByText('Your world starts here.'),
+    ).toBeInTheDocument()
+  })
+
   it('renders category rows with uncategorized discoveries and total-based ratios', async () => {
     const uncategorizedDiscovery = makeDiscovery(3, 'ITA', 'Rome') as Discovery
     uncategorizedDiscovery.category = null
@@ -189,6 +233,9 @@ describe('ProfilePage', () => {
     expect(
       within(categoryList).getByTestId('category-bar-landscape'),
     ).toHaveStyle({ width: '66.66666666666666%' })
+    expect(
+      within(categoryList).getByTestId('category-bar-landscape'),
+    ).toHaveStyle({ backgroundColor: '#2F6B8A' })
     expect(
       within(categoryList).getByTestId('category-bar-uncategorized'),
     ).toHaveStyle({ width: '33.33333333333333%' })

@@ -3,9 +3,9 @@ export function ProfileExplorationStats({
   countries,
   pois,
 }: {
-  discoveries: number
-  countries: number
-  pois: number
+  discoveries: number | null
+  countries: number | null
+  pois: number | null
 }) {
   const stats = [
     { label: 'Discoveries', value: discoveries },
@@ -14,16 +14,16 @@ export function ProfileExplorationStats({
   ]
 
   return (
-    <div className="grid grid-cols-3 divide-x divide-border" role="list">
+    <div className="grid grid-cols-3 divide-x divide-border">
       {stats.map((stat) => (
         <div
           key={stat.label}
           role="group"
-          aria-label={`${stat.label}: ${stat.value}`}
+          aria-label={`${stat.label}: ${stat.value ?? 'Loading'}`}
           className="px-3 text-center first:pl-0 last:pr-0"
         >
           <p className="font-sans text-3xl font-semibold leading-9 tabular-nums text-foreground">
-            {stat.value}
+            {stat.value ?? '—'}
           </p>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
             {stat.label}

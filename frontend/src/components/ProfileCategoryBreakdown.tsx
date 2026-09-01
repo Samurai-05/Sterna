@@ -1,6 +1,6 @@
 import { CategoryIcon } from '@/components/CategoryIcon'
-import { categoryAppearance } from '@/lib/category-appearance'
 import {
+  profileCategoryAppearance,
   profileCategoryRows,
   type ProfileCategoryRow,
 } from '@/lib/profile-analytics'
@@ -41,7 +41,9 @@ function CategoryRow({
         icon: 'text-muted-foreground',
         background: 'bg-muted',
       }
-    : categoryAppearance[row.id as keyof typeof categoryAppearance]
+    : profileCategoryAppearance[
+        row.id as keyof typeof profileCategoryAppearance
+      ]
   const discoveryLabel = row.count === 1 ? 'discovery' : 'discoveries'
   const ratio = total ? (row.count / total) * 100 : 0
 

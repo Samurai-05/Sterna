@@ -1,4 +1,5 @@
 import { getCountryName } from '@/lib/countries'
+import { normalizeExploredCountryCodes } from '@/lib/country-exploration'
 import {
   categories,
   type Discovery,
@@ -6,6 +7,44 @@ import {
 } from '@/lib/mock-data'
 
 export const PROFILE_RECENT_DISCOVERY_COUNT = 3
+
+export const profileCategoryAppearance = {
+  landscape: {
+    color: '#2F6B8A',
+    icon: 'text-[#2F6B8A]',
+    background: 'bg-[#EAF3F7]',
+  },
+  monument: {
+    color: '#7E6552',
+    icon: 'text-[#7E6552]',
+    background: 'bg-[#F1E9E4]',
+  },
+  food: {
+    color: '#B8572B',
+    icon: 'text-[#B8572B]',
+    background: 'bg-[#FBF1EC]',
+  },
+  animal: {
+    color: '#3F7A78',
+    icon: 'text-[#3F7A78]',
+    background: 'bg-[#E8F2F1]',
+  },
+  plant: {
+    color: '#3F724E',
+    icon: 'text-[#3F724E]',
+    background: 'bg-[#F0F7F3]',
+  },
+  culture: {
+    color: '#756B8F',
+    icon: 'text-[#756B8F]',
+    background: 'bg-[#F1EEF7]',
+  },
+  other: {
+    color: '#9C7A32',
+    icon: 'text-[#9C7A32]',
+    background: 'bg-[#FBF4E2]',
+  },
+} as const
 
 export interface ProfileCategoryRow {
   id: DiscoveryCategory | 'uncategorized'
@@ -21,13 +60,11 @@ export function uniqueProfileDiscoveries(
 }
 
 export function exploredCountryCodes(sourceDiscoveries: Discovery[]): string[] {
-  return [
-    ...new Set(
-      uniqueProfileDiscoveries(sourceDiscoveries)
-        .map((discovery) => discovery.countryCode.trim().toUpperCase())
-        .filter((countryCode) => Boolean(getCountryName(countryCode))),
-    ),
-  ]
+  return normalizeExploredCountryCodes(
+    uniqueProfileDiscoveries(sourceDiscoveries)
+      .map((discovery) => discovery.countryCode)
+      .filter((countryCode) => Boolean(getCountryName(countryCode))),
+  )
 }
 
 export function recentProfileDiscoveries(

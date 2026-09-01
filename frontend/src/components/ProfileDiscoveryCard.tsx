@@ -12,13 +12,14 @@ export function ProfileDiscoveryCard({ discovery }: { discovery: Discovery }) {
 
   return (
     <Link
-      to={discoveryPath(discovery.id)}
+      to={discoveryPath(discovery.id, discovery.groupId)}
+      aria-label={[discovery.name, locationLabel].filter(Boolean).join(', ')}
       state={{ returnTo: `${location.pathname}${location.search}` }}
       className="group w-[44vw] min-w-40 max-w-52 shrink-0 snap-start overflow-hidden rounded-2xl bg-card transition-transform active:scale-[0.99]"
     >
       <DiscoveryPhoto
         discovery={discovery}
-        alt={discovery.name}
+        alt=""
         variant="card"
         width={520}
         className="aspect-[4/5] w-full object-cover"
@@ -32,12 +33,14 @@ export function ProfileDiscoveryCard({ discovery }: { discovery: Discovery }) {
             {locationLabel}
           </span>
         )}
-        <time
-          dateTime={discovery.discoveredAt}
-          className="block text-xs leading-4 text-muted-foreground"
-        >
-          {dateLabel}
-        </time>
+        {dateLabel && (
+          <time
+            dateTime={discovery.discoveredAt}
+            className="block text-xs leading-4 text-muted-foreground"
+          >
+            {dateLabel}
+          </time>
+        )}
       </span>
     </Link>
   )
@@ -48,11 +51,11 @@ function getUsefulLocation(discovery: Discovery): string | null {
   return label === 'Unknown country' ? null : label
 }
 
-function formatDiscoveryDate(value?: string): string {
-  if (!value) return 'Date not set'
+function formatDiscoveryDate(value?: string): string | null {
+  if (!value) return null
 
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'Date not set'
+  if (Number.isNaN(date.getTime())) return null
 
   return new Intl.DateTimeFormat('en', {
     month: 'short',
