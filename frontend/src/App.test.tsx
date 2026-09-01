@@ -365,6 +365,10 @@ describe('App', () => {
     expect(
       screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: 'Search gallery' }).closest('label')
+        ?.parentElement,
+    ).toHaveClass('sterna-gallery-content')
     expect(screen.getByRole('button', { name: 'Food' })).toHaveClass('bg-card')
     expect(
       screen.getByRole('group', { name: 'Filter gallery by source' }),

@@ -237,6 +237,10 @@ input:-webkit-autofill:focus {
   padding-top: calc(0.75rem + var(--sterna-safe-area-top));
 }
 
+.sterna-gallery-content {
+  padding-top: calc(1rem + var(--sterna-safe-area-top));
+}
+
 .sterna-map-controls,
 .sterna-profile-hero {
   padding-top: calc(1rem + var(--sterna-safe-area-top));
