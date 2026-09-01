@@ -3,7 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import sharp from 'sharp';
 import request from 'supertest';
-import sharp from 'sharp';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { configureApp } from './../src/app-setup';
@@ -96,25 +95,6 @@ export async function registerTestUser(
     .expect(201);
 
   return response.body as AuthResponseDto;
-}
-
-/** Creates one real canonical photo for discovery-creation e2e fixtures. */
-export async function uploadTestPhoto(
-  app: INestApplication<App>,
-  accessToken: string,
-): Promise<string> {
-  const buffer = await sharp({
-    create: { width: 8, height: 8, channels: 3, background: 'red' },
-  })
-    .jpeg()
-    .toBuffer();
-  const response = await request(app.getHttpServer())
-    .post('/api/photos')
-    .set('Authorization', `Bearer ${accessToken}`)
-    .attach('file', buffer, { filename: 'discovery-fixture.jpg' })
-    .expect(201);
-
-  return (response.body as { objectKey: string }).objectKey;
 }
 
 /** Removes every account *this suite* created, and the groups that were only theirs. */

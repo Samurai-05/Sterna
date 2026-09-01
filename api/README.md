@@ -112,9 +112,9 @@ Docker Compose from the repository-root `.env`; nothing is read from a `.env` in
 | `JWT_SECRET` | HMAC key the access tokens are signed with. At least 32 characters; generate with `openssl rand -base64 48` |
 | `JWT_EXPIRES_IN_SECONDS` | Optional access token lifetime, default `604800` (7 days), capped at 30 days |
 | `SWAGGER_ENABLED` | Optional `"true"`/`"false"`. Unset means "not in production" — see [API documentation](#api-documentation) |
-| `THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT` | Optional. The ceiling every route sits under (default 240 requests / 60 s per IP) |
-| `AUTH_THROTTLE_TTL_SECONDS`, `AUTH_THROTTLE_LIMIT` | Optional. Register and login (default 10 / 15 min per IP) |
-| `UPLOAD_THROTTLE_TTL_SECONDS`, `UPLOAD_THROTTLE_LIMIT` | Optional. `POST /api/photos` (default 30 / 10 min per IP) |
+| `THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT` | Optional. The ceiling every route sits under (default 1200 requests / 60 s per IP) |
+| `AUTH_THROTTLE_TTL_SECONDS`, `AUTH_THROTTLE_LIMIT` | Optional. Register and login (default 40 / 15 min per IP) |
+| `UPLOAD_THROTTLE_TTL_SECONDS`, `UPLOAD_THROTTLE_LIMIT` | Optional. `POST /api/photos` (default 120 / 10 min per IP) |
 
 ## Database
 
@@ -231,7 +231,10 @@ are the tight ones — login is `@Public()` and runs an argon2id verify at 19 Mi
 which is a credential-stuffing surface and a memory-amplification DoS at the same time.
 `configureApp()` sets Express's `trust proxy`, without which every request would carry the
 Docker bridge address and the per-IP limits would collapse into one global limit. The health
-controller is `@SkipThrottle()` — the Compose healthcheck polls it every 10 seconds.
+controller is `@SkipThrottle()` — the Compose healthcheck polls it every 10 seconds. The
+numbers are sized for a **shared** address: the application is reached over the campus
+network, so a whole room arrives from one NAT egress IP and a per-IP limit is really a
+per-room limit.
 `helmet()` runs as middleware on the same path, with its CSP disabled: this service answers
 JSON and image bytes, and the browser-facing policy belongs to Nginx
 (`frontend/nginx/security-headers.conf`).

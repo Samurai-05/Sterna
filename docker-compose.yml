@@ -87,11 +87,11 @@ services:
       # them for development, where the e2e suite logs in dozens of times from
       # one source.
       THROTTLE_TTL_SECONDS: ${THROTTLE_TTL_SECONDS:-60}
-      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-240}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-1200}
       AUTH_THROTTLE_TTL_SECONDS: ${AUTH_THROTTLE_TTL_SECONDS:-900}
-      AUTH_THROTTLE_LIMIT: ${AUTH_THROTTLE_LIMIT:-10}
+      AUTH_THROTTLE_LIMIT: ${AUTH_THROTTLE_LIMIT:-40}
       UPLOAD_THROTTLE_TTL_SECONDS: ${UPLOAD_THROTTLE_TTL_SECONDS:-600}
-      UPLOAD_THROTTLE_LIMIT: ${UPLOAD_THROTTLE_LIMIT:-30}
+      UPLOAD_THROTTLE_LIMIT: ${UPLOAD_THROTTLE_LIMIT:-120}
       # Publishing /api/docs. Unset means "not in production"; set it to true
       # to expose the OpenAPI document on the VM for a demo.
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}

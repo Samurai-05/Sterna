@@ -209,6 +209,7 @@ describe('PhotosController (e2e)', () => {
           longitude: 6.6412,
           latitude: 46.7785,
           imageObjectKey: photo.objectKey,
+          locationSource: 'manual',
           discoveredAt: '2026-08-25T12:00:00.000Z',
         })
         .expect(201);

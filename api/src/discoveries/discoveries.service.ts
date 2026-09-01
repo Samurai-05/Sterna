@@ -239,14 +239,6 @@ export class DiscoveriesService {
     ]);
     const personal = dto.personal ?? dto.groupId == null;
 
-    if (!this.photos.isCanonicalObjectKey(dto.imageObjectKey)) {
-      throw new BadRequestException('Invalid discovery photo reference.');
-    }
-
-    if (!(await this.photos.exists(dto.imageObjectKey))) {
-      throw new NotFoundException('Discovery photo not found.');
-    }
-
     if (!personal && groupIds.length === 0) {
       throw new BadRequestException('Select at least one destination map.');
     }
@@ -338,23 +330,26 @@ export class DiscoveriesService {
   }
 
   /**
-   * Both halves of "this photo is usable here":
+   * Every way "this photo is usable here" can fail:
    *
-   * - the caller uploaded it. A key is not a capability — it is returned in
-   *   full to every member of a shared group map (DISCOVERY_PROJECTION), so
+   * - the key is not a shape store() could have minted. The DTO pins this at
+   *   the edge too; repeating it here keeps the service safe on its own.
+   * - the caller did not upload it. A key is not a capability — it is returned
+   *   in full to every member of a shared group map (DISCOVERY_PROJECTION), so
    *   without this a co-member could cite someone else's key and later have
    *   the account-deletion path free their object.
-   * - the object is really in MinIO (NFR-32).
+   * - the object is not really in MinIO (NFR-32).
    *
-   * One message for both, deliberately: "not yours" and "not there" must not
-   * be distinguishable, or the endpoint becomes an oracle for which keys
-   * exist.
+   * One message and one status for all three, deliberately: malformed,
+   * not-yours and not-there must not be distinguishable, or the endpoint
+   * becomes an oracle for which keys exist and who owns them.
    */
   private async requirePhoto(
     userId: string,
     imageObjectKey: string,
   ): Promise<void> {
     const unusable =
+      !this.photos.isCanonicalObjectKey(imageObjectKey) ||
       !(await this.photos.ownsPhoto(userId, imageObjectKey)) ||
       !(await this.photos.exists(imageObjectKey));
 
@@ -517,6 +512,13 @@ export class DiscoveriesService {
           CASE WHEN EXISTS (
             SELECT 1 FROM discoveries sibling
             WHERE sibling.image_object_key = deleted.image_object_key
+          ) OR EXISTS (
+            -- The same upload can be a discovery photo and a profile photo.
+            -- Freeing it here would leave users.avatar_object_key pointing at
+            -- nothing; the orphan sweep checks both tables for the same
+            -- reason.
+            SELECT 1 FROM users
+            WHERE users.avatar_object_key = deleted.image_object_key
           ) THEN NULL ELSE image_object_key END AS image_object_key
         FROM deleted
       `,
@@ -530,7 +532,11 @@ export class DiscoveriesService {
     if (!result[0].image_object_key) return;
 
     try {
-      await this.photos.remove(result[0].image_object_key);
+      // removeOwned, not remove: the delete is scoped to the caller's own
+      // photos row, so a discovery that somehow references another account's
+      // key — legacy data predating the ownership check — frees nothing
+      // instead of destroying their object.
+      await this.photos.removeOwned(userId, result[0].image_object_key);
     } catch (error) {
       this.logger.error(
         `Failed to clean up photo objects for deleted discovery ${id}: ${result[0].image_object_key}`,

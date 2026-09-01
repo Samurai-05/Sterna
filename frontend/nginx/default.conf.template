@@ -10,7 +10,7 @@
 # away from the Node process entirely; the per-route limits that actually
 # matter (login, register, upload) are the API's own, in
 # api/src/config/throttling.ts.
-limit_req_zone $binary_remote_addr zone=sterna_api:10m rate=20r/s;
+limit_req_zone $binary_remote_addr zone=sterna_api:10m rate=50r/s;
 
 # ---------------------------------------------------------------------------
 # Port 80 — ACME challenges, and a redirect for everything else.
@@ -77,11 +77,15 @@ server {
     resolver 127.0.0.11 valid=10s ipv6=off;
 
     location /api/ {
-        # burst + nodelay rather than a hard 20r/s: a normal page load fires
-        # a handful of requests at once (the map, the collection, one fetch
-        # per photo), and delaying those would be indistinguishable from a
-        # slow API. Sustained abuse still hits the wall.
-        limit_req zone=sterna_api burst=40 nodelay;
+        # burst + nodelay rather than a hard rate: a page load fires a batch
+        # of requests at once — the map, the collection, and one fetch per
+        # photo as cards enter the viewport — and delaying those would be
+        # indistinguishable from a slow API. The allowance is sized for a
+        # shared NAT egress (the campus network puts a whole room behind one
+        # address), so it is deliberately far above one user's needs.
+        # Sustained abuse still hits the wall, and the limits that actually
+        # matter are the API's own per-route ones.
+        limit_req zone=sterna_api burst=200 nodelay;
 
         include /etc/nginx/snippets/security-headers.conf;
 
