@@ -146,17 +146,17 @@ The coordinates of a discovery must be stored with sufficient precision to disti
 
 The system must also be able to determine whether a discovery is located within the defined radius around a point of interest.
 
-### NFR-15 - Association With a Single Context
+### NFR-15 - Explicit Context Association
 
 **Priority: MUST**
 
-Each discovery must be associated with **one single context** when it is saved:
+Each discovery must be associated only with the context(s) explicitly selected by the user when it is saved:
 
 * the user's personal map;
 
-* or a group map.
+* and/or one or more group maps.
 
-A discovery must never be automatically saved in multiple contexts simultaneously.
+A discovery must never be automatically saved to a context the user did not select.
 
 ### NFR-16 - Data Persistence
 

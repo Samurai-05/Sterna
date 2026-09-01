@@ -68,7 +68,7 @@ It may also contain:
 
 * a description.
 
-A discovery belongs either to the user's personal map or to a group selected when the discovery is added.
+A discovery can belong to the user's personal map and/or to one or more groups selected when the discovery is added.
 
 ### Categories
 
@@ -120,7 +120,7 @@ The user can select:
 
 * one of their groups.
 
-The selected context becomes the active map. It determines the discoveries, explored countries, and discovered places displayed on the map. Any new discovery is recorded only in the active context.
+The selected context becomes the active map. It determines the discoveries, explored countries, and discovered places displayed on the map. When adding a new discovery, the active context is pre-selected as its destination, but the user can choose instead to save it to their personal map and/or one or more groups.
 
 The active map can be changed directly from the map screen.
 
@@ -188,7 +188,7 @@ The group features planned for the MVP are:
 
 * change the active group from the map;
 
-* add a discovery to the active group's map;
+* add a discovery to one or more of the user's groups, in addition to or instead of the personal map;
 
 * view discoveries added by other group members;
 
@@ -204,7 +204,7 @@ Social-network features such as comments, likes, or notifications are not part o
 
 1. The user opens the map.
 
-2. They check or select the context in which they want to add their discovery.
+2. They check or select the map(s) in which they want to add their discovery: their personal map and/or one or more groups, pre-selected from the active context.
 
 3. They select **Add**.
 
@@ -226,9 +226,9 @@ Social-network features such as comments, likes, or notifications are not part o
 
 10. They save the discovery.
 
-11. The photo appears on the map of the active context.
+11. The photo appears on the map of each selected context.
 
-12. If the discovery results in the exploration of a new country or point of interest, the progress of the relevant context is updated.
+12. If the discovery results in the exploration of a new country or point of interest, the progress of each relevant context is updated.
 
 ### View a Discovery
 

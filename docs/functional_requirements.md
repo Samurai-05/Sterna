@@ -294,11 +294,9 @@ The group's exploration progress must be based on the discoveries belonging to t
 
 **Priority: MUST**
 
-A new discovery must be recorded only in the active map.
+A new discovery must be saved to at least one destination map: the user's personal map and/or one or more groups the user belongs to.
 
-During discovery creation, the application must clearly indicate the destination map and allow the user to change it before saving.
-
-If another destination is selected, it becomes the active map.
+During discovery creation, the application must pre-select the destination(s) from the active map and allow the user to change the selection before saving.
 
 ### FR-31 - Discovery Author
 
