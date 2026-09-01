@@ -105,7 +105,7 @@ export function DiscoveryDetailPage({
 
     const timeoutId = window.setTimeout(() => {
       setShowCreatedFeedback(false)
-    }, 2_200)
+    }, 1_200)
 
     return () => window.clearTimeout(timeoutId)
   }, [showCreatedFeedback])
@@ -429,6 +429,7 @@ function DiscoveryPhotoZoom({ discovery }: { discovery: Discovery }) {
           buttonPrev: () => null,
           buttonNext: () => null,
           buttonClose: () => null,
+          buttonZoom: () => null,
         }}
         styles={{
           root: { backgroundColor: 'transparent' },

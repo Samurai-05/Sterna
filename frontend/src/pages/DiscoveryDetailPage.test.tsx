@@ -234,7 +234,7 @@ describe('DiscoveryDetailPage', () => {
       ).toBeInTheDocument()
 
       act(() => {
-        vi.advanceTimersByTime(2_200)
+        vi.advanceTimersByTime(1_200)
       })
 
       expect(
