@@ -18,15 +18,20 @@ import {
   isCoordinateInMapViewport,
 } from '@/lib/map-markers'
 import { type DiscoveryCategory } from '@/lib/mock-data'
+import {
+  fogColor,
+  fogLayerId,
+  fogMaxZoom,
+  fogOpacityExpression,
+  fogSourceId,
+  getFogInsertionBeforeLayerId,
+} from '@/lib/map-fog'
 import { getPoiImageUrl } from '@/lib/poi-image'
 import { cn } from '@/lib/utils'
 
 setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
-const countriesSourceId = 'countries'
-const unexploredFillLayerId = 'unexplored-countries-fill'
-const countryBorderLayerId = 'country-borders'
 // Zoom level from which a marker is "close" enough that its photo pre-opens
 // above the pin instead of waiting for a tap. Below street level (~15) so the
 // photo shows up while still zooming in, not only once fully street-level.
@@ -50,9 +55,10 @@ function markerScaleForZoom(zoom: number): number {
   return markerMinScale + Math.min(Math.max(t, 0), 1) * (1 - markerMinScale)
 }
 
-// countries.geo.json gives two genuinely disputed areas their own feature
-// instead of folding them into either claim's polygon — XCR (Crimea, claimed
-// by RUS and UKR) and XWS (the Morocco/Western-Sahara overlap, MAR and ESH).
+// The semantic country dataset gives two genuinely disputed areas their own
+// feature instead of folding them into either claim's polygon — XCR (Crimea,
+// claimed by RUS and UKR) and XWS (the Morocco/Western-Sahara overlap, MAR and
+// ESH).
 // Neither claim is favoured: the shared zone's veil lifts the moment either
 // side of the dispute is explored.
 const disputedZoneClaims: Record<string, string[]> = {
@@ -187,7 +193,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       geolocateControl.current = geolocate
 
       const applyExploredStates = () => {
-        if (!instance.getSource(countriesSourceId)) {
+        if (!instance.getSource(fogSourceId)) {
           return
         }
         const codes = new Set(exploredCodes.current)
@@ -199,7 +205,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         for (const code of codes) {
           if (!appliedCodes.current.has(code)) {
             instance.setFeatureState(
-              { source: countriesSourceId, id: code },
+              { source: fogSourceId, id: code },
               { explored: true },
             )
           }
@@ -207,7 +213,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         for (const code of appliedCodes.current) {
           if (!codes.has(code)) {
             instance.setFeatureState(
-              { source: countriesSourceId, id: code },
+              { source: fogSourceId, id: code },
               { explored: false },
             )
           }
@@ -223,51 +229,35 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         // precision — no manual zoom threshold needed here.
         instance.setProjection({ type: 'globe' })
 
-        instance.addSource(countriesSourceId, {
+        instance.addSource(fogSourceId, {
           type: 'geojson',
-          data: '/countries.geo.json',
+          data: '/countries-fog.geo.json',
           promoteId: 'A3',
         })
 
-        // Insert below the first text label so the veil dims colors/roads
-        // without dulling place names on top of it.
-        const firstSymbolLayerId = instance
-          .getStyle()
-          ?.layers.find((layer) => layer.type === 'symbol')?.id
-
-        instance.addLayer(
-          {
-            id: unexploredFillLayerId,
-            type: 'fill',
-            source: countriesSourceId,
-            paint: {
-              'fill-color': '#38404a',
-              'fill-opacity': [
-                'case',
-                ['boolean', ['feature-state', 'explored'], false],
-                0,
-                0.55,
-              ],
-            },
-          },
-          firstSymbolLayerId,
+        // Put the veil below OpenFreeMap's own administrative boundaries and
+        // labels. Their geometry is the same source as the basemap, so it
+        // remains aligned when the simplified Sterna fog asset does not.
+        const fogBeforeLayerId = getFogInsertionBeforeLayerId(
+          instance.getStyle()?.layers ?? [],
         )
 
         instance.addLayer(
           {
-            id: countryBorderLayerId,
-            type: 'line',
-            source: countriesSourceId,
+            id: fogLayerId,
+            type: 'fill',
+            source: fogSourceId,
+            maxzoom: fogMaxZoom,
             paint: {
-              'line-color': 'rgba(255,255,255,0.5)',
-              'line-width': 1,
+              'fill-color': fogColor,
+              'fill-opacity': fogOpacityExpression,
             },
           },
-          firstSymbolLayerId,
+          fogBeforeLayerId,
         )
 
         const onSourceData = () => {
-          if (!instance.isSourceLoaded(countriesSourceId)) {
+          if (!instance.isSourceLoaded(fogSourceId)) {
             return
           }
           instance.off('sourcedata', onSourceData)
