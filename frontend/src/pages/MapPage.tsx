@@ -129,7 +129,10 @@ export function MapPage({ active }: { active: boolean }) {
   // Sample discoveries are only for the signed-out demo. Showing them while
   // an authenticated query loads or fails makes them look like real personal
   // discoveries and can visually leak data between map contexts.
-  const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
+  const sourceDiscoveries = useMemo(
+    () => backendDiscoveries ?? (session ? [] : discoveries),
+    [backendDiscoveries, session],
+  )
   const sourceLandmarks = backendPois ?? (session ? [] : landmarks)
   const exploredCountryCodes = useMemo(
     () => [

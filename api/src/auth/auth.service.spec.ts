@@ -51,7 +51,7 @@ describe('AuthService', () => {
     users.create.mockImplementation((fields: Partial<User>) => fields);
     // save() stands in for the database, so it fills in what the identity
     // column and the DEFAULT NOW() would.
-    users.save.mockImplementation((user: User) => ({
+    users.save.mockImplementation((user: Partial<User>) => ({
       id: '1',
       createdAt: new Date('2026-08-26T09:14:33.482Z'),
       ...user,
