@@ -30,6 +30,20 @@ const photoPreopenZoom = 13
 // (~5) so pins stay visible while browsing a country, and only disappear once
 // zoomed out to a continent/world view where they'd overlap and clutter.
 const landmarkMinZoom = 5
+// Below this, the globe would shrink to a speck with mostly empty space
+// around it rather than filling the view — it's the whole point of showing
+// a globe at all. Also the low end of the marker scale range below.
+const globeMinZoom = 1.5
+// Discovery/POI pins shrink continuously between the most zoomed-out globe
+// view and country level, so a full world view isn't dominated by full-size
+// pins, reaching full size by the time browsing a single country.
+const markerMinScale = 0.35
+const markerScaleMaxZoom = 6
+
+function markerScaleForZoom(zoom: number): number {
+  const t = (zoom - globeMinZoom) / (markerScaleMaxZoom - globeMinZoom)
+  return markerMinScale + Math.min(Math.max(t, 0), 1) * (1 - markerMinScale)
+}
 
 // countries.geo.json gives two genuinely disputed areas their own feature
 // instead of folding them into either claim's polygon — XCR (Crimea, claimed
@@ -145,6 +159,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         style: mapStyle,
         center: viewport.center,
         zoom: viewport.zoom,
+        minZoom: globeMinZoom,
       })
 
       const saveCurrentViewport = () => {
@@ -291,6 +306,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       const photoPopups: Popup[] = []
       const photoReleases: Array<() => void> = []
       const landmarkElements: HTMLDivElement[] = []
+      const scaledMarkerElements: HTMLElement[] = []
       let active = true
 
       const updatePhotoPopups = () => {
@@ -311,12 +327,22 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
       }
 
+      const updateMarkerScale = () => {
+        const scale = markerScaleForZoom(instance.getZoom())
+        for (const el of scaledMarkerElements) {
+          el.style.transform = `scale(${scale})`
+        }
+      }
+
       for (const discovery of discoveries) {
         const el = document.createElement('div')
         const root = createRoot(el)
         const appearance = categoryAppearance[discovery.category]
         root.render(
           <button
+            ref={(node) => {
+              if (node) scaledMarkerElements.push(node)
+            }}
             type="button"
             aria-label={`View ${discovery.name}`}
             className={cn(
@@ -330,7 +356,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           </button>,
         )
         markers.push(
-          new Marker({ element: el })
+          new Marker({ element: el, opacityWhenCovered: 0 })
             .setLngLat(discovery.coordinates)
             .addTo(instance),
         )
@@ -380,6 +406,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const markerImage = landmark.imageUrl ?? imageUrl(landmark.imageId, 160)
         root.render(
           <button
+            ref={(node) => {
+              if (node) scaledMarkerElements.push(node)
+            }}
             type="button"
             aria-label={`View ${landmark.name}`}
             className={`relative size-11 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
@@ -402,7 +431,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           </button>,
         )
         markers.push(
-          new Marker({ element: el })
+          new Marker({ element: el, opacityWhenCovered: 0 })
             .setLngLat(landmark.coordinates)
             .addTo(instance),
         )
@@ -415,13 +444,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       updatePhotoPopups()
       updateLandmarkVisibility()
+      updateMarkerScale()
       instance.on('zoom', updatePhotoPopups)
       instance.on('zoom', updateLandmarkVisibility)
+      instance.on('zoom', updateMarkerScale)
 
       return () => {
         active = false
         instance.off('zoom', updatePhotoPopups)
         instance.off('zoom', updateLandmarkVisibility)
+        instance.off('zoom', updateMarkerScale)
         photoPopups.forEach((popup) => popup.remove())
         markers.forEach((marker) => marker.remove())
         // Deferred: unmounting synchronously here can race with React's own

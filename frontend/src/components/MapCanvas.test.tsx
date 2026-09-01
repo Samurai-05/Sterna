@@ -275,4 +275,36 @@ describe('MapCanvas', () => {
     mapInstances[0].emit('zoom')
     expect(element.style.display).toBe('')
   })
+
+  it('shrinks discovery markers when zoomed out and restores full size up close', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        discoveries={[
+          {
+            id: 1,
+            name: 'Eiffel Tower',
+            category: 'monument',
+            imageId: 'eiffel',
+            coordinates: [2.2945, 48.8584],
+          },
+        ]}
+      />,
+    )
+
+    const [marker] = markerInstances
+    const button = marker.element?.firstElementChild as HTMLElement
+
+    mapInstances[0].options.zoom = 1.5
+    mapInstances[0].emit('zoom')
+    expect(button.style.transform).toBe('scale(0.35)')
+
+    mapInstances[0].options.zoom = 6
+    mapInstances[0].emit('zoom')
+    expect(button.style.transform).toBe('scale(1)')
+  })
 })
