@@ -5,31 +5,35 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   envDir: '..',
   plugins: [
     react(),
     tailwindcss(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
-      manifest: {
-        name: 'Sterna',
-        short_name: 'Sterna',
-        description: 'Sterna mobile application',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/',
-        icons: [
-          {
-            src: '/favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-          },
-        ],
-      },
-    }),
+    ...(mode === 'android'
+      ? []
+      : [
+          VitePWA({
+            registerType: 'autoUpdate',
+            includeAssets: ['favicon.svg'],
+            manifest: {
+              name: 'Sterna',
+              short_name: 'Sterna',
+              description: 'Sterna mobile application',
+              theme_color: '#ffffff',
+              background_color: '#ffffff',
+              display: 'standalone',
+              start_url: '/',
+              icons: [
+                {
+                  src: '/favicon.svg',
+                  sizes: 'any',
+                  type: 'image/svg+xml',
+                },
+              ],
+            },
+          }),
+        ]),
   ],
   resolve: {
     alias: {
@@ -46,4 +50,4 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.ts',
   },
-})
+}))
