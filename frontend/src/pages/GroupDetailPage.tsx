@@ -15,6 +15,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
+import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog'
 import { useSetActiveMap } from '@/hooks/useActiveMap'
 import {
   ApiError,
@@ -35,6 +36,9 @@ export function GroupDetailPage() {
   const setActiveMap = useSetActiveMap()
   const [formMessage, setFormMessage] = useState('')
   const [copied, setCopied] = useState(false)
+  const [confirmation, setConfirmation] = useState<'delete' | 'leave' | null>(
+    null,
+  )
 
   const {
     data: group,
@@ -275,13 +279,7 @@ export function GroupDetailPage() {
               disabled={deleteMutation.isPending}
               onClick={() => {
                 setFormMessage('')
-                if (
-                  window.confirm(
-                    'Delete this group permanently? Its discoveries return to their authors’ personal maps.',
-                  )
-                ) {
-                  deleteMutation.mutate()
-                }
+                setConfirmation('delete')
               }}
             >
               <Trash2 className="size-4" />
@@ -294,13 +292,7 @@ export function GroupDetailPage() {
               disabled={leaveMutation.isPending}
               onClick={() => {
                 setFormMessage('')
-                if (
-                  window.confirm(
-                    'Leave this group? Your discoveries here move back to your personal map.',
-                  )
-                ) {
-                  leaveMutation.mutate()
-                }
+                setConfirmation('leave')
               }}
             >
               <UserMinus className="size-4" />
@@ -313,6 +305,32 @@ export function GroupDetailPage() {
             </p>
           )}
         </section>
+        <ConfirmActionDialog
+          open={confirmation !== null}
+          onOpenChange={(open) => {
+            if (!open) setConfirmation(null)
+          }}
+          title={confirmation === 'delete' ? 'Delete group?' : 'Leave group?'}
+          description={
+            confirmation === 'delete'
+              ? 'Delete this group permanently? Its discoveries return to their authors’ personal maps.'
+              : 'Leave this group? Your discoveries here move back to your personal map.'
+          }
+          confirmLabel={
+            confirmation === 'delete' ? 'Delete group' : 'Leave group'
+          }
+          confirmDisabled={
+            confirmation === 'delete'
+              ? deleteMutation.isPending
+              : leaveMutation.isPending
+          }
+          onConfirm={() => {
+            const action = confirmation
+            setConfirmation(null)
+            if (action === 'delete') deleteMutation.mutate()
+            if (action === 'leave') leaveMutation.mutate()
+          }}
+        />
       </div>
     </main>
   )

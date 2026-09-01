@@ -2,8 +2,9 @@ import { MapPin, MapPinned } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
 
 import { poiAppearance } from '@/lib/category-appearance'
+import { getPoiImageUrl } from '@/lib/poi-image'
 import { landmarkLocationLabel } from '@/lib/location-label'
-import { imageUrl, type Landmark } from '@/lib/mock-data'
+import { type Landmark } from '@/lib/mock-data'
 
 export function PoiCard({ poi }: { poi: Landmark }) {
   const location = useLocation()
@@ -16,9 +17,11 @@ export function PoiCard({ poi }: { poi: Landmark }) {
       className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99]"
     >
       <img
-        src={poi.imageUrl ?? imageUrl(poi.imageId)}
+        src={getPoiImageUrl(poi.imageUrl, poi.imageId, 'card')}
         alt={poi.name}
         className="aspect-[4/3] w-full object-cover"
+        loading="lazy"
+        decoding="async"
       />
       <div className="space-y-2 p-3">
         <div className="flex items-start justify-between gap-2">

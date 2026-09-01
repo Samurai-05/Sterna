@@ -5,6 +5,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { getPhoto } from '@/lib/api'
 import { categoryAppearance } from '@/lib/category-appearance'
 import {
   defaultMapViewport,
@@ -12,8 +13,12 @@ import {
   saveMapViewport,
   type MapViewport,
 } from '@/lib/map-viewport'
-import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
-import { acquirePhotoUrl, releasePhotoUrl } from '@/lib/photo-url-cache'
+import {
+  getVisibleLandmarks,
+  isCoordinateInMapViewport,
+} from '@/lib/map-markers'
+import { type DiscoveryCategory } from '@/lib/mock-data'
+import { getPoiImageUrl } from '@/lib/poi-image'
 import { cn } from '@/lib/utils'
 
 setWorkerUrl(maplibreWorkerUrl)
@@ -82,24 +87,21 @@ export interface LandmarkMarkerData {
 
 function createPhotoPreviewElement(
   name: string,
-  source: string | undefined,
   onSelect: () => void,
-): { element: HTMLButtonElement; image: HTMLImageElement } {
+): { element: HTMLButtonElement; placeholder: HTMLDivElement } {
   const button = document.createElement('button')
   button.type = 'button'
   button.setAttribute('aria-label', `View ${name}`)
   button.className =
-    'block size-[104px] overflow-hidden rounded-xl border-2 border-white bg-muted shadow-lg'
+    'block size-[104px] overflow-hidden rounded-xl border-2 border-white shadow-lg'
   button.addEventListener('click', onSelect)
 
-  const img = document.createElement('img')
-  if (source) img.src = source
-  img.hidden = !source
-  img.alt = ''
-  img.className = 'size-full object-cover'
+  const placeholder = document.createElement('div')
+  placeholder.setAttribute('aria-label', `Loading photo for ${name}`)
+  placeholder.className = 'size-full animate-pulse bg-muted'
 
-  button.appendChild(img)
-  return { element: button, image: img }
+  button.appendChild(placeholder)
+  return { element: button, placeholder }
 }
 
 interface MapCanvasProps {
@@ -305,36 +307,240 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         return
       }
 
-      const markers: Marker[] = []
-      const roots: Root[] = []
-      const photoPopups: Popup[] = []
-      const photoReleases: Array<() => void> = []
-      const landmarkElements: HTMLDivElement[] = []
-      const scaledMarkerElements: HTMLElement[] = []
+      const markers = new Set<Marker>()
+      const roots = new Set<Root>()
+      const photoPreviews = new globalThis.Map<
+        number,
+        {
+          popup: Popup
+          placeholder: HTMLDivElement
+          objectUrl?: string
+        }
+      >()
+      const landmarkMarkers = new globalThis.Map<
+        string,
+        {
+          marker: Marker
+          root: Root
+          scaledElement: { current: HTMLElement | null }
+        }
+      >()
+      // Discovery/POI pins whose visual scale tracks zoom. Only the pin's
+      // inner span goes in here — never the marker's own button — see the
+      // ref callbacks below for why.
+      const scaledMarkerElements = new Set<HTMLElement>()
       let active = true
 
-      const updatePhotoPopups = () => {
-        const shouldShow = instance.getZoom() >= photoPreopenZoom
-        for (const popup of photoPopups) {
-          if (shouldShow) {
-            if (!popup.isOpen()) popup.addTo(instance)
-          } else if (popup.isOpen()) {
-            popup.remove()
-          }
-        }
+      const disposeRoot = (root: Root) => {
+        if (!roots.delete(root)) return
+        queueMicrotask(() => root.unmount())
       }
 
-      const updateLandmarkVisibility = () => {
-        const shouldShow = instance.getZoom() >= landmarkMinZoom
-        for (const el of landmarkElements) {
-          el.style.display = shouldShow ? '' : 'none'
-        }
+      const removeMarker = (marker: Marker, root?: Root) => {
+        marker.remove()
+        markers.delete(marker)
+        if (root) disposeRoot(root)
+      }
+
+      const removePhotoPreview = (id: number) => {
+        const preview = photoPreviews.get(id)
+        if (!preview) return
+        preview.popup.remove()
+        if (preview.objectUrl) URL.revokeObjectURL(preview.objectUrl)
+        photoPreviews.delete(id)
       }
 
       const updateMarkerScale = () => {
         const scale = markerScaleForZoom(instance.getZoom())
         for (const el of scaledMarkerElements) {
           el.style.transform = `scale(${scale})`
+        }
+      }
+
+      const updatePhotoPreviews = () => {
+        const shouldShow = instance.getZoom() >= photoPreopenZoom
+        const visibleDiscoveries = shouldShow
+          ? discoveries.filter((discovery) =>
+              isCoordinateInMapViewport(
+                discovery.coordinates,
+                instance.getBounds(),
+              ),
+            )
+          : []
+        const visibleIds = new Set(
+          visibleDiscoveries.map((discovery) => discovery.id),
+        )
+
+        for (const id of photoPreviews.keys()) {
+          if (!visibleIds.has(id)) removePhotoPreview(id)
+        }
+
+        for (const discovery of visibleDiscoveries) {
+          if (photoPreviews.has(discovery.id)) continue
+
+          const preview = createPhotoPreviewElement(discovery.name, () =>
+            onSelectDiscovery?.(discovery.id),
+          )
+          const popup = new Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: 28,
+            anchor: 'bottom',
+            className: 'sterna-map-photo-popup',
+          })
+            .setLngLat(discovery.coordinates)
+            .setDOMContent(preview.element)
+
+          const entry: {
+            popup: Popup
+            placeholder: HTMLDivElement
+            objectUrl?: string
+          } = { popup, placeholder: preview.placeholder }
+          photoPreviews.set(discovery.id, entry)
+          popup.addTo(instance)
+
+          if (photoAccessToken && discovery.imageObjectKey) {
+            void getPhoto(photoAccessToken, discovery.imageObjectKey, 'map')
+              .then(async (blob) => {
+                if (!active || photoPreviews.get(discovery.id) !== entry) {
+                  return
+                }
+
+                const objectUrl = URL.createObjectURL(blob)
+                entry.objectUrl = objectUrl
+                const image = document.createElement('img')
+                image.alt = ''
+                image.className = 'size-full object-cover'
+                image.src = objectUrl
+                try {
+                  await image.decode?.()
+                } catch {
+                  throw new Error('Unable to decode discovery photo.')
+                }
+
+                if (
+                  !active ||
+                  photoPreviews.get(discovery.id) !== entry ||
+                  entry.objectUrl !== objectUrl
+                ) {
+                  return
+                }
+
+                entry.placeholder.replaceWith(image)
+              })
+              .catch(() => {
+                if (!active || photoPreviews.get(discovery.id) !== entry) {
+                  return
+                }
+
+                if (entry.objectUrl) {
+                  URL.revokeObjectURL(entry.objectUrl)
+                  entry.objectUrl = undefined
+                }
+                entry.placeholder.className =
+                  'flex size-full items-center justify-center bg-muted text-xs text-muted-foreground'
+                entry.placeholder.setAttribute(
+                  'aria-label',
+                  `Photo unavailable for ${discovery.name}`,
+                )
+                entry.placeholder.textContent = 'Photo unavailable'
+              })
+          }
+        }
+      }
+
+      const createLandmarkMarker = (landmark: LandmarkMarkerData) => {
+        const el = document.createElement('div')
+        const root = createRoot(el)
+        const markerImage = getPoiImageUrl(
+          landmark.imageUrl,
+          landmark.imageId,
+          'map',
+        )
+        // A box rather than a plain variable: the ref below may attach
+        // synchronously or not, but this entry is only ever read back much
+        // later (on the next moveend/zoomend), by which point React has
+        // certainly committed — see the discovery marker ref for why we
+        // can't rely on timing any more directly than that.
+        const scaledElement: { current: HTMLElement | null } = {
+          current: null,
+        }
+        root.render(
+          <button
+            type="button"
+            aria-label={`View ${landmark.name}`}
+            className="relative size-11"
+            onClick={() => onSelectLandmark?.(landmark.id)}
+          >
+            <span
+              ref={(node) => {
+                if (!node) return
+                node.style.transform = `scale(${markerScaleForZoom(instance.getZoom())})`
+                scaledElement.current = node
+                scaledMarkerElements.add(node)
+              }}
+              className={`absolute inset-0 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
+            >
+              <img
+                src={markerImage}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
+              />
+              <img
+                src={markerImage}
+                alt=""
+                className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
+              />
+            </span>
+            <span className="sr-only">
+              {landmark.discovered ? 'Discovered' : 'Undiscovered'}
+            </span>
+          </button>,
+        )
+
+        const marker = new Marker({ element: el, opacityWhenCovered: 0 })
+          .setLngLat(landmark.coordinates)
+          .addTo(instance)
+        markers.add(marker)
+        roots.add(root)
+        landmarkMarkers.set(landmark.id, { marker, root, scaledElement })
+      }
+
+      const removeLandmarkMarker = (id: string) => {
+        const entry = landmarkMarkers.get(id)
+        if (!entry) return
+        if (entry.scaledElement.current) {
+          scaledMarkerElements.delete(entry.scaledElement.current)
+        }
+        removeMarker(entry.marker, entry.root)
+        landmarkMarkers.delete(id)
+      }
+
+      const updateLandmarkMarkers = () => {
+        if (instance.getZoom() < landmarkMinZoom) {
+          for (const id of [...landmarkMarkers.keys()]) {
+            removeLandmarkMarker(id)
+          }
+          return
+        }
+
+        const visibleLandmarks = getVisibleLandmarks(
+          landmarks,
+          instance.getBounds(),
+        )
+        const visibleIds = new Set(
+          visibleLandmarks.map((landmark) => landmark.id),
+        )
+
+        for (const id of [...landmarkMarkers.keys()]) {
+          if (!visibleIds.has(id)) removeLandmarkMarker(id)
+        }
+
+        for (const landmark of visibleLandmarks) {
+          if (!landmarkMarkers.has(landmark.id)) {
+            createLandmarkMarker(landmark)
+          }
         }
       }
 
@@ -363,7 +569,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
                 // zoomed out) could otherwise sit at scale(1) until the next
                 // 'zoom' event ever fires.
                 node.style.transform = `scale(${markerScaleForZoom(instance.getZoom())})`
-                scaledMarkerElements.push(node)
+                scaledMarkerElements.add(node)
               }}
               className={cn(
                 'absolute inset-0 flex items-center justify-center rounded-full border-2 border-white shadow-lg ring-2',
@@ -375,118 +581,32 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             </span>
           </button>,
         )
-        markers.push(
-          new Marker({ element: el, opacityWhenCovered: 0 })
-            .setLngLat(discovery.coordinates)
-            .addTo(instance),
-        )
-        roots.push(root)
-
-        const authenticatedPhoto = Boolean(
-          photoAccessToken && discovery.imageObjectKey,
-        )
-        const preview = createPhotoPreviewElement(
-          discovery.name,
-          authenticatedPhoto ? undefined : imageUrl(discovery.imageId, 220),
-          () => onSelectDiscovery?.(discovery.id),
-        )
-
-        if (photoAccessToken && discovery.imageObjectKey) {
-          const imageObjectKey = discovery.imageObjectKey
-          void acquirePhotoUrl(photoAccessToken, imageObjectKey)
-            .then((objectUrl) => {
-              if (!active) return
-              preview.image.src = objectUrl
-              preview.image.hidden = false
-            })
-            .catch(() => {
-              // Keep the neutral placeholder when a photo cannot load.
-            })
-          photoReleases.push(() =>
-            releasePhotoUrl(photoAccessToken, imageObjectKey),
-          )
-        }
-
-        photoPopups.push(
-          new Popup({
-            closeButton: false,
-            closeOnClick: false,
-            offset: 28,
-            anchor: 'bottom',
-            className: 'sterna-map-photo-popup',
-          })
-            .setLngLat(discovery.coordinates)
-            .setDOMContent(preview.element),
-        )
+        const marker = new Marker({ element: el, opacityWhenCovered: 0 })
+          .setLngLat(discovery.coordinates)
+          .addTo(instance)
+        markers.add(marker)
+        roots.add(root)
       }
 
-      for (const landmark of landmarks) {
-        const el = document.createElement('div')
-        const root = createRoot(el)
-        const markerImage = landmark.imageUrl ?? imageUrl(landmark.imageId, 160)
-        root.render(
-          <button
-            type="button"
-            aria-label={`View ${landmark.name}`}
-            className="relative size-11"
-            onClick={() => onSelectLandmark?.(landmark.id)}
-          >
-            <span
-              ref={(node) => {
-                if (!node) return
-                node.style.transform = `scale(${markerScaleForZoom(instance.getZoom())})`
-                scaledMarkerElements.push(node)
-              }}
-              className={`absolute inset-0 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
-            >
-              <img
-                src={markerImage}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 size-full scale-125 object-cover opacity-55 blur-sm"
-              />
-              <img
-                src={markerImage}
-                alt=""
-                className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
-              />
-            </span>
-            <span className="sr-only">
-              {landmark.discovered ? 'Discovered' : 'Undiscovered'}
-            </span>
-          </button>,
-        )
-        markers.push(
-          new Marker({ element: el, opacityWhenCovered: 0 })
-            .setLngLat(landmark.coordinates)
-            .addTo(instance),
-        )
-        roots.push(root)
-        landmarkElements.push(el)
-
-        // POIs deliberately have no photo popup above their marker. Their
-        // image remains available inside the marker and on the detail page.
-      }
-
-      updatePhotoPopups()
-      updateLandmarkVisibility()
+      updatePhotoPreviews()
+      updateLandmarkMarkers()
       updateMarkerScale()
-      instance.on('zoom', updatePhotoPopups)
-      instance.on('zoom', updateLandmarkVisibility)
+      instance.on('moveend', updatePhotoPreviews)
+      instance.on('zoomend', updatePhotoPreviews)
+      instance.on('moveend', updateLandmarkMarkers)
+      instance.on('zoomend', updateLandmarkMarkers)
       instance.on('zoom', updateMarkerScale)
 
       return () => {
         active = false
-        instance.off('zoom', updatePhotoPopups)
-        instance.off('zoom', updateLandmarkVisibility)
+        instance.off('moveend', updatePhotoPreviews)
+        instance.off('zoomend', updatePhotoPreviews)
+        instance.off('moveend', updateLandmarkMarkers)
+        instance.off('zoomend', updateLandmarkMarkers)
         instance.off('zoom', updateMarkerScale)
-        photoPopups.forEach((popup) => popup.remove())
-        markers.forEach((marker) => marker.remove())
-        // Deferred: unmounting synchronously here can race with React's own
-        // commit of an unrelated update (e.g. this page unmounting on
-        // navigation), which logs a "synchronously unmount" warning.
-        roots.forEach((root) => queueMicrotask(() => root.unmount()))
-        photoReleases.forEach((release) => release())
+        for (const id of photoPreviews.keys()) removePhotoPreview(id)
+        for (const marker of markers) marker.remove()
+        for (const root of roots) disposeRoot(root)
       }
     }, [
       discoveries,

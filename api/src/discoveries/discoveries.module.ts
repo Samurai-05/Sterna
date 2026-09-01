@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GroupsModule } from '../groups/groups.module';
+import { PhotosModule } from '../photos/photos.module';
 import { DiscoveriesController } from './discoveries.controller';
 import { Discovery } from './discovery.entity';
 import { DiscoveriesService } from './discoveries.service';
@@ -13,7 +14,7 @@ import { GroupDiscoveriesController } from './group-discoveries.controller';
  * than in the groups module: the alternative is a cycle and a forwardRef().
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Discovery]), GroupsModule],
+  imports: [TypeOrmModule.forFeature([Discovery]), GroupsModule, PhotosModule],
   controllers: [DiscoveriesController, GroupDiscoveriesController],
   providers: [DiscoveriesService],
 })

@@ -162,6 +162,8 @@ DISCOVERIES(
 * `description`: optional discovery description.
 * `category`: optional discovery category.
 * `location`: geographical position of the discovery.
+* `location_source`: nullable provenance of the saved coordinates (`exif`,
+  `current_gps`, or `manual`); legacy discoveries may have no value.
 * `image_object_key`: reference to the image stored in the object storage service.
 * `discovered_at`: date and time when the discovery actually occurred.
 * `created_at`: date and time when the discovery was created in Sterna.
