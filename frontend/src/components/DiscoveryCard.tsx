@@ -43,10 +43,12 @@ export function DiscoveryCard({
           <h2 className="font-semibold leading-5 text-foreground">
             {discovery.name}
           </h2>
-          <CategoryIcon
-            category={discovery.category}
-            className="size-4 shrink-0"
-          />
+          {discovery.category && (
+            <CategoryIcon
+              category={discovery.category}
+              className="size-4 shrink-0"
+            />
+          )}
         </div>
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="size-3" />

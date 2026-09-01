@@ -76,7 +76,7 @@ export interface MapCanvasHandle {
 export interface DiscoveryMarkerData {
   id: number
   name: string
-  category: DiscoveryCategory
+  category: DiscoveryCategory | null
   imageId: string
   imageObjectKey?: string
   coordinates: [number, number]
@@ -537,7 +537,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       for (const discovery of discoveries) {
         const el = document.createElement('div')
         const root = createRoot(el)
-        const appearance = categoryAppearance[discovery.category]
+        const appearance = categoryAppearance[discovery.category ?? 'other']
         root.render(
           // The button is the fixed-size 44px tap target MapLibre positions;
           // only the inner span shrinks visually, so a small pin on a
@@ -567,7 +567,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
                 appearance.ring,
               )}
             >
-              <CategoryIcon category={discovery.category} className="size-5" />
+              <CategoryIcon
+                category={discovery.category ?? 'other'}
+                className="size-5"
+              />
             </span>
           </button>,
         )

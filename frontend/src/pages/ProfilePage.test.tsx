@@ -34,17 +34,26 @@ function makeDiscovery(
   id: number,
   countryCode: string,
   location: string,
+  options: {
+    category?: Discovery['category']
+    createdAt?: string
+    discoveredAt?: string
+    groupIds?: string[]
+  } = {},
 ): Discovery {
   return {
     id,
     name: `Discovery ${id}`,
-    category: 'landscape',
+    category: options.category ?? 'landscape',
     location,
     imageId: `photo-${id}`,
     description: '',
     author: 'Explorer',
     initials: 'E',
     relativeDate: 'today',
+    createdAt: options.createdAt,
+    discoveredAt: options.discoveredAt,
+    groupIds: options.groupIds,
     coordinates: [0, 0],
     countryCode,
   }
@@ -77,26 +86,139 @@ describe('ProfilePage', () => {
     window.localStorage.clear()
   })
 
-  it('shows unique human-readable countries from discovery country codes', async () => {
+  it('shows authored exploration statistics and counts shared discoveries once', async () => {
     getAuthoredDiscoveriesMock.mockResolvedValue([
-      makeDiscovery(1, 'FRA', '48.8566, 2.3522'),
-      makeDiscovery(2, 'FRA', '48.8606, 2.3364'),
-      makeDiscovery(3, 'CHE', '46.9480, 7.4474'),
-      makeDiscovery(4, 'UNK', '0.0000, 8.3522'),
+      makeDiscovery(1, 'FRA', 'Paris', { groupIds: ['friends', 'family'] }),
+      makeDiscovery(2, 'FRA', 'Lyon'),
+      makeDiscovery(3, 'CHE', 'Bern'),
+      makeDiscovery(4, 'UNK', 'Unknown country'),
     ])
 
     renderWithProviders(<ProfilePage />)
 
-    const countriesSection = within(
-      screen.getByRole('region', { name: 'Countries explored' }),
+    expect(
+      await screen.findByRole('group', { name: 'Discoveries: 4' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'Countries: 2' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'POIs: 0' })).toBeInTheDocument()
+    expect(screen.queryByText('Countries explored')).not.toBeInTheDocument()
+  })
+
+  it('shows POI progress and orders recent discoveries by discovery date', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([
+      makeDiscovery(1, 'FRA', 'Paris', {
+        createdAt: '2026-08-31T00:00:00.000Z',
+        discoveredAt: '2024-01-01T00:00:00.000Z',
+      }),
+      makeDiscovery(2, 'CHE', 'Bern', {
+        createdAt: '2024-01-01T00:00:00.000Z',
+        discoveredAt: '2026-08-31T00:00:00.000Z',
+      }),
+    ])
+    getAuthoredPoisMock.mockResolvedValue([
+      {
+        id: 'poi-1',
+        name: 'POI 1',
+        city: 'Paris',
+        country: 'France',
+        imageId: 'poi-1',
+        description: '',
+        discovered: true,
+        coordinates: [0, 0],
+      },
+      {
+        id: 'poi-2',
+        name: 'POI 2',
+        city: 'Bern',
+        country: 'Switzerland',
+        imageId: 'poi-2',
+        description: '',
+        discovered: false,
+        coordinates: [0, 0],
+      },
+    ])
+
+    renderWithProviders(<ProfilePage />)
+
+    const progress = await screen.findByRole('progressbar', {
+      name: 'Point of interest exploration progress',
+    })
+    expect(progress).toHaveAttribute(
+      'aria-valuetext',
+      '1 of 2 points of interest discovered',
     )
 
-    await countriesSection.findByText('Switzerland')
-    expect(countriesSection.getAllByText('France')).toHaveLength(1)
-    expect(countriesSection.getByText('Switzerland')).toBeInTheDocument()
-    expect(countriesSection.queryByText('2.3522')).not.toBeInTheDocument()
-    expect(countriesSection.queryByText('8.3522')).not.toBeInTheDocument()
-    expect(countriesSection.queryByText('UNK')).not.toBeInTheDocument()
+    const recentSection = screen.getByRole('region', {
+      name: 'Recent discoveries',
+    })
+    const recentLinks = within(recentSection).getAllByRole('link').slice(1)
+    expect(recentLinks[0]).toHaveAccessibleName(/Discovery 2/)
+    expect(recentLinks[1]).toHaveAccessibleName(/Discovery 1/)
+    expect(recentLinks[0]).toHaveAttribute('href', '/discoveries/2')
+    expect(
+      screen.queryByRole('heading', { name: 'Discovery activity' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('renders category rows with uncategorized discoveries and total-based ratios', async () => {
+    const uncategorizedDiscovery = makeDiscovery(3, 'ITA', 'Rome') as Discovery
+    uncategorizedDiscovery.category = null
+    getAuthoredDiscoveriesMock.mockResolvedValue([
+      makeDiscovery(1, 'FRA', 'Paris'),
+      makeDiscovery(2, 'CHE', 'Bern'),
+      uncategorizedDiscovery,
+    ])
+
+    renderWithProviders(<ProfilePage />)
+
+    const categoryList = await screen.findByRole('list', {
+      name: 'Discovery distribution by category',
+    })
+    expect(
+      within(categoryList).getByRole('listitem', {
+        name: 'Landscape: 2 discoveries',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(categoryList).getByRole('listitem', {
+        name: 'Uncategorized: 1 discovery',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(categoryList).getByTestId('category-bar-landscape'),
+    ).toHaveStyle({ width: '66.66666666666666%' })
+    expect(
+      within(categoryList).getByTestId('category-bar-uncategorized'),
+    ).toHaveStyle({ width: '33.33333333333333%' })
+  })
+
+  it('shows an intentional starting state when there are no authored discoveries', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByText('Your world starts here.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "Save your first discovery and start revealing the places you've explored.",
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Add discovery' })).toHaveAttribute(
+      'href',
+      '/add',
+    )
+    expect(
+      screen.queryByRole('region', { name: 'Recent discoveries' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('list', {
+        name: 'Discovery distribution by category',
+      }),
+    ).not.toBeInTheDocument()
   })
 
   it('deletes the account and clears the session on confirmation', async () => {

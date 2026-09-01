@@ -449,7 +449,7 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
   const authorName = discovery.authorUserName ?? `User ${discovery.userId}`
   const category = discovery.category
     ? (categoryByApiValue[discovery.category] ?? 'other')
-    : 'other'
+    : null
   const coordinates: [number, number] = [
     discovery.longitude,
     discovery.latitude,
@@ -473,6 +473,7 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
     initials: initialsOf(authorName),
     relativeDate: formatRelativeDate(discovery.discoveredAt),
     createdAt: discovery.createdAt,
+    discoveredAt: discovery.discoveredAt,
     coordinates,
     // PostGIS-derived (issue #59 / ADR-005) — see DiscoveriesService for how
     // a coastal point that misses every polygon still resolves to the

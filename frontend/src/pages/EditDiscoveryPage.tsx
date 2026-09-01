@@ -109,7 +109,7 @@ function EditDiscoveryForm({
   const [title, setTitle] = useState(discovery.name)
   const [description, setDescription] = useState(discovery.description)
   const [category, setCategory] = useState<DiscoveryCategory>(
-    discovery.category,
+    discovery.category ?? 'other',
   )
   const [coordinates, setCoordinates] = useState<[number, number]>(
     discovery.coordinates,
