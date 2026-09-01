@@ -108,8 +108,8 @@ function EditDiscoveryForm({
   const locationPickerRef = useRef<LocationPickerMapHandle>(null)
   const [title, setTitle] = useState(discovery.name)
   const [description, setDescription] = useState(discovery.description)
-  const [category, setCategory] = useState<DiscoveryCategory>(
-    discovery.category ?? 'other',
+  const [category, setCategory] = useState<DiscoveryCategory | null>(
+    discovery.category,
   )
   const [coordinates, setCoordinates] = useState<[number, number]>(
     discovery.coordinates,
@@ -190,11 +190,11 @@ function EditDiscoveryForm({
             discoveryId,
             title,
             description: description.trim() || null,
-            category,
             longitude: coordinates[0],
             latitude: coordinates[1],
             groupIds: sharedGroupIds,
             personal: includePersonal,
+            ...(category ? { category } : {}),
           })
         }}
         className="space-y-6 px-5"

@@ -30,7 +30,7 @@ describe('ProfileDiscoveryCard', () => {
 
     expect(
       screen.getByRole('link', { name: 'Alpine meadow, Switzerland' }),
-    ).toHaveAttribute('href', '/discoveries/7?group=group-1')
+    ).toHaveAttribute('href', '/discoveries/7')
     expect(container.querySelector('img')).toHaveAttribute('alt', '')
   })
 

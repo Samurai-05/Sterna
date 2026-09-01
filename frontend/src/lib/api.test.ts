@@ -296,6 +296,26 @@ describe('discovery group sharing', () => {
       personal: false,
     })
   })
+
+  it('omits an unchanged category so the API preserves an uncategorized discovery', async () => {
+    const fetchMock = mockDiscoveryResponse({
+      ...personalDiscovery,
+      category: null,
+    })
+
+    await updateDiscovery({
+      accessToken: 'token',
+      discoveryId: '1',
+      groupIds: [],
+      personal: true,
+      title: 'Updated discovery',
+      description: null,
+      longitude: 6.6,
+      latitude: 46.7,
+    })
+
+    expect(requestBody(fetchMock)).not.toHaveProperty('category')
+  })
 })
 
 function mockDiscoveryResponse(body: unknown) {

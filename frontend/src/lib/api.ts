@@ -272,7 +272,7 @@ export async function updateDiscovery(input: {
   discoveryId: string
   title: string
   description: string | null
-  category: DiscoveryCategory
+  category?: DiscoveryCategory
   longitude: number
   latitude: number
   groupIds: string[]
@@ -286,7 +286,9 @@ export async function updateDiscovery(input: {
       body: JSON.stringify({
         title: input.title,
         description: input.description,
-        category: apiValueByCategory[input.category],
+        ...(input.category
+          ? { category: apiValueByCategory[input.category] }
+          : {}),
         longitude: input.longitude,
         latitude: input.latitude,
         groupIds: input.groupIds,

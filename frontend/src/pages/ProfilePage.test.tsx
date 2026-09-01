@@ -206,6 +206,53 @@ describe('ProfilePage', () => {
     ).toBeInTheDocument()
   })
 
+  it('does not interpret an authored discoveries error as an empty profile', async () => {
+    getAuthoredDiscoveriesMock.mockRejectedValue(new Error('offline'))
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByRole('group', { name: 'Discoveries: Loading' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'Countries: Loading' }),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByRole('group', { name: 'POIs: 0' }),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText('—')).toHaveLength(2)
+    expect(
+      screen.getByText('Exploration data is temporarily unavailable.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Your world starts here.'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('0 of 0 discovered')).not.toBeInTheDocument()
+  })
+
+  it('does not interpret an authored POI error as zero progress', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([
+      makeDiscovery(1, 'CHE', 'Bern'),
+    ])
+    getAuthoredPoisMock.mockRejectedValue(new Error('offline'))
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByRole('group', { name: 'Discoveries: 1' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'POIs: Loading' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(screen.queryByText('0 of 0 discovered')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('progressbar', {
+        name: 'Point of interest exploration progress',
+      }),
+    ).not.toBeInTheDocument()
+  })
+
   it('renders category rows with uncategorized discoveries and total-based ratios', async () => {
     const uncategorizedDiscovery = makeDiscovery(3, 'ITA', 'Rome') as Discovery
     uncategorizedDiscovery.category = null
@@ -249,6 +296,13 @@ describe('ProfilePage', () => {
     expect(
       await screen.findByText('Your world starts here.'),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'Discoveries: 0' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'Countries: 0' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'POIs: 0' })).toBeInTheDocument()
     expect(
       screen.getByText(
         "Save your first discovery and start revealing the places you've explored.",

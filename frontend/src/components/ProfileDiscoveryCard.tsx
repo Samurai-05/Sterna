@@ -12,7 +12,7 @@ export function ProfileDiscoveryCard({ discovery }: { discovery: Discovery }) {
 
   return (
     <Link
-      to={discoveryPath(discovery.id, discovery.groupId)}
+      to={discoveryPath(discovery.id)}
       aria-label={[discovery.name, locationLabel].filter(Boolean).join(', ')}
       state={{ returnTo: `${location.pathname}${location.search}` }}
       className="group w-[44vw] min-w-40 max-w-52 shrink-0 snap-start overflow-hidden rounded-2xl bg-card transition-transform active:scale-[0.99]"

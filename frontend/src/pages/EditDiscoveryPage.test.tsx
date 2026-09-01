@@ -42,6 +42,11 @@ const discovery = {
   countryCode: 'CHE',
 }
 
+const uncategorizedDiscovery = {
+  ...discovery,
+  category: null,
+}
+
 afterEach(() => {
   clearSession()
   vi.clearAllMocks()
@@ -74,7 +79,7 @@ describe('EditDiscoveryPage', () => {
     vi.mocked(updateDiscovery).mockImplementation(async (input) => ({
       ...discovery,
       name: input.title,
-      category: input.category,
+      category: input.category ?? null,
       coordinates: [input.longitude, input.latitude],
     }))
 
@@ -113,6 +118,80 @@ describe('EditDiscoveryPage', () => {
       category: 'animal',
       longitude: 6.6327,
       latitude: 46.5218,
+    })
+  })
+
+  it('preserves an uncategorized discovery when saving without choosing a category', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        avatarObjectKey: null,
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    vi.mocked(getDiscovery).mockResolvedValue(uncategorizedDiscovery)
+    vi.mocked(getGroups).mockResolvedValue([])
+    vi.mocked(updateDiscovery).mockResolvedValue(uncategorizedDiscovery)
+
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/discoveries/:discoveryId/edit"
+          element={<EditDiscoveryPage />}
+        />
+        <Route path="/discoveries/:discoveryId" element={<p>Saved</p>} />
+      </Routes>,
+      { route: '/discoveries/7/edit' },
+    )
+
+    expect(await screen.findByDisplayValue('Original discovery')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() => expect(updateDiscovery).toHaveBeenCalled())
+    expect(vi.mocked(updateDiscovery).mock.calls[0][0]).not.toHaveProperty(
+      'category',
+    )
+  })
+
+  it('sends an explicitly selected category for an uncategorized discovery', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        avatarObjectKey: null,
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    vi.mocked(getDiscovery).mockResolvedValue(uncategorizedDiscovery)
+    vi.mocked(getGroups).mockResolvedValue([])
+    vi.mocked(updateDiscovery).mockResolvedValue({
+      ...uncategorizedDiscovery,
+      category: 'plant',
+    })
+
+    renderWithProviders(
+      <Routes>
+        <Route
+          path="/discoveries/:discoveryId/edit"
+          element={<EditDiscoveryPage />}
+        />
+        <Route path="/discoveries/:discoveryId" element={<p>Saved</p>} />
+      </Routes>,
+      { route: '/discoveries/7/edit' },
+    )
+
+    expect(await screen.findByDisplayValue('Original discovery')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Plant' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() => expect(updateDiscovery).toHaveBeenCalled())
+    expect(vi.mocked(updateDiscovery).mock.calls[0][0]).toMatchObject({
+      category: 'plant',
     })
   })
 })

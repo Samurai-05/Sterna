@@ -40,22 +40,31 @@ export function ProfilePage() {
     queryFn: () => getCurrentUser(accessToken!),
     enabled: Boolean(accessToken),
   })
-  const { data: backendDiscoveries, isPending: isDiscoveriesPending } =
-    useQuery({
-      queryKey: ['discoveries', session?.user.id, 'authored'],
-      queryFn: () => getAuthoredDiscoveries(accessToken!),
-      enabled: Boolean(accessToken),
-    })
-  const { data: backendPois, isPending: isPoisPending } = useQuery({
+  const {
+    data: backendDiscoveries,
+    isPending: isDiscoveriesPending,
+    isError: isDiscoveriesError,
+  } = useQuery({
+    queryKey: ['discoveries', session?.user.id, 'authored'],
+    queryFn: () => getAuthoredDiscoveries(accessToken!),
+    enabled: Boolean(accessToken),
+  })
+  const {
+    data: backendPois,
+    isPending: isPoisPending,
+    isError: isPoisError,
+  } = useQuery({
     queryKey: ['pois', session?.user.id, 'authored'],
     queryFn: () => getAuthoredPois(accessToken!),
     enabled: Boolean(accessToken),
     staleTime: 5 * 60 * 1000,
   })
 
-  const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
+  const sourceDiscoveries = accessToken
+    ? (backendDiscoveries ?? [])
+    : discoveries
   const profileDiscoveries = uniqueProfileDiscoveries(sourceDiscoveries)
-  const sourceLandmarks = backendPois ?? (session ? [] : landmarks)
+  const sourceLandmarks = accessToken ? (backendPois ?? []) : landmarks
   const displayedUser = currentUser ?? session?.user
   const displayedUserName = displayedUser?.userName ?? ''
   const displayedInitial = displayedUserName.trim().charAt(0).toUpperCase()
@@ -65,8 +74,13 @@ export function ProfilePage() {
   const exploredCodes = exploredCountryCodes(profileDiscoveries)
   const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
   const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
+  const isDiscoveriesUnavailable = Boolean(accessToken && isDiscoveriesError)
   const isPoisLoading = Boolean(accessToken && isPoisPending)
-  const hasDiscoveries = !isDiscoveriesLoading && profileDiscoveries.length > 0
+  const isPoisUnavailable = Boolean(accessToken && isPoisError)
+  const hasDiscoveries =
+    !isDiscoveriesLoading &&
+    !isDiscoveriesUnavailable &&
+    profileDiscoveries.length > 0
   const poiProgress = sourceLandmarks.length
     ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
     : 0
@@ -187,18 +201,37 @@ export function ProfilePage() {
             <div className="mt-6">
               <ProfileExplorationStats
                 discoveries={
-                  isDiscoveriesLoading ? null : profileDiscoveries.length
+                  isDiscoveriesLoading || isDiscoveriesUnavailable
+                    ? null
+                    : profileDiscoveries.length
                 }
-                countries={isDiscoveriesLoading ? null : exploredCodes.length}
-                pois={isPoisLoading ? null : discoveredLandmarks.length}
+                countries={
+                  isDiscoveriesLoading || isDiscoveriesUnavailable
+                    ? null
+                    : exploredCodes.length
+                }
+                pois={
+                  isPoisLoading || isPoisUnavailable
+                    ? null
+                    : discoveredLandmarks.length
+                }
               />
             </div>
             <div className="mt-6">
-              <ProfileWorldMap exploredCountryCodes={exploredCodes} />
+              {isDiscoveriesLoading ? (
+                <div className="h-44" aria-hidden="true" />
+              ) : isDiscoveriesUnavailable ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  Exploration data is temporarily unavailable.
+                </p>
+              ) : (
+                <ProfileWorldMap exploredCountryCodes={exploredCodes} />
+              )}
             </div>
           </section>
 
-          {isDiscoveriesLoading ? null : hasDiscoveries ? (
+          {isDiscoveriesLoading ||
+          isDiscoveriesUnavailable ? null : hasDiscoveries ? (
             <>
               <section
                 aria-labelledby="recent-discoveries-heading"
@@ -228,7 +261,7 @@ export function ProfilePage() {
                 </div>
               </section>
 
-              {!isPoisLoading && (
+              {!isPoisLoading && !isPoisUnavailable && (
                 <section aria-labelledby="points-of-interest-heading">
                   <div className="flex items-baseline justify-between gap-4">
                     <h2
