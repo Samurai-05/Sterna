@@ -1,15 +1,8 @@
-import {
-  ArrowLeft,
-  CalendarDays,
-  MapPin,
-  MoreHorizontal,
-  Trash2,
-  UsersRound,
-} from 'lucide-react'
+import { ArrowLeft, MoreHorizontal, Trash2 } from 'lucide-react'
 import { App as CapacitorApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Link,
   useLocation,
@@ -20,23 +13,22 @@ import {
 import Lightbox from 'yet-another-react-lightbox'
 import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 
-import { CategoryIcon } from '@/components/CategoryIcon'
+import { DiscoveryDetailsContent } from '@/components/DiscoveryDetailsContent'
 import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
+import { ViewerDetailsDrawer } from '@/components/ViewerDetailsDrawer'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
   DrawerContent,
-  DrawerDescription,
   DrawerHeader,
   DrawerSwipeHandle,
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
-import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
-import { categoryLabel } from '@/lib/mock-data'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
+import { useMeasuredDrawerSnapPoint } from '@/hooks/useMeasuredDrawerSnapPoint'
 
 const PEEK_SNAP_POINT = '5rem'
 
@@ -57,17 +49,16 @@ export function DiscoveryDetailPage({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false)
   const [isViewerOpen, setIsViewerOpen] = useState(false)
+  const [isViewerDetailsExpanded, setIsViewerDetailsExpanded] = useState(false)
   const [detailPhotoSource, setDetailPhotoSource] = useState<string | null>(
     null,
   )
   const [snapPoint, setSnapPoint] = useState<string | number>(PEEK_SNAP_POINT)
-  const [expandedSnapPoint, setExpandedSnapPoint] = useState<number | null>(
-    null,
-  )
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const actionTriggerRef = useRef<HTMLButtonElement>(null)
   const drawerControlsRef = useRef<HTMLDivElement>(null)
   const expandedContentRef = useRef<HTMLDivElement>(null)
+  const viewerControlsRef = useRef<HTMLDivElement>(null)
   const routeState = getDiscoveryRouteState(location.state)
   const returnTo = routeState.returnTo ?? '/collection'
 
@@ -79,6 +70,11 @@ export function DiscoveryDetailPage({
 
     navigate(returnTo, { replace: true })
   }
+
+  const closeViewer = useCallback(() => {
+    setIsViewerDetailsExpanded(false)
+    setIsViewerOpen(false)
+  }, [])
 
   const personalQuery = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
@@ -128,6 +124,16 @@ export function DiscoveryDetailPage({
     [detailPhotoSource, discovery],
   )
 
+  const isNormalDrawerExpanded = snapPoint !== PEEK_SNAP_POINT
+  const expandedSnapPoint = useMeasuredDrawerSnapPoint({
+    controlsRef: drawerControlsRef,
+    contentRef: expandedContentRef,
+    enabled: Boolean(discovery),
+    isExpanded: isNormalDrawerExpanded,
+    measurementKey: discovery?.id ?? null,
+    onSnapPointChange: setSnapPoint,
+  })
+
   useEffect(() => {
     if (!isViewerOpen || Capacitor.getPlatform() !== 'android') return
 
@@ -135,7 +141,12 @@ export function DiscoveryDetailPage({
     let listener: { remove: () => Promise<void> } | undefined
 
     void CapacitorApp.addListener('backButton', () => {
-      if (active) setIsViewerOpen(false)
+      if (!active) return
+      if (isViewerDetailsExpanded) {
+        setIsViewerDetailsExpanded(false)
+      } else {
+        closeViewer()
+      }
     }).then((handle) => {
       if (active) {
         listener = handle
@@ -148,7 +159,7 @@ export function DiscoveryDetailPage({
       active = false
       void listener?.remove()
     }
-  }, [isViewerOpen])
+  }, [closeViewer, isViewerDetailsExpanded, isViewerOpen])
 
   useEffect(() => {
     if (!isActionMenuOpen) return
@@ -176,49 +187,6 @@ export function DiscoveryDetailPage({
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isActionMenuOpen])
-
-  useLayoutEffect(() => {
-    const controls = drawerControlsRef.current
-    const content = expandedContentRef.current
-    if (!controls || !content) return
-
-    const measureExpandedSnapPoint = () => {
-      const viewportHeight = window.visualViewport?.height || window.innerHeight
-      if (!viewportHeight) return
-
-      const nextSnapPoint = getDiscoveryDetailExpandedSnapPoint({
-        contentHeight: content.scrollHeight,
-        controlsHeight: controls.getBoundingClientRect().height,
-        viewportHeight,
-      })
-      if (nextSnapPoint <= 0) return
-
-      setExpandedSnapPoint((current) =>
-        current !== null && Math.abs(current - nextSnapPoint) < 0.001
-          ? current
-          : nextSnapPoint,
-      )
-      setSnapPoint((current) =>
-        current === PEEK_SNAP_POINT ? current : nextSnapPoint,
-      )
-    }
-
-    measureExpandedSnapPoint()
-    if (typeof ResizeObserver !== 'function') return
-
-    const resizeObserver = new ResizeObserver(measureExpandedSnapPoint)
-    resizeObserver.observe(controls)
-    resizeObserver.observe(content)
-    window.visualViewport?.addEventListener('resize', measureExpandedSnapPoint)
-
-    return () => {
-      resizeObserver.disconnect()
-      window.visualViewport?.removeEventListener(
-        'resize',
-        measureExpandedSnapPoint,
-      )
-    }
-  }, [discovery])
 
   if (isLoading) {
     return (
@@ -248,7 +216,7 @@ export function DiscoveryDetailPage({
 
   const isAuthor =
     discovery.userId === undefined || discovery.userId === session?.user.id
-  const isExpanded = snapPoint !== PEEK_SNAP_POINT
+  const isExpanded = isNormalDrawerExpanded
   const discoverySnapPoints = [
     PEEK_SNAP_POINT,
     expandedSnapPoint ?? PEEK_SNAP_POINT,
@@ -265,7 +233,10 @@ export function DiscoveryDetailPage({
           className="absolute inset-0 z-0 flex size-full cursor-zoom-in items-center justify-center bg-stone-950 p-0"
           aria-label="Open photo"
           disabled={!detailPhotoSource}
-          onClick={() => setIsViewerOpen(true)}
+          onClick={() => {
+            setIsViewerDetailsExpanded(false)
+            setIsViewerOpen(true)
+          }}
         >
           <DiscoveryPhoto
             discovery={discovery}
@@ -340,6 +311,7 @@ export function DiscoveryDetailPage({
 
       <div
         data-testid="discovery-detail-drawer"
+        data-expanded-snap-point={expandedSnapPoint ?? 'null'}
         data-snap-point={snapPoint}
         className="relative z-50"
       >
@@ -364,66 +336,40 @@ export function DiscoveryDetailPage({
               className={`z-10 ${isExpanded ? 'relative' : 'absolute inset-x-0 bottom-0 bg-card'}`}
             >
               <DrawerSwipeHandle />
-              <DrawerHeader
-                className={`shrink-0 px-5 pt-0 text-left ${isExpanded ? 'pb-3' : 'pb-[max(0.5rem,var(--sterna-safe-area-bottom))]'}`}
-              >
-                <DrawerTitle
-                  render={
-                    <h1 className="truncate font-display text-xl font-semibold leading-7" />
-                  }
-                >
+              <DrawerHeader className="shrink-0 px-5 pt-0 pb-[max(0.75rem,var(--sterna-safe-area-bottom))] text-left">
+                <DrawerTitle render={<h1 className="sr-only" />}>
                   {discovery.name}
                 </DrawerTitle>
-                {isExpanded && (
-                  <DrawerDescription className="mt-1 flex items-center gap-1.5 truncate text-left text-sm">
-                    <MapPin className="size-3.5 shrink-0 text-primary" />
-                    <span className="truncate">{discovery.location}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{discovery.relativeDate}</span>
-                  </DrawerDescription>
-                )}
+                <button
+                  type="button"
+                  className="min-h-11 w-full truncate rounded-xl px-0 text-left font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40"
+                  aria-controls="discovery-detail-expanded-content"
+                  aria-expanded={isExpanded}
+                  onClick={() => {
+                    if (expandedSnapPoint === null) return
+                    setSnapPoint(
+                      isExpanded ? PEEK_SNAP_POINT : expandedSnapPoint,
+                    )
+                  }}
+                >
+                  {discovery.name}
+                </button>
               </DrawerHeader>
             </div>
 
             <div
               ref={expandedContentRef}
+              id="discovery-detail-expanded-content"
               data-testid="discovery-detail-expanded-content"
+              data-base-ui-swipe-ignore=""
               aria-hidden={!isExpanded}
               className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))] ${!isExpanded ? 'invisible pointer-events-none' : ''}`}
             >
-              <div className="border-t border-border/70 pt-5">
-                <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                  <CategoryIcon
-                    category={discovery.category}
-                    className="size-4"
-                  />
-                  {categoryLabel(discovery.category)}
-                </div>
-                <div className="mt-5 grid gap-3 text-sm text-muted-foreground">
-                  <p className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
-                    <span>{discovery.location}</span>
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
-                    <span>
-                      Added by {discovery.author} · {discovery.relativeDate}
-                    </span>
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <UsersRound className="mt-0.5 size-4 shrink-0 text-primary" />
-                    <span>{groupId ? 'Shared group map' : 'Personal map'}</span>
-                  </p>
-                </div>
-                <p className="mt-6 text-base leading-6 text-foreground">
-                  {discovery.description || 'No description added.'}
-                </p>
-                {!isAuthor && (
-                  <p className="mt-6 text-sm text-muted-foreground">
-                    Only {discovery.author} can edit or delete this discovery.
-                  </p>
-                )}
-              </div>
+              <DiscoveryDetailsContent
+                discovery={discovery}
+                groupId={groupId}
+                isAuthor={isAuthor}
+              />
             </div>
           </DrawerContent>
         </Drawer>
@@ -431,11 +377,31 @@ export function DiscoveryDetailPage({
 
       <Lightbox
         open={isViewerOpen && slides.length > 0}
-        close={() => setIsViewerOpen(false)}
+        close={closeViewer}
         slides={slides}
         plugins={[Zoom]}
-        carousel={{ imageFit: 'contain', preload: 0 }}
-        controller={{ closeOnBackdropClick: true }}
+        carousel={{ finite: true, imageFit: 'contain', preload: 0 }}
+        controller={{ closeOnBackdropClick: false }}
+        render={{
+          controls: () => (
+            <div
+              ref={viewerControlsRef}
+              data-testid="viewer-controls-root"
+              className="pointer-events-none absolute inset-0"
+            >
+              <ViewerDetailsDrawer
+                discovery={discovery}
+                expanded={isViewerDetailsExpanded}
+                groupId={groupId}
+                isAuthor={isAuthor}
+                onExpandedChange={setIsViewerDetailsExpanded}
+                portalContainer={viewerControlsRef}
+              />
+            </div>
+          ),
+          buttonPrev: () => null,
+          buttonNext: () => null,
+        }}
         labels={{ Close: 'Close photo viewer' }}
       />
 

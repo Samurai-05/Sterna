@@ -9,6 +9,7 @@
     "build:android": "tsc -b && vite build --mode android",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "postinstall": "patch-package",
     "preview": "vite preview",
     "test": "vitest"
   },
@@ -49,6 +50,7 @@
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
     "jsdom": "^29.1.1",
+    "patch-package": "^8.0.1",
     "prettier": "^3.9.6",
     "shadcn": "^4.19.0",
     "tailwindcss": "^4.3.3",

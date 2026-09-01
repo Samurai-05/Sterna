@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ReactNode } from 'react'
 
 import { getDiscovery, getPhoto } from '@/lib/api'
 import { saveSession } from '@/lib/session'
@@ -23,10 +24,12 @@ vi.mock('yet-another-react-lightbox', () => ({
     open,
     close,
     slides,
+    render,
   }: {
     open: boolean
     close: () => void
     slides: Array<{ src: string; alt?: string }>
+    render?: { controls?: () => ReactNode }
   }) =>
     open ? (
       <div role="dialog" aria-label="Photo viewer">
@@ -34,6 +37,7 @@ vi.mock('yet-another-react-lightbox', () => ({
           Close
         </button>
         <img src={slides[0].src} alt={slides[0].alt} />
+        {render?.controls?.()}
       </div>
     ) : null,
 }))
@@ -129,6 +133,39 @@ describe('DiscoveryDetailPage', () => {
     expect(expandedContent).toHaveClass('invisible')
   })
 
+  it('toggles the normal drawer from the title area', async () => {
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(320)
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 56 } as DOMRect)
+
+    renderPage()
+
+    const titleToggle = await screen.findByRole('button', {
+      name: 'Alpine meadow',
+    })
+    await waitFor(() =>
+      expect(screen.getByTestId('discovery-detail-drawer')).not.toHaveAttribute(
+        'data-expanded-snap-point',
+        'null',
+      ),
+    )
+    expect(titleToggle).toHaveAttribute('aria-expanded', 'false')
+
+    fireEvent.click(titleToggle)
+    await waitFor(() =>
+      expect(titleToggle).toHaveAttribute('aria-expanded', 'true'),
+    )
+
+    fireEvent.click(titleToggle)
+    expect(titleToggle).toHaveAttribute('aria-expanded', 'false')
+
+    scrollHeight.mockRestore()
+    bounds.mockRestore()
+  })
+
   it('keeps author actions accessible from the compact drawer', async () => {
     renderPage()
 
@@ -171,5 +208,18 @@ describe('DiscoveryDetailPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Alpine meadow' }),
     ).toBeInTheDocument()
+  })
+
+  it('renders a collapsed fullscreen details handle without requesting another photo', async () => {
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('img', { name: 'Alpine meadow' }))
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Photo viewer' }),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('viewer-details-drawer')).toBeInTheDocument()
+    expect(screen.getByTestId('viewer-details-handle')).toBeInTheDocument()
+    expect(getPhotoMock).toHaveBeenCalledTimes(1)
   })
 })

@@ -345,7 +345,9 @@ describe('opening a discovery from a group map', () => {
     api.getGroupDiscoveries.mockResolvedValue([otherMembersDiscovery])
     renderAt('/discoveries/22?group=12')
 
-    expect(await screen.findByText("Marc's find")).toBeInTheDocument()
+    expect(
+      await screen.findByRole('button', { name: "Marc's find" }),
+    ).toBeInTheDocument()
     // GET /api/discoveries/:id only ever returns the caller's own discoveries.
     expect(api.getDiscovery).not.toHaveBeenCalled()
     expect(api.getGroupDiscoveries).toHaveBeenCalled()
@@ -355,7 +357,7 @@ describe('opening a discovery from a group map', () => {
     api.getGroupDiscoveries.mockResolvedValue([otherMembersDiscovery])
     renderAt('/discoveries/22?group=12')
 
-    await screen.findByText("Marc's find")
+    await screen.findByRole('button', { name: "Marc's find" })
     expect(
       screen.queryByRole('menuitem', { name: 'Edit discovery' }),
     ).not.toBeInTheDocument()
