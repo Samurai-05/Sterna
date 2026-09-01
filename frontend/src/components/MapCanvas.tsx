@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils'
 
 setWorkerUrl(maplibreWorkerUrl)
 
-const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
+const mapStyle = 'https://tiles.openfreemap.org/styles/positron'
 // Zoom level from which a marker is "close" enough that its photo pre-opens
 // above the pin instead of waiting for a tap. Below street level (~15) so the
 // photo shows up while still zooming in, not only once fully street-level.

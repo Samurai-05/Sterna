@@ -12,7 +12,12 @@ const {
   MockNavigationControl,
 } = vi.hoisted(() => {
   const instances: Array<{
-    options: { center: [number, number]; zoom: number; minZoom?: number }
+    options: {
+      style: string
+      center: [number, number]
+      zoom: number
+      minZoom?: number
+    }
     controls: unknown[]
     addLayerCalls: Array<{ layer: unknown; beforeId?: string }>
     addSourceCalls: Array<{ id: string; source: unknown }>
@@ -38,7 +43,12 @@ const {
   }
 
   class MapMock {
-    options: { center: [number, number]; zoom: number; minZoom?: number }
+    options: {
+      style: string
+      center: [number, number]
+      zoom: number
+      minZoom?: number
+    }
     controls: unknown[] = []
     addLayerCalls: Array<{ layer: unknown; beforeId?: string }> = []
     addSourceCalls: Array<{ id: string; source: unknown }> = []
@@ -51,6 +61,7 @@ const {
     listeners = new Map<string, Set<() => void>>()
 
     constructor(options: {
+      style: string
       center: [number, number]
       zoom: number
       minZoom?: number
@@ -243,6 +254,19 @@ afterEach(() => {
 })
 
 describe('MapCanvas', () => {
+  it('uses the cleaner OpenFreeMap Positron basemap', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(<MapCanvas />)
+
+    expect(mapInstances[0].options.style).toBe(
+      'https://tiles.openfreemap.org/styles/positron',
+    )
+  })
+
   it('exposes a resize method for a persistent map shell', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,

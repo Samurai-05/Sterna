@@ -54,5 +54,19 @@ describe('map fog configuration', () => {
         { id: 'native-admin', type: 'line', 'source-layer': 'boundary' },
       ]),
     ).toBe('early-label')
+
+    // Bright and Positron use different transport layer IDs, but both expose
+    // the same native boundary source-layer contract.
+    expect(
+      getFogInsertionBeforeLayerId([
+        {
+          id: 'highway_major_subtle',
+          type: 'line',
+          'source-layer': 'transportation',
+        },
+        { id: 'boundary_3', type: 'line', 'source-layer': 'boundary' },
+        { id: 'label_country_1', type: 'symbol', 'source-layer': 'place' },
+      ]),
+    ).toBe('boundary_3')
   })
 })

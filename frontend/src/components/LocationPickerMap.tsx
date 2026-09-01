@@ -11,7 +11,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 
 setWorkerUrl(maplibreWorkerUrl)
 
-const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
+const mapStyle = 'https://tiles.openfreemap.org/styles/positron'
 
 export interface LocationPickerMapHandle {
   /** Recenters the map and moves the pin without waiting for a tap/drag. */
