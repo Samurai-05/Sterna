@@ -5,6 +5,21 @@
 **Scope:** `api/`, `frontend/`, `infra/`, deployment configuration
 **Status:** Findings only — no code changes were made.
 
+> **Status update (2026-09-01):** issue #163, "Fix the security issues found
+> in the review" (commit `f266e25`, sized further in `5b77260`), addressed the
+> security findings below: **S1** (photo ownership now lives in a `photos`
+> table, checked on both create and delete), **S2** (`@nestjs/throttler`
+> registered globally, with Nginx-level limits added too), **S3** (photo
+> download now goes through `PhotosService.canRead()`), **S4** (`helmet` on
+> the API, a real CSP/HSTS policy in `frontend/nginx/security-headers.conf`,
+> and `password_changed_at`-based token invalidation — see the amendment to
+> [ADR-009](decisions/ADR-009-authentication.md)), **S5** (register no longer
+> echoes the submitted address), and **S6** (Swagger gated out of production).
+> The findings below are left as originally written, as a record of what the
+> review found; they no longer describe the current state of those items.
+> The correctness (B) and coherence (C) findings were not in scope of that fix
+> and have not been re-verified since.
+
 ---
 
 ## Summary

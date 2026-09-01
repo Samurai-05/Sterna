@@ -68,9 +68,19 @@ npm run build
 npm run start
 ```
 
+### Application frontend
+
+With the API running (see Docker Compose below), the frontend can be run locally from its own directory; it proxies `/api` requests to `http://localhost:3000` (see [`frontend/README.md`](frontend/README.md)):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
 ### Docker Compose
 
-The root Compose configuration runs the API, PostgreSQL + PostGIS, MinIO, and the Nginx deployment placeholder:
+The root Compose configuration runs the API, PostgreSQL + PostGIS, MinIO, and Nginx (serving the built frontend and terminating TLS):
 
 ```bash
 cp .env.example .env
@@ -81,12 +91,11 @@ docker compose up --build
 |---|---|---|
 | API | [http://localhost:3000/api](http://localhost:3000/api) | `API_PORT` |
 | API documentation | [http://localhost:3000/api/docs](http://localhost:3000/api/docs) | — |
-| Web placeholder | [http://localhost:8080](http://localhost:8080) | `WEB_PORT` |
+| App | [https://localhost:8443](https://localhost:8443) | `WEB_TLS_PORT`; self-signed certificate locally |
+| App (HTTP) | [http://localhost:8080](http://localhost:8080) | `WEB_PORT`; redirects to the HTTPS port above |
 | MinIO console | [http://localhost:9001](http://localhost:9001) | — |
 
 The API runs in watch mode with `api/` mounted into its container, so changes are picked up without rebuilding. `GET /api/health` reports whether it can reach the database. See [`api/README.md`](api/README.md).
-
-The application frontend does not currently have a tracked `package.json` or source tree in this checkout, so no separate application run command is documented here.
 
 ## Documentation
 
@@ -106,6 +115,8 @@ The application frontend does not currently have a tracked `package.json` or sou
 - [ADR-006 — Photo storage](docs/decisions/ADR-006-photo-storage.md)
 - [ADR-007 — Deployment architecture](docs/decisions/ADR-007-deployment-architecture.md)
 - [ADR-008 — Backend framework](docs/decisions/ADR-008-backend-framework.md)
+- [ADR-009 — Authentication](docs/decisions/ADR-009-authentication.md)
+- [CI/CD](docs/ci_cd.md)
 - [Contributing guide](docs/CONTRIBUTING.md)
 - [Work process](docs/work_process.md)
 

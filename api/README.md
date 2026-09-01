@@ -128,7 +128,14 @@ group_members, discoveries, pois, their constraints, triggers and indexes — fo
 hand-written SQL, moved over from the `infra/postgres/init/` scripts that never ran anywhere
 because Postgres only executes those on a brand new data volume. After them come
 `1787734646000-RepairDiscoveryCategoryCheck.ts` and `1787734647000-AddGroupInviteCode.ts`,
-which gives every group its invitation code.
+which gives every group its invitation code, then `1787734648000-ReplaceMvpPois.ts` (the
+195-row POI catalogue), `1787734649000-AddCountryDetection.ts` (the country-boundary
+dataset), `1787734650000-AddDiscoveryGroupSharing.ts` and
+`1787734651000-AddDiscoveryPersonalSharing.ts` (letting one discovery be shared into several
+groups while staying on its author's personal map), `1787734652000-AddDiscoveryLocationSource.ts`
+and `1787734652000-AddUserAvatar.ts`, and `1787734653000-AddPhotoOwnership.ts` /
+`1787734654000-AddPasswordChangedAt.ts` (the `photos` table and `password_changed_at`, both
+described under Authentication and Photos below).
 
 Every entity — `auth/user.entity.ts`, `discoveries/discovery.entity.ts`, `pois/poi.entity.ts`
 and the two in `groups/` — is written against that schema. An entity here *describes* an
