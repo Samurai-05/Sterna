@@ -653,16 +653,20 @@ describe('MapCanvas', () => {
     // on moveend/zoomend), never synchronously at mount unless already
     // visible — so this is the realistic path for every POI marker, not an
     // edge case, and the same synchronous-ref-callback fix matters here too.
+    // Zoom is fixed at landmarkMinZoom throughout: below it no POI marker is
+    // ever created regardless of bounds, and the point here is to move the
+    // landmark into the viewport with no zoom CHANGE (no 'zoom' event) — not
+    // to also exercise the below-minimum-zoom case, which other tests cover.
     render(
       <MapCanvas
-        initialViewport={{ center: [50, 50], zoom: 1.5 }}
+        initialViewport={{ center: [50, 50], zoom: 5 }}
         landmarks={[
           {
             id: 'poi-1',
             name: 'Statue of Liberty',
             imageId: 'liberty',
             discovered: true,
-            coordinates: [6, 46],
+            coordinates: [30, 60],
           },
         ]}
       />,
@@ -670,13 +674,16 @@ describe('MapCanvas', () => {
 
     expect(markerInstances).toHaveLength(0)
 
-    mapInstances[0].bounds = { west: 0, south: 40, east: 10, north: 50 }
+    mapInstances[0].bounds = { west: 20, south: 50, east: 40, north: 70 }
     act(() => mapInstances[0].emit('moveend'))
 
     const [marker] = markerInstances
     const button = marker.element?.firstElementChild as HTMLElement
     const scaledElement = button.firstElementChild as HTMLElement
 
-    expect(scaledElement.style.transform).toBe('scale(0.35)')
+    // Same arithmetic as markerScaleForZoom(5) in the source, so this stays
+    // exact without duplicating (and risking transcribing wrong) its output.
+    const expectedScale = 0.35 + ((5 - 1.5) / (6 - 1.5)) * (1 - 0.35)
+    expect(scaledElement.style.transform).toBe(`scale(${expectedScale})`)
   })
 })
