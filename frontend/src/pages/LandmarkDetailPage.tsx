@@ -5,6 +5,7 @@ import { useLocation, useParams } from 'react-router'
 import { PageHeader } from '@/components/PageHeader'
 import { imageUrl, landmarks } from '@/lib/mock-data'
 import { getPois } from '@/lib/api'
+import { landmarkLocationLabel } from '@/lib/location-label'
 import { loadSession } from '@/lib/session'
 
 export function LandmarkDetailPage() {
@@ -53,9 +54,7 @@ export function LandmarkDetailPage() {
         </h1>
         <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="size-4 text-primary" />
-          {landmark.city && landmark.country
-            ? `${landmark.city}, ${landmark.country}`
-            : `${landmark.coordinates[1].toFixed(5)}, ${landmark.coordinates[0].toFixed(5)}`}
+          {landmarkLocationLabel(landmark)}
         </p>
         <p className="mt-6 text-[16px] leading-6">{landmark.description}</p>
       </article>

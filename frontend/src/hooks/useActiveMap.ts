@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getActiveMap, setActiveMap, type ActiveMap } from '@/lib/api'
+import { personalMapName } from '@/lib/personal-map-name'
 import { loadSession } from '@/lib/session'
 
 /**
@@ -37,6 +38,9 @@ export function useSetActiveMap() {
   })
 }
 
-export function activeMapName(activeMap: ActiveMap | undefined): string {
-  return activeMap?.name ?? 'Personal map'
+export function activeMapName(
+  activeMap: ActiveMap | undefined,
+  userName?: string,
+): string {
+  return activeMap?.name ?? personalMapName(userName)
 }

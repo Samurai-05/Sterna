@@ -1,5 +1,6 @@
 import type { AuthSession, AuthenticatedUser } from '@/lib/session'
 import type { Discovery, DiscoveryCategory, Landmark } from '@/lib/mock-data'
+import { getCountryName } from '@/lib/countries'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -146,6 +147,7 @@ interface ApiPoi {
   description: string | null
   longitude: number
   latitude: number
+  countryCode: string | null
   imageUrl: string | null
   discovered: boolean
 }
@@ -215,6 +217,18 @@ export async function getAuthoredDiscoveries(
       },
     },
   )
+
+  return discoveries.map(toDiscovery)
+}
+
+export async function getAllGroupDiscoveries(
+  accessToken: string,
+): Promise<Discovery[]> {
+  const discoveries = await request<ApiDiscovery[]>('/api/discoveries/groups', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
 
   return discoveries.map(toDiscovery)
 }
@@ -455,7 +469,7 @@ function toLandmark(poi: ApiPoi): Landmark {
     id: poi.id,
     name: poi.title,
     city: '',
-    country: '',
+    country: getCountryName(poi.countryCode) ?? '',
     imageId: 'photo-1502602898657-3e91760cbb34',
     imageUrl: poi.imageUrl ?? undefined,
     description: poi.description ?? '',

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 
-import { getPhoto } from '@/lib/api'
 import { imageUrl, type Discovery } from '@/lib/mock-data'
+import { acquirePhotoUrl, releasePhotoUrl } from '@/lib/photo-url-cache'
 import { loadSession } from '@/lib/session'
+import { cn } from '@/lib/utils'
 
 export function DiscoveryPhoto({
   discovery,
@@ -26,7 +27,6 @@ export function DiscoveryPhoto({
     <AuthenticatedDiscoveryPhoto
       accessToken={session.accessToken}
       imageObjectKey={discovery.imageObjectKey}
-      fallback={fallback}
       alt={alt}
       className={className}
     />
@@ -36,39 +36,87 @@ export function DiscoveryPhoto({
 function AuthenticatedDiscoveryPhoto({
   accessToken,
   imageObjectKey,
-  fallback,
   alt,
   className,
 }: {
   accessToken: string
   imageObjectKey: string
-  fallback: string
   alt: string
   className?: string
 }) {
-  const [source, setSource] = useState(fallback)
+  const requestKey = `${accessToken}\n${imageObjectKey}`
+  const [photoState, setPhotoState] = useState<{
+    requestKey: string
+    source?: string
+    loaded: boolean
+    failed: boolean
+  }>({ requestKey, loaded: false, failed: false })
+  const currentState =
+    photoState.requestKey === requestKey
+      ? photoState
+      : { requestKey, loaded: false, failed: false }
 
   useEffect(() => {
     let active = true
-    let objectUrl: string | undefined
 
-    void getPhoto(accessToken, imageObjectKey)
-      .then((blob) => {
+    void acquirePhotoUrl(accessToken, imageObjectKey)
+      .then((objectUrl) => {
         if (!active) return
-        objectUrl = URL.createObjectURL(blob)
-        setSource(objectUrl)
+        setPhotoState({
+          requestKey,
+          source: objectUrl,
+          loaded: false,
+          failed: false,
+        })
       })
       .catch(() => {
-        if (active) setSource(fallback)
+        if (active) {
+          setPhotoState({ requestKey, loaded: false, failed: true })
+        }
       })
 
     return () => {
       active = false
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
+      releasePhotoUrl(accessToken, imageObjectKey)
     }
-  }, [accessToken, fallback, imageObjectKey])
+  }, [accessToken, imageObjectKey, requestKey])
 
-  return <PhotoElement source={source} alt={alt} className={className} />
+  return (
+    <span
+      role={!currentState.source && alt ? 'img' : undefined}
+      aria-label={!currentState.source && alt ? alt : undefined}
+      aria-hidden={!currentState.source && !alt ? 'true' : undefined}
+      className={cn(
+        'relative block overflow-hidden bg-muted',
+        !currentState.loaded && !currentState.failed && 'animate-pulse',
+        className,
+      )}
+    >
+      {currentState.source && (
+        <img
+          src={currentState.source}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() =>
+            setPhotoState((state) =>
+              state.requestKey === requestKey
+                ? { ...state, loaded: true }
+                : state,
+            )
+          }
+          onError={() =>
+            setPhotoState((state) =>
+              state.requestKey === requestKey
+                ? { ...state, failed: true }
+                : state,
+            )
+          }
+          className={`size-full object-cover transition-opacity duration-200 ${currentState.loaded ? 'opacity-100' : 'opacity-0'}`}
+        />
+      )}
+    </span>
+  )
 }
 
 function PhotoElement({
@@ -80,5 +128,13 @@ function PhotoElement({
   alt: string
   className?: string
 }) {
-  return <img src={source} alt={alt} className={className} loading="lazy" />
+  return (
+    <img
+      src={source}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      decoding="async"
+    />
+  )
 }

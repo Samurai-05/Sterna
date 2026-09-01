@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
 import { categoryLabel } from '@/lib/mock-data'
+import { discoveryLocationLabel } from '@/lib/location-label'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
@@ -134,7 +135,7 @@ export function DiscoveryDetailPage({
         <div className="mt-5 space-y-3 text-sm text-muted-foreground">
           <p className="flex gap-2">
             <MapPin className="size-4 shrink-0 text-primary" />
-            {discovery.location}
+            {discoveryLocationLabel(discovery)}
           </p>
           <p className="flex gap-2">
             <CalendarDays className="size-4 shrink-0 text-primary" />

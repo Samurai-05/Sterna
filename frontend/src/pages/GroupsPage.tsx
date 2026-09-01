@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import { getGroups, type GroupSummary } from '@/lib/api'
 import { loadSession } from '@/lib/session'
+import { personalMapName } from '@/lib/personal-map-name'
 import { cn } from '@/lib/utils'
 
 export function GroupsPage() {
@@ -30,6 +31,7 @@ export function GroupsPage() {
     enabled: Boolean(session),
   })
   const personalIsActive = activeMap?.groupId === null
+  const personalMapLabel = personalMapName(session?.user.userName)
 
   return (
     <main className="min-h-dvh bg-background">
@@ -62,7 +64,7 @@ export function GroupsPage() {
           )}
           <div className="space-y-3">
             <div
-              aria-label="Personal map"
+              aria-label={personalMapLabel}
               aria-current={personalIsActive ? 'true' : undefined}
               className={cn(
                 'flex min-h-20 items-center gap-3 rounded-2xl border p-4',
@@ -82,7 +84,7 @@ export function GroupsPage() {
                 <UserRound className="size-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold">Personal map</span>
+                <span className="block font-semibold">{personalMapLabel}</span>
                 <span className="mt-1 block truncate text-sm text-muted-foreground">
                   Your private discoveries
                 </span>
@@ -97,7 +99,7 @@ export function GroupsPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  aria-label="Activate personal map"
+                  aria-label={`Activate ${personalMapLabel}`}
                   disabled={isLoadingActiveMap || setActiveMap.isPending}
                   onClick={() => setActiveMap.mutate(null)}
                 >
