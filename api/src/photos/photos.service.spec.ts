@@ -216,11 +216,27 @@ describe('PhotosService', () => {
       malformed[sosOffset + 12] = 0;
 
       await expect(
-        service.store({ buffer: malformed } as Express.Multer.File),
+        service.store(UPLOADER, { buffer: malformed } as Express.Multer.File),
       ).resolves.toMatchObject({
         metadata: { location: null, takenAt: null },
       });
       expect(minio.putObject).toHaveBeenCalled();
+    });
+
+    it('rejects a truncated JPEG after allowing the Samsung SOS warning', async () => {
+      const source = await image('jpeg');
+      const sosOffset = source.indexOf(Buffer.from([0xff, 0xda]));
+      const samsungJpeg = Buffer.from(source);
+
+      expect(sosOffset).toBeGreaterThanOrEqual(0);
+      samsungJpeg[sosOffset + 12] = 0;
+
+      await expect(
+        service.store(UPLOADER, {
+          buffer: samsungJpeg.subarray(0, samsungJpeg.length - 2),
+        } as Express.Multer.File),
+      ).rejects.toThrow();
+      expect(minio.putObject).not.toHaveBeenCalled();
     });
 
     // FR-06

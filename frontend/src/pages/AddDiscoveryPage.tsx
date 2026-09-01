@@ -164,7 +164,8 @@ export function AddDiscoveryPage() {
     error: unknown
   }>({ selectionId: 0, status: 'idle', data: null, error: null })
   const nativePhotoRef = useRef<SelectedPhoto | undefined>(undefined)
-  const photoUploadStatusRef = useRef(photoUploadState.status)
+  const previousNativePhotoRef = useRef<SelectedPhoto | undefined>(nativePhoto)
+  const pendingNativePhotoPathsRef = useRef(new Set<string>())
   const [locationQuery, setLocationQuery] = useState('')
   const [debouncedLocationQuery, setDebouncedLocationQuery] = useState('')
   const [showLocationResults, setShowLocationResults] = useState(false)
@@ -232,14 +233,23 @@ export function AddDiscoveryPage() {
   }, [nativePhoto])
 
   useEffect(() => {
-    photoUploadStatusRef.current = photoUploadState.status
-  }, [photoUploadState.status])
+    const previousPhoto = previousNativePhotoRef.current
+    if (
+      previousPhoto &&
+      previousPhoto.path !== nativePhoto?.path &&
+      !pendingNativePhotoPathsRef.current.has(previousPhoto.path)
+    ) {
+      void releaseNativePhoto(previousPhoto.path)
+    }
+    previousNativePhotoRef.current = nativePhoto
+  }, [nativePhoto])
 
   useEffect(() => {
+    const pendingNativePhotoPaths = pendingNativePhotoPathsRef.current
     return () => {
       isMountedRef.current = false
       const photo = nativePhotoRef.current
-      if (photo && photoUploadStatusRef.current !== 'pending') {
+      if (photo && !pendingNativePhotoPaths.has(photo.path)) {
         void releaseNativePhoto(photo.path)
       }
     }
@@ -322,7 +332,10 @@ export function AddDiscoveryPage() {
       )
       return uploadPhoto(session.accessToken, photo, fileName)
     },
-    onMutate: ({ selectionId }) => {
+    onMutate: ({ selectionId, nativePhoto: photoToUpload }) => {
+      if (photoToUpload) {
+        pendingNativePhotoPathsRef.current.add(photoToUpload.path)
+      }
       if (photoSelectionIdRef.current !== selectionId) return
       setPhotoUploadState({
         selectionId,
@@ -335,6 +348,9 @@ export function AddDiscoveryPage() {
       uploadedPhoto,
       { selectionId, nativePhoto: photoToRelease },
     ) => {
+      if (photoToRelease) {
+        pendingNativePhotoPathsRef.current.delete(photoToRelease.path)
+      }
       if (
         !isMountedRef.current ||
         photoSelectionIdRef.current !== selectionId
@@ -368,6 +384,9 @@ export function AddDiscoveryPage() {
       }
     },
     onError: (error, { selectionId, nativePhoto: photoToRelease }) => {
+      if (photoToRelease) {
+        pendingNativePhotoPathsRef.current.delete(photoToRelease.path)
+      }
       if (
         !isMountedRef.current ||
         photoSelectionIdRef.current !== selectionId
@@ -388,6 +407,9 @@ export function AddDiscoveryPage() {
 
   useEffect(() => {
     if (!isLoggedIn || !photoSelected) return
+    if (nativePhoto) {
+      pendingNativePhotoPathsRef.current.add(nativePhoto.path)
+    }
     photoUpload.mutate({
       selectionId: photoSelectionId,
       nativePhoto,
@@ -619,6 +641,9 @@ export function AddDiscoveryPage() {
                 className="h-11 w-full"
                 onClick={() => {
                   setFormMessage('')
+                  if (nativePhoto) {
+                    pendingNativePhotoPathsRef.current.add(nativePhoto.path)
+                  }
                   photoUpload.mutate({
                     selectionId: photoSelectionId,
                     nativePhoto,

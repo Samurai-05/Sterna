@@ -24,3 +24,6 @@ Thumbs.db
 .idea/
 *.swp
 .vscode
+# Android signing keys
+*.jks
+*.keystore
