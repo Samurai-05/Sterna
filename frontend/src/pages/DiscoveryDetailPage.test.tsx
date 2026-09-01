@@ -5,6 +5,7 @@ import { getDiscovery, getPhoto } from '@/lib/api'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { Route, Routes } from 'react-router'
+import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
 import { DiscoveryDetailPage } from './DiscoveryDetailPage'
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -91,6 +92,23 @@ function renderPage() {
 }
 
 describe('DiscoveryDetailPage', () => {
+  it('caps the expanded snap point at half the viewport without enlarging short content', () => {
+    expect(
+      getDiscoveryDetailExpandedSnapPoint({
+        contentHeight: 120,
+        controlsHeight: 56,
+        viewportHeight: 800,
+      }),
+    ).toBeCloseTo(0.22)
+    expect(
+      getDiscoveryDetailExpandedSnapPoint({
+        contentHeight: 600,
+        controlsHeight: 56,
+        viewportHeight: 800,
+      }),
+    ).toBe(0.5)
+  })
+
   it('uses the photo-first layout with a peek drawer and no conventional page title', async () => {
     renderPage()
 
@@ -104,11 +122,11 @@ describe('DiscoveryDetailPage', () => {
       'data-snap-point',
       '5rem',
     )
-    expect(screen.queryByText('46.7000, 6.6000')).not.toBeInTheDocument()
-    expect(screen.queryByText('today')).not.toBeInTheDocument()
-    expect(
-      screen.queryByText('A quiet meadow above the lake.'),
-    ).not.toBeInTheDocument()
+    const expandedContent = screen.getByTestId(
+      'discovery-detail-expanded-content',
+    )
+    expect(expandedContent).toHaveAttribute('aria-hidden', 'true')
+    expect(expandedContent).toHaveClass('invisible')
   })
 
   it('keeps author actions accessible from the compact drawer', async () => {

@@ -9,7 +9,7 @@ import {
 import { App as CapacitorApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   Link,
   useLocation,
@@ -28,17 +28,17 @@ import {
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
+  DrawerSwipeHandle,
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
+import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
 import { categoryLabel } from '@/lib/mock-data'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 
-const DISCOVERY_SNAP_POINTS = ['5rem', 0.5] as const
-const PEEK_SNAP_POINT = DISCOVERY_SNAP_POINTS[0]
-const EXPANDED_SNAP_POINT = DISCOVERY_SNAP_POINTS[1]
+const PEEK_SNAP_POINT = '5rem'
 
 type DiscoveryDetailPageProps = {
   presentation?: 'page' | 'overlay'
@@ -61,8 +61,13 @@ export function DiscoveryDetailPage({
     null,
   )
   const [snapPoint, setSnapPoint] = useState<string | number>(PEEK_SNAP_POINT)
+  const [expandedSnapPoint, setExpandedSnapPoint] = useState<number | null>(
+    null,
+  )
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const actionTriggerRef = useRef<HTMLButtonElement>(null)
+  const drawerControlsRef = useRef<HTMLDivElement>(null)
+  const expandedContentRef = useRef<HTMLDivElement>(null)
   const routeState = getDiscoveryRouteState(location.state)
   const returnTo = routeState.returnTo ?? '/collection'
 
@@ -172,6 +177,49 @@ export function DiscoveryDetailPage({
     }
   }, [isActionMenuOpen])
 
+  useLayoutEffect(() => {
+    const controls = drawerControlsRef.current
+    const content = expandedContentRef.current
+    if (!controls || !content) return
+
+    const measureExpandedSnapPoint = () => {
+      const viewportHeight = window.visualViewport?.height || window.innerHeight
+      if (!viewportHeight) return
+
+      const nextSnapPoint = getDiscoveryDetailExpandedSnapPoint({
+        contentHeight: content.scrollHeight,
+        controlsHeight: controls.getBoundingClientRect().height,
+        viewportHeight,
+      })
+      if (nextSnapPoint <= 0) return
+
+      setExpandedSnapPoint((current) =>
+        current !== null && Math.abs(current - nextSnapPoint) < 0.001
+          ? current
+          : nextSnapPoint,
+      )
+      setSnapPoint((current) =>
+        current === PEEK_SNAP_POINT ? current : nextSnapPoint,
+      )
+    }
+
+    measureExpandedSnapPoint()
+    if (typeof ResizeObserver !== 'function') return
+
+    const resizeObserver = new ResizeObserver(measureExpandedSnapPoint)
+    resizeObserver.observe(controls)
+    resizeObserver.observe(content)
+    window.visualViewport?.addEventListener('resize', measureExpandedSnapPoint)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.visualViewport?.removeEventListener(
+        'resize',
+        measureExpandedSnapPoint,
+      )
+    }
+  }, [discovery])
+
   if (isLoading) {
     return (
       <main className={pageClassName}>
@@ -200,7 +248,11 @@ export function DiscoveryDetailPage({
 
   const isAuthor =
     discovery.userId === undefined || discovery.userId === session?.user.id
-  const isExpanded = snapPoint === EXPANDED_SNAP_POINT
+  const isExpanded = snapPoint !== PEEK_SNAP_POINT
+  const discoverySnapPoints = [
+    PEEK_SNAP_POINT,
+    expandedSnapPoint ?? PEEK_SNAP_POINT,
+  ] as const
 
   return (
     <main className={pageClassName} data-presentation={presentation}>
@@ -296,77 +348,83 @@ export function DiscoveryDetailPage({
           onOpenChange={() => undefined}
           modal={false}
           disablePointerDismissal
-          snapPoints={[...DISCOVERY_SNAP_POINTS]}
+          snapPoints={[...discoverySnapPoints]}
           snapPoint={snapPoint}
           onSnapPointChange={(nextSnapPoint) => {
             if (nextSnapPoint !== null) setSnapPoint(nextSnapPoint)
           }}
           snapToSequentialPoints
-          showSwipeHandle
         >
           <DrawerContent
             contentDriven
             className="bg-card text-foreground shadow-[0_-12px_40px_rgba(28,25,23,0.16)]"
           >
-            <DrawerHeader
-              className={`shrink-0 px-5 pt-0 text-left ${isExpanded ? 'pb-3' : 'pb-[max(0.5rem,var(--sterna-safe-area-bottom))]'}`}
+            <div
+              ref={drawerControlsRef}
+              className={`z-10 ${isExpanded ? 'relative' : 'absolute inset-x-0 bottom-0 bg-card'}`}
             >
-              <DrawerTitle
-                render={
-                  <h1 className="truncate font-display text-xl font-semibold leading-7" />
-                }
+              <DrawerSwipeHandle />
+              <DrawerHeader
+                className={`shrink-0 px-5 pt-0 text-left ${isExpanded ? 'pb-3' : 'pb-[max(0.5rem,var(--sterna-safe-area-bottom))]'}`}
               >
-                {discovery.name}
-              </DrawerTitle>
-              {isExpanded && (
-                <DrawerDescription className="mt-1 flex items-center gap-1.5 truncate text-left text-sm">
-                  <MapPin className="size-3.5 shrink-0 text-primary" />
-                  <span className="truncate">{discovery.location}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{discovery.relativeDate}</span>
-                </DrawerDescription>
-              )}
-            </DrawerHeader>
+                <DrawerTitle
+                  render={
+                    <h1 className="truncate font-display text-xl font-semibold leading-7" />
+                  }
+                >
+                  {discovery.name}
+                </DrawerTitle>
+                {isExpanded && (
+                  <DrawerDescription className="mt-1 flex items-center gap-1.5 truncate text-left text-sm">
+                    <MapPin className="size-3.5 shrink-0 text-primary" />
+                    <span className="truncate">{discovery.location}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{discovery.relativeDate}</span>
+                  </DrawerDescription>
+                )}
+              </DrawerHeader>
+            </div>
 
-            {isExpanded && (
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))]">
-                <div className="border-t border-border/70 pt-5">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                    <CategoryIcon
-                      category={discovery.category}
-                      className="size-4"
-                    />
-                    {categoryLabel(discovery.category)}
-                  </div>
-                  <div className="mt-5 grid gap-3 text-sm text-muted-foreground">
-                    <p className="flex items-start gap-2">
-                      <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
-                      <span>{discovery.location}</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
-                      <span>
-                        Added by {discovery.author} · {discovery.relativeDate}
-                      </span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <UsersRound className="mt-0.5 size-4 shrink-0 text-primary" />
-                      <span>
-                        {groupId ? 'Shared group map' : 'Personal map'}
-                      </span>
-                    </p>
-                  </div>
-                  <p className="mt-6 text-base leading-6 text-foreground">
-                    {discovery.description || 'No description added.'}
-                  </p>
-                  {!isAuthor && (
-                    <p className="mt-6 text-sm text-muted-foreground">
-                      Only {discovery.author} can edit or delete this discovery.
-                    </p>
-                  )}
+            <div
+              ref={expandedContentRef}
+              data-testid="discovery-detail-expanded-content"
+              aria-hidden={!isExpanded}
+              className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))] ${!isExpanded ? 'invisible pointer-events-none' : ''}`}
+            >
+              <div className="border-t border-border/70 pt-5">
+                <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                  <CategoryIcon
+                    category={discovery.category}
+                    className="size-4"
+                  />
+                  {categoryLabel(discovery.category)}
                 </div>
+                <div className="mt-5 grid gap-3 text-sm text-muted-foreground">
+                  <p className="flex items-start gap-2">
+                    <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <span>{discovery.location}</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <span>
+                      Added by {discovery.author} · {discovery.relativeDate}
+                    </span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <UsersRound className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <span>{groupId ? 'Shared group map' : 'Personal map'}</span>
+                  </p>
+                </div>
+                <p className="mt-6 text-base leading-6 text-foreground">
+                  {discovery.description || 'No description added.'}
+                </p>
+                {!isAuthor && (
+                  <p className="mt-6 text-sm text-muted-foreground">
+                    Only {discovery.author} can edit or delete this discovery.
+                  </p>
+                )}
               </div>
-            )}
+            </div>
           </DrawerContent>
         </Drawer>
       </div>

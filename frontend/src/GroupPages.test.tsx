@@ -363,8 +363,8 @@ describe('opening a discovery from a group map', () => {
       screen.queryByRole('menuitem', { name: /Delete discovery/ }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByText(/Only Marc can edit or delete/),
-    ).not.toBeInTheDocument()
+      screen.getByTestId('discovery-detail-expanded-content'),
+    ).toHaveAttribute('aria-hidden', 'true')
   })
 
   it("keeps edit and delete on the viewer's own discovery", async () => {
