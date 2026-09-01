@@ -476,6 +476,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
             Preview preview = new Preview.Builder().setTargetRotation(getTargetRotation()).build();
             imageCapture = new ImageCapture.Builder()
                     .setTargetRotation(getTargetRotation())
+                    .setJpegQuality(85)
                     .setFlashMode(ImageCapture.FLASH_MODE_OFF)
                     .build();
             preview.setSurfaceProvider(previewView.getSurfaceProvider());

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   createDiscoveryPhotoAction,
+  releaseNativePhoto,
   type SelectedPhoto,
 } from './photo-capture'
 
@@ -54,5 +55,15 @@ describe('createDiscoveryPhotoAction', () => {
 
     expect(open).not.toHaveBeenCalled()
     expect(navigate).toHaveBeenCalledWith('/add')
+  })
+})
+
+describe('releaseNativePhoto', () => {
+  it('asks the native plugin to delete a selected cache file', async () => {
+    const release = vi.fn().mockResolvedValue(undefined)
+
+    await releaseNativePhoto(selectedPhoto.path, release)
+
+    expect(release).toHaveBeenCalledWith(selectedPhoto.path)
   })
 })

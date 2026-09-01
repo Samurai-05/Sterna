@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { Capacitor } from '@capacitor/core'
 
 import { renderWithProviders } from '@/test/renderWithProviders'
 import {
@@ -9,7 +10,7 @@ import {
   type UploadPhotoResponse,
 } from '@/lib/api'
 import { saveSession, clearSession } from '@/lib/session'
-import { AddDiscoveryPage } from './AddDiscoveryPage'
+import { AddDiscoveryPage, readSelectedPhoto } from './AddDiscoveryPage'
 
 const originalGeolocation = window.navigator.geolocation
 
@@ -29,10 +30,103 @@ afterEach(() => {
     configurable: true,
     value: originalGeolocation,
   })
+  vi.clearAllMocks()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('AddDiscoveryPage', () => {
+  it('uses the native MIME type when the Capacitor Blob has no MIME', async () => {
+    const convertFileSrc = vi
+      .spyOn(Capacitor, 'convertFileSrc')
+      .mockReturnValue('https://localhost/_capacitor_file/photo.jpg')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: {
+        get: (name: string) => (name === 'content-length' ? '10' : null),
+      },
+      blob: vi.fn().mockResolvedValue(new Blob(['jpeg-bytes'], { type: '' })),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const nativePhoto = {
+      path: '/data/user/0/com.sterna.app/cache/photo.jpg',
+      mimeType: 'image/jpeg',
+      fileName: 'photo.jpg',
+      source: 'camera' as const,
+    }
+
+    const result = await readSelectedPhoto(nativePhoto, null)
+
+    expect(convertFileSrc).toHaveBeenCalledWith(nativePhoto.path)
+    expect(result.photo.type).toBe('image/jpeg')
+    expect(result.photo.size).toBe(10)
+  })
+
+  it('replaces a generic native Blob MIME with the plugin MIME type', async () => {
+    vi.spyOn(Capacitor, 'convertFileSrc').mockReturnValue(
+      'https://localhost/_capacitor_file/photo.jpg',
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        blob: vi
+          .fn()
+          .mockResolvedValue(
+            new Blob(['jpeg-bytes'], { type: 'application/octet-stream' }),
+          ),
+      }),
+    )
+
+    const result = await readSelectedPhoto(
+      {
+        path: '/data/user/0/com.sterna.app/cache/photo.jpg',
+        mimeType: 'image/jpeg',
+        fileName: 'photo.jpg',
+        source: 'camera',
+      },
+      null,
+    )
+
+    expect(result.photo.type).toBe('image/jpeg')
+    expect(result.photo.size).toBe(10)
+  })
+
+  it('reports a native file bridge failure as a readable photo error', async () => {
+    vi.spyOn(Capacitor, 'convertFileSrc').mockReturnValue(
+      'https://localhost/_capacitor_file/photo.jpg',
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('file bridge unavailable')),
+    )
+
+    await expect(
+      readSelectedPhoto(
+        {
+          path: '/data/user/0/com.sterna.app/cache/photo.jpg',
+          mimeType: 'image/jpeg',
+          fileName: 'photo.jpg',
+          source: 'camera',
+        },
+        null,
+      ),
+    ).rejects.toThrow('Unable to read captured photo.')
+  })
+
+  it('passes a browser gallery JPEG through unchanged', async () => {
+    const photo = new File(['jpeg-bytes'], 'gallery.jpg', {
+      type: 'image/jpeg',
+    })
+
+    const result = await readSelectedPhoto(undefined, photo)
+
+    expect(result).toEqual({ photo, fileName: 'gallery.jpg' })
+  })
+
   it('uses the current device position as the initial discovery location', async () => {
     saveSession({
       accessToken: 'test-token',
@@ -289,5 +383,113 @@ describe('AddDiscoveryPage', () => {
       },
     })
     expect(screen.queryByText('35.65860, 139.74540')).not.toBeInTheDocument()
+  })
+
+  it('shows the upload cause instead of asking for the same photo again', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        avatarObjectKey: null,
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    vi.mocked(uploadPhoto)
+      .mockRejectedValueOnce(
+        Object.assign(new Error('File too large'), { status: 413 }),
+      )
+      .mockResolvedValueOnce({
+        objectKey: 'photos/retried.jpg',
+        url: '/api/photos/retried.jpg',
+        metadata: { location: null, takenAt: null },
+      })
+
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+    const fileInput = document.querySelector('input[type="file"]')
+    if (!fileInput) throw new Error('Photo input not found.')
+    fireEvent.change(fileInput, {
+      target: {
+        files: [new File(['bytes'], 'large.jpg', { type: 'image/jpeg' })],
+      },
+    })
+    await waitFor(() => expect(uploadPhoto).toHaveBeenCalled())
+    expect(uploadPhoto).toHaveBeenCalledTimes(1)
+
+    fireEvent.submit(document.querySelector('form')!)
+
+    expect(await screen.findAllByText('Photo is too large.')).toHaveLength(2)
+    expect(
+      screen.queryByText(
+        'The photo failed to upload. Choose it again to retry.',
+      ),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry photo upload' }))
+    await waitFor(() => expect(uploadPhoto).toHaveBeenCalledTimes(2))
+    expect(screen.queryByText('Photo is too large.')).not.toBeInTheDocument()
+  })
+
+  it('does not let an earlier upload error replace the current photo state', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        avatarObjectKey: null,
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    const deferred = new Map<
+      string,
+      {
+        resolve: (value: UploadPhotoResponse) => void
+        reject: (error: Error) => void
+      }
+    >()
+    vi.mocked(uploadPhoto).mockImplementation(
+      async (_token, _photo, fileName) =>
+        new Promise((resolve, reject) => {
+          deferred.set(fileName, { resolve, reject })
+        }),
+    )
+
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+    const fileInput = document.querySelector('input[type="file"]')
+    if (!fileInput) throw new Error('Photo input not found.')
+    fireEvent.change(fileInput, {
+      target: {
+        files: [new File(['a'], 'photo-a.jpg', { type: 'image/jpeg' })],
+      },
+    })
+    await waitFor(() => expect(deferred.has('photo-a.jpg')).toBe(true))
+    fireEvent.change(fileInput, {
+      target: {
+        files: [new File(['b'], 'photo-b.jpg', { type: 'image/jpeg' })],
+      },
+    })
+    await waitFor(() => expect(deferred.has('photo-b.jpg')).toBe(true))
+
+    deferred.get('photo-a.jpg')?.reject(new Error('old upload failed'))
+    deferred.get('photo-b.jpg')?.resolve({
+      objectKey: 'photos/b.jpg',
+      url: '/api/photos/b.jpg',
+      metadata: { location: null, takenAt: null },
+    })
+
+    await waitFor(() =>
+      expect(screen.getByText('Photo selected')).toBeInTheDocument(),
+    )
+    fireEvent.submit(document.querySelector('form')!)
+    expect(
+      await screen.findByText(
+        'Choose a real discovery location on the map or search for a place before saving.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Upload failed. Please try again.'),
+    ).not.toBeInTheDocument()
   })
 })

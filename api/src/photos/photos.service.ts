@@ -471,7 +471,12 @@ export class PhotosService {
       );
     }
 
-    const pipeline = sharp(buffer).rotate();
+    // Some Samsung CameraX JPEGs use a non-standard sequential SOS marker
+    // (spectral end is 0 instead of 63). libvips can decode those safely, but
+    // its default warning policy rejects them before producing pixels. Keep
+    // rejecting truncated files while allowing this recoverable JPEG warning;
+    // the output is re-encoded and therefore validated before it is stored.
+    const pipeline = sharp(buffer, { failOn: 'truncated' }).rotate();
 
     switch (format) {
       case 'jpeg':
