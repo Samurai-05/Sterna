@@ -174,10 +174,6 @@ addresses is slow rather than free.
 
 ## Future evolution
 
-- **Rate limiting** on login and password change (`@nestjs/throttler`). No NFR mandates it,
-  and nothing in the current design throttles credential guessing.
-- **Token revocation** without adopting refresh tokens: a `password_changed_at` column
-  compared against the token's `iat` would invalidate outstanding tokens on a password change.
 - **Refresh tokens**, if session length ever has to shrink without hurting usability.
 - **Breached-password rejection** against Pwned Passwords (ASVS §2.1.7), deferred as a network
   call on the registration path with no requirement behind it.

@@ -1,8 +1,9 @@
 # Architecture
 
 This document describes how the pieces of Sterna fit together: the client, the
-backend services, and how they talk to each other. It reflects what is decided
-as of Sprint 0; open points are listed at the end instead of being glossed over.
+backend services, and how they talk to each other. It was written as of
+Sprint 0 and is kept up to date as decisions are made; open points are listed
+at the end instead of being glossed over.
 
 ## Overview
 
@@ -14,12 +15,11 @@ VM behind an Nginx reverse proxy, orchestrated with Docker Compose. This
 matches the `docker compose up` workflow described in `docs/CONTRIBUTING.md`
 and keeps Sprint 0 infrastructure work to a single deployable unit.
 
-**Current implementation status (end of Sprint 0):** the CI/CD pipeline itself
-is in place and running. The Nginx reverse proxy / single-VM deployment
-described below is the target architecture and is not yet stood up; PostgreSQL
-and MinIO are containerized and covered by the pipeline, but the Nginx layer
-and its VM provisioning are still in progress and tracked as follow-up work
-early in Sprint 1.
+**Current implementation status:** the architecture described below is stood
+up and running. The CI/CD pipeline builds, tests and deploys the stack
+automatically (see `docs/ci_cd.md`); the Nginx reverse proxy, PostgreSQL +
+PostGIS and MinIO all run as containers on the school VM behind the single
+entry point described here.
 
 ## Component diagram
 
@@ -78,9 +78,7 @@ Source: [`architecture.puml`](architecture.puml).
 - **Nginx as the single reverse proxy / TLS termination point.** It is the
   only container exposed to the outside network; the API, database and MinIO
   are only reachable from inside the Compose network. That limits the attack
-  surface and puts TLS certificate handling in one place. *(Not yet
-  provisioned — see status note above; PostgreSQL and MinIO are containerized
-  today without Nginx in front of them.)*
+  surface and puts TLS certificate handling in one place.
 - **The API is the sole gateway to PostgreSQL and MinIO.** The client never
   holds database or MinIO credentials. Authorization logic lives in one place instead of being
   duplicated or bypassed on the client.
@@ -97,18 +95,14 @@ Source: [`architecture.puml`](architecture.puml).
 - **Basemap tile provider**: OpenFreeMap vector tiles with a custom MapLibre
   Style JSON, geocoding proxied through the backend to Nominatim. See
   `docs/frontend-stack.md` (ADR-002).
-
-## Open decisions
-
-Still to be resolved, as the corresponding area owner (see
-`docs/work_process.md`) makes the call:
-
-- **Node.js API framework** (Express, Fastify, or NestJS).
+- **Node.js API framework and data access**: NestJS with TypeORM. See
+  `docs/decisions/ADR-008-backend-framework.md`.
+- **Authentication**: stateless JWT access tokens, argon2id password hashing.
+  See `docs/decisions/ADR-009-authentication.md`.
 
 ## Deployment and CI/CD
 
 CI/CD (pipeline, container registry, deployment automation) is out of scope
-for this document; it is described in `docs/ci_cd.md`. As noted above, the
-Nginx / single-VM deployment layer described in this document is the target
-end state and has not been provisioned yet — PostgreSQL and MinIO are
-currently containerized and pipeline-covered without it.
+for this document; it is described in `docs/ci_cd.md`. The Nginx / single-VM
+deployment layer described in this document is stood up and deployed to on
+every merge to `main`.

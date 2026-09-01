@@ -1,8 +1,9 @@
 # Sterna frontend
 
-Base technique React, TypeScript et Vite pour Sterna. Elle comprend le routing
-temporaire, TanStack Query, Tailwind CSS v4, shadcn/ui, Capacitor Android,
-MapLibre GL JS, une PWA et les outils de qualité.
+Application React, TypeScript et Vite de Sterna : authentification, carte,
+découvertes, groupes et profil. Elle s'appuie sur React Router, TanStack
+Query, Tailwind CSS v4, shadcn/ui, Capacitor Android, MapLibre GL JS, une PWA
+et les outils de qualité.
 
 ## Prérequis
 
@@ -86,12 +87,12 @@ Ouvrir le projet Android dans Android Studio :
 npx cap open android
 ```
 
-## Smoke tests techniques
+## Intégrations techniques
 
-- `/`, `/map` et `/profile` vérifient l’intégration de React Router.
-- `/map` affiche une carte MapLibre avec le style public OpenFreeMap Liberty.
-- Le `QueryClientProvider` est installé à la racine, sans API de démonstration.
-- Le manifeste et le service worker sont générés pendant `npm run build`.
-
-Ces routes et la carte sont volontaires et temporaires : elles ne constituent pas
-les écrans ni les fonctionnalités métier de Sterna.
+- `/` affiche la carte principale (MapLibre GL JS, style OpenFreeMap Liberty), avec les
+  découvertes, pays explorés et POIs de la carte active.
+- React Router gère la navigation entre les écrans (`/collection`, `/add`, `/groups`,
+  `/profile`, etc.), avec une redirection vers `/auth` pour un visiteur non authentifié.
+- Le `QueryClientProvider` (TanStack Query) est installé à la racine et alimente les appels
+  à l'API Sterna.
+- Le manifeste et le service worker PWA sont générés pendant `npm run build`.

@@ -1,7 +1,7 @@
 # CI/CD
 
-This document describes the CI/CD pipeline set up during Sprint 0. It covers
-what the pipeline does today and what is intentionally still open, rather than
+This document describes the CI/CD pipeline, set up during Sprint 0 and kept up
+to date since. It covers what the pipeline actually does, rather than
 describing a target state that isn't running yet.
 
 ## Overview
@@ -21,21 +21,22 @@ automatically built, verified and deployed without manual intervention.
 
 ## CI — Continuous Integration
 
-Runs on pull requests targeting `main` and on pushes to `main`:
+Runs on pull requests targeting `main` and on pushes to `main`, as three parallel jobs
+defined in `.github/workflows/ci.yml`:
 
-- **Build** of the application.
-- **Automated tests.**
-  - Not yet explicitly implemented: there is no concrete application code to
-    test yet (Sprint 0 focused on infrastructure, not features), so this step
-    currently has nothing meaningful to run. It will be filled in as soon as
-    Sprint 1 produces testable code, per `NFR-30` / `NFR-31`.
+- **`frontend`.** Installs dependencies, lints, runs the Vitest suite (`npm test -- --run`),
+  builds the app, then builds the production Docker image — which catches issues the
+  source build alone would miss, such as an import reaching outside the `frontend/`
+  build context.
+- **`api`.** Installs dependencies, lints with `lint:ci` (no `--fix`, so CI reports
+  problems instead of silently repairing them), runs the Jest unit suite, builds, then
+  builds the production Docker image.
+- **`android`.** Builds the Android web assets with `npm run build:android`,
+  synchronizes Capacitor, and compiles with `./gradlew assembleDebug` from
+  `frontend/android`. Pull requests validate the build; on a push to `main`, the
+  generated debug APK is published as the `sterna-debug-apk` GitHub Actions artifact.
 - **CI is required for merge.** A pull request cannot be merged into `main`
-  unless the pipeline passes, so a broken build cannot reach `main`.
-- **Android debug build.** The dedicated Android job builds Android web assets
-  with `npm run build:android`, synchronizes Capacitor, and compiles with
-  `./gradlew assembleDebug` from `frontend/android`. Pull requests validate the
-  build; on a push to `main`, the generated debug APK is published as the
-  `sterna-debug-apk` GitHub Actions artifact.
+  unless every job passes, so a broken build or a failing test cannot reach `main`.
 
 ## CD — Continuous Deployment
 
@@ -52,22 +53,17 @@ Runs after a merge into `main`:
      from the registry instead, which keeps the VM as the only place that
      needs registry credentials.
 
-## Current status (end of Sprint 0)
+## Current status
 
 - The pipeline (CI build/test gate + CD image build, publish, and
   registry-pull deployment) is in place and running.
 - The Nginx reverse proxy and the rest of the single-VM architecture
-  described in `docs/architecture.md` are not deployed yet — PostgreSQL and
-  MinIO are containerized and covered by the pipeline, but the layer that
-  exposes the app behind Nginx is still to be provisioned early in Sprint 1.
-- Automated tests are not yet meaningful, since there is no feature code yet
-  to test; the CI step exists and gates merges, but currently has an empty or
-  placeholder test suite.
-
-## Open points for Sprint 1
-
-- Provision the Nginx / VM layer described in `docs/architecture.md`.
-- Add real automated tests (starting with the critical behaviors listed in
-  `NFR-31`: authentication, discovery creation, group access, unauthorized
-  access rejection, active-context association, context switching) so the CI
-  test step becomes meaningful rather than a placeholder.
+  described in `docs/architecture.md` are deployed: `deploy.yml` applies
+  pending database migrations, brings up the full stack, waits for the API
+  healthcheck, and verifies the app is reachable through Nginx (HTTP→HTTPS
+  redirect, the app itself, and `/api/health` proxied through) before
+  considering the deploy successful.
+- CI runs real automated tests for both the frontend (Vitest) and the API
+  (Jest), covering the critical behaviors `NFR-31` lists — authentication,
+  discovery creation, group access and its rejection, and active-context
+  association and switching — among others.

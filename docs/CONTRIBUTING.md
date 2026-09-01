@@ -20,8 +20,6 @@ docker compose up
 | MinIO console | http://localhost:9001 | Credentials from `.env` |
 | PostgreSQL | localhost:5432 | PostgreSQL + PostGIS |
 
-The app frontend is not scaffolded yet, so nothing else is served.
-
 Confirm the stack came up correctly:
 
 ```bash
@@ -51,6 +49,20 @@ docker compose up -d --build --renew-anon-volumes api
 ```
 
 Details, project layout and conventions: [`api/README.md`](../api/README.md).
+
+### Working on the frontend
+
+The frontend has no watch-mode container of its own — `docker compose up` builds and serves
+it through Nginx like production would. For day-to-day frontend work, run Vite directly on
+the host, alongside the rest of the stack; it proxies `/api` to `http://localhost:3000`:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Details, project layout and conventions: [`frontend/README.md`](../frontend/README.md).
 
 Two files describe the stack, and the split matters: `docker-compose.yml` is the production
 definition (prebuilt image, no bind mount, no published API port) and
