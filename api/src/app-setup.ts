@@ -1,4 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import type { Express } from 'express';
+import helmet from 'helmet';
+import { isSwaggerEnabled } from './config/swagger.options';
 import { setupSwagger } from './swagger';
 
 /**
@@ -18,6 +21,20 @@ export const corsOptions = {
  * application instead of a slightly different one.
  */
 export function configureApp(app: INestApplication): void {
+  // Nginx is the only hop in front of this service (ADR-007) and it forwards
+  // X-Forwarded-For. Without this, every request looks like it came from the
+  // Docker bridge address and the per-IP rate limits degrade into one shared
+  // global limit.
+  const expressApp = app.getHttpAdapter().getInstance() as Express;
+  expressApp.set('trust proxy', 1);
+
+  // nosniff, HSTS, no-referrer, frame-ancestors and the rest. CSP is left off
+  // here on purpose: this service answers JSON and image bytes, the
+  // browser-facing HTML is Nginx's (frontend/nginx/security-headers.conf owns
+  // the real policy), and helmet's default CSP breaks the Swagger UI wherever
+  // that is enabled.
+  app.use(helmet({ contentSecurityPolicy: false }));
+
   app.enableCors(corsOptions);
 
   // Nginx routes /api/* to this service (ADR-007), so every route lives
@@ -35,6 +52,8 @@ export function configureApp(app: INestApplication): void {
   );
 
   // After the pipes: the OpenAPI document describes the DTOs those pipes
-  // enforce.
-  setupSwagger(app);
+  // enforce. Not in production by default — see isSwaggerEnabled().
+  if (isSwaggerEnabled()) {
+    setupSwagger(app);
+  }
 }

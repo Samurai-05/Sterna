@@ -43,6 +43,15 @@ services:
       target: development
     environment:
       NODE_ENV: development
+      # The e2e suite registers and logs in dozens of times from a single
+      # source (api/test/e2e-app.ts boots the real configureApp), so the
+      # production auth limit would fail it. The limits are still exercised —
+      # by api/src/config/throttling.ts's unit coverage — just not from here.
+      AUTH_THROTTLE_LIMIT: ${AUTH_THROTTLE_LIMIT:-1000}
+      UPLOAD_THROTTLE_LIMIT: ${UPLOAD_THROTTLE_LIMIT:-1000}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-5000}
+      # The OpenAPI document is the frontend contract; always on locally.
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
     # Published so you can reach the API directly from the host during
     # development; in production only Nginx talks to it.
     ports:

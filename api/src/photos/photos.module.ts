@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { minioClientProvider } from './minio.client';
+import { Photo } from './photo.entity';
 import { PhotosController } from './photos.controller';
 import { PhotosService } from './photos.service';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Photo])],
   controllers: [PhotosController],
   providers: [minioClientProvider, PhotosService],
-  // Exported for the storage health indicator, and later for the discoveries
-  // module's NFR-32 existence check.
+  // Exported for the storage health indicator, for the auth module's avatar
+  // handling, and for the discoveries module's NFR-32 and ownership checks.
   exports: [PhotosService],
 })
 export class PhotosModule {}

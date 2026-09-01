@@ -217,6 +217,7 @@ function ProfileForm({
 }
 
 function PasswordForm({ accessToken }: { accessToken: string }) {
+  const navigate = useNavigate()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
@@ -225,11 +226,23 @@ function PasswordForm({ accessToken }: { accessToken: string }) {
 
   const mutation = useMutation({
     mutationFn: changePassword,
+    // Changing the password invalidates every token issued before it — this
+    // device's included, since the API mints no replacement (ADR-009,
+    // amended). Staying on the page would leave the user inside the shell
+    // holding a token every request now 401s on, so the session is discarded
+    // here rather than discovered to be dead on the next screen.
     onSuccess: () => {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmNewPassword('')
-      setConfirmMessage('Password updated.')
+      setConfirmMessage('Password updated. Signing you out…')
+      clearSession()
+      navigate('/login', {
+        replace: true,
+        state: {
+          notice: 'Password updated. Sign in again with your new password.',
+        },
+      })
     },
     onError: (error) => {
       setFormMessage(

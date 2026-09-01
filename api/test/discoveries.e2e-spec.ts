@@ -5,6 +5,7 @@ import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { configureApp } from './../src/app-setup';
 import { AppModule } from './../src/app.module';
+import { uploadTestPhoto } from './e2e-app';
 
 interface DiscoveryResponse {
   id: string;
@@ -88,6 +89,8 @@ describe('DiscoveriesController (e2e)', () => {
   });
 
   it('creates a personal discovery with a PostGIS point', async () => {
+    const imageObjectKey = await uploadTestPhoto(app, accessToken);
+
     const response = await request(app.getHttpServer())
       .post('/api/discoveries')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -98,7 +101,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 6.6412,
         latitude: 46.7785,
-        imageObjectKey: 'discoveries/e2e-lake.jpg',
+        imageObjectKey,
         discoveredAt: '2026-08-25T12:00:00.000Z',
       })
       .expect(201);
@@ -113,7 +116,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 6.6412,
         latitude: 46.7785,
-        imageObjectKey: 'discoveries/e2e-lake.jpg',
+        imageObjectKey,
         discoveredAt: '2026-08-25T12:00:00.000Z',
       }),
     );
@@ -136,7 +139,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 9.4669802,
         latitude: 41.1418826,
-        imageObjectKey: 'discoveries/e2e-phi-beach.jpg',
+        imageObjectKey: await uploadTestPhoto(app, accessToken),
         discoveredAt: '2026-08-25T12:00:00.000Z',
       })
       .expect(201);
@@ -147,6 +150,8 @@ describe('DiscoveriesController (e2e)', () => {
   });
 
   it('lists only the caller discoveries with PostGIS coordinates', async () => {
+    const listedImageObjectKey = await uploadTestPhoto(app, accessToken);
+
     await request(app.getHttpServer())
       .post('/api/discoveries')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -157,7 +162,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Other',
         longitude: 7.4474,
         latitude: 46.948,
-        imageObjectKey: 'discoveries/e2e-listed.jpg',
+        imageObjectKey: listedImageObjectKey,
         discoveredAt: '2026-08-25T13:00:00.000Z',
       })
       .expect(201);
@@ -172,7 +177,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Other',
         longitude: 2.3522,
         latitude: 48.8566,
-        imageObjectKey: 'discoveries/e2e-other-user.jpg',
+        imageObjectKey: await uploadTestPhoto(app, otherAccessToken),
         discoveredAt: '2026-08-25T14:00:00.000Z',
       })
       .expect(201);
@@ -192,7 +197,7 @@ describe('DiscoveriesController (e2e)', () => {
           category: 'Other',
           longitude: 7.4474,
           latitude: 46.948,
-          imageObjectKey: 'discoveries/e2e-listed.jpg',
+          imageObjectKey: listedImageObjectKey,
           discoveredAt: '2026-08-25T13:00:00.000Z',
         }),
       ]),
@@ -221,7 +226,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 6.5,
         latitude: 46.5,
-        imageObjectKey: 'discoveries/e2e-private.jpg',
+        imageObjectKey: await uploadTestPhoto(app, accessToken),
         discoveredAt: '2026-08-25T15:00:00.000Z',
       })
       .expect(201);
@@ -305,9 +310,64 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Other',
         longitude: 7.4474,
         latitude: 46.948,
-        imageObjectKey: 'discoveries/e2e-unauthorized.jpg',
+        imageObjectKey: await uploadTestPhoto(app, accessToken),
         discoveredAt: '2026-08-25T13:00:00.000Z',
       })
       .expect(401);
+  });
+
+  /**
+   * An object key is not a capability: GET /api/groups/{id}/discoveries
+   * returns it in full to every member of a shared map. Citing one the caller
+   * did not upload used to be accepted, and account deletion would then free
+   * the original owner's object on the attacker's behalf.
+   */
+  describe('photo ownership', () => {
+    const discoveryBody = (imageObjectKey: string) => ({
+      groupId: null,
+      title: 'Not my photo',
+      description: null,
+      category: 'Other',
+      longitude: 7.4474,
+      latitude: 46.948,
+      imageObjectKey,
+      discoveredAt: '2026-08-25T13:00:00.000Z',
+    });
+
+    it('refuses a key uploaded by another account', async () => {
+      const theirKey = await uploadTestPhoto(app, otherAccessToken);
+
+      const response = await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(discoveryBody(theirKey))
+        .expect(400);
+
+      expect((response.body as { message: string }).message).toBe(
+        'Unknown photo.',
+      );
+    });
+
+    // NFR-32, and the same message: not-yours and not-there must not be
+    // distinguishable, or the endpoint is an oracle for which keys exist.
+    it('refuses a well-formed key that was never uploaded, identically', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(discoveryBody('photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg'))
+        .expect(400);
+
+      expect((response.body as { message: string }).message).toBe(
+        'Unknown photo.',
+      );
+    });
+
+    it('refuses a key that PhotosService.store() could never have minted', async () => {
+      await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(discoveryBody('discoveries/hand-written.jpg'))
+        .expect(400);
+    });
   });
 });

@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GroupsService } from '../groups/groups.service';
+import { PhotosService } from '../photos/photos.service';
 import { CreateDiscoveryDto } from './create-discovery.dto';
 import { Discovery } from './discovery.entity';
 import { UpdateDiscoveryDto } from './update-discovery.dto';
@@ -132,6 +133,7 @@ export class DiscoveriesService {
     @InjectRepository(Discovery)
     private readonly discoveries: Repository<Discovery>,
     private readonly groups: GroupsService,
+    private readonly photos: PhotosService,
   ) {}
 
   /**
@@ -218,6 +220,8 @@ export class DiscoveriesService {
       await this.groups.requireMembership(userId, groupId);
     }
 
+    await this.requirePhoto(userId, dto.imageObjectKey);
+
     const [row] = await this.discoveries.query<DiscoveryRow[]>(
       `
         WITH point_geom AS (
@@ -289,6 +293,32 @@ export class DiscoveriesService {
     );
 
     return this.toResponse(row);
+  }
+
+  /**
+   * Both halves of "this photo is usable here":
+   *
+   * - the caller uploaded it. A key is not a capability — it is returned in
+   *   full to every member of a shared group map (DISCOVERY_PROJECTION), so
+   *   without this a co-member could cite someone else's key and later have
+   *   the account-deletion path free their object.
+   * - the object is really in MinIO (NFR-32).
+   *
+   * One message for both, deliberately: "not yours" and "not there" must not
+   * be distinguishable, or the endpoint becomes an oracle for which keys
+   * exist.
+   */
+  private async requirePhoto(
+    userId: string,
+    imageObjectKey: string,
+  ): Promise<void> {
+    const unusable =
+      !(await this.photos.ownsPhoto(userId, imageObjectKey)) ||
+      !(await this.photos.exists(imageObjectKey));
+
+    if (unusable) {
+      throw new BadRequestException('Unknown photo.');
+    }
   }
 
   async findOneByUser(id: string, userId: string): Promise<DiscoveryResponse> {

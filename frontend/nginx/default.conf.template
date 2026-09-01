@@ -4,6 +4,14 @@
 # 20-envsubst-on-templates.sh. Nginx's own runtime variables ($host, $uri, ...)
 # are written without braces and are left untouched by it.
 
+# Rate limit for the API, keyed on the client address. It sits out here, at http{} level — this file is rendered into
+# /etc/nginx/conf.d/, which is inside http{} — because limit_req_zone is not
+# allowed anywhere deeper. This is the coarse outer guard that keeps a flood
+# away from the Node process entirely; the per-route limits that actually
+# matter (login, register, upload) are the API's own, in
+# api/src/config/throttling.ts.
+limit_req_zone $binary_remote_addr zone=sterna_api:10m rate=20r/s;
+
 # ---------------------------------------------------------------------------
 # Port 80 — ACME challenges, and a redirect for everything else.
 # ---------------------------------------------------------------------------
@@ -49,6 +57,8 @@ server {
     root  /usr/share/nginx/html;
     index index.html;
 
+    include /etc/nginx/snippets/security-headers.conf;
+
     # The API caps uploads at MAX_PHOTO_BYTES = 10 MB
     # (api/src/photos/photos.service.ts). Nginx's default is 1 MB, which would
     # reject ordinary phone photos with an opaque HTML error page before the
@@ -67,6 +77,14 @@ server {
     resolver 127.0.0.11 valid=10s ipv6=off;
 
     location /api/ {
+        # burst + nodelay rather than a hard 20r/s: a normal page load fires
+        # a handful of requests at once (the map, the collection, one fetch
+        # per photo), and delaying those would be indistinguishable from a
+        # slow API. Sustained abuse still hits the wall.
+        limit_req zone=sterna_api burst=40 nodelay;
+
+        include /etc/nginx/snippets/security-headers.conf;
+
         # The upstream host goes through a variable deliberately. With a literal
         # `proxy_pass http://api:3000`, Nginx resolves the name once at startup
         # and refuses to boot with "host not found in upstream" whenever the API
@@ -92,19 +110,36 @@ server {
     # Vite emits these three unhashed, and vite-plugin-pwa registers the worker
     # with registerType: 'autoUpdate'. Letting them be cached pins a returning
     # client to whichever build it first saw.
-    location = /sw.js                { add_header Cache-Control "no-cache"; }
-    location = /registerSW.js        { add_header Cache-Control "no-cache"; }
-    location = /manifest.webmanifest { add_header Cache-Control "no-cache"; }
+    #
+    # Each block repeats the security-header include: nginx does not inherit
+    # `add_header` into a location that declares one of its own, so without it
+    # these three responses would carry no CSP, no HSTS and no nosniff.
+    location = /sw.js {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache";
+    }
+
+    location = /registerSW.js {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache";
+    }
+
+    location = /manifest.webmanifest {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache";
+    }
 
     # Everything under assets/ carries a content hash in its filename, so it can
     # be cached indefinitely — a changed file arrives under a new name.
     location /assets/ {
+        include /etc/nginx/snippets/security-headers.conf;
         add_header Cache-Control "public, max-age=31536000, immutable";
     }
 
     # Client-side routing: a hard refresh on /groups/<id> must serve the app
     # rather than 404, and let React Router resolve the path.
     location / {
+        include /etc/nginx/snippets/security-headers.conf;
         try_files $uri $uri/ /index.html;
     }
 }

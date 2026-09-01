@@ -116,7 +116,7 @@ describe('editing the display name and photo', () => {
 })
 
 describe('changing the password', () => {
-  it('submits the current and new password and confirms success', async () => {
+  it('submits the current and the new password', async () => {
     api.changePassword.mockResolvedValue(undefined)
     renderWithProviders(<EditProfilePage />)
 
@@ -137,8 +137,27 @@ describe('changing the password', () => {
       currentPassword: 'correct horse battery staple',
       newPassword: 'a whole different passphrase',
     })
-    expect(await screen.findByText('Password updated.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Current password')).toHaveValue('')
+  })
+
+  // The API invalidates every token issued before the change, this device's
+  // included (ADR-009, amended). Leaving the stored session in place would
+  // strand the user inside the shell holding a token every request 401s on.
+  it('discards the session and returns to the login screen', async () => {
+    api.changePassword.mockResolvedValue(undefined)
+    renderWithProviders(<EditProfilePage />)
+
+    fireEvent.change(await screen.findByLabelText('Current password'), {
+      target: { value: 'correct horse battery staple' },
+    })
+    fireEvent.change(screen.getByLabelText('New password'), {
+      target: { value: 'a whole different passphrase' },
+    })
+    fireEvent.change(screen.getByLabelText('Confirm new password'), {
+      target: { value: 'a whole different passphrase' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Change password' }))
+
+    await waitFor(() => expect(loadSession()).toBeNull())
   })
 
   it('refuses a mismatched confirmation without calling the API', async () => {

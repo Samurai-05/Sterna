@@ -139,4 +139,99 @@ describe('PhotosController (e2e)', () => {
 
     await request(app.getHttpServer()).get(body.url).expect(401);
   });
+
+  /**
+   * Being signed in was the whole of the authorization until now, with
+   * randomUUID() key entropy standing in for the rest — and the key is not a
+   * secret: DISCOVERY_PROJECTION hands it to every member of a shared group
+   * map. So the answer has to depend on who is asking, and leaving a group
+   * has to take the access with it.
+   */
+  describe('read authorization', () => {
+    let stranger: string;
+
+    beforeAll(async () => {
+      ({ accessToken: stranger } = await registerTestUser(app));
+    });
+
+    const upload = async (token: string): Promise<UploadPhotoResponseDto> => {
+      const response = await request(app.getHttpServer())
+        .post('/api/photos')
+        .set('Authorization', `Bearer ${token}`)
+        .attach('file', await jpeg(), { filename: 'photo.jpg' })
+        .expect(201);
+
+      return response.body as UploadPhotoResponseDto;
+    };
+
+    // 404, not 403: "that exists but is not yours" is the disclosure NFR-19
+    // forbids, and it is what a key that does not exist answers too.
+    it('hides a photo from a signed-in caller who has nothing to do with it', async () => {
+      const photo = await upload(accessToken);
+
+      await request(app.getHttpServer())
+        .get(photo.url)
+        .set('Authorization', `Bearer ${stranger}`)
+        .expect(404);
+    });
+
+    it('opens it to a group co-member, and closes it again when they leave', async () => {
+      const photo = await upload(accessToken);
+
+      const groupResponse = await request(app.getHttpServer())
+        .post('/api/groups')
+        .set('Authorization', auth())
+        .send({ name: 'Photo visibility' })
+        .expect(201);
+      const group = groupResponse.body as {
+        id: string;
+        inviteCode: string;
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set('Authorization', auth())
+        .send({
+          groupId: group.id,
+          title: 'Shared with the group',
+          description: null,
+          category: 'Other',
+          longitude: 6.6412,
+          latitude: 46.7785,
+          imageObjectKey: photo.objectKey,
+          discoveredAt: '2026-08-25T12:00:00.000Z',
+        })
+        .expect(201);
+
+      // Still invisible: sharing it with a group the stranger is not in
+      // changes nothing for them.
+      await request(app.getHttpServer())
+        .get(photo.url)
+        .set('Authorization', `Bearer ${stranger}`)
+        .expect(404);
+
+      await request(app.getHttpServer())
+        .post('/api/groups/join')
+        .set('Authorization', `Bearer ${stranger}`)
+        .send({ inviteCode: group.inviteCode })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .get(photo.url)
+        .set('Authorization', `Bearer ${stranger}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete(`/api/groups/${group.id}/members/me`)
+        .set('Authorization', `Bearer ${stranger}`)
+        .expect(204);
+
+      // The point of the whole exercise: leaving revokes access to the
+      // photos seen while inside, which key entropy never did.
+      await request(app.getHttpServer())
+        .get(photo.url)
+        .set('Authorization', `Bearer ${stranger}`)
+        .expect(404);
+    });
+  });
 });

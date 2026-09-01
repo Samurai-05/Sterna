@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthTextInput } from '@/components/auth/AuthTextInput'
@@ -31,6 +31,14 @@ function loginErrors(email: string, password: string): LoginErrors {
 
 export function LoginPage() {
   const navigate = useNavigate()
+  // Set when a screen signs the user out on purpose — currently only the
+  // password change, which invalidates this device's token along with every
+  // other one. Without it the redirect looks like an unexplained logout.
+  const location = useLocation()
+  const notice =
+    typeof (location.state as { notice?: unknown } | null)?.notice === 'string'
+      ? (location.state as { notice: string }).notice
+      : ''
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<LoginErrors>({})
@@ -64,6 +72,11 @@ export function LoginPage() {
       subtitle="Return to the places and memories you have collected."
     >
       <form noValidate onSubmit={handleSubmit} className="space-y-5">
+        {notice && (
+          <p role="status" className="text-sm leading-5 text-primary">
+            {notice}
+          </p>
+        )}
         <AuthTextInput
           id="email"
           label="Email"

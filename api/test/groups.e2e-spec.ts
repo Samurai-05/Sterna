@@ -5,7 +5,12 @@ import { ActiveMapDto } from './../src/groups/dto/active-map.dto';
 import { GroupDetailDto } from './../src/groups/dto/group-detail.dto';
 import { GroupSummaryDto } from './../src/groups/dto/group-summary.dto';
 import { GroupRole } from './../src/groups/group-role';
-import { createTestApp, deleteTestUsers, registerTestUser } from './e2e-app';
+import {
+  createTestApp,
+  deleteTestUsers,
+  registerTestUser,
+  uploadTestPhoto,
+} from './e2e-app';
 
 interface DiscoveryResponse {
   id: string;
@@ -36,14 +41,22 @@ describe('Groups (e2e)', () => {
 
   const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-  const discovery = (groupId: string | null, title: string) => ({
+  // The photo has to be real and has to belong to the caller: POST
+  // /api/discoveries now checks both, because an object key is published to
+  // every member of a shared group map and citing one proves nothing about
+  // who uploaded it. Hence the token parameter, and hence async.
+  const discovery = async (
+    token: string,
+    groupId: string | null,
+    title: string,
+  ) => ({
     groupId,
     title,
     description: null,
     category: 'Other',
     longitude: 6.6412,
     latitude: 46.7785,
-    imageObjectKey: `discoveries/e2e-${title}.jpg`,
+    imageObjectKey: await uploadTestPhoto(app, token),
     discoveredAt: '2026-08-25T12:00:00.000Z',
   });
 
@@ -195,14 +208,14 @@ describe('Groups (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(outsider))
-        .send(discovery(group.id, 'trespassing'))
+        .send(await discovery(outsider, group.id, 'trespassing'))
         .expect(404);
 
       await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(outsider))
         .send({
-          ...discovery(null, 'shared-trespassing'),
+          ...(await discovery(outsider, null, 'shared-trespassing')),
           groupIds: [group.id],
         })
         .expect(404);
@@ -285,7 +298,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(linus))
-        .send(discovery(group.id, 'shared-find'))
+        .send(await discovery(linus, group.id, 'shared-find'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;
@@ -332,7 +345,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(ada))
-        .send(discovery(null, 'personal-only'))
+        .send(await discovery(ada, null, 'personal-only'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;
@@ -355,7 +368,7 @@ describe('Groups (e2e)', () => {
         .post('/api/discoveries')
         .set(auth(ada))
         .send({
-          ...discovery(null, 'shared-with-several'),
+          ...(await discovery(ada, null, 'shared-with-several')),
           groupIds: [first.id, second.id],
         })
         .expect(201);
@@ -421,7 +434,7 @@ describe('Groups (e2e)', () => {
         .post('/api/discoveries')
         .set(auth(ada))
         .send({
-          ...discovery(group.id, 'also-personal'),
+          ...(await discovery(ada, group.id, 'also-personal')),
           personal: true,
         })
         .expect(201);
@@ -519,7 +532,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(ada))
-        .send(discovery(group.id, 'survives-deletion'))
+        .send(await discovery(ada, group.id, 'survives-deletion'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;
@@ -568,7 +581,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(linus))
-        .send(discovery(group.id, 'follows-me-out'))
+        .send(await discovery(linus, group.id, 'follows-me-out'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;

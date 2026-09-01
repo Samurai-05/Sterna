@@ -19,6 +19,8 @@ import {
 } from '@nestjs/swagger';
 import type { AuthenticatedUser } from '../common/authenticated-user';
 import { ApiAuthenticated } from '../common/decorators/api-authenticated.decorator';
+import { Throttle } from '@nestjs/throttler';
+import { AUTH_THROTTLE } from '../config/throttling';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { AuthService } from './auth.service';
@@ -46,6 +48,10 @@ export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @Public()
+  // Slows down enumerating a list of addresses against the 409 this answers
+  // the disclosure itself cannot be removed without an email
+  // verification flow, which ADR-009 puts out of MVP scope.
+  @Throttle({ default: AUTH_THROTTLE })
   @Post('register')
   @ApiOperation({
     summary: 'Create an account',
@@ -66,6 +72,9 @@ export class AuthController {
   }
 
   @Public()
+  // Anonymous, and every call runs an argon2id verify at 19 MiB. Unlimited,
+  // it is both a credential-stuffing surface and a memory-amplification DoS.
+  @Throttle({ default: AUTH_THROTTLE })
   @Post('login')
   // Nest answers 201 to a POST by default; a login creates nothing.
   @HttpCode(HttpStatus.OK)
@@ -129,9 +138,10 @@ export class AuthController {
       'alone must not be enough to lock the owner out. A wrong current ' +
       'password is answered 400, not 401, so that 401 keeps meaning exactly ' +
       'one thing to a client — the token is bad, send the user to the login ' +
-      'screen. Note that access tokens issued before the change stay valid ' +
-      'until they expire; the design is stateless and has no revocation ' +
-      'list (ADR-009).',
+      'screen. Changing the password signs every session out, this one ' +
+      'included: tokens issued before the change are rejected from then on ' +
+      '(ADR-009, amended), so the client must discard its token and send ' +
+      'the user back to the login screen.',
   })
   @ApiNoContentResponse({ description: 'The password was changed.' })
   @ApiBadRequestResponse({

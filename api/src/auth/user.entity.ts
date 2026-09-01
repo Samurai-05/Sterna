@@ -80,6 +80,20 @@ export class User {
   })
   avatarObjectKey: string | null = null;
 
+  /**
+   * When the password was last changed, or null if it never has been since
+   * the column was added. JwtAuthGuard rejects any token issued before it, so
+   * a password change signs every other device out (ADR-009, amended).
+   *
+   * Deliberately not `updated_at`: that moves on a display-name edit too.
+   */
+  @Column({
+    name: 'password_changed_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  passwordChangedAt: Date | null = null;
+
   // The type is spelled out because TypeORM's Postgres driver maps
   // @CreateDateColumn to `timestamp` (without time zone) by default, and the
   // baseline column is TIMESTAMPTZ.

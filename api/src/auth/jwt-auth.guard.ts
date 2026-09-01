@@ -6,10 +6,13 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
+import { Repository } from 'typeorm';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 import { isJwtPayload } from './jwt.payload';
 import type { JwtPayload } from './jwt.payload';
+import { User } from './user.entity';
 
 /**
  * One message for every way a token can fail.
@@ -35,6 +38,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JwtService,
     private readonly reflector: Reflector,
+    @InjectRepository(User) private readonly users: Repository<User>,
   ) {}
 
   /**
@@ -42,9 +46,12 @@ export class JwtAuthGuard implements CanActivate {
    * it says otherwise. A controller added six weeks from now is protected by
    * default — the failure mode of the opposite wiring is a silent leak.
    *
-   * No database round-trip: the token is the assertion. The cost is that a
-   * deleted user's token still passes here, which AuthService turns into a 401
-   * at the point of use.
+   * One indexed primary-key lookup per request, for the account's
+   * password_changed_at. ADR-009 originally traded that round-trip away and
+   * accepted that a password change invalidated nothing; the amendment buys
+   * revocation back for the case that actually matters, and still keeps no
+   * server-side session. A deleted account's token now fails here rather than
+   * later at the point of use.
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -77,8 +84,34 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException(MISSING_OR_INVALID_TOKEN);
     }
 
+    const account = await this.users.findOne({
+      where: { id: payload.sub },
+      select: { id: true, passwordChangedAt: true },
+    });
+
+    if (!account || this.issuedBeforePasswordChange(payload, account)) {
+      throw new UnauthorizedException(MISSING_OR_INVALID_TOKEN);
+    }
+
     request.user = { id: payload.sub, email: payload.email };
 
     return true;
+  }
+
+  /**
+   * `iat` has second precision, so the comparison is made in seconds on both
+   * sides. Strictly-less-than rather than <=: a token minted in the same
+   * second as the change is the one register/login just issued, and rejecting
+   * it would sign the caller out of the device they are holding.
+   */
+  private issuedBeforePasswordChange(
+    payload: JwtPayload,
+    account: Pick<User, 'passwordChangedAt'>,
+  ): boolean {
+    if (!account.passwordChangedAt || payload.iat === undefined) {
+      return false;
+    }
+
+    return payload.iat < Math.floor(account.passwordChangedAt.getTime() / 1000);
   }
 }

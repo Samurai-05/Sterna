@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { DiscoveriesService } from './discoveries.service';
 import { Discovery } from './discovery.entity';
 import { GroupsService } from '../groups/groups.service';
+import { PhotosService } from '../photos/photos.service';
 
 /**
  * DiscoveriesService issues raw SQL through Repository<Discovery>.query, so
@@ -15,6 +16,8 @@ import { GroupsService } from '../groups/groups.service';
 describe('DiscoveriesService', () => {
   const query = jest.fn<Promise<unknown[]>, [string, unknown[]?]>();
   const requireMembership = jest.fn();
+  const ownsPhoto = jest.fn();
+  const photoExists = jest.fn();
 
   let service: DiscoveriesService;
 
@@ -46,12 +49,19 @@ describe('DiscoveriesService', () => {
   beforeEach(async () => {
     jest.resetAllMocks();
     query.mockResolvedValue([]);
+    // The happy path for everything that is not about the photo itself.
+    ownsPhoto.mockResolvedValue(true);
+    photoExists.mockResolvedValue(true);
 
     const module = await Test.createTestingModule({
       providers: [
         DiscoveriesService,
         { provide: getRepositoryToken(Discovery), useValue: { query } },
         { provide: GroupsService, useValue: { requireMembership } },
+        {
+          provide: PhotosService,
+          useValue: { ownsPhoto, exists: photoExists },
+        },
       ],
     }).compile();
 
@@ -102,6 +112,43 @@ describe('DiscoveriesService', () => {
         true,
         [],
       ]);
+    });
+
+    // The key is returned in full on every shared group map, so citing
+    // one proves nothing about who uploaded it.
+    it('refuses a photo the caller did not upload', async () => {
+      ownsPhoto.mockResolvedValue(false);
+
+      await expect(service.create('1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(ownsPhoto).toHaveBeenCalledWith('1', dto.imageObjectKey);
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    // NFR-32, the check PhotosService.exists() was written for.
+    it('refuses a photo that is not in object storage', async () => {
+      photoExists.mockResolvedValue(false);
+
+      await expect(service.create('1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    // Not-yours and not-there must not be distinguishable, or the endpoint
+    // becomes an oracle for which keys exist.
+    it("gives the same message whether the photo is missing or not the caller's", async () => {
+      const message = 'Unknown photo.';
+
+      ownsPhoto.mockResolvedValue(false);
+      await expect(service.create('1', dto)).rejects.toThrow(message);
+
+      ownsPhoto.mockResolvedValue(true);
+      photoExists.mockResolvedValue(false);
+      await expect(service.create('1', dto)).rejects.toThrow(message);
     });
 
     it('returns null countryCode for a discovery nowhere near any coastline', async () => {

@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -9,10 +9,46 @@ import {
   HealthCheck,
   HealthCheckResult,
   HealthCheckService,
+  HealthIndicatorResult,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../common/decorators/public.decorator';
 import { MinioHealthIndicator } from './minio.health';
+
+/**
+ * This route is @Public(), and Terminus puts the underlying driver error
+ * straight into the body — `connect ECONNREFUSED minio:9000` names an
+ * internal host and port to anyone who asks. The status of each indicator is
+ * what the Compose healthcheck and the deploy poll actually need; the message
+ * is for a developer, so it is kept outside production and dropped inside it.
+ */
+function redactInProduction(error: unknown): unknown {
+  if (
+    process.env.NODE_ENV !== 'production' ||
+    !(error instanceof ServiceUnavailableException)
+  ) {
+    return error;
+  }
+
+  const body = error.getResponse() as HealthCheckResult;
+
+  const statusOnly = (
+    checks: Partial<HealthIndicatorResult> | undefined,
+  ): HealthIndicatorResult =>
+    Object.fromEntries(
+      Object.entries(checks ?? {}).flatMap(([name, result]) =>
+        result ? [[name, { status: result.status }]] : [],
+      ),
+    );
+
+  return new ServiceUnavailableException({
+    status: body.status,
+    info: statusOnly(body.info),
+    error: statusOnly(body.error),
+    details: statusOnly(body.details),
+  });
+}
 
 const upExample = { database: { status: 'up' }, storage: { status: 'up' } };
 
@@ -35,6 +71,10 @@ const healthExample = {
 // The Compose healthcheck and the deploy job's readiness poll carry no token,
 // so the whole controller opts out of the global guard.
 @Public()
+// Polled by the Compose healthcheck every 10s from inside the container and
+// by the deploy job until it reports healthy — a rate limit here would fail
+// the deployment rather than protect anything.
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(
@@ -56,7 +96,10 @@ export class HealthController {
     schema: { example: healthExample },
   })
   @ApiServiceUnavailableResponse({
-    description: 'At least one dependency is unreachable; `error` names which.',
+    description:
+      'At least one dependency is unreachable; `error` names which. Outside ' +
+      'production the indicator message is included, as in the example ' +
+      'below; in production it is dropped — see redactInProduction().',
     schema: {
       example: {
         status: 'error',
@@ -77,10 +120,14 @@ export class HealthController {
       },
     },
   })
-  check(): Promise<HealthCheckResult> {
-    return this.health.check([
-      () => this.database.pingCheck('database'),
-      () => this.storage.isHealthy('storage'),
-    ]);
+  async check(): Promise<HealthCheckResult> {
+    try {
+      return await this.health.check([
+        () => this.database.pingCheck('database'),
+        () => this.storage.isHealthy('storage'),
+      ]);
+    } catch (error) {
+      throw redactInProduction(error);
+    }
   }
 }

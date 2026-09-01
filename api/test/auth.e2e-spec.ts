@@ -7,6 +7,7 @@ import { App } from 'supertest/types';
 import { AuthResponseDto } from './../src/auth/dto/auth-response.dto';
 import { UserDto } from './../src/auth/dto/user.dto';
 import { UploadPhotoResponseDto } from './../src/photos/dto/upload-photo-response.dto';
+import { PhotosService } from './../src/photos/photos.service';
 import { GroupDetailDto } from './../src/groups/dto/group-detail.dto';
 import { GroupRole } from './../src/groups/group-role';
 import {
@@ -351,6 +352,56 @@ describe('AuthController (e2e)', () => {
       }).expect(401);
     });
 
+    /**
+     * ADR-009 originally accepted that a password change invalidated no
+     * outstanding token, which made "I think I was compromised, let me change
+     * my password" a no-op for up to seven days. JwtAuthGuard now compares
+     * each token's own `iat` against users.password_changed_at.
+     */
+    it("rejects every token issued before the change, the caller's included", async () => {
+      const session = await registerTestUser(app);
+      const auth = `Bearer ${session.accessToken}`;
+
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', auth)
+        .expect(200);
+
+      // `iat` has second precision, so a change in the same second as the
+      // registration would be indistinguishable from it. One second of
+      // separation is what makes the assertion mean something.
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
+      await request(app.getHttpServer())
+        .patch('/api/auth/password')
+        .set('Authorization', auth)
+        .send({
+          currentPassword: TEST_PASSWORD,
+          newPassword: 'yet another different passphrase',
+        })
+        .expect(204);
+
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', auth)
+        .expect(401);
+
+      // Signing in again works, and the fresh token does not inherit the
+      // rejection.
+      const renewed = await login({
+        email: session.user.email,
+        password: 'yet another different passphrase',
+      }).expect(200);
+
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set(
+          'Authorization',
+          `Bearer ${(renewed.body as AuthResponseDto).accessToken}`,
+        )
+        .expect(200);
+    });
+
     // A body value failed, not the token — so 400, and 401 keeps meaning
     // "your session is over".
     it('refuses a change whose current password is wrong, with 400 not 401', async () => {
@@ -400,13 +451,12 @@ describe('AuthController (e2e)', () => {
         .expect(401);
     });
 
-    // The avatar lives on the row itself, not among the caller's discoveries,
-    // so it needs its own cleanup path (ADR-006).
+    // Every object the account owns goes with it (ADR-006), the avatar
+    // included — it is a photos row like any other.
     it("frees the account's avatar object", async () => {
       const session = await registerTestUser(app);
       const auth = `Bearer ${session.accessToken}`;
       const objectKey = await uploadPhoto(session.accessToken);
-      const filename = objectKey.split('/').at(-1);
 
       await request(app.getHttpServer())
         .patch('/api/auth/me')
@@ -420,12 +470,13 @@ describe('AuthController (e2e)', () => {
         .send({ currentPassword: TEST_PASSWORD })
         .expect(204);
 
-      // The JWT itself is still valid (ADR-009) — only /auth/me re-checks the
-      // row — so it can still authenticate this direct MinIO-backed check.
-      await request(app.getHttpServer())
-        .get(`/api/photos/${filename}`)
-        .set('Authorization', auth)
-        .expect(404);
+      // Asked of MinIO directly rather than through GET /api/photos: the
+      // token is now rejected at the guard, since its account is gone, and
+      // no other account may read the key either (photo downloads are
+      // authorized, not merely authenticated).
+      await expect(app.get(PhotosService).exists(objectKey)).resolves.toBe(
+        false,
+      );
     });
 
     it('refuses a deletion whose current password is wrong', async () => {
