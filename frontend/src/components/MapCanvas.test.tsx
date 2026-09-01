@@ -358,7 +358,7 @@ describe('MapCanvas', () => {
           paint: { 'fill-opacity': unknown[] }
         }
       ).paint['fill-opacity'].slice(0, 3),
-    ).toEqual(['case', ['boolean', ['feature-state', 'explored'], false], 0])
+    ).toEqual(['interpolate', ['linear'], ['zoom']])
   })
 
   it('updates fog feature-state for personal, group, and disputed countries', () => {

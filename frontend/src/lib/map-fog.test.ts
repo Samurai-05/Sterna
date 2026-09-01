@@ -14,26 +14,21 @@ describe('map fog configuration', () => {
     expect(fogColor).toBe('#2f4439')
     expect(fogMaxZoom).toBe(9)
     expect(fogOpacityExpression).toEqual([
-      'case',
-      ['boolean', ['feature-state', 'explored'], false],
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      1.5,
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.52],
+      5,
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.52],
+      6,
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.44],
+      7,
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.25],
+      8,
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.08],
+      8.5,
       0,
-      [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        1.5,
-        0.52,
-        5,
-        0.52,
-        6,
-        0.44,
-        7,
-        0.25,
-        8,
-        0.08,
-        8.5,
-        0,
-      ],
     ])
   })
 

@@ -12,6 +12,9 @@ import {
 const source = JSON.parse(
   readFileSync('../api/src/countries/countries.geo.json', 'utf8'),
 )
+const committedFog = JSON.parse(
+  readFileSync('public/countries-fog.geo.json', 'utf8'),
+)
 
 function polygonFeature(A3, coordinates, extra = {}) {
   return {
@@ -33,6 +36,82 @@ function interiorRingAreas(collection, A3) {
   return polygons
     .slice()
     .flatMap((polygon) => polygon.slice(1).map((ring) => ringAreaKm2(ring)))
+}
+
+function outerRings(feature) {
+  return feature.geometry.type === 'Polygon'
+    ? [feature.geometry.coordinates[0]]
+    : feature.geometry.coordinates.map((polygon) => polygon[0])
+}
+
+function ringBounds(ring) {
+  return ring.reduce(
+    (bounds, [longitude, latitude]) => ({
+      minLongitude: Math.min(bounds.minLongitude, longitude),
+      minLatitude: Math.min(bounds.minLatitude, latitude),
+      maxLongitude: Math.max(bounds.maxLongitude, longitude),
+      maxLatitude: Math.max(bounds.maxLatitude, latitude),
+    }),
+    {
+      minLongitude: Infinity,
+      minLatitude: Infinity,
+      maxLongitude: -Infinity,
+      maxLatitude: -Infinity,
+    },
+  )
+}
+
+function coordinateInRing([longitude, latitude], ring) {
+  let inside = false
+
+  for (
+    let index = 0, previous = ring.length - 1;
+    index < ring.length;
+    previous = index++
+  ) {
+    const [currentLongitude, currentLatitude] = ring[index]
+    const [previousLongitude, previousLatitude] = ring[previous]
+    const intersects =
+      currentLatitude > latitude !== previousLatitude > latitude &&
+      longitude <
+        ((previousLongitude - currentLongitude) *
+          (latitude - currentLatitude)) /
+          (previousLatitude - currentLatitude) +
+          currentLongitude
+
+    if (intersects) inside = !inside
+  }
+
+  return inside
+}
+
+function hasContainedFeature(collection, containerCode, containedCode) {
+  const container = collection.features.find(
+    (feature) => feature.properties.A3 === containerCode,
+  )
+  const contained = collection.features.find(
+    (feature) => feature.properties.A3 === containedCode,
+  )
+
+  const containerHoles =
+    container.geometry.type === 'Polygon'
+      ? container.geometry.coordinates.slice(1)
+      : container.geometry.coordinates.flatMap((polygon) => polygon.slice(1))
+
+  return containerHoles.some((hole) =>
+    outerRings(contained).some((ring) => {
+      const holeBounds = ringBounds(hole)
+      const containedBounds = ringBounds(ring)
+
+      return (
+        containedBounds.minLongitude >= holeBounds.minLongitude &&
+        containedBounds.maxLongitude <= holeBounds.maxLongitude &&
+        containedBounds.minLatitude >= holeBounds.minLatitude &&
+        containedBounds.maxLatitude <= holeBounds.maxLatitude &&
+        ring.some((point) => coordinateInRing(point, hole))
+      )
+    }),
+  )
 }
 
 describe('countries fog preparation', () => {
@@ -138,6 +217,18 @@ describe('countries fog preparation', () => {
 
     expect(createCountriesFog(source)).toEqual(createCountriesFog(source))
     expect(JSON.stringify(source)).toBe(before)
+  })
+
+  it('keeps the committed fog asset synchronized with the semantic source', () => {
+    expect(committedFog).toEqual(createCountriesFog(source))
+  })
+
+  it('preserves the real Büsingen enclave inside Switzerland', () => {
+    const fog = createCountriesFog(source)
+
+    // Büsingen am Hochrhein is a small German enclave represented by a hole
+    // in Switzerland in this source, so it must not be mistaken for a lake.
+    expect(hasContainedFeature(fog, 'CHE', 'DEU')).toBe(true)
   })
 
   it('retains significant lakes in the real visual source', () => {
