@@ -56,6 +56,13 @@ describe('PhotosController (e2e)', () => {
       .expect(200)
       .expect('Content-Type', 'image/jpeg')
       .expect('Cache-Control', 'private, max-age=31536000, immutable');
+
+    await request(app.getHttpServer())
+      .get(`${body.url}?variant=map`)
+      .set('Authorization', auth())
+      .expect(200)
+      .expect('Content-Type', 'image/webp')
+      .expect('Cache-Control', 'private, max-age=31536000, immutable');
   });
 
   // FR-06
@@ -83,6 +90,9 @@ describe('PhotosController (e2e)', () => {
 
     expect(body.exif?.latitude).toBeCloseTo(46.783, 3);
     expect(body.exif?.longitude).toBeCloseTo(6.633, 3);
+    expect(body.metadata.location?.latitude).toBeCloseTo(46.783, 3);
+    expect(body.metadata.location?.longitude).toBeCloseTo(6.633, 3);
+    expect(body.metadata.takenAt).toMatch(/^2026-08-20T/);
   });
 
   // NFR-21

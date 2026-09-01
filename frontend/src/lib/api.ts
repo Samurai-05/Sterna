@@ -1,5 +1,6 @@
 import type { AuthSession, AuthenticatedUser } from '@/lib/session'
 import type { Discovery, DiscoveryCategory, Landmark } from '@/lib/mock-data'
+import type { PersistedLocationSource } from './discovery-location'
 import { getCountryName } from '@/lib/countries'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -134,6 +135,7 @@ interface ApiDiscovery {
   longitude: number
   latitude: number
   imageObjectKey: string
+  locationSource?: PersistedLocationSource | null
   authorUserName?: string
   countryCode: string | null
   discoveredAt: string
@@ -155,12 +157,22 @@ interface ApiPoi {
 export interface UploadPhotoResponse {
   objectKey: string
   url: string
-  exif: {
+  metadata?: {
+    location: {
+      latitude: number
+      longitude: number
+    } | null
+    takenAt: string | null
+  }
+  /** Compatibility with API responses from before metadata was split. */
+  exif?: {
     latitude: number
     longitude: number
-    takenAt: string | null
+    takenAt?: string | null
   } | null
 }
+
+export type PhotoVariant = 'map' | 'card' | 'detail'
 
 export interface LocationSearchResult {
   id: string
@@ -322,20 +334,63 @@ export async function uploadPhoto(
 export async function getPhoto(
   accessToken: string,
   imageObjectKey: string,
+  variant?: PhotoVariant,
 ): Promise<Blob> {
   const filename = imageObjectKey.split('/').at(-1)
   if (!filename) throw new Error('Invalid photo key.')
 
-  const response = await fetch(
-    resolveApiUrl(`/api/photos/${encodeURIComponent(filename)}`),
+  const cacheKey = `${accessToken}\0${imageObjectKey}\0${variant ?? 'original'}`
+  const cached = photoRequestCache.get(cacheKey)
+  if (cached) return cached.promise
+
+  const query = variant ? `?variant=${encodeURIComponent(variant)}` : ''
+  const requestPromise = fetch(
+    resolveApiUrl(`/api/photos/${encodeURIComponent(filename)}${query}`),
     { headers: { Authorization: `Bearer ${accessToken}` } },
+  ).then(async (response) => {
+    if (!response.ok) {
+      throw await responseError(response)
+    }
+
+    return response.blob()
+  })
+
+  const entry: PhotoCacheEntry = { promise: requestPromise }
+  photoRequestCache.set(cacheKey, entry)
+  void requestPromise.then(
+    () => {
+      if (photoRequestCache.get(cacheKey) === entry) {
+        entry.cleanupTimer = setTimeout(() => {
+          if (photoRequestCache.get(cacheKey) === entry) {
+            photoRequestCache.delete(cacheKey)
+          }
+        }, PHOTO_CACHE_TTL_MS)
+      }
+    },
+    () => {
+      if (photoRequestCache.get(cacheKey) === entry) {
+        photoRequestCache.delete(cacheKey)
+      }
+    },
   )
 
-  if (!response.ok) {
-    throw await responseError(response)
-  }
+  return requestPromise
+}
 
-  return response.blob()
+export const PHOTO_CACHE_TTL_MS = 60 * 1000
+
+type PhotoCacheEntry = {
+  promise: Promise<Blob>
+  cleanupTimer?: ReturnType<typeof setTimeout>
+}
+
+const photoRequestCache = new Map<string, PhotoCacheEntry>()
+
+export function clearPhotoCache(): void {
+  for (const entry of photoRequestCache.values()) {
+    if (entry.cleanupTimer) clearTimeout(entry.cleanupTimer)
+  }
+  photoRequestCache.clear()
 }
 
 export async function getPois(accessToken: string): Promise<Landmark[]> {
@@ -367,6 +422,7 @@ export async function createDiscovery(input: {
   longitude: number
   latitude: number
   imageObjectKey: string
+  locationSource: PersistedLocationSource
   discoveredAt: string
 }): Promise<Discovery> {
   const discovery = await request<ApiDiscovery>('/api/discoveries', {
@@ -384,6 +440,7 @@ export async function createDiscovery(input: {
       longitude: input.longitude,
       latitude: input.latitude,
       imageObjectKey: input.imageObjectKey,
+      locationSource: input.locationSource,
       discoveredAt: input.discoveredAt,
     }),
   })
@@ -413,6 +470,7 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
     location: `${discovery.latitude.toFixed(4)}, ${discovery.longitude.toFixed(4)}`,
     imageId: 'photo-1500530855697-b586d89ba3ee',
     imageObjectKey: discovery.imageObjectKey,
+    locationSource: discovery.locationSource ?? null,
     description: discovery.description ?? '',
     author: authorName,
     initials: initialsOf(authorName),

@@ -5,6 +5,7 @@ import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { configureApp } from './../src/app-setup';
 import { AppModule } from './../src/app.module';
+import { uploadTestPhoto } from './e2e-app';
 
 interface DiscoveryResponse {
   id: string;
@@ -33,6 +34,7 @@ describe('DiscoveriesController (e2e)', () => {
   let accessToken: string;
   let otherUserId: string;
   let otherAccessToken: string;
+  let photoKey: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -63,6 +65,7 @@ describe('DiscoveriesController (e2e)', () => {
 
     userId = body.user.id;
     accessToken = body.accessToken;
+    photoKey = await uploadTestPhoto(app, accessToken);
 
     const otherRegisterResponse = await request(app.getHttpServer())
       .post('/api/auth/register')
@@ -98,7 +101,8 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 6.6412,
         latitude: 46.7785,
-        imageObjectKey: 'discoveries/e2e-lake.jpg',
+        imageObjectKey: photoKey,
+        locationSource: 'manual',
         discoveredAt: '2026-08-25T12:00:00.000Z',
       })
       .expect(201);
@@ -113,7 +117,8 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 6.6412,
         latitude: 46.7785,
-        imageObjectKey: 'discoveries/e2e-lake.jpg',
+        imageObjectKey: photoKey,
+        locationSource: 'manual',
         discoveredAt: '2026-08-25T12:00:00.000Z',
       }),
     );
@@ -136,7 +141,8 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 9.4669802,
         latitude: 41.1418826,
-        imageObjectKey: 'discoveries/e2e-phi-beach.jpg',
+        imageObjectKey: photoKey,
+        locationSource: 'manual',
         discoveredAt: '2026-08-25T12:00:00.000Z',
       })
       .expect(201);
@@ -157,7 +163,8 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Other',
         longitude: 7.4474,
         latitude: 46.948,
-        imageObjectKey: 'discoveries/e2e-listed.jpg',
+        imageObjectKey: photoKey,
+        locationSource: 'manual',
         discoveredAt: '2026-08-25T13:00:00.000Z',
       })
       .expect(201);
@@ -172,7 +179,8 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Other',
         longitude: 2.3522,
         latitude: 48.8566,
-        imageObjectKey: 'discoveries/e2e-other-user.jpg',
+        imageObjectKey: photoKey,
+        locationSource: 'manual',
         discoveredAt: '2026-08-25T14:00:00.000Z',
       })
       .expect(201);
@@ -192,7 +200,8 @@ describe('DiscoveriesController (e2e)', () => {
           category: 'Other',
           longitude: 7.4474,
           latitude: 46.948,
-          imageObjectKey: 'discoveries/e2e-listed.jpg',
+          imageObjectKey: photoKey,
+          locationSource: 'manual',
           discoveredAt: '2026-08-25T13:00:00.000Z',
         }),
       ]),
@@ -221,7 +230,8 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Landscape',
         longitude: 6.5,
         latitude: 46.5,
-        imageObjectKey: 'discoveries/e2e-private.jpg',
+        imageObjectKey: photoKey,
+        locationSource: 'manual',
         discoveredAt: '2026-08-25T15:00:00.000Z',
       })
       .expect(201);
@@ -305,7 +315,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Other',
         longitude: 7.4474,
         latitude: 46.948,
-        imageObjectKey: 'discoveries/e2e-unauthorized.jpg',
+        imageObjectKey: 'photos/650e8400-e29b-41d4-a716-446655440000.jpg',
         discoveredAt: '2026-08-25T13:00:00.000Z',
       })
       .expect(401);

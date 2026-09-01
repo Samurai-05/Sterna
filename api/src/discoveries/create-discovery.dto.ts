@@ -12,6 +12,7 @@ import {
   Matches,
 } from 'class-validator';
 import { DiscoveryCategory } from './discovery-category';
+import { DiscoveryLocationSource } from './discovery-location-source';
 
 export class CreateDiscoveryDto {
   @IsOptional()
@@ -49,6 +50,9 @@ export class CreateDiscoveryDto {
   @IsString()
   @Length(1)
   imageObjectKey: string;
+
+  @IsEnum(DiscoveryLocationSource)
+  locationSource: DiscoveryLocationSource;
 
   @IsDateString()
   discoveredAt: string;

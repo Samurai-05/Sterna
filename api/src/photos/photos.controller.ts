@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Res,
   StreamableFile,
   UnsupportedMediaTypeException,
@@ -19,6 +20,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiPayloadTooLargeResponse,
+  ApiQuery,
   ApiTags,
   ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
@@ -107,9 +109,17 @@ export class PhotosController {
       'so a presigned URL would not resolve for a client (ADR-007).',
   })
   @ApiOkResponse({ description: 'The image bytes.' })
+  @ApiQuery({
+    name: 'variant',
+    required: false,
+    enum: ['map', 'card', 'detail'],
+    description:
+      'Optional generated size. Older photos safely fall back to the original.',
+  })
   @ApiNotFoundResponse({ description: 'No such photo.' })
   async download(
     @Param('filename') filename: string,
+    @Query('variant') variant: string | undefined,
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
     // The global guard has established that the caller is signed in, which is
@@ -119,7 +129,10 @@ export class PhotosController {
     // (NFR-24/25/26), so once the discoveries table exists this must also check
     // that *this* caller may see the discovery the photo belongs to. Until
     // then any signed-in user can read any key they know.
-    const { stream, contentType, size } = await this.photos.read(filename);
+    const { stream, contentType, size } = await this.photos.read(
+      filename,
+      variant,
+    );
 
     // Keys are immutable, so the bytes behind one never change. Set here rather
     // than with @Header(): Nest applies those before the handler runs, which

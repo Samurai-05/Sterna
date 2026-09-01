@@ -446,6 +446,16 @@ describe('AuthService', () => {
         expect.stringContaining('UPDATE group_members SET role'),
         ['owner', 'group-1', 'user-2'],
       );
+      expect(manager.query).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('UPDATE group_members SET role'),
+        ['member', 'group-1', '1'],
+      );
+      expect(manager.query).toHaveBeenNthCalledWith(
+        4,
+        expect.stringContaining('UPDATE group_members SET role'),
+        ['owner', 'group-1', 'user-2'],
+      );
       expect(manager.query).not.toHaveBeenCalledWith(
         expect.stringContaining('DELETE FROM groups'),
         expect.anything(),

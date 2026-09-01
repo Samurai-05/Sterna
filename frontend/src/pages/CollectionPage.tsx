@@ -26,6 +26,7 @@ import {
   type CategoryAppearance,
 } from '@/lib/category-appearance'
 import { discoveryPath } from '@/lib/discovery-path'
+import { getPoiImageUrl } from '@/lib/poi-image'
 import {
   loadGalleryView,
   saveGalleryView,
@@ -35,7 +36,6 @@ import { discoveryLocationLabel } from '@/lib/location-label'
 import {
   categories,
   discoveries,
-  imageUrl,
   landmarks,
   type Discovery,
   type DiscoveryCategory,
@@ -276,9 +276,11 @@ export function CollectionPage() {
                 className="aspect-square overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
               >
                 <img
-                  src={poi.imageUrl ?? imageUrl(poi.imageId)}
+                  src={getPoiImageUrl(poi.imageUrl, poi.imageId, 'card')}
                   alt={poi.name}
                   className="size-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               </Link>
             ))}

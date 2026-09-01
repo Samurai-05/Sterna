@@ -1,10 +1,12 @@
 import { createRef } from 'react'
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const {
+  getPhotoMock,
   mapInstances,
   markerInstances,
+  popupElements,
   MockGeolocateControl,
   MockMap,
   MockNavigationControl,
@@ -15,8 +17,11 @@ const {
     emit: (event: string) => void
     resizeCalls: number
     flyToCalls: Array<{ center: [number, number]; zoom: number }>
+    bounds: { west: number; south: number; east: number; north: number }
   }> = []
-  const markers: Array<{ element?: HTMLElement }> = []
+  const markers: Array<{ element?: HTMLElement; removed: boolean }> = []
+  const popupElements: HTMLElement[] = []
+  const getPhoto = vi.fn().mockResolvedValue(new Blob(['image']))
 
   class NavigationControl {}
 
@@ -29,6 +34,7 @@ const {
     controls: unknown[] = []
     resizeCalls = 0
     flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
+    bounds = { west: 0, south: 40, east: 10, north: 50 }
     listeners = new Map<string, Set<() => void>>()
 
     constructor(options: { center: [number, number]; zoom: number }) {
@@ -51,6 +57,15 @@ const {
 
     getZoom() {
       return this.options.zoom
+    }
+
+    getBounds() {
+      return {
+        getWest: () => this.bounds.west,
+        getSouth: () => this.bounds.south,
+        getEast: () => this.bounds.east,
+        getNorth: () => this.bounds.north,
+      }
     }
 
     on(event: string, listener: () => void) {
@@ -82,17 +97,24 @@ const {
   }
 
   return {
+    getPhotoMock: getPhoto,
     mapInstances: instances,
     markerInstances: markers,
+    popupElements,
     MockGeolocateControl: GeolocateControl,
     MockMap: MapMock,
     MockNavigationControl: NavigationControl,
   }
 })
 
+vi.mock('@/lib/api', () => ({
+  getPhoto: getPhotoMock,
+}))
+
 vi.mock('maplibre-gl', () => {
   class MarkerMock {
     element?: HTMLElement
+    removed = false
 
     constructor(options?: { element?: HTMLElement }) {
       this.element = options?.element
@@ -107,15 +129,18 @@ vi.mock('maplibre-gl', () => {
       return this
     }
 
-    remove() {}
+    remove() {
+      this.removed = true
+    }
   }
 
   class PopupMock {
-    setLngLat() {
+    setDOMContent(content: HTMLElement) {
+      popupElements.push(content)
       return this
     }
 
-    setDOMContent() {
+    setLngLat() {
       return this
     }
 
@@ -148,6 +173,7 @@ const originalUserAgent = window.navigator.userAgent
 afterEach(() => {
   mapInstances.length = 0
   markerInstances.length = 0
+  popupElements.length = 0
   window.sessionStorage.clear()
   Object.defineProperty(window.navigator, 'userAgent', {
     configurable: true,
@@ -244,7 +270,7 @@ describe('MapCanvas', () => {
     })
   })
 
-  it('hides POI markers below the minimum zoom and shows them above it', () => {
+  it('does not instantiate POI markers below the minimum zoom', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'test-browser',
@@ -252,6 +278,7 @@ describe('MapCanvas', () => {
 
     render(
       <MapCanvas
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 4 }}
         landmarks={[
           {
             id: 'poi-1',
@@ -264,15 +291,139 @@ describe('MapCanvas', () => {
       />,
     )
 
-    const [marker] = markerInstances
-    const element = marker.element as HTMLElement
-
-    mapInstances[0].options.zoom = 4
-    mapInstances[0].emit('zoom')
-    expect(element.style.display).toBe('none')
+    expect(markerInstances).toHaveLength(0)
 
     mapInstances[0].options.zoom = 5
-    mapInstances[0].emit('zoom')
-    expect(element.style.display).toBe('')
+    act(() => mapInstances[0].emit('zoomend'))
+    expect(markerInstances).toHaveLength(1)
+  })
+
+  it('creates only POI markers inside the buffered viewport', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 5 }}
+        landmarks={[
+          {
+            id: 'inside',
+            name: 'Inside',
+            imageId: 'inside',
+            discovered: false,
+            coordinates: [6, 46],
+          },
+          {
+            id: 'outside',
+            name: 'Outside',
+            imageId: 'outside',
+            discovered: false,
+            coordinates: [30, 60],
+          },
+        ]}
+      />,
+    )
+
+    expect(markerInstances).toHaveLength(1)
+    expect(
+      (markerInstances[0].element as HTMLElement).querySelector('img'),
+    ).toHaveAttribute('src', expect.stringContaining('w=192'))
+  })
+
+  it('does not fetch discovery photos below the preview threshold', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        discoveries={[
+          {
+            id: 1,
+            name: 'Discovery',
+            category: 'landscape',
+            imageId: 'fallback',
+            imageObjectKey: 'photos/example.jpg',
+            coordinates: [6, 46],
+          },
+        ]}
+        photoAccessToken="token"
+      />,
+    )
+
+    expect(getPhotoMock).not.toHaveBeenCalled()
+
+    mapInstances[0].options.zoom = 13
+    act(() => mapInstances[0].emit('zoomend'))
+
+    expect(getPhotoMock).toHaveBeenCalledWith(
+      'token',
+      'photos/example.jpg',
+      'map',
+    )
+  })
+
+  it('shows a neutral map photo placeholder while the preview loads', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+    getPhotoMock.mockReturnValue(new Promise(() => undefined))
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 13 }}
+        discoveries={[
+          {
+            id: 1,
+            name: 'Discovery',
+            category: 'landscape',
+            imageId: 'fallback',
+            imageObjectKey: 'photos/example.jpg',
+            coordinates: [6, 46],
+          },
+        ]}
+        photoAccessToken="token"
+      />,
+    )
+
+    expect(getPhotoMock).toHaveBeenCalledWith(
+      'token',
+      'photos/example.jpg',
+      'map',
+    )
+    expect(popupElements[0].querySelector('img')).toBeNull()
+    expect(popupElements[0].innerHTML).not.toContain('images.unsplash.com')
+  })
+
+  it('updates POI markers when the map viewport moves', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 5 }}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'POI',
+            imageId: 'poi',
+            discovered: false,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+
+    expect(markerInstances).toHaveLength(1)
+    mapInstances[0].bounds = { west: 20, south: 40, east: 30, north: 50 }
+    act(() => mapInstances[0].emit('moveend'))
+
+    expect(markerInstances[0].removed).toBe(true)
   })
 })

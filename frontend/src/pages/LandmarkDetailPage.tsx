@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useLocation, useParams } from 'react-router'
 
 import { PageHeader } from '@/components/PageHeader'
-import { imageUrl, landmarks } from '@/lib/mock-data'
 import { getPois } from '@/lib/api'
+import { getPoiImageUrl } from '@/lib/poi-image'
+import { landmarks } from '@/lib/mock-data'
 import { landmarkLocationLabel } from '@/lib/location-label'
 import { loadSession } from '@/lib/session'
 
@@ -24,6 +25,11 @@ export function LandmarkDetailPage() {
   const returnTo =
     typeof location.state?.returnTo === 'string' ? location.state.returnTo : '/'
   if (!landmark) return null
+  const landmarkImage = getPoiImageUrl(
+    landmark.imageUrl,
+    landmark.imageId,
+    'detail',
+  )
   return (
     <main className="min-h-dvh bg-background">
       <PageHeader title="Point of interest" backTo={returnTo} />
@@ -32,13 +38,13 @@ export function LandmarkDetailPage() {
           className={`relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-stone-200 ${landmark.discovered ? '' : 'grayscale'}`}
         >
           <img
-            src={landmark.imageUrl ?? imageUrl(landmark.imageId)}
+            src={landmarkImage}
             alt=""
             aria-hidden="true"
             className="absolute inset-0 size-full scale-110 object-cover opacity-55 blur-xl"
           />
           <img
-            src={landmark.imageUrl ?? imageUrl(landmark.imageId)}
+            src={landmarkImage}
             alt={landmark.name}
             className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
           />
