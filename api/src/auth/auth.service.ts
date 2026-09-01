@@ -28,10 +28,19 @@ export const INVALID_CREDENTIALS =
   'The email address or password is incorrect.';
 
 /**
- * A token can outlive the row it names, because the guard never reads the
- * database. This is where that shows up.
+ * A token can outlive the row it names — JwtAuthGuard now rejects one whose
+ * account is gone, so this is the narrower race where the row disappears
+ * between the guard and the handler.
  */
 export const ACCOUNT_GONE = 'This account no longer exists.';
+
+/**
+ * The address is deliberately not echoed back: reflecting request input
+ * into an error message gains the caller nothing they did not already type,
+ * and it puts the address into every log line and error report downstream.
+ */
+export const ACCOUNT_ALREADY_EXISTS =
+  'An account with that email address already exists.';
 
 /** Postgres unique_violation. */
 const UNIQUE_VIOLATION = '23505';
@@ -93,12 +102,22 @@ export class AuthService {
       DEFAULT_JWT_EXPIRES_IN_SECONDS;
   }
 
-  /** FR-01. Returns a token as well, so the client lands logged in. */
+  /**
+   * FR-01. Returns a token as well, so the client lands logged in.
+   *
+   * The 409 discloses that an account exists. Login is deliberately
+   * uniform about the same question — see the throwaway hash below — so the
+   * two endpoints disagree and an attacker would simply use this one.
+   * Eliminating the disclosure needs an email-verification flow, which
+   * ADR-009 puts out of MVP scope; what is done instead is to stop echoing
+   * the submitted address back and to rate-limit the route (see
+   * @Throttle on the controller), so enumerating a list is slow.
+   */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const email = normalizeEmail(dto.email);
 
     if (await this.users.existsBy({ email })) {
-      throw new ConflictException(`An account already exists for "${email}".`);
+      throw new ConflictException(ACCOUNT_ALREADY_EXISTS);
     }
 
     const user = this.users.create({
@@ -119,9 +138,7 @@ export class AuthService {
       // pass it and one loses at the index. Both callers should see 409,
       // rather than one 409 and one 500.
       if (isUniqueViolation(error)) {
-        throw new ConflictException(
-          `An account already exists for "${email}".`,
-        );
+        throw new ConflictException(ACCOUNT_ALREADY_EXISTS);
       }
 
       throw error;
@@ -172,6 +189,18 @@ export class AuthService {
     const user = await this.requireUser(id);
     const previousAvatarObjectKey = user.avatarObjectKey;
 
+    // A key is not a capability: it is handed out in full on every shared
+    // group map, so "the client sent it" does not mean "the client owns it".
+    // Unchecked, this field is a way to aim the delete below at somebody
+    // else's object — set it to their key, then set it to your own.
+    if (dto.avatarObjectKey != null) {
+      const owned = await this.photos.ownsPhoto(id, dto.avatarObjectKey);
+
+      if (!owned) {
+        throw new BadRequestException('Unknown photo.');
+      }
+    }
+
     if (dto.userName !== undefined) {
       user.userName = dto.userName;
     }
@@ -189,7 +218,7 @@ export class AuthService {
       previousAvatarObjectKey !== dto.avatarObjectKey &&
       dto.avatarObjectKey !== undefined
     ) {
-      await this.photos.remove(previousAvatarObjectKey);
+      await this.photos.removeOwned(id, previousAvatarObjectKey);
     }
 
     return toUserDto(saved);
@@ -198,8 +227,10 @@ export class AuthService {
   /**
    * FR-02.
    *
-   * Tokens issued before the change stay valid until they expire — the design
-   * is stateless and has no revocation list (ADR-009).
+   * Every token issued before this call stops working, the caller's own
+   * included: JwtAuthGuard compares each token's `iat` against
+   * password_changed_at. There is still no revocation list — the comparison
+   * is against a column, not a stored session (ADR-009, amended).
    */
   async changePassword(id: string, dto: ChangePasswordDto): Promise<void> {
     const user = await this.requireUserWithHash(id);
@@ -215,6 +246,7 @@ export class AuthService {
     }
 
     user.passwordHash = await hashPassword(dto.newPassword);
+    user.passwordChangedAt = new Date();
 
     await this.users.save(user);
   }
@@ -227,17 +259,20 @@ export class AuthService {
       throw new BadRequestException('The current password is incorrect.');
     }
 
-    const objectKeys = await this.dataSource.transaction(async (manager) => {
+    // Harvested before the account goes: fk_photos_user cascades the rows
+    // away with it. This asks the photos table who owns the objects, not the
+    // discoveries table who references them — the two are not the same
+    // question, and answering the second is how a co-member's key ended up in
+    // this list.
+    const objectKeys = await this.photos.listOwnedKeys(id);
+
+    await this.dataSource.transaction(async (manager) => {
       // Groups the caller owns outright don't vanish with them: ownership
       // passes to another member, or the group is dissolved if the caller
       // was its only member. Run before the discoveries delete below: a
       // dissolved group's only discoveries are this user's own, about to be
       // deleted anyway, and group_members can't go until they are (RESTRICT).
       const dissolvedGroupIds = await this.reassignOwnedGroups(id, manager);
-
-      const discoveries = await manager.query<
-        { image_object_key: string | null }[]
-      >('SELECT image_object_key FROM discoveries WHERE user_id = $1', [id]);
 
       // fk_discoveries_group_membership is ON DELETE RESTRICT and Postgres
       // checks it immediately, so cascading the membership away while the
@@ -257,21 +292,12 @@ export class AuthService {
       }
 
       await manager.delete(User, { id });
-
-      return discoveries
-        .map((row) => row.image_object_key)
-        .filter((key): key is string => key !== null);
     });
 
-    // The avatar lives on the row deleted above, not among the discoveries
-    // queried inside the transaction, so it is collected separately here.
-    const allObjectKeys = user.avatarObjectKey
-      ? [...objectKeys, user.avatarObjectKey]
-      : objectKeys;
-
     // MinIO isn't part of the SQL transaction above, so this only runs once
-    // the account and its rows are already gone for good (ADR-006).
-    await Promise.all(allObjectKeys.map((key) => this.photos.remove(key)));
+    // the account and its rows are already gone for good (ADR-006). The
+    // avatar needs no separate collection: it is a photos row like any other.
+    await this.photos.purgeOwnedObjects(objectKeys);
   }
 
   /**

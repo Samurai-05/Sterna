@@ -38,6 +38,9 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # /etc/nginx/conf.d/ at startup, which keeps the domain a runtime variable
 # instead of baking it into the image.
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+# Not a template: it carries no ${...} placeholder, and it must not land in
+# conf.d/, which the main nginx.conf includes wholesale.
+COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY nginx/10-ensure-cert.sh /docker-entrypoint.d/10-ensure-cert.sh
 COPY nginx/40-reload-for-renewals.sh /docker-entrypoint.d/40-reload-for-renewals.sh
 RUN chmod +x /docker-entrypoint.d/10-ensure-cert.sh \

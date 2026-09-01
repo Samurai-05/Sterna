@@ -38,18 +38,25 @@ describe('Groups (e2e)', () => {
   let linusId: string;
   /** Belongs to no group at all — the NFR-19 probe. */
   let outsider: string;
-  let photoKey: string;
 
   const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-  const discovery = (groupId: string | null, title: string) => ({
+  // The photo has to be real and has to belong to the caller: POST
+  // /api/discoveries now checks both, because an object key is published to
+  // every member of a shared group map and citing one proves nothing about
+  // who uploaded it. Hence the token parameter, and hence async.
+  const discovery = async (
+    token: string,
+    groupId: string | null,
+    title: string,
+  ) => ({
     groupId,
     title,
     description: null,
     category: 'Other',
     longitude: 6.6412,
     latitude: 46.7785,
-    imageObjectKey: photoKey,
+    imageObjectKey: await uploadTestPhoto(app, token),
     locationSource: 'manual',
     discoveredAt: '2026-08-25T12:00:00.000Z',
   });
@@ -68,7 +75,6 @@ describe('Groups (e2e)', () => {
     app = await createTestApp();
 
     ada = (await registerTestUser(app)).accessToken;
-    photoKey = await uploadTestPhoto(app, ada);
 
     const member = await registerTestUser(app);
     linus = member.accessToken;
@@ -203,14 +209,14 @@ describe('Groups (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(outsider))
-        .send(discovery(group.id, 'trespassing'))
+        .send(await discovery(outsider, group.id, 'trespassing'))
         .expect(404);
 
       await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(outsider))
         .send({
-          ...discovery(null, 'shared-trespassing'),
+          ...(await discovery(outsider, null, 'shared-trespassing')),
           groupIds: [group.id],
         })
         .expect(404);
@@ -293,7 +299,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(linus))
-        .send(discovery(group.id, 'shared-find'))
+        .send(await discovery(linus, group.id, 'shared-find'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;
@@ -340,7 +346,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(ada))
-        .send(discovery(null, 'personal-only'))
+        .send(await discovery(ada, null, 'personal-only'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;
@@ -363,7 +369,7 @@ describe('Groups (e2e)', () => {
         .post('/api/discoveries')
         .set(auth(ada))
         .send({
-          ...discovery(null, 'shared-with-several'),
+          ...(await discovery(ada, null, 'shared-with-several')),
           groupIds: [first.id, second.id],
         })
         .expect(201);
@@ -429,7 +435,7 @@ describe('Groups (e2e)', () => {
         .post('/api/discoveries')
         .set(auth(ada))
         .send({
-          ...discovery(group.id, 'also-personal'),
+          ...(await discovery(ada, group.id, 'also-personal')),
           personal: true,
         })
         .expect(201);
@@ -527,7 +533,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(ada))
-        .send(discovery(group.id, 'survives-deletion'))
+        .send(await discovery(ada, group.id, 'survives-deletion'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;
@@ -576,7 +582,7 @@ describe('Groups (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/discoveries')
         .set(auth(linus))
-        .send(discovery(group.id, 'follows-me-out'))
+        .send(await discovery(linus, group.id, 'follows-me-out'))
         .expect(201);
 
       const { id } = created.body as DiscoveryResponse;

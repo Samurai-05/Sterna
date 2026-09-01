@@ -16,7 +16,8 @@ import { PhotosService } from '../photos/photos.service';
 describe('DiscoveriesService', () => {
   const query = jest.fn<Promise<unknown[]>, [string, unknown[]?]>();
   const requireMembership = jest.fn();
-  const removePhoto = jest.fn();
+  const ownsPhoto = jest.fn();
+  const removeOwnedPhoto = jest.fn();
   const isCanonicalPhotoKey = jest.fn();
   const photoExists = jest.fn();
 
@@ -51,6 +52,8 @@ describe('DiscoveriesService', () => {
   beforeEach(async () => {
     jest.resetAllMocks();
     query.mockResolvedValue([]);
+    // The happy path for everything that is not about the photo itself.
+    ownsPhoto.mockResolvedValue(true);
     isCanonicalPhotoKey.mockReturnValue(true);
     photoExists.mockResolvedValue(true);
 
@@ -62,7 +65,8 @@ describe('DiscoveriesService', () => {
         {
           provide: PhotosService,
           useValue: {
-            remove: removePhoto,
+            ownsPhoto,
+            removeOwned: removeOwnedPhoto,
             isCanonicalObjectKey: isCanonicalPhotoKey,
             exists: photoExists,
           },
@@ -121,6 +125,43 @@ describe('DiscoveriesService', () => {
       ]);
     });
 
+    // The key is returned in full on every shared group map, so citing
+    // one proves nothing about who uploaded it.
+    it('refuses a photo the caller did not upload', async () => {
+      ownsPhoto.mockResolvedValue(false);
+
+      await expect(service.create('1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(ownsPhoto).toHaveBeenCalledWith('1', dto.imageObjectKey);
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    // NFR-32, the check PhotosService.exists() was written for.
+    it('refuses a photo that is not in object storage', async () => {
+      photoExists.mockResolvedValue(false);
+
+      await expect(service.create('1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    // Not-yours and not-there must not be distinguishable, or the endpoint
+    // becomes an oracle for which keys exist.
+    it("gives the same message whether the photo is missing or not the caller's", async () => {
+      const message = 'Unknown photo.';
+
+      ownsPhoto.mockResolvedValue(false);
+      await expect(service.create('1', dto)).rejects.toThrow(message);
+
+      ownsPhoto.mockResolvedValue(true);
+      photoExists.mockResolvedValue(false);
+      await expect(service.create('1', dto)).rejects.toThrow(message);
+    });
+
     it('returns null countryCode for a discovery nowhere near any coastline', async () => {
       query.mockResolvedValueOnce([row({ country_code: null })]);
 
@@ -157,7 +198,6 @@ describe('DiscoveriesService', () => {
         service.create('1', { ...dto, imageObjectKey: 'photos/a.map.webp' }),
       ).rejects.toBeInstanceOf(BadRequestException);
 
-      expect(photoExists).not.toHaveBeenCalled();
       expect(query).not.toHaveBeenCalled();
     });
 
@@ -165,7 +205,7 @@ describe('DiscoveriesService', () => {
       photoExists.mockResolvedValue(false);
 
       await expect(service.create('1', dto)).rejects.toBeInstanceOf(
-        NotFoundException,
+        BadRequestException,
       );
 
       expect(photoExists).toHaveBeenCalledWith(dto.imageObjectKey);
@@ -407,7 +447,12 @@ describe('DiscoveriesService', () => {
 
       await service.remove('9', '1');
 
-      expect(removePhoto).toHaveBeenCalledWith('photos/discovery.jpg');
+      // Scoped to the caller, so a row that somehow references another
+      // account's key frees nothing rather than destroying their object.
+      expect(removeOwnedPhoto).toHaveBeenCalledWith(
+        '1',
+        'photos/discovery.jpg',
+      );
     });
 
     it('keeps deletion successful when post-delete photo cleanup fails', async () => {
@@ -415,7 +460,7 @@ describe('DiscoveriesService', () => {
       query.mockResolvedValueOnce([
         { id: '9', image_object_key: 'photos/discovery.jpg' },
       ]);
-      removePhoto.mockRejectedValueOnce(cleanupError);
+      removeOwnedPhoto.mockRejectedValueOnce(cleanupError);
       const loggerError = jest
         .spyOn(Logger.prototype, 'error')
         .mockImplementation();

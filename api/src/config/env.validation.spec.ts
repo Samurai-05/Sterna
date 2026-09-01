@@ -1,4 +1,4 @@
-import { validate } from './env.validation';
+import { MAX_JWT_EXPIRES_IN_SECONDS, validate } from './env.validation';
 
 const completeEnv = {
   POSTGRES_HOST: 'postgres',
@@ -97,5 +97,49 @@ describe('validate', () => {
     expect(() =>
       validate({ ...completeEnv, JWT_EXPIRES_IN_SECONDS: 'a week' }),
     ).toThrow(/JWT_EXPIRES_IN_SECONDS/);
+  });
+
+  // With no refresh token this value is the session length, so a
+  // misplaced digit would mint effectively immortal tokens.
+  it('rejects a JWT_EXPIRES_IN_SECONDS past the ceiling', () => {
+    expect(() =>
+      validate({
+        ...completeEnv,
+        JWT_EXPIRES_IN_SECONDS: String(MAX_JWT_EXPIRES_IN_SECONDS + 1),
+      }),
+    ).toThrow(/JWT_EXPIRES_IN_SECONDS/);
+
+    expect(
+      validate({
+        ...completeEnv,
+        JWT_EXPIRES_IN_SECONDS: String(MAX_JWT_EXPIRES_IN_SECONDS),
+      }).JWT_EXPIRES_IN_SECONDS,
+    ).toBe(MAX_JWT_EXPIRES_IN_SECONDS);
+  });
+
+  // Boolean('false') is true, so the transform has to read the raw
+  // string. Getting this wrong would publish the document in production.
+  it('reads SWAGGER_ENABLED as a boolean in both directions', () => {
+    expect(validate(completeEnv).SWAGGER_ENABLED).toBeUndefined();
+    expect(
+      validate({ ...completeEnv, SWAGGER_ENABLED: 'false' }).SWAGGER_ENABLED,
+    ).toBe(false);
+    expect(
+      validate({ ...completeEnv, SWAGGER_ENABLED: 'true' }).SWAGGER_ENABLED,
+    ).toBe(true);
+    expect(() => validate({ ...completeEnv, SWAGGER_ENABLED: 'yes' })).toThrow(
+      /SWAGGER_ENABLED/,
+    );
+  });
+
+  // The values config/throttling.ts reads straight off process.env.
+  it('rejects a non-positive throttle limit', () => {
+    expect(() =>
+      validate({ ...completeEnv, AUTH_THROTTLE_LIMIT: '0' }),
+    ).toThrow(/AUTH_THROTTLE_LIMIT/);
+    expect(
+      validate({ ...completeEnv, AUTH_THROTTLE_LIMIT: '5' })
+        .AUTH_THROTTLE_LIMIT,
+    ).toBe(5);
   });
 });

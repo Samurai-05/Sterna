@@ -82,6 +82,19 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      # Rate limits (api/src/config/throttling.ts). Unset means the
+      # production defaults compiled into that file; the override file relaxes
+      # them for development, where the e2e suite logs in dozens of times from
+      # one source.
+      THROTTLE_TTL_SECONDS: ${THROTTLE_TTL_SECONDS:-60}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-1200}
+      AUTH_THROTTLE_TTL_SECONDS: ${AUTH_THROTTLE_TTL_SECONDS:-900}
+      AUTH_THROTTLE_LIMIT: ${AUTH_THROTTLE_LIMIT:-40}
+      UPLOAD_THROTTLE_TTL_SECONDS: ${UPLOAD_THROTTLE_TTL_SECONDS:-600}
+      UPLOAD_THROTTLE_LIMIT: ${UPLOAD_THROTTLE_LIMIT:-120}
+      # Publishing /api/docs. Unset means "not in production"; set it to true
+      # to expose the OpenAPI document on the VM for a demo.
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
     depends_on:
       postgres:
         condition: service_healthy

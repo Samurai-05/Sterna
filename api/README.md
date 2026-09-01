@@ -110,7 +110,11 @@ Docker Compose from the repository-root `.env`; nothing is read from a `.env` in
 | `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | MinIO credentials, shared with the `minio` service |
 | `MINIO_BUCKET_NAME` | Bucket the photos live in, created by `minio-init` |
 | `JWT_SECRET` | HMAC key the access tokens are signed with. At least 32 characters; generate with `openssl rand -base64 48` |
-| `JWT_EXPIRES_IN_SECONDS` | Optional access token lifetime, default `604800` (7 days) |
+| `JWT_EXPIRES_IN_SECONDS` | Optional access token lifetime, default `604800` (7 days), capped at 30 days |
+| `SWAGGER_ENABLED` | Optional `"true"`/`"false"`. Unset means "not in production" — see [API documentation](#api-documentation) |
+| `THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT` | Optional. The ceiling every route sits under (default 1200 requests / 60 s per IP) |
+| `AUTH_THROTTLE_TTL_SECONDS`, `AUTH_THROTTLE_LIMIT` | Optional. Register and login (default 40 / 15 min per IP) |
+| `UPLOAD_THROTTLE_TTL_SECONDS`, `UPLOAD_THROTTLE_LIMIT` | Optional. `POST /api/photos` (default 120 / 10 min per IP) |
 
 ## Database
 
@@ -182,8 +186,12 @@ client sends it as `Authorization: Bearer <token>`.
 | `DELETE /api/auth/me` | bearer | Delete the account. 204 |
 
 **There is no logout endpoint, and that is deliberate** — logging out is discarding the token.
-The flip side is that nothing is revocable server-side: a token stays valid until it expires
-(7 days by default), and *changing a password does not invalidate tokens already issued*.
+A token therefore stays valid until it expires (7 days by default, capped at 30 by
+`JWT_EXPIRES_IN_SECONDS`) with one exception: **changing the password invalidates every token
+issued before it**, the caller's own included. `JwtAuthGuard` compares the token's `iat`
+against `users.password_changed_at`, which costs one primary-key lookup per request and is
+the one amendment to ADR-009's otherwise-stateless design. A client must discard its token
+after `PATCH /api/auth/password` and send the user back to the login screen.
 
 **Routes are private by default.** A single `APP_GUARD` registered in `AuthModule` covers every
 controller route; `@Public()` opts one out, and only `register`, `login` and the health
@@ -213,7 +221,23 @@ Two things a wrong assumption would break, both worth reading before writing a c
   the session is over, send the user to the login screen;
 - **login is uniform.** An unknown address and a wrong password get the same status, the same
   message and the same response time, so the endpoint cannot be used to discover whether an
-  account exists.
+  account exists. `register` is not, and cannot be without an email-verification flow that
+  ADR-009 puts out of scope: its 409 says an account exists. It does not echo the submitted
+  address back, and it is rate-limited, which is as far as this goes.
+
+**Rate limits.** `@nestjs/throttler` is registered as a second global `APP_GUARD`, with the
+limits in `src/config/throttling.ts` and the values in the table above. Login and register
+are the tight ones — login is `@Public()` and runs an argon2id verify at 19 MiB per call,
+which is a credential-stuffing surface and a memory-amplification DoS at the same time.
+`configureApp()` sets Express's `trust proxy`, without which every request would carry the
+Docker bridge address and the per-IP limits would collapse into one global limit. The health
+controller is `@SkipThrottle()` — the Compose healthcheck polls it every 10 seconds. The
+numbers are sized for a **shared** address: the application is reached over the campus
+network, so a whole room arrives from one NAT egress IP and a per-IP limit is really a
+per-room limit.
+`helmet()` runs as middleware on the same path, with its CSP disabled: this service answers
+JSON and image bytes, and the browser-facing policy belongs to Nginx
+(`frontend/nginx/security-headers.conf`).
 
 ## Photos
 
@@ -229,9 +253,23 @@ both directions go through the API.
 **Both routes require a bearer token** (NFR-18, NFR-24). That has a consequence worth
 spelling out for the frontend: an `<img src="/api/photos/…">` cannot attach an
 `Authorization` header, so a client has to `fetch()` the bytes and render
-`URL.createObjectURL(blob)` instead — MapLibre marker images included. Authorization today
-stops at "is the caller signed in"; checking that *this* caller may see the discovery a photo
-belongs to needs the discoveries table and is marked `TODO(discoveries)` in the controller.
+`URL.createObjectURL(blob)` instead — MapLibre marker images included.
+
+**A key is not a capability.** `GET /api/groups/{id}/discoveries` returns
+`imageObjectKey` in full to every member of a shared map, so "the client sent me this key"
+has never meant "the client owns it". Ownership therefore lives in Postgres, in the `photos`
+table ADR-006 always described (`object_key`, `user_id`, `content_type`), written by
+`POST /api/photos` and consulted everywhere else:
+
+- `POST /api/discoveries` and `PATCH /api/auth/me` accept a key only if this caller uploaded
+  it *and* the object is really in MinIO (NFR-32). Both failures answer the same
+  `400 Unknown photo.`, so the route is not an oracle for which keys exist.
+- `GET /api/photos/{filename}` answers only if the caller uploaded the object or is a member
+  of a group the referencing discovery is shared into — leaving the group revokes access.
+  Anything else is **404, not 403**, matching the groups module (NFR-19).
+- `PhotosService.removeOwned()` is the only delete path a request can reach, and the
+  ownership check *is* the delete: the row goes only if it is the caller's, and the object
+  goes only if the row did.
 
 A photo is uploaded *before* the discovery that references it exists, so upload is a
 standalone resource: it returns a key, and the client sends that key with the rest of the
@@ -313,15 +351,15 @@ decorators: **DTO properties do not need an `@ApiProperty()` on every field**. D
 are only worth adding for what cannot be inferred — summaries, descriptions, response
 examples and non-obvious status codes, as in `health/health.controller.ts`.
 
-The documentation is served in **every environment**, production included. This is a school
-project whose API is meant to be demonstrated, and the endpoints are reachable regardless of
-whether they are documented. To restrict it, guard the `setupSwagger(app)` call in
-`app-setup.ts` on `NODE_ENV`.
+The documentation is served **everywhere except production**. Swagger's own routes are
+registered through `httpAdapter.get()`, outside Nest's guard pipeline, so the global
+`JwtAuthGuard` does not apply to them and no `@Public()` would either — published
+anonymously on the VM, the document is a machine-readable map of every endpoint and every
+constraint. `config/swagger.options.ts` decides, `configureApp()` obeys, and
+`SWAGGER_ENABLED=true` turns it back on for a demo without a code change.
 
 The document declares a `bearer` security scheme, so the UI's **Authorize** button takes a
-token from `POST /api/auth/login` and sends it on every protected route. Note that Swagger's
-own routes are registered through `httpAdapter.get()`, outside Nest's guard pipeline — the
-global `JwtAuthGuard` does not apply to them and they need no `@Public()`.
+token from `POST /api/auth/login` and sends it on every protected route.
 
 ## Conventions
 

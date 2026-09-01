@@ -15,14 +15,14 @@ export const SWAGGER_JSON_PATH = `${SWAGGER_PATH}-json`;
  * and their class-validator decorators, which is why properties do not need an
  * explicit @ApiProperty() on every field.
  *
- * The documentation is served in every environment: this is a school project
- * whose API is meant to be demonstrated, and the endpoints are reachable anyway.
- * To restrict it later, guard the call in configureApp() on NODE_ENV.
- *
- * Note that SwaggerModule registers /api/docs through httpAdapter.get(), i.e.
- * as a raw Express route that never enters Nest's guard pipeline. The global
- * JwtAuthGuard therefore does not apply to it and it needs no @Public() —
- * there is nothing to "fix" here.
+ * Whether this runs at all is decided by config/swagger.options.ts, which
+ * configureApp() consults: off in production, on everywhere else, and
+ * SWAGGER_ENABLED overrides either way. The gate has to live there rather than
+ * here because SwaggerModule registers /api/docs through httpAdapter.get() —
+ * a raw Express route that never enters Nest's guard pipeline, so neither the
+ * global JwtAuthGuard nor @Public() has any bearing on it. Published
+ * anonymously in production it is a machine-readable map of every endpoint and
+ * every constraint, which is worth rather more to a scanner than to a grader.
  */
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()

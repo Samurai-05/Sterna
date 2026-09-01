@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -11,6 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import {
   ApiBody,
@@ -24,12 +26,16 @@ import {
   ApiTags,
   ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
+import { UPLOAD_THROTTLE } from '../config/throttling';
+import type { AuthenticatedUser } from '../common/authenticated-user';
 import { ApiAuthenticated } from '../common/decorators/api-authenticated.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UploadPhotoResponseDto } from './dto/upload-photo-response.dto';
 import {
   ALLOWED_MIME_TYPES,
   MAX_PHOTO_BYTES,
   PhotosService,
+  photoObjectKey,
 } from './photos.service';
 
 /**
@@ -52,6 +58,9 @@ export class PhotosController {
 
   @Post()
   @ApiAuthenticated()
+  // 10 MB buffered in memory and decoded through sharp twice per request, so
+  // this is the most expensive route in the API by a wide margin.
+  @Throttle({ default: UPLOAD_THROTTLE })
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: MAX_PHOTO_BYTES, files: 1 },
@@ -91,13 +100,14 @@ export class PhotosController {
   @ApiUnsupportedMediaTypeResponse({ description: 'Not a JPEG, PNG or WebP.' })
   @ApiPayloadTooLargeResponse({ description: 'Larger than 10 MB.' })
   upload(
+    @CurrentUser() caller: AuthenticatedUser,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UploadPhotoResponseDto> {
     if (!file) {
       throw new UnsupportedMediaTypeException('No file was uploaded.');
     }
 
-    return this.photos.store(file);
+    return this.photos.store(caller.id, file);
   }
 
   @Get(':filename')
@@ -116,19 +126,30 @@ export class PhotosController {
     description:
       'Optional generated size. Older photos safely fall back to the original.',
   })
-  @ApiNotFoundResponse({ description: 'No such photo.' })
+  @ApiNotFoundResponse({
+    description: 'No such photo, or not one this caller may see.',
+  })
   async download(
+    @CurrentUser() caller: AuthenticatedUser,
     @Param('filename') filename: string,
     @Query('variant') variant: string | undefined,
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
-    // The global guard has established that the caller is signed in, which is
-    // as far as authorization can go today.
+    // Being signed in is not enough (NFR-24/25/26): a personal discovery is
+    // private by default, and key entropy is obscurity, not authorization —
+    // every member of a shared group map is handed the key in full.
     //
-    // TODO(discoveries): personal discoveries are private by default
-    // (NFR-24/25/26), so once the discoveries table exists this must also check
-    // that *this* caller may see the discovery the photo belongs to. Until
-    // then any signed-in user can read any key they know.
+    // 404 rather than 403, matching the groups module: telling an outsider
+    // "that exists but is not yours" is the disclosure NFR-19 forbids. It is
+    // also the answer read() gives for a key that does not exist, so the two
+    // cases stay indistinguishable.
+    //
+    // Authorised on the canonical key: `variant` only picks which rendition of
+    // the same photo is streamed, so it cannot widen what the caller may see.
+    if (!(await this.photos.canRead(caller.id, photoObjectKey(filename)))) {
+      throw new NotFoundException(`Unknown photo "${filename}".`);
+    }
+
     const { stream, contentType, size } = await this.photos.read(
       filename,
       variant,

@@ -1,10 +1,17 @@
 import { ConfigService } from '@nestjs/config';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import sharp from 'sharp';
 import { MINIO_CLIENT } from './minio.client';
+import { Photo } from './photo.entity';
 import { PhotosService } from './photos.service';
 
 const BUCKET = 'observations';
+const UPLOADER = '1';
+const OTHER_USER = '2';
+const KEY = 'photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg';
+/** The original plus the map/card/detail variants store() derives from it. */
+const FAMILY_SIZE = 4;
 
 /** A 8x8 image, optionally carrying the EXIF tags a phone camera would write. */
 function image(
@@ -45,6 +52,14 @@ describe('PhotosService', () => {
     bucketExists: jest.fn(),
   };
 
+  const photos = {
+    insert: jest.fn(),
+    existsBy: jest.fn(),
+    delete: jest.fn(),
+    find: jest.fn(),
+    query: jest.fn(),
+  };
+
   let service: PhotosService;
 
   beforeEach(async () => {
@@ -54,6 +69,7 @@ describe('PhotosService', () => {
       providers: [
         PhotosService,
         { provide: MINIO_CLIENT, useValue: minio },
+        { provide: getRepositoryToken(Photo), useValue: photos },
         { provide: ConfigService, useValue: { getOrThrow: () => BUCKET } },
       ],
     }).compile();
@@ -62,8 +78,24 @@ describe('PhotosService', () => {
   });
 
   describe('store', () => {
+    // The row is what every later ownership question is answered from.
+    it('records the uploader alongside the key', async () => {
+      const result = await service.store(UPLOADER, {
+        buffer: await image('jpeg'),
+      } as Express.Multer.File);
+
+      expect(photos.insert).toHaveBeenCalledWith({
+        objectKey: result.objectKey,
+        userId: UPLOADER,
+        contentType: 'image/jpeg',
+        // Cast because expect.any() is typed `any`, which the type-checked
+        // lint rules reject inside an object literal.
+        byteSize: expect.any(String) as string,
+      });
+    });
+
     it('puts the image under a photos/ key and returns the url to read it back', async () => {
-      const result = await service.store({
+      const result = await service.store(UPLOADER, {
         buffer: await image('jpeg'),
       } as Express.Multer.File);
 
@@ -90,7 +122,7 @@ describe('PhotosService', () => {
         .jpeg()
         .toBuffer();
 
-      const result = await service.store({
+      const result = await service.store(UPLOADER, {
         buffer: source,
       } as Express.Multer.File);
       const calls = minio.putObject.mock.calls as Array<
@@ -124,7 +156,9 @@ describe('PhotosService', () => {
       );
 
       await expect(
-        service.store({ buffer: await image('jpeg') } as Express.Multer.File),
+        service.store(UPLOADER, {
+          buffer: await image('jpeg'),
+        } as Express.Multer.File),
       ).rejects.toBe(uploadError);
 
       const originalKey = (
@@ -153,15 +187,17 @@ describe('PhotosService', () => {
       minio.removeObject.mockRejectedValue(new Error('cleanup failed'));
 
       await expect(
-        service.store({ buffer: await image('jpeg') } as Express.Multer.File),
+        service.store(UPLOADER, {
+          buffer: await image('jpeg'),
+        } as Express.Multer.File),
       ).rejects.toBe(uploadError);
     });
 
     it('keeps the format of PNG and WebP uploads', async () => {
-      const png = await service.store({
+      const png = await service.store(UPLOADER, {
         buffer: await image('png'),
       } as Express.Multer.File);
-      const webp = await service.store({
+      const webp = await service.store(UPLOADER, {
         buffer: await image('webp'),
       } as Express.Multer.File);
 
@@ -171,7 +207,7 @@ describe('PhotosService', () => {
 
     // FR-06
     it('reads the capture location out of the EXIF tags', async () => {
-      const result = await service.store({
+      const result = await service.store(UPLOADER, {
         buffer: await image('jpeg', geotagged),
       } as Express.Multer.File);
 
@@ -182,7 +218,7 @@ describe('PhotosService', () => {
 
     // FR-33 / NFR-33: a missing GPS tag must never block the upload.
     it('preserves a capture date even when GPS tags are absent', async () => {
-      const result = await service.store({
+      const result = await service.store(UPLOADER, {
         buffer: await image('jpeg', {
           IFD2: { DateTimeOriginal: '2026:08:20 14:02:11' },
         }),
@@ -193,7 +229,7 @@ describe('PhotosService', () => {
     });
 
     it('preserves a photo location when the capture date is absent', async () => {
-      const result = await service.store({
+      const result = await service.store(UPLOADER, {
         buffer: await image('jpeg', {
           IFD3: {
             GPSLatitudeRef: 'N',
@@ -210,8 +246,11 @@ describe('PhotosService', () => {
 
     it('stores a photo without metadata and reports no location or date', async () => {
       await expect(
-        service.store({ buffer: await image('jpeg') } as Express.Multer.File),
+        service.store(UPLOADER, {
+          buffer: await image('jpeg'),
+        } as Express.Multer.File),
       ).resolves.toMatchObject({
+        exif: null,
         metadata: { location: null, takenAt: null },
       });
     });
@@ -221,7 +260,9 @@ describe('PhotosService', () => {
       const original = await image('jpeg', geotagged);
       expect((await sharp(original).metadata()).exif).toBeDefined();
 
-      await service.store({ buffer: original } as Express.Multer.File);
+      await service.store(UPLOADER, {
+        buffer: original,
+      } as Express.Multer.File);
 
       const stored = (
         minio.putObject.mock.calls[0] as [string, string, Buffer]
@@ -240,7 +281,7 @@ describe('PhotosService', () => {
     // NFR-21: the declared MIME type is client-supplied, so the bytes decide.
     it('rejects a file that is not a readable image', async () => {
       await expect(
-        service.store({
+        service.store(UPLOADER, {
           buffer: Buffer.from('not an image'),
         } as Express.Multer.File),
       ).rejects.toThrow(/not a readable image/);
@@ -250,7 +291,7 @@ describe('PhotosService', () => {
 
     it('rejects an image format other than JPEG, PNG or WebP', async () => {
       await expect(
-        service.store({
+        service.store(UPLOADER, {
           buffer: await image('jpeg').then((buffer) =>
             sharp(buffer).tiff().toBuffer(),
           ),
@@ -368,6 +409,76 @@ describe('PhotosService', () => {
       await expect(service.exists('photos/a.jpg')).rejects.toThrow(
         /ECONNREFUSED/,
       );
+    });
+  });
+
+  describe('removeOwned', () => {
+    // The delete is the ownership check. A key belonging to somebody else
+    // matches no row, so nothing is deleted and MinIO is never touched.
+    it('leaves an object owned by another account alone', async () => {
+      photos.delete.mockResolvedValue({ affected: 0 });
+
+      await expect(service.removeOwned(OTHER_USER, KEY)).resolves.toBe(false);
+
+      expect(photos.delete).toHaveBeenCalledWith({
+        objectKey: KEY,
+        userId: OTHER_USER,
+      });
+      expect(minio.removeObject).not.toHaveBeenCalled();
+    });
+
+    it('frees the whole family of an object the caller uploaded', async () => {
+      photos.delete.mockResolvedValue({ affected: 1 });
+
+      await expect(service.removeOwned(UPLOADER, KEY)).resolves.toBe(true);
+
+      // The original plus every generated variant — leaving the derivatives
+      // behind would keep the photo readable and the bucket growing.
+      expect(minio.removeObject).toHaveBeenCalledWith(BUCKET, KEY);
+      expect(minio.removeObject).toHaveBeenCalledWith(
+        BUCKET,
+        KEY.replace(/\.jpg$/, '.card.webp'),
+      );
+      expect(minio.removeObject).toHaveBeenCalledTimes(FAMILY_SIZE);
+    });
+  });
+
+  describe('canRead', () => {
+    // NFR-24/25: being signed in is not the question — the key is published
+    // to every member of a shared group map.
+    it('is whatever the ownership-or-co-membership query says', async () => {
+      photos.query.mockResolvedValue([{ allowed: false }]);
+      await expect(service.canRead(OTHER_USER, KEY)).resolves.toBe(false);
+
+      photos.query.mockResolvedValue([{ allowed: true }]);
+      await expect(service.canRead(UPLOADER, KEY)).resolves.toBe(true);
+
+      expect(photos.query).toHaveBeenLastCalledWith(expect.any(String), [
+        KEY,
+        UPLOADER,
+      ]);
+    });
+
+    it('denies when the query returns nothing at all', async () => {
+      photos.query.mockResolvedValue([]);
+
+      await expect(service.canRead(UPLOADER, KEY)).resolves.toBe(false);
+    });
+  });
+
+  describe('purgeOwnedObjects', () => {
+    // The account is already gone by this point, so one MinIO failure
+    // must not abandon the remaining keys or 500 the caller.
+    it('attempts every key even when one fails', async () => {
+      minio.removeObject
+        .mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+        .mockResolvedValueOnce(undefined);
+
+      await expect(
+        service.purgeOwnedObjects([KEY, 'photos/other.jpg']),
+      ).resolves.toBeUndefined();
+
+      expect(minio.removeObject).toHaveBeenCalledTimes(FAMILY_SIZE * 2);
     });
   });
 

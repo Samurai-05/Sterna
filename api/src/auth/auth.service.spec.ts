@@ -18,6 +18,7 @@ async function storedUser(password = PASSWORD): Promise<User> {
     email: 'ada@sterna.test',
     userName: 'Ada',
     avatarObjectKey: null,
+    passwordChangedAt: null,
     passwordHash: await hashPassword(password),
     createdAt: new Date('2026-08-26T09:14:33.482Z'),
     updatedAt: new Date('2026-08-26T09:14:33.482Z'),
@@ -40,12 +41,20 @@ describe('AuthService', () => {
   const jwt = { signAsync: jest.fn() };
   const dataSource = { transaction: jest.fn() };
   const manager = { query: jest.fn(), delete: jest.fn() };
-  const photos = { remove: jest.fn() };
+  const photos = {
+    ownsPhoto: jest.fn(),
+    removeOwned: jest.fn(),
+    listOwnedKeys: jest.fn(),
+    purgeOwnedObjects: jest.fn(),
+  };
 
   let service: AuthService;
 
   beforeEach(async () => {
     jest.resetAllMocks();
+    // The happy path for everything that is not about photo ownership.
+    photos.ownsPhoto.mockResolvedValue(true);
+    photos.listOwnedKeys.mockResolvedValue([]);
 
     jwt.signAsync.mockResolvedValue(TOKEN);
     users.create.mockImplementation((fields: Partial<User>) => fields);
@@ -149,6 +158,23 @@ describe('AuthService', () => {
     });
 
     // FR-01: one account per address.
+    // The disclosure cannot be removed without email verification, but
+    // reflecting the caller's own input back into the message — and into
+    // every log line downstream — buys nothing.
+    it('does not echo the submitted address back in the conflict', async () => {
+      users.existsBy.mockResolvedValue(true);
+
+      await expect(
+        service.register({
+          email: 'Ada@Sterna.test',
+          userName: 'Ada',
+          password: PASSWORD,
+        }),
+      ).rejects.toThrow(
+        /^An account with that email address already exists\.$/,
+      );
+    });
+
     it('refuses an address that already exists', async () => {
       users.existsBy.mockResolvedValue(true);
 
@@ -303,6 +329,19 @@ describe('AuthService', () => {
       expect(users.save).not.toHaveBeenCalled();
     });
 
+    // An unchecked key here aims removeOwned() at somebody else's object
+    // on the next update — set it to their key, then set it to your own.
+    it('refuses an avatar the caller did not upload', async () => {
+      users.findOneBy.mockResolvedValue(await storedUser());
+      photos.ownsPhoto.mockResolvedValue(false);
+
+      await expect(
+        service.updateProfile('1', { avatarObjectKey: 'photos/theirs.jpg' }),
+      ).rejects.toThrow(/Unknown photo/);
+
+      expect(users.save).not.toHaveBeenCalled();
+    });
+
     it('accepts an avatar-only update, with no display name', async () => {
       users.findOneBy.mockResolvedValue(await storedUser());
 
@@ -321,8 +360,11 @@ describe('AuthService', () => {
 
       await service.updateProfile('1', { avatarObjectKey: 'photos/new.jpg' });
 
-      expect(photos.remove).toHaveBeenCalledWith('photos/old.jpg');
-      expect(photos.remove).not.toHaveBeenCalledWith('photos/new.jpg');
+      expect(photos.removeOwned).toHaveBeenCalledWith('1', 'photos/old.jpg');
+      expect(photos.removeOwned).not.toHaveBeenCalledWith(
+        '1',
+        'photos/new.jpg',
+      );
     });
 
     it('removes the photo on an explicit null and frees the old object', async () => {
@@ -335,7 +377,7 @@ describe('AuthService', () => {
       });
 
       expect(result.avatarObjectKey).toBeNull();
-      expect(photos.remove).toHaveBeenCalledWith('photos/old.jpg');
+      expect(photos.removeOwned).toHaveBeenCalledWith('1', 'photos/old.jpg');
     });
 
     it('does not touch MinIO when the avatar field is left out', async () => {
@@ -345,7 +387,7 @@ describe('AuthService', () => {
 
       await service.updateProfile('1', { userName: 'Ada L.' });
 
-      expect(photos.remove).not.toHaveBeenCalled();
+      expect(photos.removeOwned).not.toHaveBeenCalled();
     });
 
     it('does not call MinIO for an update that resends the same key', async () => {
@@ -357,7 +399,7 @@ describe('AuthService', () => {
         avatarObjectKey: 'photos/current.jpg',
       });
 
-      expect(photos.remove).not.toHaveBeenCalled();
+      expect(photos.removeOwned).not.toHaveBeenCalled();
     });
   });
 
@@ -482,64 +524,56 @@ describe('AuthService', () => {
       );
     });
 
-    // The MinIO objects behind the deleted discoveries would otherwise be
-    // orphaned forever (ADR-006).
-    it('removes the photo objects behind the deleted discoveries', async () => {
+    // The MinIO objects the account owns would otherwise be orphaned forever
+    // (ADR-006). The avatar needs no separate path: it is a photos row like
+    // any other, which is also why an unattached upload is freed here.
+    it('frees every object the account owns, avatar included', async () => {
       users.findOne.mockResolvedValue(await storedUser());
-      manager.query
-        .mockResolvedValueOnce([]) // owned groups
-        .mockResolvedValueOnce([
-          { image_object_key: 'photos/a.jpg' },
-          { image_object_key: null },
-          { image_object_key: 'photos/b.jpg' },
-        ]); // the caller's discoveries
+      photos.listOwnedKeys.mockResolvedValue([
+        'photos/a.jpg',
+        'photos/b.jpg',
+        'photos/avatar.jpg',
+      ]);
 
       await service.deleteAccount('1', PASSWORD);
 
-      expect(photos.remove).toHaveBeenCalledTimes(2);
-      expect(photos.remove).toHaveBeenCalledWith('photos/a.jpg');
-      expect(photos.remove).toHaveBeenCalledWith('photos/b.jpg');
+      expect(photos.listOwnedKeys).toHaveBeenCalledWith('1');
+      expect(photos.purgeOwnedObjects).toHaveBeenCalledWith([
+        'photos/a.jpg',
+        'photos/b.jpg',
+        'photos/avatar.jpg',
+      ]);
+    });
+
+    // Ownership of the discovery row is not ownership of the object. A
+    // co-member's key can sit in `discoveries` — it must never be harvested
+    // from there.
+    it('asks the photos table who owns the objects, not the discoveries table', async () => {
+      users.findOne.mockResolvedValue(await storedUser());
+      photos.listOwnedKeys.mockResolvedValue([]);
+
+      await service.deleteAccount('1', PASSWORD);
+
+      const statements = manager.query.mock.calls.map(
+        (call: [string, unknown[]?]) => call[0],
+      );
+
+      expect(
+        statements.some((sql: string) =>
+          /SELECT\s+image_object_key/i.test(sql),
+        ),
+      ).toBe(false);
     });
 
     it('does not touch MinIO until the account and its rows are gone', async () => {
       users.findOne.mockResolvedValue(await storedUser());
-      manager.query
-        .mockResolvedValueOnce([]) // owned groups
-        .mockResolvedValueOnce([{ image_object_key: 'photos/a.jpg' }]);
+      photos.listOwnedKeys.mockResolvedValue(['photos/a.jpg']);
 
       await service.deleteAccount('1', PASSWORD);
 
       expect(manager.delete.mock.invocationCallOrder[0]).toBeLessThan(
-        photos.remove.mock.invocationCallOrder[0],
+        photos.purgeOwnedObjects.mock.invocationCallOrder[0],
       );
-    });
-
-    // The avatar lives on the row itself, not among the discoveries queried
-    // inside the transaction, so it needs its own cleanup path.
-    it("also frees the account's own avatar object", async () => {
-      const user = await storedUser();
-      user.avatarObjectKey = 'photos/avatar.jpg';
-      users.findOne.mockResolvedValue(user);
-      manager.query
-        .mockResolvedValueOnce([]) // owned groups
-        .mockResolvedValueOnce([{ image_object_key: 'photos/a.jpg' }]);
-
-      await service.deleteAccount('1', PASSWORD);
-
-      expect(photos.remove).toHaveBeenCalledWith('photos/avatar.jpg');
-      expect(photos.remove).toHaveBeenCalledWith('photos/a.jpg');
-      expect(photos.remove).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not call MinIO for a missing avatar', async () => {
-      users.findOne.mockResolvedValue(await storedUser());
-      manager.query
-        .mockResolvedValueOnce([]) // owned groups
-        .mockResolvedValueOnce([]); // no discoveries
-
-      await service.deleteAccount('1', PASSWORD);
-
-      expect(photos.remove).not.toHaveBeenCalled();
     });
   });
 });

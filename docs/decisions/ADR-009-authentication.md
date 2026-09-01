@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted, amended 2026-09-01 — see "Amendment: password change revokes tokens" below.
 
 ## Context
 
@@ -69,8 +69,9 @@ and it costs revocation:
 - **a stolen token stays valid until it expires.** Bounded by the 7-day default lifetime, by
   the token carrying no authority beyond its owner's own data, and by NFR-23 requiring HTTPS
   in production. `JWT_EXPIRES_IN_SECONDS` shortens it per deployment without a code change;
-- **changing a password does not invalidate outstanding tokens.** Documented on the endpoint
-  itself, not only here.
+- ~~**changing a password does not invalidate outstanding tokens.**~~ Reversed by the
+  amendment below. The rest of this section stands; the guard is no longer free of a
+  database round-trip.
 
 Seven days is chosen against the alternative of a short access token: with no refresh
 endpoint, the access token lifetime *is* the session lifetime, and a mobile app that demands a
@@ -118,6 +119,53 @@ default fails closed.
   of MVP scope; login, by contrast, is uniform in status, message and response time.
 - `JWT_SECRET` is required at boot and must be at least 32 characters. It is a deployment
   secret (NFR-22): a repository secret in CI, never a committed value.
+
+## Amendment: password change revokes tokens
+
+*Added 2026-09-01, after a security review of the deployed application.*
+
+The original decision accepted that changing a password invalidated nothing already issued.
+In practice that makes the one action a user takes when they believe they have been
+compromised a no-op for up to seven days — the stolen token keeps working, and the product
+offers no other way to end a session.
+
+**`users.password_changed_at` is added** (migration `1787734654000-AddPasswordChangedAt`),
+`AuthService.changePassword()` sets it, and `JwtAuthGuard` rejects any token whose `iat`
+predates it. No new claim is needed: `iat` is already minted by jsonwebtoken. The column is
+nullable with no default, so deploying it signs nobody out.
+
+What this costs, explicitly: **the guard now makes one indexed primary-key lookup per
+request**, which the "Rationale and trade-offs" section above listed as something the design
+bought. That claim is no longer true. What is still true is that there is no server-side
+session and no revocation list — the comparison is against a column on the user's own row,
+not against stored session state, and it is the same row a request touches moments later
+anyway. `users.updated_at` could not be reused: it also moves on a display-name edit, which
+would sign every device out on a rename.
+
+Two consequences follow:
+
+- **the caller's own token dies too.** `PATCH /api/auth/password` returns 204 and mints no
+  replacement, so a client must discard its token and send the user back to the login
+  screen. The frontend does this in `EditProfilePage`.
+- **a deleted account's token now fails at the guard** rather than later at the point of use,
+  because the same lookup finds no row. This is an improvement, but it changes when the 401
+  appears.
+
+The alternative considered was leaving the ADR alone and shortening the default lifetime
+instead. Rejected: it narrows the window without giving the user any way to close it, and a
+mobile app that demands a fresh login every day is the thing the seven days were chosen to
+avoid.
+
+## Amendment note: register still discloses account existence
+
+*Added 2026-09-01, from the same review.*
+
+The consequence above — "the register endpoint answers 409 to an address that is already
+taken, which discloses whether an account exists" — is unchanged, and the only real remedy
+is still an email-verification flow that stays out of MVP scope. Two things were done short
+of that: the 409 no longer echoes the submitted address back into its message, and
+`POST /api/auth/register` is rate-limited alongside `login`, so enumerating a list of
+addresses is slow rather than free.
 - Deleting an account must clear the user's discoveries inside the same transaction, because
   `fk_discoveries_group_membership` is `ON DELETE RESTRICT`. Deleting a group's only owner
   currently leaves that group ownerless — `uq_group_members_one_owner_per_group` permits zero

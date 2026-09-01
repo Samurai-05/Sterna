@@ -1,13 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
 import sharp from 'sharp';
+import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { configureApp } from './../src/app-setup';
 import { AppModule } from './../src/app.module';
 import { AuthResponseDto } from './../src/auth/dto/auth-response.dto';
+import { UploadPhotoResponseDto } from './../src/photos/dto/upload-photo-response.dto';
 
 /**
  * Shared bootstrap and fixtures for the end-to-end suites.
@@ -96,30 +97,39 @@ export async function registerTestUser(
   return response.body as AuthResponseDto;
 }
 
-/** Creates one real canonical photo for discovery-creation e2e fixtures. */
-export async function uploadTestPhoto(
-  app: INestApplication<App>,
-  accessToken: string,
-): Promise<string> {
-  const buffer = await sharp({
-    create: { width: 8, height: 8, channels: 3, background: 'red' },
-  })
-    .jpeg()
-    .toBuffer();
-  const response = await request(app.getHttpServer())
-    .post('/api/photos')
-    .set('Authorization', `Bearer ${accessToken}`)
-    .attach('file', buffer, { filename: 'discovery-fixture.jpg' })
-    .expect(201);
-
-  return (response.body as { objectKey: string }).objectKey;
-}
-
 /** Removes every account *this suite* created, and the groups that were only theirs. */
 export async function deleteTestUsers(
   app: INestApplication<App>,
 ): Promise<void> {
   await deleteAccounts(app, SUITE_EMAIL_PATTERN, '0 seconds');
+}
+
+/**
+ * Uploads a real photo and returns its object key.
+ *
+ * A discovery can no longer cite an invented key: POST /api/discoveries checks
+ * that the caller uploaded the object and that it is really in MinIO, because
+ * a key is published to every member of a shared group map and citing one
+ * therefore proves nothing. Suites that need a discovery have to go through
+ * the upload endpoint the same way a client does.
+ */
+export async function uploadTestPhoto(
+  app: INestApplication<App>,
+  accessToken: string,
+): Promise<string> {
+  const bytes = await sharp({
+    create: { width: 16, height: 16, channels: 3, background: 'red' },
+  })
+    .jpeg()
+    .toBuffer();
+
+  const response = await request(app.getHttpServer())
+    .post('/api/photos')
+    .set('Authorization', `Bearer ${accessToken}`)
+    .attach('file', bytes, { filename: 'photo.jpg' })
+    .expect(201);
+
+  return (response.body as UploadPhotoResponseDto).objectKey;
 }
 
 /**
