@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+def releaseKeystorePath = System.getenv('STERNA_ANDROID_KEYSTORE_PATH')
+def releaseKeystorePassword = System.getenv('STERNA_ANDROID_KEYSTORE_PASSWORD')
+def releaseKeyAlias = System.getenv('STERNA_ANDROID_KEY_ALIAS')
+def releaseKeyPassword = System.getenv('STERNA_ANDROID_KEY_PASSWORD')
+
 android {
     namespace = "com.sterna.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +21,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (releaseKeystorePath && releaseKeystorePassword && releaseKeyAlias && releaseKeyPassword) {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseKeystorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

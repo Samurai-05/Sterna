@@ -1,0 +1,99 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --run
+
+      # The Android mode creates fresh Capacitor assets without the web PWA
+      # service worker before the native project is synchronized.
+      - name: Build Android web assets
+        run: npm run build:android
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Decode Android release keystore
+        env:
+          STERNA_ANDROID_KEYSTORE_BASE64: ${{ secrets.STERNA_ANDROID_KEYSTORE_BASE64 }}
+          STERNA_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.STERNA_ANDROID_KEYSTORE_PASSWORD }}
+          STERNA_ANDROID_KEY_ALIAS: ${{ secrets.STERNA_ANDROID_KEY_ALIAS }}
+          STERNA_ANDROID_KEY_PASSWORD: ${{ secrets.STERNA_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -eu
+          for variable in \
+            STERNA_ANDROID_KEYSTORE_BASE64 \
+            STERNA_ANDROID_KEYSTORE_PASSWORD \
+            STERNA_ANDROID_KEY_ALIAS \
+            STERNA_ANDROID_KEY_PASSWORD; do
+            if [ -z "${!variable}" ]; then
+              echo "Missing ${variable} repository secret." >&2
+              exit 1
+            fi
+          done
+          printf '%s' "$STERNA_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/sterna-release.keystore"
+          chmod 600 "$RUNNER_TEMP/sterna-release.keystore"
+
+      - name: Assemble signed release APK
+        working-directory: ./frontend/android
+        env:
+          STERNA_ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/sterna-release.keystore
+          STERNA_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.STERNA_ANDROID_KEYSTORE_PASSWORD }}
+          STERNA_ANDROID_KEY_ALIAS: ${{ secrets.STERNA_ANDROID_KEY_ALIAS }}
+          STERNA_ANDROID_KEY_PASSWORD: ${{ secrets.STERNA_ANDROID_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Prepare release asset
+        run: cp "android/app/build/outputs/apk/release/app-release.apk" "Sterna-${GITHUB_REF_NAME}.apk"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Sterna ${{ github.ref_name }}
+          files: frontend/Sterna-${{ github.ref_name }}.apk
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+
+      - name: Remove temporary signing material
+        if: ${{ always() }}
+        run: rm -f "$RUNNER_TEMP/sterna-release.keystore"

@@ -6,8 +6,8 @@ describing a target state that isn't running yet.
 
 ## Overview
 
-Every push and pull request goes through the same GitHub Actions pipeline,
-split into two stages:
+Pull requests and pushes to `main` go through the existing GitHub Actions
+pipeline, split into two stages:
 
 - **CI (Continuous Integration)** — validates a change.
 - **CD (Continuous Deployment)** — ships a validated change to the target
@@ -18,6 +18,7 @@ CI must pass before a pull request can be merged into `main`; a merge into
 environment without any manual step. This matches the Sprint 0 exit criterion
 described in `docs/work_process.md`: a commit pushed to the repository is
 automatically built, verified and deployed without manual intervention.
+Version-tagged Android releases use the separate workflow described below.
 
 ## CI — Continuous Integration
 
@@ -36,6 +37,56 @@ Runs on pull requests targeting `main` and on pushes to `main`:
   `./gradlew assembleDebug` from `frontend/android`. Pull requests validate the
   build; on a push to `main`, the generated debug APK is published as the
   `sterna-debug-apk` GitHub Actions artifact.
+
+## Android releases
+
+The separate `Android Release` workflow runs only when a version tag matching
+`v*` is pushed. Version tags should use the `vMAJOR.MINOR.PATCH` convention,
+for example `v0.1.0`.
+
+The workflow checks out the tagged commit, validates the frontend, runs
+`npm run build:android`, synchronizes Capacitor, and assembles a signed release
+APK. The Android build uses the Android-specific Vite mode, which excludes the
+PWA service worker from the Capacitor bundle. The APK is attached to the GitHub
+Release for the tag as `Sterna-vMAJOR.MINOR.PATCH.apk` (for example,
+`Sterna-v0.1.0.apk`).
+
+### Required GitHub Actions secrets
+
+Before publishing the first release, configure these repository secrets:
+
+| Secret                             | Contents                                      |
+| ---------------------------------- | --------------------------------------------- |
+| `STERNA_ANDROID_KEYSTORE_BASE64`   | The release keystore file encoded as Base64.  |
+| `STERNA_ANDROID_KEYSTORE_PASSWORD` | Password for the keystore.                    |
+| `STERNA_ANDROID_KEY_ALIAS`         | Alias of the release key inside the keystore. |
+| `STERNA_ANDROID_KEY_PASSWORD`      | Password for the release key.                 |
+
+Create or obtain the release keystore privately, then encode the binary file
+without committing it. On Linux, for example:
+
+```bash
+keytool -genkeypair -v -keystore sterna-release.keystore \
+  -alias sterna -keyalg RSA -keysize 2048 -validity 10000
+base64 -w 0 sterna-release.keystore
+```
+
+Store the final Base64 output in `STERNA_ANDROID_KEYSTORE_BASE64`; store the
+keystore and key passwords and the alias in their corresponding secrets. The
+workflow decodes the keystore only into the ephemeral GitHub Actions runner,
+and Gradle reads all signing values from the workflow environment.
+
+### Publishing a release
+
+From a clean checkout of the commit to release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+After the workflow completes, download the generated APK from the GitHub
+Release page for `v0.1.0`.
 
 ## CD — Continuous Deployment
 
