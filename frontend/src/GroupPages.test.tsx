@@ -357,12 +357,14 @@ describe('opening a discovery from a group map', () => {
 
     await screen.findByText("Marc's find")
     expect(
-      screen.queryByRole('link', { name: 'Edit discovery' }),
+      screen.queryByRole('menuitem', { name: 'Edit discovery' }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: /Delete discovery/ }),
+      screen.queryByRole('menuitem', { name: /Delete discovery/ }),
     ).not.toBeInTheDocument()
-    expect(screen.getByText(/Only Marc can edit or delete/)).toBeInTheDocument()
+    expect(
+      screen.queryByText(/Only Marc can edit or delete/),
+    ).not.toBeInTheDocument()
   })
 
   it("keeps edit and delete on the viewer's own discovery", async () => {
@@ -371,8 +373,10 @@ describe('opening a discovery from a group map', () => {
     ])
     renderAt('/discoveries/22?group=12')
 
+    await screen.findByRole('button', { name: 'More actions' })
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
     expect(
-      await screen.findByRole('link', { name: 'Edit discovery' }),
+      screen.getByRole('menuitem', { name: 'Edit discovery' }),
     ).toBeInTheDocument()
   })
 
@@ -382,9 +386,9 @@ describe('opening a discovery from a group map', () => {
     ])
     renderAt('/discoveries/22?group=12')
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /Delete discovery/ }),
-    )
+    await screen.findByRole('button', { name: 'More actions' })
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
     expect(
       screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
     ).toBeInTheDocument()
@@ -392,7 +396,8 @@ describe('opening a discovery from a group map', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(api.deleteDiscovery).not.toHaveBeenCalled()
 
-    fireEvent.click(screen.getByRole('button', { name: /Delete discovery/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
     fireEvent.click(
       within(screen.getByRole('alertdialog')).getByRole('button', {
         name: 'Delete discovery',
@@ -436,9 +441,13 @@ describe('opening a discovery from a group map', () => {
       ],
     })
 
-    fireEvent.click(await screen.findByRole('link', { name: 'Edit discovery' }))
+    await screen.findByRole('button', { name: 'More actions' })
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Edit discovery' }),
+    )
     fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
-    await screen.findByRole('heading', { name: 'Discovery' })
+    await screen.findByRole('button', { name: 'More actions' })
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
 
     await waitFor(() =>

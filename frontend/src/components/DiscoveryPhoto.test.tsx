@@ -182,4 +182,52 @@ describe('DiscoveryPhoto', () => {
       expect.stringContaining('blob:'),
     )
   })
+
+  it('revokes a response that resolves after the photo unmounts', async () => {
+    const imagePrototype = globalThis.Image.prototype
+    const originalDecode = Object.getOwnPropertyDescriptor(
+      imagePrototype,
+      'decode',
+    )
+    Object.defineProperty(imagePrototype, 'decode', {
+      configurable: true,
+      value: vi.fn().mockResolvedValue(undefined),
+    })
+
+    let resolvePhoto!: (blob: Blob) => void
+    try {
+      getPhotoMock.mockReturnValue(
+        new Promise((resolve) => {
+          resolvePhoto = resolve
+        }),
+      )
+      const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL')
+      const { unmount } = render(
+        <DiscoveryPhoto discovery={discovery} alt="A discovery" />,
+      )
+
+      await act(async () => {
+        observerCallback?.(
+          [{ isIntersecting: true } as IntersectionObserverEntry],
+          {} as IntersectionObserver,
+        )
+      })
+      unmount()
+
+      resolvePhoto(new Blob(['late image']))
+      await waitFor(() =>
+        expect(revokeObjectURL).toHaveBeenCalledWith(
+          expect.stringContaining('blob:'),
+        ),
+      )
+
+      expect(revokeObjectURL).toHaveBeenCalledTimes(1)
+    } finally {
+      if (originalDecode) {
+        Object.defineProperty(imagePrototype, 'decode', originalDecode)
+      } else {
+        delete (imagePrototype as { decode?: unknown }).decode
+      }
+    }
+  })
 })

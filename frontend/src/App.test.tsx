@@ -295,9 +295,7 @@ describe('App', () => {
 
     fireEvent.click(mapCanvas)
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Discovery' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeInTheDocument()
     expect(mapPage).toContainElement(mapCanvas)
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
     expect(mapPage).toHaveAttribute('inert')
@@ -374,7 +372,7 @@ describe('App', () => {
 
     fireEvent.click(galleryPhoto)
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Discovery' }),
+      await screen.findByRole('button', { name: 'Go back' }),
     ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
@@ -585,12 +583,10 @@ describe('App', () => {
   it('renders a direct discovery visit as a normal page', () => {
     renderWithProviders(<App />, { route: '/discoveries/1' })
 
-    const discoveryPage = screen
-      .getByRole('heading', { level: 1, name: 'Discovery' })
-      .closest('main')!
+    const discoveryPage = document.querySelector('.sterna-discovery-screen')!
 
-    expect(discoveryPage).toHaveClass('min-h-dvh')
-    expect(discoveryPage).not.toHaveClass('fixed')
+    expect(discoveryPage).toHaveClass('fixed', 'inset-0')
+    expect(discoveryPage).not.toHaveTextContent('Discovery')
     expect(
       screen.queryByRole('button', { name: 'View discovery 1' }),
     ).not.toBeInTheDocument()

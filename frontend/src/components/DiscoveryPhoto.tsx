@@ -18,14 +18,24 @@ export function DiscoveryPhoto({
   className,
   width = 800,
   variant = 'card',
+  onClick,
+  onSourceChange,
 }: {
   discovery: Discovery
   alt: string
   className?: string
   width?: number
   variant?: PhotoVariant
+  onClick?: () => void
+  onSourceChange?: (source: string | null) => void
 }) {
   const session = loadSession()
+
+  useEffect(() => {
+    if (!discovery.imageObjectKey) {
+      onSourceChange?.(imageUrl(discovery.imageId, width))
+    }
+  }, [discovery.imageId, discovery.imageObjectKey, onSourceChange, width])
 
   if (!discovery.imageObjectKey) {
     return (
@@ -33,6 +43,7 @@ export function DiscoveryPhoto({
         source={imageUrl(discovery.imageId, width)}
         alt={alt}
         className={className}
+        onClick={onClick}
       />
     )
   }
@@ -49,6 +60,8 @@ export function DiscoveryPhoto({
       alt={alt}
       className={className}
       variant={variant}
+      onClick={onClick}
+      onSourceChange={onSourceChange}
     />
   )
 }
@@ -59,12 +72,16 @@ function AuthenticatedDiscoveryPhoto({
   alt,
   className,
   variant,
+  onClick,
+  onSourceChange,
 }: {
   accessToken: string
   imageObjectKey: string
   alt: string
   className?: string
   variant: PhotoVariant
+  onClick?: () => void
+  onSourceChange?: (source: string | null) => void
 }) {
   const placeholderRef = useRef<HTMLDivElement>(null)
   const objectUrlRef = useRef<string | undefined>(undefined)
@@ -106,6 +123,12 @@ function AuthenticatedDiscoveryPhoto({
     void getPhoto(accessToken, imageObjectKey, variant)
       .then(async (blob) => {
         const objectUrl = URL.createObjectURL(blob)
+
+        if (!active) {
+          URL.revokeObjectURL(objectUrl)
+          return
+        }
+
         objectUrlRef.current = objectUrl
 
         const decodedImage = new Image()
@@ -125,19 +148,22 @@ function AuthenticatedDiscoveryPhoto({
         objectUrlRef.current = objectUrl
         setSource(objectUrl)
         setStatus('success')
+        onSourceChange?.(objectUrl)
       })
       .catch(() => {
         if (active) setStatus('error')
       })
 
     return () => {
+      const wasActive = active
       active = false
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current)
         objectUrlRef.current = undefined
       }
+      if (wasActive) onSourceChange?.(null)
     }
-  }, [accessToken, imageObjectKey, nearViewport, variant])
+  }, [accessToken, imageObjectKey, nearViewport, onSourceChange, variant])
 
   const handleImageError: ReactEventHandler<HTMLImageElement> = () => {
     if (objectUrlRef.current) {
@@ -146,6 +172,7 @@ function AuthenticatedDiscoveryPhoto({
     }
     setSource(null)
     setStatus('error')
+    onSourceChange?.(null)
   }
 
   if (status !== 'success' || !source) {
@@ -164,6 +191,7 @@ function AuthenticatedDiscoveryPhoto({
       alt={alt}
       className={className}
       onError={handleImageError}
+      onClick={onClick}
     />
   )
 }
@@ -206,12 +234,14 @@ function PhotoElement({
   alt,
   className,
   onError,
+  onClick,
 }: {
   ref?: Ref<HTMLImageElement>
   source: string
   alt: string
   className?: string
   onError?: ReactEventHandler<HTMLImageElement>
+  onClick?: () => void
 }) {
   return (
     <img
@@ -222,6 +252,7 @@ function PhotoElement({
       loading="lazy"
       decoding="async"
       onError={onError}
+      onClick={onClick}
     />
   )
 }
