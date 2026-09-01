@@ -26,9 +26,11 @@ export function CategoryIcon({
   category,
   className,
 }: {
-  category: DiscoveryCategory
+  category: DiscoveryCategory | null | undefined
   className?: string
 }) {
+  if (!category) return null
+
   const Icon = icons[category]
   return (
     <Icon

@@ -8,7 +8,7 @@ import {
   getAuthoredPois,
   getPois,
 } from '@/lib/api'
-import { discoveries as sampleDiscoveries, landmarks } from '@/lib/mock-data'
+import { landmarks } from '@/lib/mock-data'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
 
@@ -754,9 +754,12 @@ describe('App', () => {
     const accountButton = screen.getByRole('button', {
       name: 'Open account settings',
     })
-    expect(accountButton).toHaveClass('size-14', 'text-[22px]')
-    expect(accountButton).toHaveClass('-translate-x-2.5')
-    expect(within(accountButton).getByText('E')).toBeInTheDocument()
+    expect(within(accountButton).getByText('Settings')).toBeInTheDocument()
+    expect(
+      within(
+        screen.getByRole('region', { name: 'Profile overview' }),
+      ).getByText('E'),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Log out' }),
     ).not.toBeInTheDocument()
@@ -773,29 +776,25 @@ describe('App', () => {
     ).toBeInTheDocument()
     expect(within(accountSheet).getByText('Active')).toBeInTheDocument()
     expect(
-      within(screen.getByLabelText('Profile overview')).getByText(
-        'Explorer · Since 2026',
-      ),
-    ).toHaveClass('mt-2')
-    expect(
-      screen.queryByLabelText('Exploration statistics'),
-    ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'POIs' }),
+      screen.getByRole('group', { name: 'Discoveries: 7' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Recent' }),
+      screen.getByRole('group', { name: 'Countries: 1' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'POIs: 2' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Your exploration' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Points of interest' }),
     ).toBeInTheDocument()
     expect(
       (await screen.findByText('Street in Le Marais')).closest('a'),
-    ).toHaveClass('w-[min(68vw,16rem)]')
+    ).toHaveClass('w-[44vw]')
+    expect(screen.getByText('2 of 2 discovered')).toBeInTheDocument()
     expect(
-      screen.getByText('2 / 2 points of interest discovered'),
+      screen.getByRole('heading', { level: 2, name: 'Recent discoveries' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Countries explored' }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('France')).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         level: 2,
@@ -804,23 +803,35 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows explicit empty states for countries and recent discoveries', async () => {
+  it('shows one intentional empty state when there are no discoveries', async () => {
     vi.mocked(getAuthoredDiscoveries).mockResolvedValueOnce([])
 
     renderWithProviders(<App />, { route: '/profile' })
 
     expect(
-      await screen.findByText('No countries explored yet.'),
+      await screen.findByText('Your world starts here.'),
     ).toBeInTheDocument()
-    expect(screen.getByText('No recent discoveries yet.')).toBeInTheDocument()
     expect(
-      screen.getByText('No discoveries created in the last 6 months.'),
+      screen.getByRole('link', { name: 'Add discovery' }),
     ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('region', { name: 'Recent discoveries' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('list', {
+        name: 'Discovery distribution by category',
+      }),
+    ).not.toBeInTheDocument()
   })
 
-  it('shows discovery counts as a standard vertical bar chart', async () => {
+  it('shows discovery counts as horizontal total-based category bars', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
+    await screen.findByRole('heading', {
+      level: 2,
+      name: 'Discoveries by category',
+    })
+    await screen.findByRole('img', { name: 'World exploration map' })
     const categorySection = screen.getByRole('region', {
       name: 'Discoveries by category',
     })
@@ -835,12 +846,12 @@ describe('App', () => {
     const landscape = within(categorySection).getByRole('listitem', {
       name: 'Landscape: 1 discovery',
     })
-    expect(
-      monument.querySelector('[data-category-bar="monument"]'),
-    ).toHaveStyle({ height: '100%' })
-    expect(
-      landscape.querySelector('[data-category-bar="landscape"]'),
-    ).toHaveStyle({ height: '50%' })
+    expect(within(monument).getByTestId('category-bar-monument')).toHaveStyle({
+      width: '28.57142857142857%',
+    })
+    expect(within(landscape).getByTestId('category-bar-landscape')).toHaveStyle(
+      { width: '14.285714285714285%' },
+    )
     expect(
       within(categorySection).queryByRole('progressbar'),
     ).not.toBeInTheDocument()
@@ -851,75 +862,55 @@ describe('App', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('plots discovery creation activity over the last six months', async () => {
-    const now = new Date()
-    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 10)
-    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 10)
-    const currentLabel = new Intl.DateTimeFormat('en', {
-      month: 'short',
-    }).format(currentMonth)
-    const previousLabel = new Intl.DateTimeFormat('en', {
-      month: 'short',
-    }).format(previousMonth)
-    vi.mocked(getAuthoredDiscoveries).mockResolvedValueOnce([
-      { ...sampleDiscoveries[0], createdAt: currentMonth.toISOString() },
-      { ...sampleDiscoveries[1], createdAt: currentMonth.toISOString() },
-      { ...sampleDiscoveries[2], createdAt: previousMonth.toISOString() },
-    ])
-
+  it('does not render the removed discovery activity chart', () => {
     renderWithProviders(<App />, { route: '/profile' })
 
-    const chart = await screen.findByRole('img', {
-      name: /Discovery creations by month:/,
-    })
-    expect(chart).toHaveAttribute(
-      'aria-label',
-      expect.stringContaining(`${previousLabel}: 1`),
-    )
-    expect(chart).toHaveAttribute(
-      'aria-label',
-      expect.stringContaining(`${currentLabel}: 2`),
-    )
+    expect(
+      screen.queryByRole('heading', { name: 'Discovery activity' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('img', { name: /Discovery creations by month:/ }),
+    ).not.toBeInTheDocument()
   })
 
-  it('orders profile sections and gives them matching title styles', () => {
+  it('orders profile sections with functional title styles', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const profilePage = screen
       .getByRole('region', { name: 'Profile overview' })
       .closest('main')!
+    await within(profilePage).findByRole('heading', {
+      level: 2,
+      name: 'Recent discoveries',
+    })
     const sectionTitles = within(profilePage)
       .getAllByRole('heading', { level: 2 })
       .map((heading) => heading.textContent)
 
     expect(sectionTitles).toEqual([
-      'Explorer',
-      'POIs',
+      'Your exploration',
+      'Recent discoveries',
+      'Points of interest',
       'Discoveries by category',
-      'Discovery activity',
-      'Countries explored',
-      'Recent',
     ])
     for (const title of [
-      'POIs',
+      'Your exploration',
+      'Recent discoveries',
+      'Points of interest',
       'Discoveries by category',
-      'Discovery activity',
-      'Countries explored',
-      'Recent',
     ]) {
       expect(
         within(profilePage).getByRole('heading', { level: 2, name: title }),
-      ).toHaveClass('font-display', 'text-[22px]', 'leading-7')
+      ).toHaveClass('sterna-section-title')
     }
   })
 
-  it('links from recent discoveries to the collection', () => {
+  it('links from recent discoveries to the collection', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
-    expect(screen.getByRole('link', { name: 'See all' })).toHaveAttribute(
-      'href',
-      '/collection',
-    )
+    expect(
+      await screen.findByRole('link', { name: 'See all' }),
+    ).toHaveAttribute('href', '/collection')
   })
 
   it('keeps the profile overview focused on identity', () => {
@@ -927,7 +918,10 @@ describe('App', () => {
 
     const overview = screen.getByRole('region', { name: 'Profile overview' })
 
-    expect(within(overview).getByText('Explorer')).toBeInTheDocument()
+    expect(within(overview).getByText('My profile')).toBeInTheDocument()
+    expect(
+      within(overview).getByRole('heading', { name: 'Explorer' }),
+    ).toBeInTheDocument()
     expect(within(overview).queryByText('Discoveries')).not.toBeInTheDocument()
     expect(within(overview).queryByText('Countries')).not.toBeInTheDocument()
   })

@@ -12,7 +12,7 @@ export interface Discovery {
   /** Whether the discovery also appears on its author's personal map. */
   personal?: boolean
   name: string
-  category: DiscoveryCategory
+  category: DiscoveryCategory | null
   location: string
   imageId: string
   imageObjectKey?: string
@@ -23,6 +23,8 @@ export interface Discovery {
   relativeDate: string
   /** Creation timestamp returned by the API; absent from local demo fixtures. */
   createdAt?: string
+  /** Real-world timestamp for when the discovery was made. */
+  discoveredAt?: string
   coordinates: [number, number]
   countryCode: string
 }
@@ -169,6 +171,8 @@ export function imageUrl(imageId: string, width = 800) {
   return `https://images.unsplash.com/${imageId}?auto=format&fit=crop&w=${width}&q=80`
 }
 
-export function categoryLabel(category: DiscoveryCategory) {
-  return categories.find((item) => item.id === category)?.label ?? 'Other'
+export function categoryLabel(category: DiscoveryCategory | null) {
+  return (
+    categories.find((item) => item.id === category)?.label ?? 'Uncategorized'
+  )
 }
