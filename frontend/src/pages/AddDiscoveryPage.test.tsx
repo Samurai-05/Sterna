@@ -249,6 +249,14 @@ describe('AddDiscoveryPage', () => {
     ).toBeInTheDocument()
   })
 
+  it('does not show the take-a-photo button in the add discovery form', () => {
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+
+    expect(
+      screen.queryByRole('button', { name: 'Take a photo' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('renders a native photo selected before entering the form', () => {
     renderWithProviders(<AddDiscoveryPage />, {
       initialEntries: [

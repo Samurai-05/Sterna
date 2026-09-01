@@ -1,4 +1,4 @@
-import { Camera, Check, ImagePlus, MapPin, Search } from 'lucide-react'
+import { Check, ImagePlus, MapPin, Search } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -626,10 +626,6 @@ export function AddDiscoveryPage() {
             </span>
             <span className="text-xs">JPEG, PNG or WebP · 10 MB maximum</span>
           </label>
-          <Button type="button" variant="outline" className="mt-3 h-11 w-full">
-            <Camera className="size-4" />
-            Take a photo
-          </Button>
           {photoUploadState.status === 'error' && (
             <div className="mt-3 space-y-2" role="alert">
               <p className="text-sm text-destructive">
