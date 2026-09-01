@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Discovery } from './mock-data'
 import {
   exploredCountryCodes,
+  explorationOverTime,
   profileCategoryRows,
   recentProfileDiscoveries,
   uniqueProfileDiscoveries,
@@ -66,6 +67,38 @@ describe('profile analytics', () => {
     expect(
       recentProfileDiscoveries([oldTrip, recentTrip]).map((item) => item.id),
     ).toEqual([2, 1])
+  })
+
+  it('aggregates the last six calendar months from discoveredAt only', () => {
+    const importedOldTrip = {
+      ...makeDiscovery(1, 'FRA', '2024-01-01T00:00:00.000Z'),
+      createdAt: '2026-09-10T00:00:00.000Z',
+    }
+    const summerDiscovery = {
+      ...makeDiscovery(2, 'CHE', '2026-07-04T00:00:00.000Z'),
+      createdAt: '2026-09-10T00:00:00.000Z',
+    }
+    const currentDiscovery = makeDiscovery(3, 'ITA', '2026-09-01T00:00:00.000Z')
+
+    expect(
+      explorationOverTime(
+        [
+          importedOldTrip,
+          summerDiscovery,
+          currentDiscovery,
+          makeDiscovery(4, 'ESP', 'not-a-date'),
+          { ...currentDiscovery, id: 5, discoveredAt: undefined },
+        ],
+        new Date('2026-09-15T12:00:00.000Z'),
+      ),
+    ).toEqual([
+      { key: '2026-04', label: 'Apr', count: 0 },
+      { key: '2026-05', label: 'May', count: 0 },
+      { key: '2026-06', label: 'Jun', count: 0 },
+      { key: '2026-07', label: 'Jul', count: 1 },
+      { key: '2026-08', label: 'Aug', count: 0 },
+      { key: '2026-09', label: 'Sep', count: 1 },
+    ])
   })
 
   it('includes uncategorized discoveries in the full breakdown', () => {

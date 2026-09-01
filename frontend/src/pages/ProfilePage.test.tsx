@@ -183,6 +183,20 @@ describe('ProfilePage', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('shows exploration over time when discoveries have valid real-world dates', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([
+      makeDiscovery(1, 'CHE', 'Bern', {
+        discoveredAt: new Date().toISOString(),
+      }),
+    ])
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Exploration over time' }),
+    ).toBeInTheDocument()
+  })
+
   it('does not show the empty state while authored discoveries are loading', async () => {
     let resolveDiscoveries!: (value: Discovery[]) => void
     getAuthoredDiscoveriesMock.mockReturnValue(

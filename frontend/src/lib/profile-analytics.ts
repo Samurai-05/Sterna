@@ -52,6 +52,12 @@ export interface ProfileCategoryRow {
   count: number
 }
 
+export interface ProfileExplorationMonth {
+  key: string
+  label: string
+  count: number
+}
+
 /** De-duplicates the authored endpoint by discovery id before aggregating it. */
 export function uniqueProfileDiscoveries(
   sourceDiscoveries: Discovery[],
@@ -83,6 +89,45 @@ export function recentProfileDiscoveries(
     )
     .slice(0, limit)
     .map(({ discovery }) => discovery)
+}
+
+export function explorationOverTime(
+  sourceDiscoveries: Discovery[],
+  referenceDate = new Date(),
+): ProfileExplorationMonth[] {
+  const currentMonth = new Date(
+    Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth(), 1),
+  )
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const month = new Date(
+      Date.UTC(
+        currentMonth.getUTCFullYear(),
+        currentMonth.getUTCMonth() - (5 - index),
+        1,
+      ),
+    )
+
+    return {
+      key: month.toISOString().slice(0, 7),
+      label: new Intl.DateTimeFormat('en', {
+        month: 'short',
+        timeZone: 'UTC',
+      }).format(month),
+      count: 0,
+    }
+  })
+  const monthByKey = new Map(months.map((month) => [month.key, month]))
+
+  uniqueProfileDiscoveries(sourceDiscoveries).forEach((discovery) => {
+    const timestamp = timestampValue(discovery.discoveredAt)
+    if (!Number.isFinite(timestamp)) return
+
+    const date = new Date(timestamp)
+    const month = monthByKey.get(date.toISOString().slice(0, 7))
+    if (month) month.count += 1
+  })
+
+  return months
 }
 
 export function profileCategoryRows(

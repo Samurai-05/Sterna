@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 import { ProfileCategoryBreakdown } from '@/components/ProfileCategoryBreakdown'
 import { ProfileDiscoveryCard } from '@/components/ProfileDiscoveryCard'
+import { ProfileExplorationOverTime } from '@/components/ProfileExplorationOverTime'
 import { ProfileExplorationStats } from '@/components/ProfileExplorationStats'
 import { ProfileWorldMap } from '@/components/ProfileWorldMap'
 import { UserAvatarImage } from '@/components/UserAvatarImage'
@@ -19,6 +20,7 @@ import {
 } from '@/lib/api'
 import {
   exploredCountryCodes,
+  explorationOverTime,
   recentProfileDiscoveries,
   uniqueProfileDiscoveries,
 } from '@/lib/profile-analytics'
@@ -73,6 +75,7 @@ export function ProfilePage() {
   )
   const exploredCodes = exploredCountryCodes(profileDiscoveries)
   const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
+  const explorationMonths = explorationOverTime(profileDiscoveries)
   const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
   const isDiscoveriesUnavailable = Boolean(accessToken && isDiscoveriesError)
   const isPoisLoading = Boolean(accessToken && isPoisPending)
@@ -293,6 +296,10 @@ export function ProfilePage() {
                 </h2>
                 <ProfileCategoryBreakdown discoveries={profileDiscoveries} />
               </section>
+
+              {explorationMonths.some((month) => month.count > 0) && (
+                <ProfileExplorationOverTime months={explorationMonths} />
+              )}
             </>
           ) : (
             <section
