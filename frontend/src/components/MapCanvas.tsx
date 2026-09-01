@@ -5,7 +5,6 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
-import { getPhoto } from '@/lib/api'
 import { categoryAppearance } from '@/lib/category-appearance'
 import {
   defaultMapViewport,
@@ -14,6 +13,7 @@ import {
   type MapViewport,
 } from '@/lib/map-viewport'
 import { imageUrl, type DiscoveryCategory } from '@/lib/mock-data'
+import { acquirePhotoUrl, releasePhotoUrl } from '@/lib/photo-url-cache'
 import { cn } from '@/lib/utils'
 
 setWorkerUrl(maplibreWorkerUrl)
@@ -67,18 +67,19 @@ export interface LandmarkMarkerData {
 
 function createPhotoPreviewElement(
   name: string,
-  imageId: string,
+  source: string | undefined,
   onSelect: () => void,
 ): { element: HTMLButtonElement; image: HTMLImageElement } {
   const button = document.createElement('button')
   button.type = 'button'
   button.setAttribute('aria-label', `View ${name}`)
   button.className =
-    'block size-[104px] overflow-hidden rounded-xl border-2 border-white shadow-lg'
+    'block size-[104px] overflow-hidden rounded-xl border-2 border-white bg-muted shadow-lg'
   button.addEventListener('click', onSelect)
 
   const img = document.createElement('img')
-  img.src = imageUrl(imageId, 220)
+  if (source) img.src = source
+  img.hidden = !source
   img.alt = ''
   img.className = 'size-full object-cover'
 
@@ -282,7 +283,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       const markers: Marker[] = []
       const roots: Root[] = []
       const photoPopups: Popup[] = []
-      const photoObjectUrls: string[] = []
+      const photoReleases: Array<() => void> = []
       const landmarkElements: HTMLDivElement[] = []
       let active = true
 
@@ -329,23 +330,29 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         )
         roots.push(root)
 
+        const authenticatedPhoto = Boolean(
+          photoAccessToken && discovery.imageObjectKey,
+        )
         const preview = createPhotoPreviewElement(
           discovery.name,
-          discovery.imageId,
+          authenticatedPhoto ? undefined : imageUrl(discovery.imageId, 220),
           () => onSelectDiscovery?.(discovery.id),
         )
 
         if (photoAccessToken && discovery.imageObjectKey) {
-          void getPhoto(photoAccessToken, discovery.imageObjectKey)
-            .then((blob) => {
+          const imageObjectKey = discovery.imageObjectKey
+          void acquirePhotoUrl(photoAccessToken, imageObjectKey)
+            .then((objectUrl) => {
               if (!active) return
-              const objectUrl = URL.createObjectURL(blob)
-              photoObjectUrls.push(objectUrl)
               preview.image.src = objectUrl
+              preview.image.hidden = false
             })
             .catch(() => {
-              // Keep the fallback image when an old or missing key cannot load.
+              // Keep the neutral placeholder when a photo cannot load.
             })
+          photoReleases.push(() =>
+            releasePhotoUrl(photoAccessToken, imageObjectKey),
+          )
         }
 
         photoPopups.push(
@@ -415,7 +422,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         // commit of an unrelated update (e.g. this page unmounting on
         // navigation), which logs a "synchronously unmount" warning.
         roots.forEach((root) => queueMicrotask(() => root.unmount()))
-        photoObjectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl))
+        photoReleases.forEach((release) => release())
       }
     }, [
       discoveries,

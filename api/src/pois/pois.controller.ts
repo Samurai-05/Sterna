@@ -12,6 +12,7 @@ const poisExample = [
     description: 'Landmark in Paris, France.',
     longitude: 2.2945,
     latitude: 48.8584,
+    countryCode: 'FRA',
     imageUrl: null,
     discovered: false,
   },

@@ -27,6 +27,7 @@ import {
   type RecentSearch,
 } from '@/lib/recent-searches'
 import { loadSession } from '@/lib/session'
+import { personalMapName } from '@/lib/personal-map-name'
 
 type SearchResult = RecentSearch
 
@@ -90,6 +91,8 @@ export function SearchPage() {
   })
 
   const normalizedQuery = query.trim().toLocaleLowerCase()
+  const activeMapLabel =
+    activeMap?.name ?? personalMapName(session?.user.userName)
   const results = useMemo<SearchResult[]>(() => {
     if (normalizedQuery.length < 2) return []
 
@@ -101,7 +104,7 @@ export function SearchPage() {
         id: `discovery:${discovery.id}`,
         kind: 'discovery' as const,
         label: discovery.name,
-        detail: `Discovery · ${activeMap?.name ?? 'Personal map'}`,
+        detail: `Discovery · ${activeMapLabel}`,
         coordinates: discovery.coordinates,
         zoom: 16,
       }))
@@ -132,7 +135,7 @@ export function SearchPage() {
 
     return [...discoveries, ...pois, ...places]
   }, [
-    activeMap?.name,
+    activeMapLabel,
     discoveriesQuery.data,
     normalizedQuery,
     placesQuery.data,

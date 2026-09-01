@@ -204,6 +204,34 @@ describe('DiscoveriesService', () => {
     });
   });
 
+  describe('findAllFromUserGroups', () => {
+    it('loads every discovery visible through the user group memberships', async () => {
+      await service.findAllFromUserGroups('1');
+
+      expect(statement()).toContain('FROM discovery_groups dg');
+      expect(statement()).toContain(
+        'INNER JOIN group_members gm ON gm.group_id = dg.group_id',
+      );
+      expect(statement()).toContain('gm.user_id = $1');
+      expect(params()).toEqual(['1']);
+    });
+
+    it('maps discoveries from other group members', async () => {
+      query.mockResolvedValueOnce([
+        row({ id: '10', user_id: '2', author_user_name: 'Alex' }),
+      ]);
+
+      const discoveries = await service.findAllFromUserGroups('1');
+
+      expect(discoveries).toHaveLength(1);
+      expect(discoveries[0]).toMatchObject({
+        id: '10',
+        userId: '2',
+        authorUserName: 'Alex',
+      });
+    });
+  });
+
   describe('findAllByGroup', () => {
     it('loads discoveries explicitly linked to the requested group', async () => {
       await service.findAllByGroup('7');
