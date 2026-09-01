@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.os.ext.SdkExtensions;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.View;
@@ -56,6 +57,7 @@ import java.util.concurrent.Executors;
 
 public class PhotoCaptureActivity extends AppCompatActivity {
 
+    private static final String TAG = "PhotoCaptureActivity";
     static final int RESULT_SELECTED = 42;
     static final String EXTRA_PATH = "path";
     static final String EXTRA_MIME_TYPE = "mimeType";
@@ -148,6 +150,8 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                 permissions -> {
                     if (hasLocationPermission()) {
                         startLocationUpdates();
+                    } else {
+                        Log.w(TAG, "Location permission denied; capturing without GPS metadata");
                     }
                 });
         galleryLauncher = registerForActivityResult(
@@ -491,6 +495,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (locationManager == null) {
+            Log.w(TAG, "Location service unavailable; capturing without GPS metadata");
             return;
         }
 
@@ -517,9 +522,14 @@ public class PhotoCaptureActivity extends AppCompatActivity {
             } catch (SecurityException | IllegalArgumentException ignored) {
                 // Location can be unavailable even after the permission request, so camera use
                 // must continue without metadata in that case.
+                Log.w(TAG, "Location provider unavailable: " + provider, ignored);
             }
         }
         locationUpdatesStarted = requestedUpdates;
+
+        if (!requestedUpdates) {
+            Log.w(TAG, "No location provider available; capturing without GPS metadata");
+        }
     }
 
     private Location findRecentLastKnownLocation() {
@@ -541,6 +551,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                 }
             } catch (SecurityException | IllegalArgumentException ignored) {
                 // A permission/provider state change should not prevent taking a photo.
+                Log.w(TAG, "Unable to read last known location from " + provider, ignored);
             }
         }
         return best;
@@ -569,6 +580,15 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         locationListener = null;
     }
 
+    private void requestOrStartLocationSafely() {
+        PhotoCaptureLocation.runSafely(
+                this::requestOrStartLocation,
+                exception -> Log.w(
+                        TAG,
+                        "Location initialization failed; capturing without GPS metadata",
+                        exception));
+    }
+
     private void startCamera() {
         ListenableFuture<ProcessCameraProvider> providerFuture =
                 ProcessCameraProvider.getInstance(this);
@@ -577,6 +597,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                 cameraProvider = providerFuture.get();
                 bindCamera();
             } catch (Exception exception) {
+                Log.e(TAG, "Unable to initialize CameraX", exception);
                 showStatus("Camera unavailable. You can still choose a photo from Gallery.");
             }
         }, ContextCompat.getMainExecutor(this));
@@ -614,11 +635,14 @@ public class PhotoCaptureActivity extends AppCompatActivity {
             flashEnabled = false;
             updateFlashControl(camera);
             switchCameraButton.setVisibility(hasBackCamera && hasFrontCamera ? View.VISIBLE : View.GONE);
-            requestOrStartLocation();
             showStatus("");
         } catch (Exception exception) {
+            Log.e(TAG, "Unable to bind CameraX", exception);
             showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+            return;
         }
+
+        requestOrStartLocationSafely();
     }
 
     private void updateFlashControl(Camera camera) {
