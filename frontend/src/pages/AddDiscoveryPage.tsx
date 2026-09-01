@@ -467,7 +467,7 @@ export function AddDiscoveryPage() {
       })
       queryClient.invalidateQueries({ queryKey: ['groups', session?.user.id] })
       navigate(discoveryPath(discovery.id, discovery.groupId), {
-        state: { returnTo: '/' },
+        state: { returnTo: '/', justCreated: true },
         replace: true,
       })
     },

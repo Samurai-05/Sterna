@@ -3,6 +3,7 @@ import type { Location } from 'react-router'
 export type DiscoveryRouteState = {
   returnTo?: string
   backgroundLocation?: Location
+  justCreated?: boolean
 }
 
 export function getDiscoveryRouteState(state: unknown): DiscoveryRouteState {
@@ -15,6 +16,7 @@ export function getDiscoveryRouteState(state: unknown): DiscoveryRouteState {
     backgroundLocation: isLocation(state.backgroundLocation)
       ? state.backgroundLocation
       : undefined,
+    justCreated: state.justCreated === true ? true : undefined,
   }
 }
 

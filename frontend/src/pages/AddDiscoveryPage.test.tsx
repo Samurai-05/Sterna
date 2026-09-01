@@ -1,10 +1,13 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Capacitor } from '@capacitor/core'
+import { QueryClient } from '@tanstack/react-query'
+import { Route, Routes, useLocation } from 'react-router'
 
 import { renderWithProviders } from '@/test/renderWithProviders'
 import {
   createDiscovery,
+  getActiveMap,
   searchLocations,
   uploadPhoto,
   type UploadPhotoResponse,
@@ -24,6 +27,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
   return {
     ...actual,
     createDiscovery: vi.fn(),
+    getActiveMap: vi.fn(),
     searchLocations: vi.fn(),
     uploadPhoto: vi.fn(),
   }
@@ -49,6 +53,88 @@ afterEach(() => {
 })
 
 describe('AddDiscoveryPage', () => {
+  it('navigates immediately with transient creation state and invalidates discovery caches', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        avatarObjectKey: null,
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    vi.mocked(getActiveMap).mockResolvedValue({ groupId: null, name: null })
+    vi.mocked(uploadPhoto).mockResolvedValue({
+      objectKey: 'photos/new-discovery.jpg',
+      url: '/api/photos/new-discovery.jpg',
+      metadata: {
+        location: { latitude: 46.7, longitude: 6.6 },
+        takenAt: null,
+      },
+    })
+    vi.mocked(createDiscovery).mockResolvedValue({
+      id: 42,
+      groupId: null,
+    } as never)
+    const invalidateQueries = vi.spyOn(
+      QueryClient.prototype,
+      'invalidateQueries',
+    )
+
+    function NavigationProbe() {
+      const location = useLocation()
+      return (
+        <output data-testid="navigation-state">
+          {location.pathname}:{JSON.stringify(location.state)}
+        </output>
+      )
+    }
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/add" element={<AddDiscoveryPage />} />
+        <Route path="/discoveries/:discoveryId" element={<NavigationProbe />} />
+      </Routes>,
+      { route: '/add' },
+    )
+
+    const fileInput = document.querySelector('input[type="file"]')
+    if (!fileInput) throw new Error('Photo input not found.')
+    fireEvent.change(fileInput, {
+      target: {
+        files: [
+          new File(['bytes'], 'new-discovery.jpg', { type: 'image/jpeg' }),
+        ],
+      },
+    })
+    await screen.findByText('Photo selected')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Title' }), {
+      target: { value: 'A new discovery' },
+    })
+    fireEvent.submit(document.querySelector('form')!)
+
+    expect(await screen.findByTestId('navigation-state')).toHaveTextContent(
+      '/discoveries/42',
+    )
+    expect(screen.getByTestId('navigation-state')).toHaveTextContent(
+      '"justCreated":true',
+    )
+    expect(createDiscovery).toHaveBeenCalled()
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['discoveries', '1'],
+    })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['group-discoveries', '1'],
+    })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['pois', '1'],
+    })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['groups', '1'],
+    })
+  })
+
   it('uses the native MIME type when the Capacitor Blob has no MIME', async () => {
     const convertFileSrc = vi
       .spyOn(Capacitor, 'convertFileSrc')
