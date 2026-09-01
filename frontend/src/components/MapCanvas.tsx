@@ -195,6 +195,12 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       applyExploredStatesRef.current = applyExploredStates
 
       instance.on('load', () => {
+        // Renders as a globe when zoomed out to see the whole world.
+        // MapLibre animates its own switch back to the flat mercator map
+        // around zoom 12, where globe curvature would otherwise hurt
+        // precision — no manual zoom threshold needed here.
+        instance.setProjection({ type: 'globe' })
+
         instance.addSource(countriesSourceId, {
           type: 'geojson',
           data: '/countries.geo.json',
