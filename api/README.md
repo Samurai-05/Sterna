@@ -310,10 +310,11 @@ the baseline schema; `AddGroupInviteCode1787734647000` added the one column the 
 | `GET /api/pois` | The 195 predefined POIs with a discovery status calculated for the caller's active map |
 | `PUT /api/active-map` | Change it with `{ groupId }`, or `{ groupId: null }` for the personal map (FR-28) |
 
-**A personal map is not a group.** It is the absence of one: a discovery with `group_id = NULL`
-is personal, and a user with no active membership has their personal map active. That is why
-`/api/active-map` is its own resource rather than `/api/groups/active` — `null` is one of its
-legitimate values.
+**A personal map is not a group.** It is a logical view of discoveries with
+`is_personal = TRUE`; `group_id` is a retained legacy/provenance value and does not determine
+visibility. Group destinations come exclusively from `discovery_groups`. A user with no active
+membership has their personal map active. That is why `/api/active-map` is its own resource
+rather than `/api/groups/active` — `null` is one of its legitimate values.
 
 **Invitations are one permanent code per group**, eight characters from an alphabet with no
 lookalikes (`ABCDEFGHJKMNPQRSTVWXYZ23456789` — no `I`, `L`, `O`, `U`, `0` or `1`). There is no
@@ -339,10 +340,10 @@ Three rules that a wrong assumption would break:
 
 **Leaving or deleting has to detach the discoveries first.** `fk_discoveries_group_membership` is
 `ON DELETE RESTRICT` and Postgres checks it immediately, so a membership cannot be deleted while
-that member still has discoveries in the group. Both paths run
-`UPDATE discoveries SET group_id = NULL …` inside the same transaction before touching
-`group_members` — which is also why the discoveries survive: they go back to the personal maps of
-whoever took them, never to the bin.
+that member still has a legacy `group_id` value for the group. Both paths remove the relevant
+`discovery_groups` rows and restore `is_personal` only when no group destination remains, inside
+the same transaction before touching `group_members`. They then clear matching legacy
+`group_id` values as constraint cleanup; that column never decides visibility.
 
 ## API documentation
 
