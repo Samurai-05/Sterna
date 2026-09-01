@@ -1,8 +1,6 @@
-import { ArrowLeft, MoreHorizontal, Trash2 } from 'lucide-react'
-import { App as CapacitorApp } from '@capacitor/app'
-import { Capacitor } from '@capacitor/core'
+import { ArrowLeft, Check, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Link,
   useLocation,
@@ -11,11 +9,11 @@ import {
   useSearchParams,
 } from 'react-router'
 import Lightbox from 'yet-another-react-lightbox'
+import Inline from 'yet-another-react-lightbox/plugins/inline'
 import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 
 import { DiscoveryDetailsContent } from '@/components/DiscoveryDetailsContent'
-import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
-import { ViewerDetailsDrawer } from '@/components/ViewerDetailsDrawer'
+import { DiscoveryPhotoPlaceholder } from '@/components/DiscoveryPhoto'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -26,7 +24,9 @@ import {
 } from '@/components/ui/drawer'
 import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog'
 import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
+import { useDiscoveryPhotoSource } from '@/hooks/useDiscoveryPhotoSource'
 import { getDiscoveryRouteState } from '@/lib/route-state'
+import type { Discovery } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 import { useMeasuredDrawerSnapPoint } from '@/hooks/useMeasuredDrawerSnapPoint'
 
@@ -48,20 +48,20 @@ export function DiscoveryDetailPage({
   const groupId = searchParams.get('group')
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false)
-  const [isViewerOpen, setIsViewerOpen] = useState(false)
-  const [isViewerDetailsExpanded, setIsViewerDetailsExpanded] = useState(false)
-  const isViewerDetailsExpandedRef = useRef(false)
-  const [detailPhotoSource, setDetailPhotoSource] = useState<string | null>(
-    null,
+  const [showCreatedFeedback, setShowCreatedFeedback] = useState(
+    () => getDiscoveryRouteState(location.state).justCreated === true,
   )
+  const createdFeedbackConsumedRef = useRef(false)
   const [snapPoint, setSnapPoint] = useState<string | number>(PEEK_SNAP_POINT)
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const actionTriggerRef = useRef<HTMLButtonElement>(null)
   const drawerControlsRef = useRef<HTMLDivElement>(null)
   const expandedContentRef = useRef<HTMLDivElement>(null)
-  const viewerControlsRef = useRef<HTMLDivElement>(null)
   const routeState = getDiscoveryRouteState(location.state)
-  const returnTo = routeState.returnTo ?? '/collection'
+  const routeReturnTo = routeState.returnTo
+  const backgroundLocation = routeState.backgroundLocation
+  const justCreated = routeState.justCreated
+  const returnTo = routeReturnTo ?? '/collection'
 
   const handleBack = () => {
     if (routeState.backgroundLocation) {
@@ -72,15 +72,43 @@ export function DiscoveryDetailPage({
     navigate(returnTo, { replace: true })
   }
 
-  const closeViewer = useCallback(() => {
-    isViewerDetailsExpandedRef.current = false
-    setIsViewerDetailsExpanded(false)
-    setIsViewerOpen(false)
-  }, [])
+  useEffect(() => {
+    if (!justCreated || createdFeedbackConsumedRef.current) return
+
+    createdFeedbackConsumedRef.current = true
+    navigate(
+      {
+        pathname: location.pathname,
+        search: location.search,
+        hash: location.hash,
+      },
+      {
+        replace: true,
+        state: {
+          returnTo: routeReturnTo,
+          backgroundLocation,
+        },
+      },
+    )
+  }, [
+    backgroundLocation,
+    justCreated,
+    location.hash,
+    location.pathname,
+    location.search,
+    navigate,
+    routeReturnTo,
+  ])
 
   useEffect(() => {
-    isViewerDetailsExpandedRef.current = isViewerDetailsExpanded
-  }, [isViewerDetailsExpanded])
+    if (!showCreatedFeedback) return
+
+    const timeoutId = window.setTimeout(() => {
+      setShowCreatedFeedback(false)
+    }, 2_200)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [showCreatedFeedback])
 
   const personalQuery = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
@@ -120,15 +148,6 @@ export function DiscoveryDetailPage({
 
   const pageClassName =
     'sterna-discovery-screen fixed inset-0 z-40 !p-0 overflow-hidden bg-stone-950'
-  const slides = useMemo(
-    () =>
-      discovery
-        ? detailPhotoSource
-          ? [{ src: detailPhotoSource, alt: discovery.name }]
-          : []
-        : [],
-    [detailPhotoSource, discovery],
-  )
 
   const isNormalDrawerExpanded = snapPoint !== PEEK_SNAP_POINT
   const expandedSnapPoint = useMeasuredDrawerSnapPoint({
@@ -139,34 +158,6 @@ export function DiscoveryDetailPage({
     measurementKey: discovery?.id ?? null,
     onSnapPointChange: setSnapPoint,
   })
-
-  useEffect(() => {
-    if (!isViewerOpen || Capacitor.getPlatform() !== 'android') return
-
-    let active = true
-    let listener: { remove: () => Promise<void> } | undefined
-
-    void CapacitorApp.addListener('backButton', () => {
-      if (!active) return
-      if (isViewerDetailsExpandedRef.current) {
-        isViewerDetailsExpandedRef.current = false
-        setIsViewerDetailsExpanded(false)
-      } else {
-        closeViewer()
-      }
-    }).then((handle) => {
-      if (active) {
-        listener = handle
-      } else {
-        void handle.remove()
-      }
-    })
-
-    return () => {
-      active = false
-      void listener?.remove()
-    }
-  }, [closeViewer, isViewerOpen])
 
   useEffect(() => {
     if (!isActionMenuOpen) return
@@ -235,25 +226,7 @@ export function DiscoveryDetailPage({
         className="absolute inset-0 bg-stone-950"
         aria-label="Discovery photo"
       >
-        <button
-          type="button"
-          className="absolute inset-0 z-0 flex size-full cursor-zoom-in items-center justify-center bg-stone-950 p-0"
-          aria-label="Open photo"
-          disabled={!detailPhotoSource}
-          onClick={() => {
-            setIsViewerDetailsExpanded(false)
-            setIsViewerOpen(true)
-          }}
-        >
-          <DiscoveryPhoto
-            discovery={discovery}
-            alt={discovery.name}
-            variant="detail"
-            width={1200}
-            className="size-full object-contain"
-            onSourceChange={setDetailPhotoSource}
-          />
-        </button>
+        <DiscoveryPhotoZoom discovery={discovery} />
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/35 to-transparent"
           aria-hidden="true"
@@ -316,6 +289,18 @@ export function DiscoveryDetailPage({
         )}
       </div>
 
+      {showCreatedFeedback && (
+        <div
+          role="status"
+          aria-label="Discovery added"
+          aria-live="polite"
+          className="pointer-events-none absolute left-1/2 top-[max(5rem,var(--sterna-safe-area-top))] z-[70] flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-xl animate-in fade-in-0 slide-in-from-top-2 duration-300"
+        >
+          <Check className="size-4 text-green-200" aria-hidden="true" />
+          Discovery added
+        </div>
+      )}
+
       <div
         data-testid="discovery-detail-drawer"
         data-expanded-snap-point={expandedSnapPoint ?? 'null'}
@@ -336,20 +321,22 @@ export function DiscoveryDetailPage({
         >
           <DrawerContent
             contentDriven
-            className="bg-card text-foreground shadow-[0_-12px_40px_rgba(28,25,23,0.16)]"
+            className={`border border-white/10 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-colors duration-300 ${isExpanded ? 'bg-card/95 text-foreground' : 'bg-black/50 text-white'}`}
           >
             <div
               ref={drawerControlsRef}
-              className={`z-10 ${isExpanded ? 'relative' : 'absolute inset-x-0 bottom-0 bg-card'}`}
+              className={`z-10 ${isExpanded ? 'relative' : 'absolute inset-x-0 bottom-0 rounded-t-[inherit] border-t border-white/10 bg-black/50 backdrop-blur-xl'}`}
             >
-              <DrawerSwipeHandle />
+              <DrawerSwipeHandle
+                className={isExpanded ? '' : '[&>span]:bg-white/60'}
+              />
               <DrawerHeader className="shrink-0 px-5 pt-0 pb-[max(0.75rem,var(--sterna-safe-area-bottom))] text-left">
                 <DrawerTitle render={<h1 className="sr-only" />}>
                   {discovery.name}
                 </DrawerTitle>
                 <button
                   type="button"
-                  className="min-h-11 w-full truncate rounded-xl px-0 text-left font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40"
+                  className={`min-h-11 w-full truncate rounded-xl px-0 text-left font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
                   aria-controls="discovery-detail-expanded-content"
                   aria-expanded={isExpanded}
                   onClick={() => {
@@ -382,36 +369,6 @@ export function DiscoveryDetailPage({
         </Drawer>
       </div>
 
-      <Lightbox
-        open={isViewerOpen && slides.length > 0}
-        close={closeViewer}
-        slides={slides}
-        plugins={[Zoom]}
-        carousel={{ finite: true, imageFit: 'contain', preload: 0 }}
-        controller={{ closeOnBackdropClick: false }}
-        render={{
-          controls: () => (
-            <div
-              ref={viewerControlsRef}
-              data-testid="viewer-controls-root"
-              className="pointer-events-none absolute inset-0"
-            >
-              <ViewerDetailsDrawer
-                discovery={discovery}
-                expanded={isViewerDetailsExpanded}
-                groupId={groupId}
-                isAuthor={isAuthor}
-                onExpandedChange={setIsViewerDetailsExpanded}
-                portalContainer={viewerControlsRef}
-              />
-            </div>
-          ),
-          buttonPrev: () => null,
-          buttonNext: () => null,
-        }}
-        labels={{ Close: 'Close photo viewer' }}
-      />
-
       <ConfirmActionDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -433,6 +390,53 @@ export function DiscoveryDetailPage({
         </p>
       )}
     </main>
+  )
+}
+
+function DiscoveryPhotoZoom({ discovery }: { discovery: Discovery }) {
+  const { source, status, placeholderRef } = useDiscoveryPhotoSource({
+    discovery,
+    width: 1200,
+    variant: 'detail',
+    lazy: false,
+  })
+
+  if (!source) {
+    return (
+      <DiscoveryPhotoPlaceholder
+        ref={placeholderRef}
+        className="size-full bg-stone-950 text-white"
+        unavailable={status === 'error'}
+      />
+    )
+  }
+
+  return (
+    <div className="absolute inset-0 z-0">
+      <Lightbox
+        open
+        close={() => undefined}
+        slides={[{ src: source, alt: discovery.name }]}
+        plugins={[Inline, Zoom]}
+        inline={{
+          className: 'absolute inset-0 z-0',
+          'aria-label': `${discovery.name} photo`,
+        }}
+        className="!bg-transparent"
+        carousel={{ finite: true, imageFit: 'contain', preload: 0 }}
+        toolbar={{ buttons: [] }}
+        render={{
+          buttonPrev: () => null,
+          buttonNext: () => null,
+          buttonClose: () => null,
+        }}
+        styles={{
+          root: { backgroundColor: 'transparent' },
+          container: { backgroundColor: 'transparent' },
+        }}
+        controller={{ closeOnBackdropClick: false }}
+      />
+    </div>
   )
 }
 

@@ -1,6 +1,5 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ReactNode } from 'react'
 
 import { getDiscovery, getPhoto } from '@/lib/api'
 import { saveSession } from '@/lib/session'
@@ -22,22 +21,14 @@ vi.mock('@/lib/api', async (importOriginal) => {
 vi.mock('yet-another-react-lightbox', () => ({
   default: ({
     open,
-    close,
     slides,
-    render,
   }: {
     open: boolean
-    close: () => void
     slides: Array<{ src: string; alt?: string }>
-    render?: { controls?: () => ReactNode }
   }) =>
     open ? (
-      <div role="dialog" aria-label="Photo viewer">
-        <button type="button" onClick={close}>
-          Close
-        </button>
+      <div data-testid="inline-photo-viewer">
         <img src={slides[0].src} alt={slides[0].alt} />
-        {render?.controls?.()}
       </div>
     ) : null,
 }))
@@ -84,7 +75,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-function renderPage() {
+function renderPage(state?: unknown) {
   return renderWithProviders(
     <Routes>
       <Route
@@ -92,7 +83,9 @@ function renderPage() {
         element={<DiscoveryDetailPage />}
       />
     </Routes>,
-    { route: '/discoveries/7' },
+    {
+      initialEntries: [{ pathname: '/discoveries/7', state }],
+    },
   )
 }
 
@@ -187,40 +180,68 @@ describe('DiscoveryDetailPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('opens and closes the viewer without requesting the detail photo again', async () => {
+  it('keeps the photo in the unified inline viewer without opening a dialog', async () => {
     renderPage()
 
     const photo = await screen.findByRole('img', { name: 'Alpine meadow' })
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
 
     fireEvent.click(photo)
 
     expect(
-      await screen.findByRole('dialog', { name: 'Photo viewer' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('dialog', { name: 'Photo viewer' }),
+    ).not.toBeInTheDocument()
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('dialog', { name: 'Photo viewer' }),
-      ).not.toBeInTheDocument(),
-    )
-    expect(
-      screen.getByRole('heading', { name: 'Alpine meadow' }),
-    ).toBeInTheDocument()
   })
 
-  it('renders a collapsed fullscreen details handle without requesting another photo', async () => {
+  it('keeps the discovery title visible in the collapsed drawer', async () => {
     renderPage()
 
-    fireEvent.click(await screen.findByRole('img', { name: 'Alpine meadow' }))
+    const title = await screen.findByRole('button', { name: 'Alpine meadow' })
+    expect(title).toBeVisible()
+    expect(screen.getByTestId('discovery-detail-drawer')).toBeInTheDocument()
+    expect(
+      document.querySelectorAll('[data-slot="drawer-swipe-handle"]'),
+    ).toHaveLength(1)
+  })
+
+  it('shows expanded discovery details from the main drawer', async () => {
+    renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Alpine meadow' }),
+    )
 
     expect(
-      await screen.findByRole('dialog', { name: 'Photo viewer' }),
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('viewer-details-drawer')).toBeInTheDocument()
-    expect(screen.getByTestId('viewer-details-handle')).toBeInTheDocument()
-    expect(getPhotoMock).toHaveBeenCalledTimes(1)
+      await screen.findByText('A quiet meadow above the lake.'),
+    ).toBeVisible()
+    expect(screen.getByText('Personal map')).toBeVisible()
+  })
+
+  it('shows and automatically hides the post-creation confirmation', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      renderPage({ returnTo: '/', justCreated: true })
+      await act(async () => {
+        await Promise.resolve()
+        await Promise.resolve()
+      })
+      await screen.findByRole('heading', { name: 'Alpine meadow' })
+
+      expect(
+        screen.getByRole('status', { name: 'Discovery added' }),
+      ).toBeInTheDocument()
+
+      act(() => {
+        vi.advanceTimersByTime(2_200)
+      })
+
+      expect(
+        screen.queryByRole('status', { name: 'Discovery added' }),
+      ).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
