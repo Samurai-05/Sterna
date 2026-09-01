@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DiscoveriesService } from './discoveries.service';
@@ -17,6 +17,8 @@ describe('DiscoveriesService', () => {
   const query = jest.fn<Promise<unknown[]>, [string, unknown[]?]>();
   const requireMembership = jest.fn();
   const ownsPhoto = jest.fn();
+  const removeOwnedPhoto = jest.fn();
+  const isCanonicalPhotoKey = jest.fn();
   const photoExists = jest.fn();
 
   let service: DiscoveriesService;
@@ -37,9 +39,10 @@ describe('DiscoveriesService', () => {
     category: 'Other',
     longitude: '9.4669802',
     latitude: '41.1418826',
-    image_object_key: 'discoveries/phi-beach.jpg',
+    image_object_key: 'photos/550e8400-e29b-41d4-a716-446655440000.jpg',
     author_user_name: 'Ada',
     country_code: 'ITA',
+    location_source: null,
     discovered_at: new Date('2026-08-06T20:31:19.000Z'),
     created_at: new Date('2026-08-27T11:44:41.142Z'),
     updated_at: new Date('2026-08-27T11:44:41.142Z'),
@@ -51,6 +54,7 @@ describe('DiscoveriesService', () => {
     query.mockResolvedValue([]);
     // The happy path for everything that is not about the photo itself.
     ownsPhoto.mockResolvedValue(true);
+    isCanonicalPhotoKey.mockReturnValue(true);
     photoExists.mockResolvedValue(true);
 
     const module = await Test.createTestingModule({
@@ -60,7 +64,12 @@ describe('DiscoveriesService', () => {
         { provide: GroupsService, useValue: { requireMembership } },
         {
           provide: PhotosService,
-          useValue: { ownsPhoto, exists: photoExists },
+          useValue: {
+            ownsPhoto,
+            removeOwned: removeOwnedPhoto,
+            isCanonicalObjectKey: isCanonicalPhotoKey,
+            exists: photoExists,
+          },
         },
       ],
     }).compile();
@@ -75,7 +84,8 @@ describe('DiscoveriesService', () => {
       category: null,
       longitude: 9.4669802,
       latitude: 41.1418826,
-      imageObjectKey: 'discoveries/phi-beach.jpg',
+      imageObjectKey: 'photos/550e8400-e29b-41d4-a716-446655440000.jpg',
+      locationSource: 'manual',
       discoveredAt: '2026-08-06T20:31:19.000Z',
     };
 
@@ -108,6 +118,7 @@ describe('DiscoveriesService', () => {
         dto.longitude,
         dto.latitude,
         dto.imageObjectKey,
+        dto.locationSource,
         dto.discoveredAt,
         true,
         [],
@@ -180,6 +191,36 @@ describe('DiscoveriesService', () => {
       expect(query).not.toHaveBeenCalled();
     });
 
+    it('rejects a non-canonical photo key before database insertion', async () => {
+      isCanonicalPhotoKey.mockReturnValue(false);
+
+      await expect(
+        service.create('1', { ...dto, imageObjectKey: 'photos/a.map.webp' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    it('rejects a canonical photo key when the original object is absent', async () => {
+      photoExists.mockResolvedValue(false);
+
+      await expect(service.create('1', dto)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+
+      expect(photoExists).toHaveBeenCalledWith(dto.imageObjectKey);
+      expect(query).not.toHaveBeenCalled();
+    });
+
+    it('persists the final location source with the coordinates', async () => {
+      query.mockResolvedValueOnce([row({ location_source: 'manual' })]);
+
+      await service.create('1', { ...dto, locationSource: 'manual' });
+
+      expect(params()).toContain('manual');
+      expect(statement()).toContain('location_source');
+    });
+
     it('requires membership in every group and stores all selected groups', async () => {
       query.mockResolvedValueOnce([
         row({ group_ids: ['7', '8'], group_id: '7' }),
@@ -194,7 +235,7 @@ describe('DiscoveriesService', () => {
       expect(requireMembership).toHaveBeenCalledTimes(2);
       expect(requireMembership).toHaveBeenCalledWith('1', '7');
       expect(requireMembership).toHaveBeenCalledWith('1', '8');
-      expect(params()?.[10]).toEqual(['7', '8']);
+      expect(params()?.[11]).toEqual(['7', '8']);
       expect(discovery.groupIds).toEqual(['7', '8']);
     });
   });
@@ -251,6 +292,34 @@ describe('DiscoveriesService', () => {
     });
   });
 
+  describe('findAllFromUserGroups', () => {
+    it('loads every discovery visible through the user group memberships', async () => {
+      await service.findAllFromUserGroups('1');
+
+      expect(statement()).toContain('FROM discovery_groups dg');
+      expect(statement()).toContain(
+        'INNER JOIN group_members gm ON gm.group_id = dg.group_id',
+      );
+      expect(statement()).toContain('gm.user_id = $1');
+      expect(params()).toEqual(['1']);
+    });
+
+    it('maps discoveries from other group members', async () => {
+      query.mockResolvedValueOnce([
+        row({ id: '10', user_id: '2', author_user_name: 'Alex' }),
+      ]);
+
+      const discoveries = await service.findAllFromUserGroups('1');
+
+      expect(discoveries).toHaveLength(1);
+      expect(discoveries[0]).toMatchObject({
+        id: '10',
+        userId: '2',
+        authorUserName: 'Alex',
+      });
+    });
+  });
+
   describe('findAllByGroup', () => {
     it('loads discoveries explicitly linked to the requested group', async () => {
       await service.findAllByGroup('7');
@@ -302,6 +371,7 @@ describe('DiscoveriesService', () => {
         [],
         false,
         false,
+        true,
       ]);
     });
 
@@ -321,6 +391,7 @@ describe('DiscoveriesService', () => {
         null,
         false,
         [],
+        false,
         false,
         false,
       ]);
@@ -353,7 +424,7 @@ describe('DiscoveriesService', () => {
 
       const discovery = await service.update('9', '1', { personal: false });
 
-      expect(query.mock.calls[1][1]?.slice(-2)).toEqual([true, false]);
+      expect(query.mock.calls[1][1]?.slice(-3, -1)).toEqual([true, false]);
       expect(discovery.personal).toBe(false);
     });
 
@@ -369,6 +440,39 @@ describe('DiscoveriesService', () => {
   });
 
   describe('remove', () => {
+    it('removes the stored photo after deleting the discovery row', async () => {
+      query.mockResolvedValueOnce([
+        { id: '9', image_object_key: 'photos/discovery.jpg' },
+      ]);
+
+      await service.remove('9', '1');
+
+      // Scoped to the caller, so a row that somehow references another
+      // account's key frees nothing rather than destroying their object.
+      expect(removeOwnedPhoto).toHaveBeenCalledWith(
+        '1',
+        'photos/discovery.jpg',
+      );
+    });
+
+    it('keeps deletion successful when post-delete photo cleanup fails', async () => {
+      const cleanupError = new Error('MinIO unavailable');
+      query.mockResolvedValueOnce([
+        { id: '9', image_object_key: 'photos/discovery.jpg' },
+      ]);
+      removeOwnedPhoto.mockRejectedValueOnce(cleanupError);
+      const loggerError = jest
+        .spyOn(Logger.prototype, 'error')
+        .mockImplementation();
+
+      await expect(service.remove('9', '1')).resolves.toBeUndefined();
+
+      expect(loggerError).toHaveBeenCalledWith(
+        expect.stringContaining('photos/discovery.jpg'),
+        cleanupError.stack,
+      );
+    });
+
     it('throws when nothing was deleted', async () => {
       query.mockResolvedValueOnce([]);
 

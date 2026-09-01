@@ -14,6 +14,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { PHOTO_OBJECT_KEY_PATTERN } from '../photos/photos.service';
 import { DiscoveryCategory } from './discovery-category';
+import { DiscoveryLocationSource } from './discovery-location-source';
 
 export class CreateDiscoveryDto {
   @IsOptional()
@@ -59,6 +60,9 @@ export class CreateDiscoveryDto {
   @Matches(PHOTO_OBJECT_KEY_PATTERN)
   @ApiProperty({ example: 'photos/6f1c9e0e-8b1a-4d3f-9c2e-0a1b2c3d4e5f.jpg' })
   imageObjectKey: string;
+
+  @IsEnum(DiscoveryLocationSource)
+  locationSource: DiscoveryLocationSource;
 
   @IsDateString()
   discoveredAt: string;

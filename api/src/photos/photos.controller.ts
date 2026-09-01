@@ -4,6 +4,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   Res,
   StreamableFile,
   UnsupportedMediaTypeException,
@@ -21,6 +22,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiPayloadTooLargeResponse,
+  ApiQuery,
   ApiTags,
   ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
@@ -117,12 +119,20 @@ export class PhotosController {
       'so a presigned URL would not resolve for a client (ADR-007).',
   })
   @ApiOkResponse({ description: 'The image bytes.' })
+  @ApiQuery({
+    name: 'variant',
+    required: false,
+    enum: ['map', 'card', 'detail'],
+    description:
+      'Optional generated size. Older photos safely fall back to the original.',
+  })
   @ApiNotFoundResponse({
     description: 'No such photo, or not one this caller may see.',
   })
   async download(
     @CurrentUser() caller: AuthenticatedUser,
     @Param('filename') filename: string,
+    @Query('variant') variant: string | undefined,
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
     // Being signed in is not enough (NFR-24/25/26): a personal discovery is
@@ -133,11 +143,17 @@ export class PhotosController {
     // "that exists but is not yours" is the disclosure NFR-19 forbids. It is
     // also the answer read() gives for a key that does not exist, so the two
     // cases stay indistinguishable.
+    //
+    // Authorised on the canonical key: `variant` only picks which rendition of
+    // the same photo is streamed, so it cannot widen what the caller may see.
     if (!(await this.photos.canRead(caller.id, photoObjectKey(filename)))) {
       throw new NotFoundException(`Unknown photo "${filename}".`);
     }
 
-    const { stream, contentType, size } = await this.photos.read(filename);
+    const { stream, contentType, size } = await this.photos.read(
+      filename,
+      variant,
+    );
 
     // Keys are immutable, so the bytes behind one never change. Set here rather
     // than with @Header(): Nest applies those before the handler runs, which

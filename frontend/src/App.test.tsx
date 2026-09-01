@@ -2,7 +2,12 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
-import { getAuthoredDiscoveries, getAuthoredPois, getPois } from '@/lib/api'
+import {
+  getAllGroupDiscoveries,
+  getAuthoredDiscoveries,
+  getAuthoredPois,
+  getPois,
+} from '@/lib/api'
 import { discoveries as sampleDiscoveries, landmarks } from '@/lib/mock-data'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from './test/renderWithProviders'
@@ -44,7 +49,30 @@ vi.mock('@/lib/api', async (importOriginal) => {
     }),
     getAuthoredDiscoveries: vi
       .fn()
-      .mockResolvedValue([...discoveries, ...personalDiscoveries]),
+      .mockResolvedValue([
+        ...discoveries.map((discovery) => ({ ...discovery, userId: '1' })),
+        personalDiscoveries[0],
+      ]),
+    getAllGroupDiscoveries: vi.fn().mockResolvedValue([
+      {
+        ...discoveries[0],
+        id: 7,
+        userId: '1',
+        groupId: 'weekend-paris',
+        groupIds: ['weekend-paris'],
+        personal: false,
+      },
+      {
+        ...personalDiscoveries[1],
+        id: 8,
+        name: "Alex's group photo",
+        author: 'Alex',
+        initials: 'A',
+        groupId: 'weekend-paris',
+        groupIds: ['weekend-paris'],
+        personal: false,
+      },
+    ]),
     getAuthoredPois: vi.fn().mockResolvedValue(landmarks),
     getDiscoveries: vi.fn().mockResolvedValue(discoveries),
     getGroups: vi.fn().mockResolvedValue([
@@ -62,6 +90,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
       {
         ...discoveries[0],
         id: 7,
+        userId: '1',
         groupId: 'weekend-paris',
         groupIds: ['weekend-paris'],
         personal: false,
@@ -283,6 +312,16 @@ describe('App', () => {
     )
   })
 
+  it('uses a person icon for the personal map selector', async () => {
+    renderWithProviders(<App />, { route: '/' })
+
+    const personalMapName = await screen.findByText("Explorer's map")
+    const selector = personalMapName.closest('button')!
+
+    expect(selector.querySelector('.lucide-user-round')).toBeInTheDocument()
+    expect(within(selector).queryByText('E')).not.toBeInTheDocument()
+  })
+
   it('keeps the map mounted behind a discovery opened from the map', () => {
     renderWithProviders(<App />, { route: '/' })
 
@@ -297,9 +336,7 @@ describe('App', () => {
 
     fireEvent.click(mapCanvas)
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Discovery' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeInTheDocument()
     expect(mapPage).toContainElement(mapCanvas)
     expect(mapCanvasLifecycle).toMatchObject({ mounts: 1, unmounts: 0 })
     expect(mapPage).toHaveAttribute('inert')
@@ -329,6 +366,9 @@ describe('App', () => {
       screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Food' })).toHaveClass('bg-card')
+    expect(
+      screen.getByRole('group', { name: 'Filter gallery by source' }),
+    ).toHaveClass('overflow-x-auto')
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
   })
 
@@ -339,23 +379,20 @@ describe('App', () => {
     expect(
       screen.queryByRole('heading', { name: 'Your discoveries' }),
     ).not.toBeInTheDocument()
-    const groupFilter = await screen.findByRole('button', {
-      name: 'Filter discoveries by group: All',
+    const groupFilters = await screen.findByRole('group', {
+      name: 'Filter gallery by source',
     })
-    fireEvent.pointerDown(groupFilter, { button: 0, ctrlKey: false })
     expect(
-      screen.getByRole('menuitemradio', { name: 'Personal' }),
-    ).toHaveAttribute('aria-checked', 'false')
-    const weekendParisOption = await screen.findByRole('menuitemradio', {
+      within(groupFilters).getByRole('button', { name: "Explorer's map" }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    const weekendParisOption = await within(groupFilters).findByRole('button', {
       name: 'Weekend Paris',
     })
 
     fireEvent.click(weekendParisOption)
     expect(
-      screen.getByRole('button', {
-        name: 'Filter discoveries by group: Weekend Paris',
-      }),
-    ).toBeInTheDocument()
+      within(groupFilters).getByRole('button', { name: 'Weekend Paris' }),
+    ).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(
       screen.getByRole('button', { name: 'Switch to photo grid' }),
     )
@@ -370,46 +407,121 @@ describe('App', () => {
     expect(
       screen.queryByRole('link', { name: 'Parisian Croissant' }),
     ).not.toBeInTheDocument()
+    const poiPhoto = await screen.findByRole('link', {
+      name: /Eiffel Tower/,
+    })
+    expect(poiPhoto).toHaveClass('aspect-square')
+    expect(within(poiPhoto).queryByText('Eiffel Tower')).not.toBeInTheDocument()
     expect(
-      await screen.findByRole('link', { name: /Eiffel Tower/ }),
-    ).toBeInTheDocument()
+      within(poiPhoto).queryByText('Paris, France'),
+    ).not.toBeInTheDocument()
 
-    fireEvent.click(galleryPhoto)
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
+    )
+    const discoveryCard = await screen.findByRole('link', {
+      name: /Street in Le Marais/,
+    })
+    expect(within(discoveryCard).getByText('France')).toBeInTheDocument()
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Discovery' }),
+      within(discoveryCard).queryByText(/48\.\d+.*2\.\d+/),
+    ).not.toBeInTheDocument()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch to photo grid' }),
+    )
+
+    fireEvent.click(
+      await screen.findByRole('link', { name: 'Street in Le Marais' }),
+    )
+    expect(
+      await screen.findByRole('button', { name: 'Go back' }),
     ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+    const restoredGroupFilters = await screen.findByRole('group', {
+      name: 'Filter gallery by source',
+    })
     expect(
-      await screen.findByRole('button', {
-        name: 'Filter discoveries by group: Weekend Paris',
+      within(restoredGroupFilters).getByRole('button', {
+        name: 'Weekend Paris',
       }),
-    ).toBeInTheDocument()
+    ).toHaveAttribute('aria-pressed', 'true')
     expect(
       screen.getByRole('button', { name: 'Switch to detailed view' }),
     ).toBeInTheDocument()
   })
 
-  it("shows only the current user's personal discoveries", async () => {
+  it('keeps the selected Gallery view after visiting another page', async () => {
     renderWithProviders(<App />, { route: '/collection' })
 
-    fireEvent.pointerDown(
-      await screen.findByRole('button', {
-        name: 'Filter discoveries by group: All',
-      }),
-      { button: 0, ctrlKey: false },
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch to photo grid' }),
     )
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Personal' }))
+    expect(
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('link', { name: 'Map' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Gallery' }))
 
     expect(
-      await screen.findByRole('link', { name: /Personal garden/ }),
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
     ).toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch to detailed view' }),
+    )
+    fireEvent.click(screen.getByRole('link', { name: 'Map' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Gallery' }))
+
     expect(
-      screen.queryByRole('link', { name: /Alex's personal beach/ }),
+      screen.getByRole('button', { name: 'Switch to photo grid' }),
+    ).toBeInTheDocument()
+  })
+
+  it("shows every member's photos through the All groups filter", async () => {
+    renderWithProviders(<App />, { route: '/collection' })
+
+    const sourceFilters = await screen.findByRole('group', {
+      name: 'Filter gallery by source',
+    })
+    fireEvent.click(
+      within(sourceFilters).getByRole('button', { name: 'All groups' }),
+    )
+
+    const alexCard = await screen.findByRole('link', {
+      name: /Alex's group photo/,
+    })
+    expect(alexCard).toHaveTextContent('Alex')
+    expect(getAllGroupDiscoveries).toHaveBeenCalledWith('test-token')
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch to photo grid' }),
+    )
+    const alexPhoto = await screen.findByRole('link', {
+      name: /Alex's group photo.*Alex/,
+    })
+    expect(alexPhoto).toHaveAttribute(
+      'href',
+      '/discoveries/8?group=weekend-paris',
+    )
+  })
+
+  it("filters the Gallery to the signed-in user's personal map", async () => {
+    renderWithProviders(<App />, { route: '/collection' })
+
+    const sourceFilters = await screen.findByRole('group', {
+      name: 'Filter gallery by source',
+    })
+    expect(
+      within(sourceFilters).getByRole('button', { name: "Explorer's map" }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.queryByRole('link', { name: /Personal garden/ }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('link', { name: /Street in Le Marais/ }),
-    ).not.toBeInTheDocument()
+      await screen.findByRole('link', { name: /Street in Le Marais/ }),
+    ).toBeInTheDocument()
   })
 
   it('keeps existing POI filtering and cards unchanged by the group filter', async () => {
@@ -425,15 +537,15 @@ describe('App', () => {
     fireEvent.click(within(galleryPage).getByRole('button', { name: 'POIs' }))
 
     expect(
-      within(galleryPage).queryByRole('button', {
-        name: /Filter discoveries by group:/,
+      within(galleryPage).queryByRole('group', {
+        name: 'Filter gallery by source',
       }),
     ).not.toBeInTheDocument()
     expect(
-      within(galleryPage).queryByRole('button', {
-        name: /Switch to (photo grid|detailed view)/,
+      within(galleryPage).getByRole('button', {
+        name: 'Switch to photo grid',
       }),
-    ).not.toBeInTheDocument()
+    ).toBeInTheDocument()
 
     expect(
       await within(galleryPage).findByRole('link', {
@@ -452,8 +564,19 @@ describe('App', () => {
     expect(within(galleryPage).getByText('1 POI')).toBeInTheDocument()
 
     fireEvent.click(
-      within(galleryPage).getByRole('link', { name: /Eiffel Tower/ }),
+      within(galleryPage).getByRole('button', {
+        name: 'Switch to photo grid',
+      }),
     )
+    const poiPhoto = within(galleryPage).getByRole('link', {
+      name: /Eiffel Tower/,
+    })
+    expect(poiPhoto).toHaveClass('aspect-square')
+    expect(
+      within(poiPhoto).queryByText('Paris, France'),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(poiPhoto)
     expect(
       screen.getByRole('heading', { level: 1, name: 'Point of interest' }),
     ).toBeInTheDocument()
@@ -587,15 +710,23 @@ describe('App', () => {
   it('renders a direct discovery visit as a normal page', () => {
     renderWithProviders(<App />, { route: '/discoveries/1' })
 
-    const discoveryPage = screen
-      .getByRole('heading', { level: 1, name: 'Discovery' })
-      .closest('main')!
+    const discoveryPage = document.querySelector('.sterna-discovery-screen')!
 
-    expect(discoveryPage).toHaveClass('min-h-dvh')
-    expect(discoveryPage).not.toHaveClass('fixed')
+    expect(discoveryPage).toHaveClass('fixed', 'inset-0')
+    expect(discoveryPage).not.toHaveTextContent('Discovery')
     expect(
       screen.queryByRole('button', { name: 'View discovery 1' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('shows a POI place instead of coordinates on its detail page', async () => {
+    renderWithProviders(<App />, { route: '/landmarks/eiffel-tower' })
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Eiffel Tower' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Paris, France')).toBeInTheDocument()
+    expect(screen.queryByText('48.85840, 2.29450')).not.toBeInTheDocument()
   })
 
   it('renders the profile exploration summary and supporting details', async () => {

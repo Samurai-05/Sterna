@@ -5,14 +5,20 @@ import { Link, useLocation, useSearchParams } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { DiscoveryCard } from '@/components/DiscoveryCard'
-import { GalleryGroupFilter } from '@/components/GalleryGroupFilter'
+import {
+  ALL_GROUPS,
+  GalleryGroupFilter,
+  PERSONAL_MAP,
+} from '@/components/GalleryGroupFilter'
 import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { PoiCard } from '@/components/PoiCard'
 import {
-  getAuthoredDiscoveries,
+  getAllGroupDiscoveries,
+  getDiscoveries,
   getGroupDiscoveries,
   getGroups,
   getPois,
+  type GroupSummary,
 } from '@/lib/api'
 import {
   categoryAppearance,
@@ -20,6 +26,13 @@ import {
   type CategoryAppearance,
 } from '@/lib/category-appearance'
 import { discoveryPath } from '@/lib/discovery-path'
+import { getPoiImageUrl } from '@/lib/poi-image'
+import {
+  loadGalleryView,
+  saveGalleryView,
+  type GalleryView,
+} from '@/lib/gallery-view'
+import { discoveryLocationLabel } from '@/lib/location-label'
 import {
   categories,
   discoveries,
@@ -28,9 +41,9 @@ import {
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
+import { personalMapName } from '@/lib/personal-map-name'
 
 type CollectionFilter = DiscoveryCategory | 'pois' | null
-type GalleryView = 'detailed' | 'grid'
 
 const EMPTY_DISCOVERIES: typeof discoveries = []
 const EMPTY_POIS: typeof landmarks = []
@@ -41,17 +54,20 @@ export function CollectionPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
   const session = loadSession()
-  const selectedGroup = searchParams.get('group') ?? 'all'
+  const requestedSource = searchParams.get('group')
+  const selectedGroup = normalizeGallerySource(requestedSource)
   const selectedGroupId =
-    selectedGroup === 'all' || selectedGroup === 'personal'
+    selectedGroup === PERSONAL_MAP || selectedGroup === ALL_GROUPS
       ? null
       : selectedGroup
   const view: GalleryView =
-    searchParams.get('view') === 'grid' ? 'grid' : 'detailed'
-  const discoveriesQuery = useQuery({
-    queryKey: ['discoveries', session?.user.id, 'authored'],
-    queryFn: () => getAuthoredDiscoveries(session!.accessToken),
-    enabled: Boolean(session),
+    searchParams.get('view') === 'grid'
+      ? 'grid'
+      : loadGalleryView(session?.user.id)
+  const personalDiscoveriesQuery = useQuery({
+    queryKey: ['discoveries', session?.user.id],
+    queryFn: () => getDiscoveries(session!.accessToken),
+    enabled: Boolean(session && selectedGroup === PERSONAL_MAP),
   })
   const groupsQuery = useQuery({
     queryKey: ['groups', session?.user.id],
@@ -59,6 +75,11 @@ export function CollectionPage() {
     enabled: Boolean(session),
   })
   const groups = groupsQuery.data ?? []
+  const allGroupDiscoveriesQuery = useQuery({
+    queryKey: ['group-discoveries', session?.user.id, ALL_GROUPS],
+    queryFn: () => getAllGroupDiscoveries(session!.accessToken),
+    enabled: Boolean(session && selectedGroup === ALL_GROUPS),
+  })
   const groupDiscoveriesQuery = useQuery({
     queryKey: ['group-discoveries', session?.user.id, selectedGroupId],
     queryFn: () => getGroupDiscoveries(session!.accessToken, selectedGroupId!),
@@ -70,30 +91,24 @@ export function CollectionPage() {
     enabled: Boolean(session),
     staleTime: 5 * 60 * 1000,
   })
-  const sourceDiscoveries =
-    discoveriesQuery.data ?? (session ? EMPTY_DISCOVERIES : discoveries)
   const sourcePois = poisQuery.data ?? (session ? EMPTY_POIS : landmarks)
   const normalizedQuery = query.trim().toLowerCase()
-  const visibleDiscoveries = selectedGroupId
-    ? (groupDiscoveriesQuery.data ?? EMPTY_DISCOVERIES)
-    : sourceDiscoveries
+  const activeDiscoveriesQuery = selectedGroupId
+    ? groupDiscoveriesQuery
+    : selectedGroup === ALL_GROUPS
+      ? allGroupDiscoveriesQuery
+      : personalDiscoveriesQuery
+  const visibleDiscoveries =
+    activeDiscoveriesQuery.data ?? (session ? EMPTY_DISCOVERIES : discoveries)
   const filteredDiscoveries = useMemo(
     () =>
       visibleDiscoveries.filter(
         (discovery) =>
           category !== 'pois' &&
           (!category || discovery.category === category) &&
-          discovery.name.toLowerCase().includes(normalizedQuery) &&
-          (selectedGroup !== 'personal' ||
-            isPersonalDiscovery(discovery, session?.user.id)),
+          discovery.name.toLowerCase().includes(normalizedQuery),
       ),
-    [
-      category,
-      normalizedQuery,
-      selectedGroup,
-      session?.user.id,
-      visibleDiscoveries,
-    ],
+    [category, normalizedQuery, visibleDiscoveries],
   )
   const filteredPois = useMemo(
     () =>
@@ -106,24 +121,24 @@ export function CollectionPage() {
     [category, normalizedQuery, sourcePois],
   )
   const isLoading =
-    discoveriesQuery.isLoading ||
+    activeDiscoveriesQuery.isLoading ||
     groupsQuery.isLoading ||
-    groupDiscoveriesQuery.isLoading ||
     poisQuery.isLoading
   const isError =
-    discoveriesQuery.isError ||
-    groupsQuery.isError ||
-    groupDiscoveriesQuery.isError ||
-    poisQuery.isError
+    activeDiscoveriesQuery.isError || groupsQuery.isError || poisQuery.isError
   const updateGalleryState = (
     updates: Partial<Record<'group' | 'view', string>>,
   ) => {
     const next = new URLSearchParams(searchParams)
 
+    if (updates.view === 'grid' || updates.view === 'detailed') {
+      saveGalleryView(session?.user.id, updates.view)
+    }
+
     Object.entries(updates).forEach(([key, value]) => {
       if (
         !value ||
-        (key === 'group' && value === 'all') ||
+        (key === 'group' && value === PERSONAL_MAP) ||
         (key === 'view' && value === 'detailed')
       ) {
         next.delete(key)
@@ -175,36 +190,37 @@ export function CollectionPage() {
             POIs
           </CategoryButton>
         </div>
-        {category !== 'pois' && (
-          <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
+          {category !== 'pois' && (
             <GalleryGroupFilter
               groups={groups}
               value={selectedGroup}
+              personalMapName={personalMapName(session?.user.userName)}
               onValueChange={(group) => updateGalleryState({ group })}
             />
-            <button
-              type="button"
-              aria-label={
-                view === 'grid'
-                  ? 'Switch to detailed view'
-                  : 'Switch to photo grid'
-              }
-              aria-pressed={view === 'grid'}
-              onClick={() =>
-                updateGalleryState({
-                  view: view === 'grid' ? 'detailed' : 'grid',
-                })
-              }
-              className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-            >
-              {view === 'grid' ? (
-                <List className="size-4" aria-hidden="true" />
-              ) : (
-                <Grid2X2 className="size-4" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        )}
+          )}
+          <button
+            type="button"
+            aria-label={
+              view === 'grid'
+                ? 'Switch to detailed view'
+                : 'Switch to photo grid'
+            }
+            aria-pressed={view === 'grid'}
+            onClick={() =>
+              updateGalleryState({
+                view: view === 'grid' ? 'detailed' : 'grid',
+              })
+            }
+            className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          >
+            {view === 'grid' ? (
+              <List className="size-4" aria-hidden="true" />
+            ) : (
+              <Grid2X2 className="size-4" aria-hidden="true" />
+            )}
+          </button>
+        </div>
         <p className="text-sm text-muted-foreground">
           {isLoading
             ? 'Loading gallery'
@@ -221,18 +237,50 @@ export function CollectionPage() {
         )}
         {view === 'grid' && (
           <div className="-mx-5 grid grid-cols-3 gap-px">
-            {filteredDiscoveries.map((discovery) => (
+            {filteredDiscoveries.map((discovery) => {
+              const discoveryGroupId = galleryDiscoveryGroupId(
+                discovery,
+                selectedGroup,
+                selectedGroupId,
+                groups,
+              )
+              const showAuthor =
+                Boolean(session) && discovery.userId !== session?.user.id
+
+              return (
+                <Link
+                  key={discovery.id}
+                  to={discoveryPath(discovery.id, discoveryGroupId)}
+                  state={{ returnTo: `${location.pathname}${location.search}` }}
+                  className="relative aspect-square overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+                >
+                  <DiscoveryPhoto
+                    discovery={discovery}
+                    alt={discovery.name}
+                    width={480}
+                    className="size-full object-cover"
+                  />
+                  {showAuthor && (
+                    <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/75 to-transparent px-2 pb-1.5 pt-5 text-xs font-medium text-white">
+                      {discovery.author}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+            {filteredPois.map((poi) => (
               <Link
-                key={discovery.id}
-                to={discoveryPath(discovery.id, selectedGroupId)}
+                key={poi.id}
+                to={`/landmarks/${poi.id}`}
                 state={{ returnTo: `${location.pathname}${location.search}` }}
                 className="aspect-square overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
               >
-                <DiscoveryPhoto
-                  discovery={discovery}
-                  alt={discovery.name}
-                  width={480}
+                <img
+                  src={getPoiImageUrl(poi.imageUrl, poi.imageId, 'card')}
+                  alt={poi.name}
                   className="size-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               </Link>
             ))}
@@ -240,16 +288,25 @@ export function CollectionPage() {
         )}
         <div className="grid grid-cols-2 gap-3">
           {view === 'detailed' &&
-            filteredDiscoveries.map((discovery) => (
-              <DiscoveryCard
-                key={discovery.id}
-                discovery={discovery}
-                groupId={selectedGroupId ?? undefined}
-              />
-            ))}
-          {filteredPois.map((poi) => (
-            <PoiCard key={poi.id} poi={poi} />
-          ))}
+            filteredDiscoveries.map((discovery) => {
+              const discoveryGroupId = galleryDiscoveryGroupId(
+                discovery,
+                selectedGroup,
+                selectedGroupId,
+                groups,
+              )
+
+              return (
+                <DiscoveryCard
+                  key={discovery.id}
+                  discovery={discovery}
+                  groupId={discoveryGroupId}
+                  locationLabel={discoveryLocationLabel(discovery)}
+                />
+              )
+            })}
+          {view === 'detailed' &&
+            filteredPois.map((poi) => <PoiCard key={poi.id} poi={poi} />)}
         </div>
       </div>
     </main>
@@ -260,13 +317,26 @@ function formatCount(count: number, singular: string) {
   return `${count} ${singular}${count === 1 ? '' : 's'}`
 }
 
-function isPersonalDiscovery(
-  discovery: Discovery,
-  currentUserId: string | undefined,
-) {
-  if (!currentUserId) return discovery.personal ?? !discovery.groupId
+function normalizeGallerySource(source: string | null) {
+  // Keep old shared/bookmarked Gallery URLs useful after replacing All and
+  // Personal with source-oriented filters.
+  if (!source || source === 'all' || source === 'mine') return PERSONAL_MAP
 
-  return discovery.userId === currentUserId && discovery.personal === true
+  return source
+}
+
+function galleryDiscoveryGroupId(
+  discovery: Discovery,
+  selectedSource: string,
+  selectedGroupId: string | null,
+  groups: GroupSummary[],
+) {
+  if (selectedGroupId) return selectedGroupId
+  if (selectedSource !== ALL_GROUPS) return undefined
+
+  const membershipIds = new Set(groups.map((group) => group.id))
+
+  return discovery.groupIds?.find((groupId) => membershipIds.has(groupId))
 }
 
 function CategoryButton({

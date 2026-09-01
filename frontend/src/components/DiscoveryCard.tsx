@@ -11,11 +11,14 @@ export function DiscoveryCard({
   discovery,
   groupId,
   className,
+  locationLabel,
 }: {
   discovery: Discovery
   /** Set when the card sits on a group's shared map. */
   groupId?: string
   className?: string
+  /** Overrides the raw stored location when a friendlier label is available. */
+  locationLabel?: string
 }) {
   const location = useLocation()
 
@@ -31,6 +34,7 @@ export function DiscoveryCard({
       <DiscoveryPhoto
         discovery={discovery}
         alt=""
+        variant="card"
         width={560}
         className="aspect-[4/3] w-full object-cover"
       />
@@ -46,7 +50,9 @@ export function DiscoveryCard({
         </div>
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="size-3" />
-          <span className="truncate">{discovery.location}</span>
+          <span className="truncate">
+            {locationLabel ?? discovery.location}
+          </span>
         </p>
         <p className="text-xs text-muted-foreground">
           {categoryLabel(discovery.category)} · {discovery.author} ·{' '}

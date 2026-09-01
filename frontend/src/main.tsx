@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router'
 
 import App from './App.tsx'
 import './index.css'
+import 'yet-another-react-lightbox/styles.css'
 
 const queryClient = new QueryClient()
 

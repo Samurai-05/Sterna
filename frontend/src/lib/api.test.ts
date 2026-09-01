@@ -2,10 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   createDiscovery,
+  getAllGroupDiscoveries,
   getAuthoredDiscoveries,
   getAuthoredPois,
   getDiscoveries,
   getGroupDiscoveries,
+  getPhoto,
+  clearPhotoCache,
+  PHOTO_CACHE_TTL_MS,
   register,
   resolveApiUrl,
   updateDiscovery,
@@ -15,7 +19,9 @@ const personalDiscovery = apiDiscovery({ id: '1', groupId: null })
 const groupDiscovery = apiDiscovery({ id: '2', groupId: '7' })
 
 afterEach(() => {
+  clearPhotoCache()
   vi.restoreAllMocks()
+  vi.useRealTimers()
 })
 
 describe('discovery map boundaries', () => {
@@ -52,10 +58,7 @@ describe('discovery map boundaries', () => {
   })
 
   it('keeps every authored discovery in the collection response', async () => {
-    const fetchMock = mockDiscoveryResponse([
-      personalDiscovery,
-      groupDiscovery,
-    ])
+    const fetchMock = mockDiscoveryResponse([personalDiscovery, groupDiscovery])
 
     const result = await getAuthoredDiscoveries('token')
 
@@ -65,6 +68,28 @@ describe('discovery map boundaries', () => {
     )
     expect(result.map((discovery) => discovery.id)).toEqual([1, 2])
     expect(result[0].createdAt).toBe('2026-08-28T12:00:00.000Z')
+  })
+
+  it('loads discoveries from every group the user belongs to', async () => {
+    const otherMemberDiscovery = {
+      ...groupDiscovery,
+      id: '3',
+      userId: '99',
+      authorUserName: 'Alex',
+    }
+    const fetchMock = mockDiscoveryResponse([
+      groupDiscovery,
+      otherMemberDiscovery,
+    ])
+
+    const result = await getAllGroupDiscoveries('token')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/discoveries/groups',
+      expect.any(Object),
+    )
+    expect(result.map((discovery) => discovery.id)).toEqual([2, 3])
+    expect(result[1].author).toBe('Alex')
   })
 })
 
@@ -77,6 +102,7 @@ describe('profile boundaries', () => {
         description: null,
         longitude: 2.2945,
         latitude: 48.8584,
+        countryCode: 'FRA',
         imageUrl: null,
         discovered: true,
       },
@@ -88,7 +114,11 @@ describe('profile boundaries', () => {
       '/api/pois/authored',
       expect.any(Object),
     )
-    expect(result[0]).toMatchObject({ name: 'Eiffel Tower', discovered: true })
+    expect(result[0]).toMatchObject({
+      name: 'Eiffel Tower',
+      country: 'France',
+      discovered: true,
+    })
   })
 })
 
@@ -99,10 +129,7 @@ describe('API URL resolution', () => {
 
   it('uses the Android API base URL when one is configured', () => {
     expect(
-      resolveApiUrl(
-        '/api/auth/register',
-        'https://labo-iot1.iict-heig-vd.ch/',
-      ),
+      resolveApiUrl('/api/auth/register', 'https://labo-iot1.iict-heig-vd.ch/'),
     ).toBe('https://labo-iot1.iict-heig-vd.ch/api/auth/register')
   })
 })
@@ -130,6 +157,99 @@ describe('API response errors', () => {
   })
 })
 
+describe('authenticated photo variants', () => {
+  it('requests a variant and deduplicates concurrent consumers', async () => {
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue(
+      new Response('image', {
+        status: 200,
+        headers: { 'Content-Type': 'image/webp' },
+      }),
+    )
+
+    const first = getPhoto('token', 'photos/deduped.jpg', 'map')
+    const second = getPhoto('token', 'photos/deduped.jpg', 'map')
+
+    const [firstBlob, secondBlob] = await Promise.all([first, second])
+    expect(firstBlob).toBe(secondBlob)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/photos/deduped.jpg?variant=map',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer token' },
+      }),
+    )
+  })
+
+  it('reuses a resolved photo within the cache TTL', async () => {
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue(
+      new Response('image', { status: 200 }),
+    )
+
+    await getPhoto('token', 'photos/reused.jpg', 'card')
+    await getPhoto('token', 'photos/reused.jpg', 'card')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('fetches again after the resolved photo cache expires', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi.spyOn(window, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response('image', { status: 200 })),
+    )
+
+    await getPhoto('token', 'photos/expired.jpg', 'card')
+    vi.advanceTimersByTime(PHOTO_CACHE_TTL_MS)
+    await getPhoto('token', 'photos/expired.jpg', 'card')
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps map, card, and detail variants in separate cache entries', async () => {
+    const fetchMock = vi.spyOn(window, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response('image', { status: 200 })),
+    )
+
+    await Promise.all([
+      getPhoto('token', 'photos/variants.jpg', 'map'),
+      getPhoto('token', 'photos/variants.jpg', 'card'),
+      getPhoto('token', 'photos/variants.jpg', 'detail'),
+    ])
+    await Promise.all([
+      getPhoto('token', 'photos/variants.jpg', 'map'),
+      getPhoto('token', 'photos/variants.jpg', 'card'),
+      getPhoto('token', 'photos/variants.jpg', 'detail'),
+    ])
+
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('keeps different access tokens in separate cache entries', async () => {
+    const fetchMock = vi.spyOn(window, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response('image', { status: 200 })),
+    )
+
+    await getPhoto('token-a', 'photos/token-isolation.jpg', 'card')
+    await getPhoto('token-b', 'photos/token-isolation.jpg', 'card')
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('evicts failed requests so a later request retries', async () => {
+    const fetchMock = vi
+      .spyOn(window, 'fetch')
+      .mockRejectedValueOnce(new Error('network unavailable'))
+      .mockResolvedValueOnce(new Response('image', { status: 200 }))
+
+    await expect(
+      getPhoto('token', 'photos/retry.jpg', 'card'),
+    ).rejects.toThrow('network unavailable')
+    const result = await getPhoto('token', 'photos/retry.jpg', 'card')
+    expect(result.size).toBeGreaterThan(0)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+})
+
 describe('discovery group sharing', () => {
   it('sends every selected group when creating a discovery', async () => {
     const fetchMock = mockDiscoveryResponse(personalDiscovery)
@@ -145,12 +265,14 @@ describe('discovery group sharing', () => {
       longitude: 6.6,
       latitude: 46.7,
       imageObjectKey: 'photos/shared.jpg',
+      locationSource: 'manual',
       discoveredAt: '2026-08-28T12:00:00.000Z',
     })
 
     expect(requestBody(fetchMock)).toMatchObject({
       groupIds: ['7', '8'],
       personal: true,
+      locationSource: 'manual',
     })
   })
 

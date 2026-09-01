@@ -22,20 +22,23 @@ export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
 const KEY_PREFIX = 'photos';
 
-// read() is handed the bare filename; everything else the full key.
-const FILENAME_PATTERN = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
-
 /**
  * The only shape store() ever produces, and therefore the only shape a
- * client-supplied key may have. Derived from FILENAME_PATTERN so the two
- * cannot drift.
+ * client-supplied key may have — a randomUUID() (always v4) plus one of the
+ * three extensions normalize() emits.
  *
  * Exported because the DTOs that accept a key — CreateDiscoveryDto
  * .imageObjectKey and UpdateProfileDto.avatarObjectKey — have to reject a
- * malformed one before it ever reaches an ownership check.
+ * malformed one before it ever reaches an ownership check, and because the
+ * orphan sweep uses it to tell canonical uploads from their variants.
  */
-export const PHOTO_OBJECT_KEY_PATTERN = new RegExp(
-  `^${KEY_PREFIX}/${FILENAME_PATTERN.source.slice(1)}`,
+export const PHOTO_OBJECT_KEY_PATTERN =
+  /^photos\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(jpg|png|webp)$/;
+
+// read() is handed the bare filename, everything else the full key. Derived
+// from the pattern above rather than written twice, so the two cannot drift.
+const FILENAME_PATTERN = new RegExp(
+  `^${PHOTO_OBJECT_KEY_PATTERN.source.replace(`^${KEY_PREFIX}\\/`, '')}`,
 );
 
 /**
@@ -50,17 +53,32 @@ export const PHOTO_OBJECT_KEY_PATTERN = new RegExp(
 export function photoObjectKey(filename: string): string {
   return `${KEY_PREFIX}/${filename}`;
 }
+const PHOTO_VARIANTS = ['map', 'card', 'detail'] as const;
+
+export type PhotoVariant = (typeof PHOTO_VARIANTS)[number];
+
+export const PHOTO_VARIANT_WIDTHS: Record<PhotoVariant, number> = {
+  map: 192,
+  card: 640,
+  detail: 1600,
+};
 
 export interface PhotoLocation {
   latitude: number;
   longitude: number;
+}
+
+export interface PhotoMetadata {
+  location: PhotoLocation | null;
   takenAt: string | null;
 }
 
 export interface StoredPhoto {
   objectKey: string;
   url: string;
-  exif: PhotoLocation | null;
+  metadata: PhotoMetadata;
+  /** Kept for clients released before the metadata response was split. */
+  exif: (PhotoLocation & { takenAt: string | null }) | null;
 }
 
 /**
@@ -91,14 +109,9 @@ export class PhotosService {
    * Reads the location out of the original bytes, then stores a re-encoded copy
    * that carries no metadata at all (NFR-27). Returns the object key that the
    * caller will later save in DISCOVERIES.image_object_key.
-   *
-   * The uploader is recorded alongside the key (ADR-006). Every later question
-   * about the object — may this caller attach it, read it, delete it — is
-   * answered from that row, because the key itself is not a secret: it is
-   * handed to every member of a shared group map.
    */
   async store(userId: string, file: Express.Multer.File): Promise<StoredPhoto> {
-    const exif = await this.readLocation(file.buffer);
+    const metadata = await this.readMetadata(file.buffer);
     const { buffer, contentType, extension } = await this.normalize(
       file.buffer,
     );
@@ -106,13 +119,52 @@ export class PhotosService {
     const filename = `${randomUUID()}.${extension}`;
     const objectKey = `${KEY_PREFIX}/${filename}`;
 
-    await this.minio.putObject(this.bucket, objectKey, buffer, buffer.length, {
-      'Content-Type': contentType,
-    });
+    try {
+      await this.minio.putObject(
+        this.bucket,
+        objectKey,
+        buffer,
+        buffer.length,
+        {
+          'Content-Type': contentType,
+        },
+      );
 
-    // Written after the object exists, not before: a row pointing at a key
-    // whose upload failed would pass the ownership check on POST
-    // /api/discoveries and then fail the existence check, which is a
+      const stem = objectKey.replace(/\.[^.]+$/, '');
+      for (const variant of PHOTO_VARIANTS) {
+        const variantBuffer = await sharp(buffer)
+          .resize({
+            width: PHOTO_VARIANT_WIDTHS[variant],
+            withoutEnlargement: true,
+          })
+          .webp({ quality: 90 })
+          .toBuffer();
+        const variantKey = `${stem}.${variant}.webp`;
+
+        await this.minio.putObject(
+          this.bucket,
+          variantKey,
+          variantBuffer,
+          variantBuffer.length,
+          { 'Content-Type': 'image/webp' },
+        );
+      }
+    } catch (error) {
+      // MinIO has no transaction spanning these independent objects. Remove
+      // the complete object family so a retry cannot leave orphaned variants.
+      // Keep the upload failure as the error reported to the caller.
+      try {
+        await this.remove(objectKey);
+      } catch {
+        // The original storage error is still the most useful failure here.
+      }
+
+      throw error;
+    }
+
+    // Written once the whole object family is stored, never before: a row
+    // pointing at a key whose upload failed would pass the ownership check on
+    // POST /api/discoveries and then fail the existence check, which is a
     // needlessly confusing way to report a broken upload.
     await this.photos.insert({
       objectKey,
@@ -121,47 +173,77 @@ export class PhotosService {
       byteSize: String(buffer.length),
     });
 
-    return { objectKey, url: `/api/photos/${filename}`, exif };
+    return {
+      objectKey,
+      url: `/api/photos/${filename}`,
+      metadata,
+      exif: metadata.location
+        ? { ...metadata.location, takenAt: metadata.takenAt }
+        : null,
+    };
   }
 
   /** Streams a stored photo back out. Used by the read endpoint. */
   async read(
     filename: string,
+    variant?: string,
   ): Promise<{ stream: Readable; contentType: string; size: number }> {
     if (!FILENAME_PATTERN.test(filename)) {
       throw new NotFoundException(`Unknown photo "${filename}".`);
     }
 
-    const objectKey = `${KEY_PREFIX}/${filename}`;
+    if (variant && !PHOTO_VARIANTS.includes(variant as PhotoVariant)) {
+      throw new NotFoundException(`Unknown photo variant "${variant}".`);
+    }
+
+    const originalKey = `${KEY_PREFIX}/${filename}`;
+    const stem = originalKey.replace(/\.[^.]+$/, '');
+    const variantKey = variant ? `${stem}.${variant}.webp` : originalKey;
 
     try {
-      const stat = await this.minio.statObject(this.bucket, objectKey);
-      const stream = await this.minio.getObject(this.bucket, objectKey);
-      // metaData is typed as `any`, so narrow rather than trust it.
-      const contentType: unknown = stat.metaData['content-type'];
-
-      return {
-        stream,
-        contentType:
-          typeof contentType === 'string'
-            ? contentType
-            : 'application/octet-stream',
-        size: stat.size,
-      };
+      return await this.readObject(variantKey);
     } catch (error) {
-      if (isObjectMissing(error)) {
-        throw new NotFoundException(`Unknown photo "${filename}".`);
+      if (!isObjectMissing(error)) {
+        throw error;
       }
 
-      // A MinIO outage must surface as a 500, not as a cacheable 404.
-      throw error;
+      if (variant) {
+        try {
+          return await this.readObject(originalKey);
+        } catch (fallbackError) {
+          if (!isObjectMissing(fallbackError)) {
+            throw fallbackError;
+          }
+        }
+      }
+
+      throw new NotFoundException(`Unknown photo "${filename}".`);
     }
+  }
+
+  private async readObject(objectKey: string): Promise<{
+    stream: Readable;
+    contentType: string;
+    size: number;
+  }> {
+    const stat = await this.minio.statObject(this.bucket, objectKey);
+    const stream = await this.minio.getObject(this.bucket, objectKey);
+    // metaData is typed as `any`, so narrow rather than trust it.
+    const contentType: unknown = stat.metaData['content-type'];
+
+    return {
+      stream,
+      contentType:
+        typeof contentType === 'string'
+          ? contentType
+          : 'application/octet-stream',
+      size: stat.size,
+    };
   }
 
   /**
    * NFR-32: POST /api/discoveries must refuse to create a discovery whose photo
-   * does not exist. Checks the object itself, not the row — ownsPhoto() is the
-   * metadata half, and DiscoveriesService.create() asks both.
+   * does not exist. Called from the discoveries module once it exists.
    */
   async exists(objectKey: string): Promise<boolean> {
     try {
@@ -176,6 +258,29 @@ export class PhotosService {
     }
   }
 
+  isCanonicalObjectKey(objectKey: string): boolean {
+    return PHOTO_OBJECT_KEY_PATTERN.test(objectKey);
+  }
+
+  /**
+   * Frees a photo family outright — the metadata row and every object — with
+   * **no ownership check**.
+   *
+   * It has exactly one caller, PhotoOrphanCleanupService, which is a
+   * background sweep: the key comes from listing the bucket, not from a
+   * request, and the sweep has already established that nothing references
+   * it. store() also uses it to roll back a partially written family.
+   *
+   * **Do not wire this to a controller.** A key is not a capability — it is
+   * returned in full to every member of a shared group map — so a
+   * request-reachable unguarded delete is how one user erases another user's
+   * photo. removeOwned() is the guarded entry point.
+   */
+  async remove(objectKey: string): Promise<void> {
+    await this.photos.delete({ objectKey });
+    await this.removeObjectFamily(objectKey);
+  }
+
   /** Whether this caller is the account that uploaded this object. */
   async ownsPhoto(userId: string, objectKey: string): Promise<boolean> {
     return this.photos.existsBy({ objectKey, userId });
@@ -186,6 +291,10 @@ export class PhotosService {
    * object, or it belongs to a discovery shared into a group they are still a
    * member of. Leaving the group therefore revokes access, which key entropy
    * alone never did.
+   *
+   * Asked of the canonical key only. A variant is derived from it server-side
+   * (read() takes the variant as a separate argument), so there is exactly one
+   * identity to authorise per photo family.
    *
    * The query reaches into `discoveries`, `discovery_groups` and
    * `group_members` from inside the photos module. Importing DiscoveriesModule
@@ -219,10 +328,11 @@ export class PhotosService {
   }
 
   /**
-   * Frees an object the caller owns. The ownership check *is* the delete: the
-   * row goes only if it is theirs, and the object goes only if the row did.
-   * S3-style deletes are idempotent, so a key already gone from MinIO is not
-   * an error — only a genuine MinIO failure is.
+   * Frees a photo family the caller owns. The ownership check *is* the delete:
+   * the row goes only if it is theirs, and the objects go only if the row did.
+   *
+   * This is the only delete path a request can reach. remove() above is
+   * deliberately unguarded and must stay that way — see its docblock.
    *
    * Returns whether anything was freed, so a caller can tell a no-op from a
    * success without a second query.
@@ -234,7 +344,7 @@ export class PhotosService {
       return false;
     }
 
-    await this.minio.removeObject(this.bucket, objectKey);
+    await this.removeObjectFamily(objectKey);
 
     return true;
   }
@@ -250,12 +360,12 @@ export class PhotosService {
   }
 
   /**
-   * Removes objects whose ownership the caller has *already* established.
+   * Removes families whose ownership the caller has *already* established.
    *
    * Only deleteAccount() uses this: it harvests the keys with listOwnedKeys()
-   * and then deletes the account, which cascades the rows away and leaves
-   * removeOwned() nothing to match on. Never call it with a client-supplied
-   * key — removeOwned() is the guarded entry point.
+   * and then deletes the account, which cascades the rows away through
+   * fk_photos_user and leaves removeOwned() nothing to match on. Never call it
+   * with a client-supplied key — removeOwned() is the guarded entry point.
    *
    * allSettled rather than all: the account is already irreversibly gone by
    * this point, so one MinIO failure must not abandon the remaining keys and
@@ -263,17 +373,36 @@ export class PhotosService {
    */
   async purgeOwnedObjects(objectKeys: string[]): Promise<void> {
     const results = await Promise.allSettled(
-      objectKeys.map((key) => this.minio.removeObject(this.bucket, key)),
+      objectKeys.map((key) => this.removeObjectFamily(key)),
     );
 
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
         this.logger.error(
-          `Failed to free object "${objectKeys[index]}" after account deletion.`,
+          `Failed to free object family "${objectKeys[index]}" after account deletion.`,
           result.reason,
         );
       }
     });
+  }
+
+  /**
+   * The original plus every derived variant. S3-style deletes are idempotent,
+   * so a key already gone from MinIO is not an error — only a genuine MinIO
+   * failure is, and the first one is reported.
+   */
+  private async removeObjectFamily(objectKey: string): Promise<void> {
+    const stem = objectKey.replace(/\.[^.]+$/, '');
+    const results = await Promise.allSettled(
+      [
+        objectKey,
+        ...PHOTO_VARIANTS.map((variant) => `${stem}.${variant}.webp`),
+      ].map((key) => this.minio.removeObject(this.bucket, key)),
+    );
+    const failed = results.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failed) throw failed.reason;
   }
 
   /** Backs the storage health indicator. Throws when MinIO is unreachable. */
@@ -289,28 +418,39 @@ export class PhotosService {
    * FR-06. Never throws: a photo with no GPS tag, or with a corrupt one, must
    * still upload successfully (FR-33 / NFR-33).
    */
-  private async readLocation(buffer: Buffer): Promise<PhotoLocation | null> {
+  private async readMetadata(buffer: Buffer): Promise<PhotoMetadata> {
+    let location: PhotoLocation | null = null;
+    let takenAt: string | null = null;
+
     try {
       const gps = await exifr.gps(buffer);
-
       if (
-        typeof gps?.latitude !== 'number' ||
-        typeof gps?.longitude !== 'number'
+        typeof gps?.latitude === 'number' &&
+        typeof gps?.longitude === 'number' &&
+        Number.isFinite(gps.latitude) &&
+        Number.isFinite(gps.longitude)
       ) {
-        return null;
+        location = { latitude: gps.latitude, longitude: gps.longitude };
       }
-
-      const parsed = (await exifr.parse(buffer, ['DateTimeOriginal'])) as
-        { DateTimeOriginal?: Date } | undefined;
-
-      return {
-        latitude: gps.latitude,
-        longitude: gps.longitude,
-        takenAt: parsed?.DateTimeOriginal?.toISOString() ?? null,
-      };
     } catch {
-      return null;
+      // Missing or malformed GPS must not prevent the independent date read.
     }
+
+    try {
+      const parsed = (await exifr.parse(buffer, ['DateTimeOriginal'])) as
+        { DateTimeOriginal?: Date | string } | undefined;
+      const candidate = parsed?.DateTimeOriginal;
+      if (candidate instanceof Date && !Number.isNaN(candidate.valueOf())) {
+        takenAt = candidate.toISOString();
+      } else if (typeof candidate === 'string') {
+        const date = new Date(candidate);
+        if (!Number.isNaN(date.valueOf())) takenAt = date.toISOString();
+      }
+    } catch {
+      // A malformed date must not discard valid GPS metadata.
+    }
+
+    return { location, takenAt };
   }
 
   /**

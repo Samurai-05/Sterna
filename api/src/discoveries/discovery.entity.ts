@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { DiscoveryCategory } from './discovery-category';
+import { DiscoveryLocationSource } from './discovery-location-source';
 
 type GeoJsonPoint = {
   type: 'Point';
@@ -41,6 +42,14 @@ export class Discovery {
     srid: 4326,
   })
   location: GeoJsonPoint;
+
+  @Column({
+    name: 'location_source',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  locationSource: DiscoveryLocationSource | null;
 
   @Column({ name: 'image_object_key', type: 'text' })
   imageObjectKey: string;

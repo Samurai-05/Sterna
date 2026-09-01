@@ -36,7 +36,8 @@ const discoveryExample = {
   category: 'Landscape',
   longitude: 6.6412,
   latitude: 46.7785,
-  imageObjectKey: 'discoveries/lake.jpg',
+  imageObjectKey: 'photos/550e8400-e29b-41d4-a716-446655440000.jpg',
+  locationSource: 'manual',
   authorUserName: 'Ada',
   countryCode: 'CHE',
   discoveredAt: '2026-08-25T12:00:00.000Z',
@@ -84,6 +85,24 @@ export class DiscoveriesController {
     @CurrentUser() caller: AuthenticatedUser,
   ): Promise<DiscoveryResponse[]> {
     return this.discoveries.findAllAuthoredByUser(caller.id);
+  }
+
+  @Get('groups')
+  @ApiAuthenticated()
+  @ApiOperation({
+    summary: "List discoveries from all of the signed-in user's groups",
+    description:
+      'Includes discoveries from every member and returns a discovery only ' +
+      'once when it is shared with several groups the caller belongs to.',
+  })
+  @ApiOkResponse({
+    description: "Discoveries visible in any of the signed-in user's groups.",
+    schema: { example: [discoveryExample] },
+  })
+  findAllFromGroups(
+    @CurrentUser() caller: AuthenticatedUser,
+  ): Promise<DiscoveryResponse[]> {
+    return this.discoveries.findAllFromUserGroups(caller.id);
   }
 
   @Get(':id')

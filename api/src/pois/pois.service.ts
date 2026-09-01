@@ -9,6 +9,7 @@ export interface PoiResponse {
   description: string | null;
   longitude: number;
   latitude: number;
+  countryCode: string | null;
   imageUrl: string | null;
   discovered: boolean;
 }
@@ -19,11 +20,30 @@ interface PoiRow {
   description: string | null;
   longitude: string;
   latitude: string;
+  country_code: string | null;
   image_url: string | null;
   discovered: boolean;
 }
 
 export const POI_DISCOVERY_RADIUS_METERS = 150;
+const COUNTRY_MATCH_BUFFER_METERS = 5000;
+
+const POI_COUNTRY_PROJECTION = `
+  (
+    SELECT country.a3
+    FROM countries country
+    WHERE ST_Contains(country.geom, poi.location)
+       OR ST_DWithin(
+         country.geom::geography,
+         poi.location::geography,
+         ${COUNTRY_MATCH_BUFFER_METERS}
+       )
+    ORDER BY
+      ST_Contains(country.geom, poi.location) DESC,
+      country.geom <-> poi.location
+    LIMIT 1
+  ) AS country_code
+`;
 
 @Injectable()
 export class PoisService {
@@ -41,6 +61,7 @@ export class PoisService {
           poi.description,
           ST_X(poi.location) AS longitude,
           ST_Y(poi.location) AS latitude,
+          ${POI_COUNTRY_PROJECTION},
           poi.image_url,
           EXISTS (
             SELECT 1
@@ -82,6 +103,7 @@ export class PoisService {
       description: row.description,
       longitude: Number(row.longitude),
       latitude: Number(row.latitude),
+      countryCode: row.country_code,
       imageUrl: row.image_url,
       discovered: row.discovered,
     }));
@@ -96,6 +118,7 @@ export class PoisService {
           poi.description,
           ST_X(poi.location) AS longitude,
           ST_Y(poi.location) AS latitude,
+          ${POI_COUNTRY_PROJECTION},
           poi.image_url,
           EXISTS (
             SELECT 1
@@ -119,6 +142,7 @@ export class PoisService {
       description: row.description,
       longitude: Number(row.longitude),
       latitude: Number(row.latitude),
+      countryCode: row.country_code,
       imageUrl: row.image_url,
       discovered: row.discovered,
     }));

@@ -6,7 +6,20 @@ export class PhotoLocationDto {
 
   longitude: number;
 
-  /** Null when the photo carries no EXIF capture date. */
+  /** Deprecated compatibility field; use PhotoMetadataDto.takenAt. */
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    required: false,
+    example: '2026-08-20T14:02:11.000Z',
+  })
+  takenAt?: string | null;
+}
+
+export class PhotoMetadataDto {
+  @ApiProperty({ type: PhotoLocationDto, nullable: true })
+  location: PhotoLocationDto | null;
+
   @ApiProperty({
     type: String,
     nullable: true,
@@ -25,6 +38,9 @@ export class UploadPhotoResponseDto {
     example: '/api/photos/6f1c2a70-0d1e-4f0b-9d8e-2c4a1b3d5e6f.jpg',
   })
   url: string;
+
+  @ApiProperty({ type: PhotoMetadataDto })
+  metadata: PhotoMetadataDto;
 
   /**
    * Null when the photo has no usable GPS tag — which must never block the

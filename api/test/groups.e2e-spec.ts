@@ -57,6 +57,7 @@ describe('Groups (e2e)', () => {
     longitude: 6.6412,
     latitude: 46.7785,
     imageObjectKey: await uploadTestPhoto(app, token),
+    locationSource: 'manual',
     discoveredAt: '2026-08-25T12:00:00.000Z',
   });
 

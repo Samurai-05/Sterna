@@ -23,6 +23,7 @@ import {
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
+import { personalMapName } from '@/lib/personal-map-name'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 
 export function EditDiscoveryPage() {
@@ -66,6 +67,7 @@ export function EditDiscoveryPage() {
       discoveryId={discoveryId}
       accessToken={session.accessToken}
       userId={session.user.id}
+      userName={session.user.userName}
       returnTo={returnTo}
     />
   )
@@ -91,12 +93,14 @@ function EditDiscoveryForm({
   discoveryId,
   accessToken,
   userId,
+  userName,
   returnTo,
 }: {
   discovery: Discovery
   discoveryId: string
   accessToken: string
   userId: string
+  userName: string
   returnTo: string
 }) {
   const navigate = useNavigate()
@@ -198,6 +202,7 @@ function EditDiscoveryForm({
         <section className="rounded-2xl border border-border bg-card p-4">
           <DiscoveryGroupSelector
             groups={groups}
+            personalMapName={personalMapName(userName)}
             selectedGroupIds={sharedGroupIds}
             personalSelected={includePersonal}
             onPersonalChange={setIncludePersonal}

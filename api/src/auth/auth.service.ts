@@ -331,6 +331,12 @@ export class AuthService {
         continue;
       }
 
+      // The owner constraint is immediate, so clear the departing owner role
+      // before promoting the successor within this transaction.
+      await manager.query(
+        'UPDATE group_members SET role = $1 WHERE group_id = $2 AND user_id = $3',
+        [GroupRole.Member, groupId, userId],
+      );
       await manager.query(
         'UPDATE group_members SET role = $1 WHERE group_id = $2 AND user_id = $3',
         [GroupRole.Owner, groupId, successor.user_id],

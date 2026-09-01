@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +11,7 @@ import { PhotosService } from '../photos/photos.service';
 import { CreateDiscoveryDto } from './create-discovery.dto';
 import { Discovery } from './discovery.entity';
 import { UpdateDiscoveryDto } from './update-discovery.dto';
+import { DiscoveryLocationSource } from './discovery-location-source';
 
 export interface DiscoveryResponse {
   id: string;
@@ -31,6 +33,7 @@ export interface DiscoveryResponse {
    * — open ocean, past COUNTRY_MATCH_BUFFER_METERS from every coastline.
    */
   countryCode: string | null;
+  locationSource: DiscoveryLocationSource | null;
   discoveredAt: string;
   createdAt: string;
   updatedAt: string;
@@ -50,6 +53,7 @@ interface DiscoveryRow {
   image_object_key: string;
   author_user_name: string;
   country_code: string | null;
+  location_source: DiscoveryLocationSource | null;
   discovered_at: Date;
   created_at: Date;
   updated_at: Date;
@@ -120,6 +124,7 @@ const DISCOVERY_PROJECTION = `
     d.image_object_key,
     u.user_name AS author_user_name,
     d.country_code,
+    d.location_source,
     d.discovered_at,
     d.created_at,
     d.updated_at
@@ -129,6 +134,8 @@ const DISCOVERY_PROJECTION = `
 
 @Injectable()
 export class DiscoveriesService {
+  private readonly logger = new Logger(DiscoveriesService.name);
+
   constructor(
     @InjectRepository(Discovery)
     private readonly discoveries: Repository<Discovery>,
@@ -174,6 +181,30 @@ export class DiscoveriesService {
   }
 
   /**
+   * The caller's shared gallery: every discovery available through one of
+   * their group memberships. EXISTS keeps a discovery shared with several of
+   * those groups from being returned more than once.
+   */
+  async findAllFromUserGroups(userId: string): Promise<DiscoveryResponse[]> {
+    const rows = await this.discoveries.query<DiscoveryRow[]>(
+      `
+      ${DISCOVERY_PROJECTION}
+      WHERE EXISTS (
+        SELECT 1
+        FROM discovery_groups dg
+        INNER JOIN group_members gm ON gm.group_id = dg.group_id
+        WHERE dg.discovery_id = d.id
+          AND gm.user_id = $1
+      )
+      ORDER BY d.created_at DESC, d.id DESC
+    `,
+      [userId],
+    );
+
+    return rows.map((row) => this.toResponse(row));
+  }
+
+  /**
    * A group's shared map: every member's discoveries in it, each carrying its
    * author (FR-29, FR-31).
    *
@@ -208,6 +239,14 @@ export class DiscoveriesService {
     ]);
     const personal = dto.personal ?? dto.groupId == null;
 
+    if (!this.photos.isCanonicalObjectKey(dto.imageObjectKey)) {
+      throw new BadRequestException('Invalid discovery photo reference.');
+    }
+
+    if (!(await this.photos.exists(dto.imageObjectKey))) {
+      throw new NotFoundException('Discovery photo not found.');
+    }
+
     if (!personal && groupIds.length === 0) {
       throw new BadRequestException('Select at least one destination map.');
     }
@@ -237,13 +276,14 @@ export class DiscoveriesService {
           category,
           location,
           image_object_key,
+          location_source,
           discovered_at,
           country_code,
           is_personal
         )
           SELECT
-            $1, $2, $3, $4, $5, point_geom.geom, $8, $9,
-            matched_country.a3, $10
+            $1, $2, $3, $4, $5, point_geom.geom, $8, $9, $10,
+            matched_country.a3, $11
           FROM point_geom
           LEFT JOIN matched_country ON true
           RETURNING *
@@ -252,7 +292,7 @@ export class DiscoveriesService {
           INSERT INTO discovery_groups (discovery_id, group_id)
           SELECT inserted.id, shared_group.group_id
           FROM inserted
-          CROSS JOIN UNNEST($11::bigint[]) AS shared_group(group_id)
+          CROSS JOIN UNNEST($12::bigint[]) AS shared_group(group_id)
           RETURNING group_id
         )
         SELECT
@@ -269,6 +309,7 @@ export class DiscoveriesService {
           ST_X(inserted.location) AS longitude,
           ST_Y(inserted.location) AS latitude,
           inserted.image_object_key,
+          inserted.location_source,
           users.user_name AS author_user_name,
           inserted.country_code,
           inserted.discovered_at,
@@ -286,6 +327,7 @@ export class DiscoveriesService {
         dto.longitude,
         dto.latitude,
         dto.imageObjectKey,
+        dto.locationSource,
         dto.discoveredAt,
         personal,
         groupIds,
@@ -379,6 +421,10 @@ export class DiscoveriesService {
             category = COALESCE($6, d.category),
             location = point_geom.geom,
             country_code = (SELECT a3 FROM matched_country),
+            location_source = CASE
+              WHEN $13::boolean THEN 'manual'
+              ELSE d.location_source
+            END,
             is_personal = CASE
               WHEN $11::boolean THEN $12
               ELSE d.is_personal
@@ -430,6 +476,7 @@ export class DiscoveriesService {
           (SELECT user_name FROM users WHERE users.id = updated.user_id)
             AS author_user_name,
           country_code,
+          location_source,
           discovered_at,
           created_at,
           updated_at
@@ -448,6 +495,7 @@ export class DiscoveriesService {
         nextGroupIds,
         dto.personal !== undefined,
         dto.personal ?? false,
+        dto.longitude !== undefined || dto.latitude !== undefined,
       ],
     );
 
@@ -455,20 +503,39 @@ export class DiscoveriesService {
   }
 
   async remove(id: string, userId: string): Promise<void> {
-    const result = await this.discoveries.query<Array<{ id: string }>>(
+    const result = await this.discoveries.query<
+      Array<{ id: string; image_object_key: string | null }>
+    >(
       `
         WITH deleted AS (
           DELETE FROM discoveries
           WHERE id = $1 AND user_id = $2
-          RETURNING id
+          RETURNING id, image_object_key
         )
-        SELECT id FROM deleted
+        SELECT
+          id,
+          CASE WHEN EXISTS (
+            SELECT 1 FROM discoveries sibling
+            WHERE sibling.image_object_key = deleted.image_object_key
+          ) THEN NULL ELSE image_object_key END AS image_object_key
+        FROM deleted
       `,
       [id, userId],
     );
 
     if (!result[0]) {
       throw new NotFoundException('Discovery not found.');
+    }
+
+    if (!result[0].image_object_key) return;
+
+    try {
+      await this.photos.remove(result[0].image_object_key);
+    } catch (error) {
+      this.logger.error(
+        `Failed to clean up photo objects for deleted discovery ${id}: ${result[0].image_object_key}`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 
@@ -499,6 +566,7 @@ export class DiscoveriesService {
       imageObjectKey: row.image_object_key,
       authorUserName: row.author_user_name,
       countryCode: row.country_code,
+      locationSource: row.location_source ?? null,
       discoveredAt: discoveredAt.toISOString(),
       createdAt: createdAt.toISOString(),
       updatedAt: updatedAt.toISOString(),
