@@ -39,14 +39,16 @@ describe('DiscoveryPhoto', () => {
       }),
     )
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:real-photo')
+    const user = {
+      id: '1',
+      email: 'a@b.c',
+      userName: 'Explorer',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      avatarObjectKey: null,
+    }
     saveSession({
       accessToken: 'token',
-      user: {
-        id: '1',
-        email: 'a@b.c',
-        userName: 'Explorer',
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
+      user,
     })
 
     render(
