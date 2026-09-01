@@ -1,98 +1,99 @@
 # Sterna frontend
 
-Application React, TypeScript et Vite de Sterna : authentification, carte,
-découvertes, groupes et profil. Elle s'appuie sur React Router, TanStack
-Query, Tailwind CSS v4, shadcn/ui, Capacitor Android, MapLibre GL JS, une PWA
-et les outils de qualité.
+React, TypeScript and Vite application for Sterna: authentication, map,
+discoveries, groups and profile. It relies on React Router, TanStack
+Query, Tailwind CSS v4, shadcn/ui, Capacitor Android, MapLibre GL JS, a PWA
+and quality tooling.
 
-## Prérequis
+## Prerequisites
 
-- Node.js 22 ou plus récent
+- Node.js 22 or newer
 - npm
-- JDK 21 et Android SDK (API 36) pour produire l’APK Android
-- Android Studio, uniquement pour ouvrir le projet Android (facultatif pour le build)
+- JDK 21 and Android SDK (API 36) to produce the Android APK
+- Android Studio, only to open the Android project (optional for the build)
 
-## Commandes
+## Commands
 
-Installer les dépendances :
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Démarrer le frontend :
+Start the frontend:
 
 ```bash
 npm run dev
 ```
 
-Exécuter les tests :
+Run the tests:
 
 ```bash
 npm run test
 ```
 
-Linter le code et appliquer le formatage :
+Lint the code and apply formatting:
 
 ```bash
 npm run lint
 npm run format
 ```
 
-Produire le build web/PWA :
+Produce the web/PWA build:
 
 ```bash
 npm run build
 ```
 
-Ce build laisse `VITE_API_BASE_URL` vide. Les appels `/api/...` restent donc
-relatifs et passent par Nginx, aussi bien en production que via le proxy Vite
-pendant `npm run dev`.
+This build leaves `VITE_API_BASE_URL` empty. `/api/...` calls therefore stay
+relative and go through Nginx, both in production and via the Vite proxy
+during `npm run dev`.
 
-Produire le build Android et synchroniser les assets vers Android :
+Produce the Android build and sync the assets to Android:
 
 ```bash
 npm run build:android
 npx cap sync android
 ```
 
-`build:android` utilise le mode Vite `android` et le fichier versionné
-`../.env.android`, qui pointe vers `https://labo-iot1.iict-heig-vd.ch`. Cette
-adresse est publique et n'est pas un secret. Pour une cible de test, elle peut
-être remplacée sans modifier un fichier :
+`build:android` uses the Vite `android` mode and the versioned
+`../.env.android` file, which points to `https://labo-iot1.iict-heig-vd.ch`.
+This address is public and is not a secret. For a test target, it can be
+overridden without modifying a file:
 
 ```bash
 VITE_API_BASE_URL=https://example.test npm run build:android
 ```
 
-Produire un APK debug depuis WSL ou un environnement sans Android Studio :
+Produce a debug APK from WSL or an environment without Android Studio:
 
 ```bash
 cd android
 ./gradlew assembleDebug
 ```
 
-L’APK est généré dans `android/app/build/outputs/apk/debug/app-debug.apk`.
-Le fichier `android/local.properties`, qui configure le chemin local du SDK, est
-ignoré par Git et ne doit pas être ajouté au dépôt.
+The APK is generated in `android/app/build/outputs/apk/debug/app-debug.apk`.
+The `android/local.properties` file, which configures the local SDK path, is
+ignored by Git and must not be added to the repository.
 
-L'APK requiert un certificat TLS valide et normalement reconnu par Android pour
-`labo-iot1.iict-heig-vd.ch`. Le certificat auto-signé temporaire utilisé par le
-conteneur Nginx au premier démarrage ne convient pas à l'application Android;
-un vrai certificat doit être installé avant un test de production.
+The APK requires a TLS certificate that is valid and normally trusted by
+Android for `labo-iot1.iict-heig-vd.ch`. The temporary self-signed certificate
+used by the Nginx container on first startup is not suitable for the Android
+app; a real certificate must be installed before a production test.
 
-Ouvrir le projet Android dans Android Studio :
+Open the Android project in Android Studio:
 
 ```bash
 npx cap open android
 ```
 
-## Intégrations techniques
+## Technical integrations
 
-- `/` affiche la carte principale (MapLibre GL JS, style OpenFreeMap Liberty), avec les
-  découvertes, pays explorés et POIs de la carte active.
-- React Router gère la navigation entre les écrans (`/collection`, `/add`, `/groups`,
-  `/profile`, etc.), avec une redirection vers `/auth` pour un visiteur non authentifié.
-- Le `QueryClientProvider` (TanStack Query) est installé à la racine et alimente les appels
-  à l'API Sterna.
-- Le manifeste et le service worker PWA sont générés pendant `npm run build`.
+- `/` displays the main map (MapLibre GL JS, OpenFreeMap Liberty style), with
+  the discoveries, explored countries and POIs of the active map.
+- React Router handles navigation between screens (`/collection`, `/add`,
+  `/groups`, `/profile`, etc.), with a redirect to `/auth` for an
+  unauthenticated visitor.
+- The `QueryClientProvider` (TanStack Query) is set up at the root and powers
+  calls to the Sterna API.
+- The PWA manifest and service worker are generated during `npm run build`.
