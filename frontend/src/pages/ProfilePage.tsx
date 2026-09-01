@@ -40,12 +40,13 @@ export function ProfilePage() {
     queryFn: () => getCurrentUser(accessToken!),
     enabled: Boolean(accessToken),
   })
-  const { data: backendDiscoveries } = useQuery({
-    queryKey: ['discoveries', session?.user.id, 'authored'],
-    queryFn: () => getAuthoredDiscoveries(accessToken!),
-    enabled: Boolean(accessToken),
-  })
-  const { data: backendPois } = useQuery({
+  const { data: backendDiscoveries, isPending: isDiscoveriesPending } =
+    useQuery({
+      queryKey: ['discoveries', session?.user.id, 'authored'],
+      queryFn: () => getAuthoredDiscoveries(accessToken!),
+      enabled: Boolean(accessToken),
+    })
+  const { data: backendPois, isPending: isPoisPending } = useQuery({
     queryKey: ['pois', session?.user.id, 'authored'],
     queryFn: () => getAuthoredPois(accessToken!),
     enabled: Boolean(accessToken),
@@ -63,7 +64,9 @@ export function ProfilePage() {
   )
   const exploredCodes = exploredCountryCodes(profileDiscoveries)
   const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
-  const hasDiscoveries = profileDiscoveries.length > 0
+  const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
+  const isPoisLoading = Boolean(accessToken && isPoisPending)
+  const hasDiscoveries = !isDiscoveriesLoading && profileDiscoveries.length > 0
   const poiProgress = sourceLandmarks.length
     ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
     : 0
@@ -142,8 +145,8 @@ export function ProfilePage() {
           className="px-5 pb-9 pt-[calc(1rem+var(--sterna-safe-area-top))]"
           aria-label="Profile overview"
         >
-          <div className="mx-auto flex max-w-lg items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-4">
+          <div className="relative mx-auto max-w-lg">
+            <div className="flex min-w-0 items-center gap-3 pr-12">
               <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/40 bg-[#C4622D] font-display text-3xl font-semibold text-primary-foreground">
                 <UserAvatarImage
                   accessToken={accessToken}
@@ -166,16 +169,16 @@ export function ProfilePage() {
               aria-expanded={isAccountSheetOpen}
               aria-controls="profile-account-sheet"
               onClick={() => setIsAccountSheetOpen(true)}
-              className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-white/30 px-3 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
+              title="Settings"
+              className="absolute right-0 top-0 flex size-11 items-center justify-center rounded-xl border border-white/30 text-primary-foreground outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95"
             >
               <Settings className="size-4" aria-hidden="true" />
-              <span>Settings</span>
             </button>
           </div>
         </section>
       </div>
 
-      <div className="-mt-5 rounded-t-[24px] bg-card px-5 pb-12 pt-8">
+      <div className="-mt-5 rounded-t-[24px] bg-background px-5 pb-12 pt-8">
         <div className="mx-auto max-w-lg space-y-10">
           <section aria-labelledby="your-exploration-heading">
             <h2 id="your-exploration-heading" className="sterna-section-title">
@@ -183,9 +186,11 @@ export function ProfilePage() {
             </h2>
             <div className="mt-6">
               <ProfileExplorationStats
-                discoveries={profileDiscoveries.length}
-                countries={exploredCodes.length}
-                pois={discoveredLandmarks.length}
+                discoveries={
+                  isDiscoveriesLoading ? null : profileDiscoveries.length
+                }
+                countries={isDiscoveriesLoading ? null : exploredCodes.length}
+                pois={isPoisLoading ? null : discoveredLandmarks.length}
               />
             </div>
             <div className="mt-6">
@@ -193,7 +198,7 @@ export function ProfilePage() {
             </div>
           </section>
 
-          {hasDiscoveries ? (
+          {isDiscoveriesLoading ? null : hasDiscoveries ? (
             <>
               <section
                 aria-labelledby="recent-discoveries-heading"
@@ -223,26 +228,28 @@ export function ProfilePage() {
                 </div>
               </section>
 
-              <section aria-labelledby="points-of-interest-heading">
-                <div className="flex items-baseline justify-between gap-4">
-                  <h2
-                    id="points-of-interest-heading"
-                    className="sterna-section-title"
-                  >
-                    Points of interest
-                  </h2>
-                  <p className="text-sm tabular-nums text-muted-foreground">
-                    {discoveredLandmarks.length} of {sourceLandmarks.length}{' '}
-                    discovered
-                  </p>
-                </div>
-                <Progress
-                  className="mt-4 h-2.5"
-                  value={poiProgress}
-                  aria-label="Point of interest exploration progress"
-                  aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
-                />
-              </section>
+              {!isPoisLoading && (
+                <section aria-labelledby="points-of-interest-heading">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <h2
+                      id="points-of-interest-heading"
+                      className="sterna-section-title"
+                    >
+                      Points of interest
+                    </h2>
+                    <p className="text-sm tabular-nums text-muted-foreground">
+                      {discoveredLandmarks.length} of {sourceLandmarks.length}{' '}
+                      discovered
+                    </p>
+                  </div>
+                  <Progress
+                    className="mt-4 h-2.5"
+                    value={poiProgress}
+                    aria-label="Point of interest exploration progress"
+                    aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
+                  />
+                </section>
+              )}
 
               <section aria-labelledby="discoveries-by-category-heading">
                 <h2

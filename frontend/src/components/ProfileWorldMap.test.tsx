@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -69,6 +69,60 @@ describe('ProfileWorldMap', () => {
       'fill',
       '#E8E3D9',
     )
+    expect(
+      screen.getByText(
+        'Green countries have discoveries. Warm neutral countries have not been explored yet.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('uses the shared disputed-country expansion for profile map styling', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: { A3: 'XCR' },
+              geometry: {
+                type: 'Polygon',
+                coordinates: [
+                  [
+                    [30, 40],
+                    [40, 40],
+                    [40, 50],
+                    [30, 50],
+                    [30, 40],
+                  ],
+                ],
+              },
+            },
+          ],
+        }),
+      }),
+    )
+
+    renderWithProviders(<ProfileWorldMap exploredCountryCodes={['UKR']} />)
+
+    expect(await screen.findByTestId('profile-country-XCR')).toHaveAttribute(
+      'fill',
+      '#2D5A3D',
+    )
+  })
+
+  it('hides the visualization when country geometry cannot be loaded', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+
+    renderWithProviders(<ProfileWorldMap exploredCountryCodes={[]} />)
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('img', { name: 'World exploration map' }),
+      ).not.toBeInTheDocument()
+    })
   })
 })

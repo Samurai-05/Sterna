@@ -754,7 +754,7 @@ describe('App', () => {
     const accountButton = screen.getByRole('button', {
       name: 'Open account settings',
     })
-    expect(within(accountButton).getByText('Settings')).toBeInTheDocument()
+    expect(accountButton).toHaveAttribute('title', 'Settings')
     expect(
       within(
         screen.getByRole('region', { name: 'Profile overview' }),
@@ -831,7 +831,6 @@ describe('App', () => {
       level: 2,
       name: 'Discoveries by category',
     })
-    await screen.findByRole('img', { name: 'World exploration map' })
     const categorySection = screen.getByRole('region', {
       name: 'Discoveries by category',
     })
