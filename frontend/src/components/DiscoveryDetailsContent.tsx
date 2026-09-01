@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin, UsersRound } from 'lucide-react'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { discoveryLocationLabel } from '@/lib/location-label'
 import { categoryLabel, type Discovery } from '@/lib/mock-data'
 
 export function DiscoveryDetailsContent({
@@ -21,7 +22,7 @@ export function DiscoveryDetailsContent({
       <div className="mt-5 grid gap-3 text-sm text-muted-foreground">
         <p className="flex items-start gap-2">
           <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>{discovery.location}</span>
+          <span>{discoveryLocationLabel(discovery)}</span>
         </p>
         <p className="flex items-start gap-2">
           <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />

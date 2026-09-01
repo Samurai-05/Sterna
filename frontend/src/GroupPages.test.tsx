@@ -100,7 +100,7 @@ describe('groups list', () => {
   it('shows the personal map and marks it active', async () => {
     renderAt('/groups')
 
-    const personalMap = await screen.findByLabelText('Personal map')
+    const personalMap = await screen.findByLabelText("Emma's map")
     await waitFor(() =>
       expect(personalMap).toHaveAttribute('aria-current', 'true'),
     )
@@ -117,7 +117,7 @@ describe('groups list', () => {
     renderAt('/groups')
 
     const activatePersonalMap = await screen.findByRole('button', {
-      name: 'Activate personal map',
+      name: "Activate Emma's map",
     })
     await waitFor(() => expect(activatePersonalMap).toBeEnabled())
     fireEvent.click(activatePersonalMap)
@@ -128,7 +128,7 @@ describe('groups list', () => {
         groupId: null,
       }),
     )
-    expect(await screen.findByLabelText('Personal map')).toHaveAttribute(
+    expect(await screen.findByLabelText("Emma's map")).toHaveAttribute(
       'aria-current',
       'true',
     )
@@ -348,6 +348,8 @@ describe('opening a discovery from a group map', () => {
     expect(
       await screen.findByRole('button', { name: "Marc's find" }),
     ).toBeInTheDocument()
+    expect(screen.getByText('France')).toBeInTheDocument()
+    expect(screen.queryByText('48.8000, 2.3000')).not.toBeInTheDocument()
     // GET /api/discoveries/:id only ever returns the caller's own discoveries.
     expect(api.getDiscovery).not.toHaveBeenCalled()
     expect(api.getGroupDiscoveries).toHaveBeenCalled()
@@ -534,7 +536,7 @@ describe('choosing the destination map before saving', () => {
         name: 'Add to Paris Weekend',
       }),
     ).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Add to Personal map' }))
+    fireEvent.click(screen.getByRole('button', { name: "Add to Emma's map" }))
     fireEvent.click(activeGroup)
     expect(activeGroup).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByText(/Saving to:/)).not.toBeInTheDocument()

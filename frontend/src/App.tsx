@@ -14,6 +14,7 @@ import { CreateGroupPage } from '@/pages/CreateGroupPage'
 import { DiscoveryDetailPage } from '@/pages/DiscoveryDetailPage'
 import { EditDiscoveryPage } from '@/pages/EditDiscoveryPage'
 import { EditGroupPage } from '@/pages/EditGroupPage'
+import { EditProfilePage } from '@/pages/EditProfilePage'
 import { GroupDetailPage } from '@/pages/GroupDetailPage'
 import { GroupsPage } from '@/pages/GroupsPage'
 import { JoinGroupPage } from '@/pages/JoinGroupPage'
@@ -98,6 +99,7 @@ function AuthenticatedAppShell({
         <Route path="/groups/:groupId" element={<GroupDetailPage />} />
         <Route path="/groups/:groupId/edit" element={<EditGroupPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/edit" element={<EditProfilePage />} />
       </Routes>
       {showBottomNavigation && <BottomNavigation />}
     </>

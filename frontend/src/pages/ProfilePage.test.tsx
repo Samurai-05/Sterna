@@ -7,6 +7,7 @@ import {
   getAuthoredDiscoveries,
   getAuthoredPois,
   getCurrentUser,
+  getPhoto,
 } from '@/lib/api'
 import { loadSession, saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -20,12 +21,14 @@ vi.mock('@/lib/api', () => ({
   getAuthoredDiscoveries: vi.fn(),
   getAuthoredPois: vi.fn(),
   getCurrentUser: vi.fn(),
+  getPhoto: vi.fn(),
 }))
 
 const deleteAccountMock = vi.mocked(deleteAccount)
 const getAuthoredDiscoveriesMock = vi.mocked(getAuthoredDiscoveries)
 const getAuthoredPoisMock = vi.mocked(getAuthoredPois)
 const getCurrentUserMock = vi.mocked(getCurrentUser)
+const getPhotoMock = vi.mocked(getPhoto)
 
 function makeDiscovery(
   id: number,
@@ -55,6 +58,7 @@ describe('ProfilePage', () => {
         id: '1',
         email: 'explorer@sterna.app',
         userName: 'Explorer',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T08:00:00.000Z',
       },
     })
@@ -62,6 +66,7 @@ describe('ProfilePage', () => {
       id: '1',
       email: 'explorer@sterna.app',
       userName: 'Explorer',
+      avatarObjectKey: null,
       createdAt: '2026-08-26T08:00:00.000Z',
     })
     getAuthoredPoisMock.mockResolvedValue([])
@@ -137,5 +142,44 @@ describe('ProfilePage', () => {
 
     await screen.findByText('The current password is incorrect.')
     expect(loadSession()).not.toBeNull()
+  })
+
+  it('shows the account photo instead of the initial once it loads', async () => {
+    getCurrentUserMock.mockResolvedValue({
+      id: '1',
+      email: 'explorer@sterna.app',
+      userName: 'Explorer',
+      avatarObjectKey: 'photos/avatar.jpg',
+      createdAt: '2026-08-26T08:00:00.000Z',
+    })
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+    getPhotoMock.mockResolvedValue(new Blob(['fake image bytes']))
+
+    const { container } = renderWithProviders(<ProfilePage />)
+
+    await waitFor(() =>
+      expect(getPhotoMock).toHaveBeenCalledWith(
+        'test-token',
+        'photos/avatar.jpg',
+      ),
+    )
+    await waitFor(() =>
+      expect(container.querySelectorAll('img').length).toBeGreaterThan(0),
+    )
+  })
+
+  it('offers an edit-profile entry point from the account sheet', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Open account settings' }),
+    )
+
+    expect(screen.getByRole('link', { name: /Edit profile/ })).toHaveAttribute(
+      'href',
+      '/profile/edit',
+    )
   })
 })

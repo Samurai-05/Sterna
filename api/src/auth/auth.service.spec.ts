@@ -17,6 +17,7 @@ async function storedUser(password = PASSWORD): Promise<User> {
     id: '1',
     email: 'ada@sterna.test',
     userName: 'Ada',
+    avatarObjectKey: null,
     passwordHash: await hashPassword(password),
     createdAt: new Date('2026-08-26T09:14:33.482Z'),
     updatedAt: new Date('2026-08-26T09:14:33.482Z'),
@@ -50,7 +51,7 @@ describe('AuthService', () => {
     users.create.mockImplementation((fields: Partial<User>) => fields);
     // save() stands in for the database, so it fills in what the identity
     // column and the DEFAULT NOW() would.
-    users.save.mockImplementation((user: User) => ({
+    users.save.mockImplementation((user: Partial<User>) => ({
       id: '1',
       createdAt: new Date('2026-08-26T09:14:33.482Z'),
       ...user,
@@ -270,6 +271,7 @@ describe('AuthService', () => {
         id: '1',
         email: 'ada@sterna.test',
         userName: 'Ada',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T09:14:33.482Z',
       });
     });
@@ -299,6 +301,63 @@ describe('AuthService', () => {
         /at least one field/,
       );
       expect(users.save).not.toHaveBeenCalled();
+    });
+
+    it('accepts an avatar-only update, with no display name', async () => {
+      users.findOneBy.mockResolvedValue(await storedUser());
+
+      const result = await service.updateProfile('1', {
+        avatarObjectKey: 'photos/new.jpg',
+      });
+
+      expect(result.avatarObjectKey).toBe('photos/new.jpg');
+      expect(result.userName).toBe('Ada');
+    });
+
+    it('frees the previous photo once a new one replaces it', async () => {
+      const user = await storedUser();
+      user.avatarObjectKey = 'photos/old.jpg';
+      users.findOneBy.mockResolvedValue(user);
+
+      await service.updateProfile('1', { avatarObjectKey: 'photos/new.jpg' });
+
+      expect(photos.remove).toHaveBeenCalledWith('photos/old.jpg');
+      expect(photos.remove).not.toHaveBeenCalledWith('photos/new.jpg');
+    });
+
+    it('removes the photo on an explicit null and frees the old object', async () => {
+      const user = await storedUser();
+      user.avatarObjectKey = 'photos/old.jpg';
+      users.findOneBy.mockResolvedValue(user);
+
+      const result = await service.updateProfile('1', {
+        avatarObjectKey: null,
+      });
+
+      expect(result.avatarObjectKey).toBeNull();
+      expect(photos.remove).toHaveBeenCalledWith('photos/old.jpg');
+    });
+
+    it('does not touch MinIO when the avatar field is left out', async () => {
+      const user = await storedUser();
+      user.avatarObjectKey = 'photos/old.jpg';
+      users.findOneBy.mockResolvedValue(user);
+
+      await service.updateProfile('1', { userName: 'Ada L.' });
+
+      expect(photos.remove).not.toHaveBeenCalled();
+    });
+
+    it('does not call MinIO for an update that resends the same key', async () => {
+      const user = await storedUser();
+      user.avatarObjectKey = 'photos/current.jpg';
+      users.findOneBy.mockResolvedValue(user);
+
+      await service.updateProfile('1', {
+        avatarObjectKey: 'photos/current.jpg',
+      });
+
+      expect(photos.remove).not.toHaveBeenCalled();
     });
   });
 
@@ -387,6 +446,16 @@ describe('AuthService', () => {
         expect.stringContaining('UPDATE group_members SET role'),
         ['owner', 'group-1', 'user-2'],
       );
+      expect(manager.query).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('UPDATE group_members SET role'),
+        ['member', 'group-1', '1'],
+      );
+      expect(manager.query).toHaveBeenNthCalledWith(
+        4,
+        expect.stringContaining('UPDATE group_members SET role'),
+        ['owner', 'group-1', 'user-2'],
+      );
       expect(manager.query).not.toHaveBeenCalledWith(
         expect.stringContaining('DELETE FROM groups'),
         expect.anything(),
@@ -443,6 +512,34 @@ describe('AuthService', () => {
       expect(manager.delete.mock.invocationCallOrder[0]).toBeLessThan(
         photos.remove.mock.invocationCallOrder[0],
       );
+    });
+
+    // The avatar lives on the row itself, not among the discoveries queried
+    // inside the transaction, so it needs its own cleanup path.
+    it("also frees the account's own avatar object", async () => {
+      const user = await storedUser();
+      user.avatarObjectKey = 'photos/avatar.jpg';
+      users.findOne.mockResolvedValue(user);
+      manager.query
+        .mockResolvedValueOnce([]) // owned groups
+        .mockResolvedValueOnce([{ image_object_key: 'photos/a.jpg' }]);
+
+      await service.deleteAccount('1', PASSWORD);
+
+      expect(photos.remove).toHaveBeenCalledWith('photos/avatar.jpg');
+      expect(photos.remove).toHaveBeenCalledWith('photos/a.jpg');
+      expect(photos.remove).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not call MinIO for a missing avatar', async () => {
+      users.findOne.mockResolvedValue(await storedUser());
+      manager.query
+        .mockResolvedValueOnce([]) // owned groups
+        .mockResolvedValueOnce([]); // no discoveries
+
+      await service.deleteAccount('1', PASSWORD);
+
+      expect(photos.remove).not.toHaveBeenCalled();
     });
   });
 });

@@ -31,6 +31,7 @@ import { categories, type DiscoveryCategory } from '@/lib/mock-data'
 import { getStoredMapViewport } from '@/lib/map-viewport'
 import { type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
+import { personalMapName } from '@/lib/personal-map-name'
 
 type AddDiscoveryLocationState = {
   selectedPhoto?: SelectedPhoto
@@ -443,6 +444,7 @@ export function AddDiscoveryPage() {
         <section className="rounded-2xl border border-border bg-card p-4">
           <DiscoveryGroupSelector
             groups={groups}
+            personalMapName={personalMapName(session?.user.userName)}
             selectedGroupIds={selectedGroupIds}
             personalSelected={personalSelected}
             onPersonalChange={(selected) => {

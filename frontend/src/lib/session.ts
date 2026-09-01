@@ -2,6 +2,7 @@ export interface AuthenticatedUser {
   id: string
   email: string
   userName: string
+  avatarObjectKey: string | null
   createdAt: string
 }
 

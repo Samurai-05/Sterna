@@ -41,6 +41,7 @@ const WITH_PASSWORD_HASH = {
   id: true,
   email: true,
   userName: true,
+  avatarObjectKey: true,
   createdAt: true,
   passwordHash: true,
 } as const;
@@ -71,6 +72,7 @@ function toUserDto(user: User): UserDto {
     id: user.id,
     email: user.email,
     userName: user.userName,
+    avatarObjectKey: user.avatarObjectKey,
     createdAt: user.createdAt.toISOString(),
   };
 }
@@ -159,7 +161,7 @@ export class AuthService {
 
   /** FR-03. */
   async updateProfile(id: string, dto: UpdateProfileDto): Promise<UserDto> {
-    if (dto.userName === undefined) {
+    if (dto.userName === undefined && dto.avatarObjectKey === undefined) {
       // A silent no-op 200 is a worse contract than a refusal: the client
       // cannot tell that nothing happened.
       throw new BadRequestException(
@@ -168,10 +170,29 @@ export class AuthService {
     }
 
     const user = await this.requireUser(id);
+    const previousAvatarObjectKey = user.avatarObjectKey;
 
-    user.userName = dto.userName;
+    if (dto.userName !== undefined) {
+      user.userName = dto.userName;
+    }
+    if (dto.avatarObjectKey !== undefined) {
+      user.avatarObjectKey = dto.avatarObjectKey;
+    }
 
-    return toUserDto(await this.users.save(user));
+    const saved = await this.users.save(user);
+
+    // As in deleteAccount(): only freed once the row change itself has
+    // succeeded, and only when the photo actually changed (an update that
+    // resends the same key must not delete the very object it just set).
+    if (
+      previousAvatarObjectKey &&
+      previousAvatarObjectKey !== dto.avatarObjectKey &&
+      dto.avatarObjectKey !== undefined
+    ) {
+      await this.photos.remove(previousAvatarObjectKey);
+    }
+
+    return toUserDto(saved);
   }
 
   /**
@@ -242,9 +263,15 @@ export class AuthService {
         .filter((key): key is string => key !== null);
     });
 
+    // The avatar lives on the row deleted above, not among the discoveries
+    // queried inside the transaction, so it is collected separately here.
+    const allObjectKeys = user.avatarObjectKey
+      ? [...objectKeys, user.avatarObjectKey]
+      : objectKeys;
+
     // MinIO isn't part of the SQL transaction above, so this only runs once
     // the account and its rows are already gone for good (ADR-006).
-    await Promise.all(objectKeys.map((key) => this.photos.remove(key)));
+    await Promise.all(allObjectKeys.map((key) => this.photos.remove(key)));
   }
 
   /**
@@ -278,6 +305,12 @@ export class AuthService {
         continue;
       }
 
+      // The owner constraint is immediate, so clear the departing owner role
+      // before promoting the successor within this transaction.
+      await manager.query(
+        'UPDATE group_members SET role = $1 WHERE group_id = $2 AND user_id = $3',
+        [GroupRole.Member, groupId, userId],
+      );
       await manager.query(
         'UPDATE group_members SET role = $1 WHERE group_id = $2 AND user_id = $3',
         [GroupRole.Owner, groupId, successor.user_id],

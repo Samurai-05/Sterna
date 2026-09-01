@@ -198,6 +198,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       applyExploredStatesRef.current = applyExploredStates
 
       instance.on('load', () => {
+        // Render the world as a globe when zoomed out; MapLibre switches back
+        // to the flat projection automatically at closer zoom levels.
+        instance.setProjection({ type: 'globe' })
+
         instance.addSource(countriesSourceId, {
           type: 'geojson',
           data: '/countries.geo.json',

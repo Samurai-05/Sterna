@@ -3,14 +3,12 @@ import { Link, useLocation } from 'react-router'
 
 import { poiAppearance } from '@/lib/category-appearance'
 import { getPoiImageUrl } from '@/lib/poi-image'
+import { landmarkLocationLabel } from '@/lib/location-label'
 import { type Landmark } from '@/lib/mock-data'
 
 export function PoiCard({ poi }: { poi: Landmark }) {
   const location = useLocation()
-  const poiLocation =
-    poi.city && poi.country
-      ? `${poi.city}, ${poi.country}`
-      : `${poi.coordinates[1].toFixed(5)}, ${poi.coordinates[0].toFixed(5)}`
+  const poiLocation = landmarkLocationLabel(poi)
 
   return (
     <Link

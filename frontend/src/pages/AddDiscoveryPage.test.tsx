@@ -40,6 +40,7 @@ describe('AddDiscoveryPage', () => {
         id: '1',
         email: 'explorer@sterna.app',
         userName: 'Explorer',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T08:00:00.000Z',
       },
     })
@@ -95,6 +96,7 @@ describe('AddDiscoveryPage', () => {
         id: '1',
         email: 'explorer@sterna.app',
         userName: 'Explorer',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T08:00:00.000Z',
       },
     })
@@ -137,6 +139,7 @@ describe('AddDiscoveryPage', () => {
         id: '1',
         email: 'explorer@sterna.app',
         userName: 'Explorer',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T08:00:00.000Z',
       },
     })
@@ -171,6 +174,7 @@ describe('AddDiscoveryPage', () => {
         id: '1',
         email: 'explorer@sterna.app',
         userName: 'Explorer',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T08:00:00.000Z',
       },
     })
@@ -213,6 +217,7 @@ describe('AddDiscoveryPage', () => {
         id: '1',
         email: 'explorer@sterna.app',
         userName: 'Explorer',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T08:00:00.000Z',
       },
     })
@@ -248,6 +253,7 @@ describe('AddDiscoveryPage', () => {
         id: '1',
         email: 'explorer@sterna.app',
         userName: 'Explorer',
+        avatarObjectKey: null,
         createdAt: '2026-08-26T08:00:00.000Z',
       },
     })

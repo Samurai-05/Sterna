@@ -181,6 +181,30 @@ export class DiscoveriesService {
   }
 
   /**
+   * The caller's shared gallery: every discovery available through one of
+   * their group memberships. EXISTS keeps a discovery shared with several of
+   * those groups from being returned more than once.
+   */
+  async findAllFromUserGroups(userId: string): Promise<DiscoveryResponse[]> {
+    const rows = await this.discoveries.query<DiscoveryRow[]>(
+      `
+      ${DISCOVERY_PROJECTION}
+      WHERE EXISTS (
+        SELECT 1
+        FROM discovery_groups dg
+        INNER JOIN group_members gm ON gm.group_id = dg.group_id
+        WHERE dg.discovery_id = d.id
+          AND gm.user_id = $1
+      )
+      ORDER BY d.created_at DESC, d.id DESC
+    `,
+      [userId],
+    );
+
+    return rows.map((row) => this.toResponse(row));
+  }
+
+  /**
    * A group's shared map: every member's discoveries in it, each carrying its
    * author (FR-29, FR-31).
    *

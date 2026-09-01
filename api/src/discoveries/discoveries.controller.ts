@@ -87,6 +87,24 @@ export class DiscoveriesController {
     return this.discoveries.findAllAuthoredByUser(caller.id);
   }
 
+  @Get('groups')
+  @ApiAuthenticated()
+  @ApiOperation({
+    summary: "List discoveries from all of the signed-in user's groups",
+    description:
+      'Includes discoveries from every member and returns a discovery only ' +
+      'once when it is shared with several groups the caller belongs to.',
+  })
+  @ApiOkResponse({
+    description: "Discoveries visible in any of the signed-in user's groups.",
+    schema: { example: [discoveryExample] },
+  })
+  findAllFromGroups(
+    @CurrentUser() caller: AuthenticatedUser,
+  ): Promise<DiscoveryResponse[]> {
+    return this.discoveries.findAllFromUserGroups(caller.id);
+  }
+
   @Get(':id')
   @ApiAuthenticated()
   @ApiOperation({ summary: 'Get one discovery owned by the signed-in user' })

@@ -6,12 +6,14 @@ export function DiscoveryGroupSelector({
   groups = [],
   selectedGroupIds,
   personalSelected,
+  personalMapName = 'Personal map',
   onPersonalChange,
   onChange,
 }: {
   groups?: GroupSummary[]
   selectedGroupIds: string[]
   personalSelected: boolean
+  personalMapName?: string
   onPersonalChange: (selected: boolean) => void
   onChange: (groupIds: string[]) => void
 }) {
@@ -45,7 +47,7 @@ export function DiscoveryGroupSelector({
         <button
           type="button"
           aria-pressed={personalSelected}
-          aria-label="Add to Personal map"
+          aria-label={`Add to ${personalMapName}`}
           onClick={togglePersonal}
           className={`flex h-10 w-max shrink-0 snap-start items-center gap-1.5 rounded-xl border px-2 py-1 text-left text-xs transition-colors ${personalSelected ? 'border-primary bg-green-50' : 'border-border bg-background'}`}
         >
@@ -58,7 +60,9 @@ export function DiscoveryGroupSelector({
               <UserRound className="size-4" />
             )}
           </span>
-          <span className="whitespace-nowrap font-medium">Personal map</span>
+          <span className="whitespace-nowrap font-medium">
+            {personalMapName}
+          </span>
         </button>
         {groups.map((group) => {
           const selected = selectedGroupIds.includes(group.id)

@@ -5,8 +5,6 @@ import { trimmed } from './normalize';
 
 export class UpdateProfileDto {
   /**
-   * The only mutable profile field.
-   *
    * Email is not editable: it is the login credential, so changing it is an
    * account-takeover step if a token is stolen, and doing it safely means
    * re-authentication plus a second uniqueness path. Out of MVP scope.
@@ -23,4 +21,15 @@ export class UpdateProfileDto {
     maxLength: 100,
   })
   userName?: string;
+
+  /**
+   * The object key a prior POST /api/photos returned. An explicit `null`
+   * removes the current photo; omitting the field leaves it — the same
+   * contract UpdateGroupDto.description uses.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  @ApiProperty({ required: false, nullable: true, maxLength: 255 })
+  avatarObjectKey?: string | null;
 }

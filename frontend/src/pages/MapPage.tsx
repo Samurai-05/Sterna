@@ -42,6 +42,7 @@ import {
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
+import { personalMapName } from '@/lib/personal-map-name'
 
 export function MapPage({ active }: { active: boolean }) {
   const [activeFilter, setActiveFilter] = useState<
@@ -98,8 +99,7 @@ export function MapPage({ active }: { active: boolean }) {
     navigate('/', { replace: true, state: null })
   }, [active, initialViewport, location.key, mapTarget, navigate])
   const session = loadSession()
-  const userInitial =
-    session?.user.userName.trim().charAt(0).toUpperCase() || '?'
+  const personalMapLabel = personalMapName(session?.user.userName)
   const { data: activeMap } = useActiveMap()
   const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
@@ -129,7 +129,10 @@ export function MapPage({ active }: { active: boolean }) {
   // Sample discoveries are only for the signed-out demo. Showing them while
   // an authenticated query loads or fails makes them look like real personal
   // discoveries and can visually leak data between map contexts.
-  const sourceDiscoveries = backendDiscoveries ?? (session ? [] : discoveries)
+  const sourceDiscoveries = useMemo(
+    () => backendDiscoveries ?? (session ? [] : discoveries),
+    [backendDiscoveries, session],
+  )
   const sourceLandmarks = backendPois ?? (session ? [] : landmarks)
   const exploredCountryCodes = useMemo(
     () => [
@@ -199,9 +202,9 @@ export function MapPage({ active }: { active: boolean }) {
         <div className="flex items-center gap-2">
           <ActiveMapSelector
             activeGroupId={activeGroupId}
-            activeMapName={activeMap?.name ?? 'Personal map'}
+            activeMapName={activeMap?.name ?? personalMapLabel}
+            personalMapName={personalMapLabel}
             groups={groups}
-            userInitial={userInitial}
             isPending={setActiveMap.isPending}
             isError={setActiveMap.isError}
             onSelect={(groupId, onSuccess) =>
@@ -266,16 +269,16 @@ export function MapPage({ active }: { active: boolean }) {
 function ActiveMapSelector({
   activeGroupId,
   activeMapName,
+  personalMapName,
   groups,
-  userInitial,
   isPending,
   isError,
   onSelect,
 }: {
   activeGroupId: string | null
   activeMapName: string
+  personalMapName: string
   groups: GroupSummary[] | undefined
-  userInitial: string
   isPending: boolean
   isError: boolean
   onSelect: (groupId: string | null, onSuccess: () => void) => void
@@ -328,7 +331,7 @@ function ActiveMapSelector({
           {activeGroupId ? (
             <UsersRound className="size-4" />
           ) : (
-            <span className="text-xs font-bold">{userInitial}</span>
+            <UserRound className="size-4" />
           )}
         </MapChoiceIcon>
         <span className="min-w-0 flex-1">
@@ -355,7 +358,8 @@ function ActiveMapSelector({
             active={activeGroupId === null}
             disabled={isPending}
             icon={<UserRound className="size-5" />}
-            name="Personal map"
+            name={personalMapName}
+            personal
             onClick={() => select(null)}
           />
           {groups?.map((group) => (
@@ -387,12 +391,14 @@ function MapMenuItem({
   disabled,
   icon,
   name,
+  personal = false,
   onClick,
 }: {
   active: boolean
   disabled: boolean
   icon: React.ReactNode
   name: string
+  personal?: boolean
   onClick: () => void
 }) {
   return (
@@ -404,7 +410,7 @@ function MapMenuItem({
       onClick={onClick}
       className={`flex min-h-16 w-full items-center gap-3 border-b border-border/70 px-4 text-left transition-colors last:border-b-0 disabled:opacity-60 ${active ? 'bg-green-50' : 'bg-card hover:bg-muted/70'}`}
     >
-      <MapChoiceIcon personal={name === 'Personal map'} active={active}>
+      <MapChoiceIcon personal={personal} active={active}>
         {icon}
       </MapChoiceIcon>
       <span className="min-w-0 flex-1 truncate text-base font-semibold">

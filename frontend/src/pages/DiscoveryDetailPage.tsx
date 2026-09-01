@@ -50,6 +50,7 @@ export function DiscoveryDetailPage({
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false)
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [isViewerDetailsExpanded, setIsViewerDetailsExpanded] = useState(false)
+  const isViewerDetailsExpandedRef = useRef(false)
   const [detailPhotoSource, setDetailPhotoSource] = useState<string | null>(
     null,
   )
@@ -72,9 +73,14 @@ export function DiscoveryDetailPage({
   }
 
   const closeViewer = useCallback(() => {
+    isViewerDetailsExpandedRef.current = false
     setIsViewerDetailsExpanded(false)
     setIsViewerOpen(false)
   }, [])
+
+  useEffect(() => {
+    isViewerDetailsExpandedRef.current = isViewerDetailsExpanded
+  }, [isViewerDetailsExpanded])
 
   const personalQuery = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
@@ -142,7 +148,8 @@ export function DiscoveryDetailPage({
 
     void CapacitorApp.addListener('backButton', () => {
       if (!active) return
-      if (isViewerDetailsExpanded) {
+      if (isViewerDetailsExpandedRef.current) {
+        isViewerDetailsExpandedRef.current = false
         setIsViewerDetailsExpanded(false)
       } else {
         closeViewer()
@@ -159,7 +166,7 @@ export function DiscoveryDetailPage({
       active = false
       void listener?.remove()
     }
-  }, [closeViewer, isViewerDetailsExpanded, isViewerOpen])
+  }, [closeViewer, isViewerOpen])
 
   useEffect(() => {
     if (!isActionMenuOpen) return

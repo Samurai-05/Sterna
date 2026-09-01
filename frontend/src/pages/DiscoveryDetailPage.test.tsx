@@ -71,6 +71,7 @@ beforeEach(() => {
       id: '1',
       email: 'explorer@example.test',
       userName: 'Explorer',
+      avatarObjectKey: null,
       createdAt: '2026-08-01T00:00:00.000Z',
     },
   })

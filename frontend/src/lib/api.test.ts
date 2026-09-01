@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   createDiscovery,
+  getAllGroupDiscoveries,
   getAuthoredDiscoveries,
   getAuthoredPois,
   getDiscoveries,
@@ -64,6 +65,28 @@ describe('discovery map boundaries', () => {
     expect(result.map((discovery) => discovery.id)).toEqual([1, 2])
     expect(result[0].createdAt).toBe('2026-08-28T12:00:00.000Z')
   })
+
+  it('loads discoveries from every group the user belongs to', async () => {
+    const otherMemberDiscovery = {
+      ...groupDiscovery,
+      id: '3',
+      userId: '99',
+      authorUserName: 'Alex',
+    }
+    const fetchMock = mockDiscoveryResponse([
+      groupDiscovery,
+      otherMemberDiscovery,
+    ])
+
+    const result = await getAllGroupDiscoveries('token')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/discoveries/groups',
+      expect.any(Object),
+    )
+    expect(result.map((discovery) => discovery.id)).toEqual([2, 3])
+    expect(result[1].author).toBe('Alex')
+  })
 })
 
 describe('profile boundaries', () => {
@@ -75,6 +98,7 @@ describe('profile boundaries', () => {
         description: null,
         longitude: 2.2945,
         latitude: 48.8584,
+        countryCode: 'FRA',
         imageUrl: null,
         discovered: true,
       },
@@ -86,7 +110,11 @@ describe('profile boundaries', () => {
       '/api/pois/authored',
       expect.any(Object),
     )
-    expect(result[0]).toMatchObject({ name: 'Eiffel Tower', discovered: true })
+    expect(result[0]).toMatchObject({
+      name: 'Eiffel Tower',
+      country: 'France',
+      discovered: true,
+    })
   })
 })
 

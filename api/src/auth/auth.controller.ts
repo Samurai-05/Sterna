@@ -102,9 +102,11 @@ export class AuthController {
   @ApiOperation({
     summary: 'Update the signed-in profile',
     description:
-      'Only the display name is mutable (FR-03). The email address is the ' +
-      'login credential and cannot be changed here. A body with no updatable ' +
-      'field is refused rather than silently doing nothing.',
+      'The display name and the profile photo are mutable (FR-03). The ' +
+      'photo is set by object key, from a prior POST /api/photos; an ' +
+      'explicit null removes it. The email address is the login credential ' +
+      'and cannot be changed here. A body with no updatable field is ' +
+      'refused rather than silently doing nothing.',
   })
   @ApiOkResponse({ type: UserDto })
   @ApiBadRequestResponse({
