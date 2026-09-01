@@ -131,18 +131,32 @@ sha256sum "$APK_PATH"
 # ─────────────────────────────────────────────
 
 ADB=""
+ADB_USES_WINDOWS_PATH=false
 
-if command -v adb >/dev/null 2>&1; then
-    ADB="adb"
+if [[ -n "${WSL_DISTRO_NAME:-}" ]] \
+    || grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null \
+    || grep -qiE 'microsoft|wsl' /proc/sys/kernel/osrelease 2>/dev/null; then
+    IS_WSL=true
+else
+    IS_WSL=false
+fi
 
-elif command -v powershell.exe >/dev/null 2>&1; then
-    WIN_ADB="$(powershell.exe -NoProfile -Command \
+if [[ "$IS_WSL" == true ]] \
+    && command -v powershell.exe >/dev/null 2>&1 \
+    && command -v wslpath >/dev/null 2>&1; then
+    WIN_ADB="$(powershell.exe -NoProfile -NonInteractive -Command \
         '$p="$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"; if (Test-Path $p) { Write-Output $p }' \
         | tr -d '\r')"
 
-    if [[ -n "$WIN_ADB" ]]; then
-        ADB="$(wslpath "$WIN_ADB")"
+    if [[ -n "$WIN_ADB" ]] \
+        && ADB="$(wslpath -u "$WIN_ADB")" \
+        && [[ -x "$ADB" ]]; then
+        ADB_USES_WINDOWS_PATH=true
     fi
+fi
+
+if [[ -z "$ADB" ]]; then
+    ADB="$(command -v adb || true)"
 fi
 
 # ─────────────────────────────────────────────
@@ -159,14 +173,26 @@ if [[ -n "$ADB" && -x "$ADB" ]]; then
     DEVICE_COUNT="$("$ADB" devices | awk 'NR > 1 && $2 == "device" { count++ } END { print count+0 }')"
 
     if [[ "$DEVICE_COUNT" -gt 0 ]]; then
-        echo
-        echo "==> Installing APK on connected device"
-        "$ADB" install -r "$APK_PATH"
+        APK_INSTALL_PATH="$APK_PATH"
+        if [[ "$ADB_USES_WINDOWS_PATH" == true ]]; then
+            if ! APK_INSTALL_PATH="$(wslpath -w "$APK_PATH")"; then
+                echo
+                echo "Unable to convert the APK path for Windows ADB."
+                echo "APK was built successfully but not installed."
+                APK_INSTALL_PATH=""
+            fi
+        fi
 
-        echo
-        echo "========================================"
-        echo " APK INSTALLED SUCCESSFULLY"
-        echo "========================================"
+        if [[ -n "$APK_INSTALL_PATH" ]]; then
+            echo
+            echo "==> Installing APK on connected device"
+            "$ADB" install -r "$APK_INSTALL_PATH"
+
+            echo
+            echo "========================================"
+            echo " APK INSTALLED SUCCESSFULLY"
+            echo "========================================"
+        fi
     else
         echo
         echo "No Android device connected."

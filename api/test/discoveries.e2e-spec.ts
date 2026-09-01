@@ -315,7 +315,7 @@ describe('DiscoveriesController (e2e)', () => {
         category: 'Other',
         longitude: 7.4474,
         latitude: 46.948,
-        imageObjectKey: 'discoveries/e2e-unauthorized.jpg',
+        imageObjectKey: 'photos/650e8400-e29b-41d4-a716-446655440000.jpg',
         discoveredAt: '2026-08-25T13:00:00.000Z',
       })
       .expect(401);

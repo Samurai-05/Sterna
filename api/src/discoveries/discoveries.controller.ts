@@ -36,7 +36,7 @@ const discoveryExample = {
   category: 'Landscape',
   longitude: 6.6412,
   latitude: 46.7785,
-  imageObjectKey: 'discoveries/lake.jpg',
+  imageObjectKey: 'photos/550e8400-e29b-41d4-a716-446655440000.jpg',
   locationSource: 'manual',
   authorUserName: 'Ada',
   countryCode: 'CHE',

@@ -38,7 +38,7 @@ describe('DiscoveriesService', () => {
     category: 'Other',
     longitude: '9.4669802',
     latitude: '41.1418826',
-    image_object_key: 'discoveries/phi-beach.jpg',
+    image_object_key: 'photos/550e8400-e29b-41d4-a716-446655440000.jpg',
     author_user_name: 'Ada',
     country_code: 'ITA',
     location_source: null,
@@ -80,7 +80,7 @@ describe('DiscoveriesService', () => {
       category: null,
       longitude: 9.4669802,
       latitude: 41.1418826,
-      imageObjectKey: 'discoveries/phi-beach.jpg',
+      imageObjectKey: 'photos/550e8400-e29b-41d4-a716-446655440000.jpg',
       locationSource: 'manual',
       discoveredAt: '2026-08-06T20:31:19.000Z',
     };
