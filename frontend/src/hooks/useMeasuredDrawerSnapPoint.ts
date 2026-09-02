@@ -1,27 +1,28 @@
-import { useEffect, useState, type RefObject } from 'react'
+import { useLayoutEffect, useState, type RefObject } from 'react'
 
 import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
 
-export function useMeasuredDrawerSnapPoint({
+type DrawerSnapPoints = {
+  peek: number
+  expanded: number | null
+}
+
+export function useMeasuredDrawerSnapPoints({
   controlsRef,
   contentRef,
   enabled = true,
-  isExpanded,
   measurementKey,
-  onSnapPointChange,
+  onSnapPointsChange,
 }: {
   controlsRef: RefObject<HTMLDivElement | null>
   contentRef: RefObject<HTMLDivElement | null>
   enabled?: boolean
-  isExpanded: boolean
   measurementKey: number | string | null
-  onSnapPointChange: (snapPoint: string | number) => void
+  onSnapPointsChange: (snapPoints: DrawerSnapPoints) => void
 }) {
-  const [expandedSnapPoint, setExpandedSnapPoint] = useState<number | null>(
-    null,
-  )
+  const [snapPoints, setSnapPoints] = useState<DrawerSnapPoints | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) return
 
     let retryId: number | undefined
@@ -35,43 +36,43 @@ export function useMeasuredDrawerSnapPoint({
         return
       }
 
-      const measureExpandedSnapPoint = () => {
+      const measureSnapPoints = () => {
         const viewportHeight =
           window.visualViewport?.height || window.innerHeight
         if (!viewportHeight) return
 
-        const nextSnapPoint = getDiscoveryDetailExpandedSnapPoint({
-          contentHeight: content.scrollHeight,
-          controlsHeight: controls.getBoundingClientRect().height,
-          viewportHeight,
-        })
-        if (nextSnapPoint <= 0) return
+        const controlsHeight = controls.getBoundingClientRect().height
+        const nextSnapPoints = {
+          peek: Math.ceil(controlsHeight),
+          expanded: getDiscoveryDetailExpandedSnapPoint({
+            contentHeight: content.scrollHeight,
+            controlsHeight,
+            viewportHeight,
+          }),
+        }
+        if (nextSnapPoints.peek <= 0) return
 
-        setExpandedSnapPoint((current) =>
-          current !== null && Math.abs(current - nextSnapPoint) < 0.001
+        setSnapPoints((current) =>
+          current !== null &&
+          current.peek === nextSnapPoints.peek &&
+          current.expanded === nextSnapPoints.expanded
             ? current
-            : nextSnapPoint,
+            : nextSnapPoints,
         )
-        if (isExpanded) onSnapPointChange(nextSnapPoint)
+        onSnapPointsChange(nextSnapPoints)
       }
 
-      measureExpandedSnapPoint()
+      measureSnapPoints()
       if (typeof ResizeObserver !== 'function') return
 
-      resizeObserver = new ResizeObserver(measureExpandedSnapPoint)
+      resizeObserver = new ResizeObserver(measureSnapPoints)
       resizeObserver.observe(controls)
       resizeObserver.observe(content)
-      window.visualViewport?.addEventListener(
-        'resize',
-        measureExpandedSnapPoint,
-      )
+      window.visualViewport?.addEventListener('resize', measureSnapPoints)
 
       return () => {
         resizeObserver?.disconnect()
-        window.visualViewport?.removeEventListener(
-          'resize',
-          measureExpandedSnapPoint,
-        )
+        window.visualViewport?.removeEventListener('resize', measureSnapPoints)
       }
     }
 
@@ -81,14 +82,7 @@ export function useMeasuredDrawerSnapPoint({
       if (retryId !== undefined) window.clearTimeout(retryId)
       cleanupMeasurement?.()
     }
-  }, [
-    contentRef,
-    controlsRef,
-    enabled,
-    isExpanded,
-    measurementKey,
-    onSnapPointChange,
-  ])
+  }, [contentRef, controlsRef, enabled, measurementKey, onSnapPointsChange])
 
-  return expandedSnapPoint
+  return snapPoints
 }

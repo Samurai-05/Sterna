@@ -244,41 +244,69 @@ function LocationProbe() {
 }
 
 describe('DiscoveryDetailPage', () => {
-  it('caps the expanded snap point at half the viewport without enlarging short content', () => {
+  it('derives an expanded pixel snap point that stays above the measured peek', () => {
     expect(
       getDiscoveryDetailExpandedSnapPoint({
         contentHeight: 120,
         controlsHeight: 56,
         viewportHeight: 800,
       }),
-    ).toBeCloseTo(0.22)
+    ).toBe(176)
     expect(
       getDiscoveryDetailExpandedSnapPoint({
         contentHeight: 600,
         controlsHeight: 56,
         viewportHeight: 800,
       }),
-    ).toBe(0.5)
+    ).toBe(656)
+    expect(
+      getDiscoveryDetailExpandedSnapPoint({
+        contentHeight: 20,
+        controlsHeight: 260,
+        viewportHeight: 400,
+      }),
+    ).toBeGreaterThan(260)
+    expect(
+      getDiscoveryDetailExpandedSnapPoint({
+        contentHeight: 20,
+        controlsHeight: 260,
+        viewportHeight: 270,
+      }),
+    ).toBeNull()
   })
 
   it('uses the photo-first layout with a peek drawer and no conventional page title', async () => {
-    renderPage()
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(320)
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 96 } as DOMRect)
 
-    expect(
-      await screen.findByRole('heading', { name: 'Alpine meadow' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('heading', { name: 'Discovery' }),
-    ).not.toBeInTheDocument()
-    expect(screen.getByTestId('discovery-detail-drawer')).toHaveAttribute(
-      'data-snap-point',
-      '5rem',
-    )
-    const expandedContent = screen.getByTestId(
-      'discovery-detail-expanded-content',
-    )
-    expect(expandedContent).toHaveAttribute('aria-hidden', 'true')
-    expect(expandedContent).toHaveClass('invisible')
+    try {
+      renderPage()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Alpine meadow' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', { name: 'Discovery' }),
+      ).not.toBeInTheDocument()
+      await waitFor(() =>
+        expect(screen.getByTestId('discovery-detail-drawer')).toHaveAttribute(
+          'data-snap-point',
+          '96',
+        ),
+      )
+      const expandedContent = screen.getByTestId(
+        'discovery-detail-expanded-content',
+      )
+      expect(expandedContent).toHaveAttribute('aria-hidden', 'true')
+      expect(expandedContent).not.toHaveClass('invisible')
+    } finally {
+      scrollHeight.mockRestore()
+      bounds.mockRestore()
+    }
   })
 
   it('toggles the normal drawer from the title area', async () => {
@@ -315,20 +343,39 @@ describe('DiscoveryDetailPage', () => {
   })
 
   it('groups the contextual discovery details separately from its narrative', async () => {
-    renderPage()
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(320)
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 56 } as DOMRect)
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    try {
+      renderPage()
 
-    const metadata = await screen.findByRole('group', {
-      name: 'Discovery metadata',
-    })
-    expect(metadata).toHaveTextContent('Landscape')
-    expect(metadata).toHaveTextContent('Added by Explorer · today')
-    expect(metadata).toHaveTextContent('Personal map')
-    expect(metadata).not.toHaveTextContent('A quiet meadow above the lake.')
-    expect(screen.getByText('A quiet meadow above the lake.')).toBeVisible()
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-drawer-state', 'peek'),
+      )
+      const titleToggle = screen.getByRole('button', {
+        name: 'Alpine meadow',
+      })
+      expect(titleToggle).not.toBeDisabled()
+      fireEvent.click(titleToggle)
+
+      const metadata = await screen.findByRole('group', {
+        name: 'Discovery metadata',
+      })
+      expect(metadata).toHaveTextContent('Landscape')
+      expect(metadata).toHaveTextContent('Added by Explorer · today')
+      expect(metadata).toHaveTextContent('Personal map')
+      expect(metadata).not.toHaveClass('rounded-xl', 'bg-secondary/45')
+      expect(metadata).not.toHaveTextContent('A quiet meadow above the lake.')
+      expect(screen.getByText('A quiet meadow above the lake.')).toBeVisible()
+    } finally {
+      scrollHeight.mockRestore()
+      bounds.mockRestore()
+    }
   })
 
   it('keeps author actions accessible from the compact drawer', async () => {
@@ -376,14 +423,14 @@ describe('DiscoveryDetailPage', () => {
     expect(viewer).toHaveClass('absolute', 'inset-0')
   })
 
-  it('preloads the adjacent slide and tunes the fullscreen viewer for tactile zoom', async () => {
+  it('preloads the adjacent slide without overriding YARL slide timing', async () => {
     renderPage()
 
     const viewer = await screen.findByTestId('inline-photo-viewer')
 
     expect(viewer).toHaveAttribute('data-carousel-preload', '1')
-    expect(viewer).toHaveAttribute('data-animation-fade', '180')
-    expect(viewer).toHaveAttribute('data-animation-swipe', '260')
+    expect(viewer).not.toHaveAttribute('data-animation-fade')
+    expect(viewer).not.toHaveAttribute('data-animation-swipe')
     expect(viewer).toHaveAttribute('data-zoom-max-pixel-ratio', '3')
     expect(viewer).toHaveAttribute('data-zoom-double-tap-delay', '250')
     expect(viewer).toHaveAttribute('data-zoom-scroll-to-zoom', 'true')
@@ -549,32 +596,81 @@ describe('DiscoveryDetailPage', () => {
   })
 
   it('exposes minimized, peek, and expanded drawer states sequentially', async () => {
-    renderPage()
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(320)
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 56 } as DOMRect)
 
-    const drawer = await screen.findByTestId('discovery-detail-drawer')
-    expect(drawer).toHaveAttribute('data-snap-points', '1.75rem,5rem,expanded')
-    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-    expect(screen.getByRole('button', { name: 'Alpine meadow' })).toBeVisible()
+    try {
+      renderPage()
 
-    const handle = screen.getByRole('button', { name: 'Collapse details' })
-    expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
-    fireEvent.click(handle)
-    expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
-    expect(
-      screen.queryByRole('button', { name: 'Alpine meadow' }),
-    ).not.toBeInTheDocument()
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      expect(drawer).toHaveAttribute(
+        'data-snap-points',
+        expect.stringContaining('1.75rem'),
+      )
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-drawer-state', 'peek'),
+      )
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toBeVisible()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
-    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      const handle = screen.getByRole('button', { name: 'Collapse details' })
+      expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
+      fireEvent.click(handle)
+      expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
-    expect(
-      await screen.findByText('A quiet meadow above the lake.'),
-    ).toBeVisible()
-    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+      fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
-    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
+      expect(
+        await screen.findByText('A quiet meadow above the lake.'),
+      ).toBeVisible()
+      expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+    } finally {
+      scrollHeight.mockRestore()
+      bounds.mockRestore()
+    }
+  })
+
+  it('keeps one stable drawer popup and measures its centered peek state', async () => {
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 112 } as DOMRect)
+
+    try {
+      renderPage()
+
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-peek-snap-point', '112'),
+      )
+      expect(drawer.getAttribute('data-snap-points')).not.toContain(',5rem,')
+
+      const popup = document.querySelector('[data-slot="drawer-popup"]')
+      expect(popup).not.toHaveClass('!h-auto', 'relative')
+      expect(popup).toHaveClass('touch-none')
+
+      const title = screen.getByRole('button', { name: 'Alpine meadow' })
+      expect(title).toHaveClass('text-center')
+      expect(title).not.toHaveClass('text-left')
+
+      const details = screen.getByTestId('discovery-detail-expanded-content')
+      expect(details).not.toHaveClass('invisible', 'absolute', 'h-0')
+      expect(details).toHaveClass('touch-auto')
+    } finally {
+      bounds.mockRestore()
+    }
   })
 
   it('replaces the URL on carousel changes so browser back leaves the gallery', async () => {

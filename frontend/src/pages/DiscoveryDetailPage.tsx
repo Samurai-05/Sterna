@@ -35,11 +35,9 @@ import { discoveryPath } from '@/lib/discovery-path'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { imageUrl, type Discovery } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
-import { useMeasuredDrawerSnapPoint } from '@/hooks/useMeasuredDrawerSnapPoint'
+import { useMeasuredDrawerSnapPoints } from '@/hooks/useMeasuredDrawerSnapPoint'
 
 const MINIMIZED_SNAP_POINT = '1.75rem'
-const PEEK_SNAP_POINT = '5rem'
-const EXPANDED_FALLBACK_SNAP_POINT = 0.5
 const EMPTY_GALLERY: Discovery[] = []
 const UNLOADED_PHOTO_SOURCE =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
@@ -72,7 +70,9 @@ export function DiscoveryDetailPage({
     () => getDiscoveryRouteState(location.state).justCreated === true,
   )
   const createdFeedbackConsumedRef = useRef(false)
-  const [snapPoint, setSnapPoint] = useState<string | number>(PEEK_SNAP_POINT)
+  const [snapPoint, setSnapPoint] = useState<string | number>(
+    MINIMIZED_SNAP_POINT,
+  )
   const [deletedDiscoveryIds, setDeletedDiscoveryIds] = useState<Set<number>>(
     () => new Set(),
   )
@@ -80,6 +80,10 @@ export function DiscoveryDetailPage({
   const actionTriggerRef = useRef<HTMLButtonElement>(null)
   const drawerControlsRef = useRef<HTMLDivElement>(null)
   const expandedContentRef = useRef<HTMLDivElement>(null)
+  const measuredDrawerSnapPointsRef = useRef<{
+    peek: number
+    expanded: number | null
+  } | null>(null)
   const routeReturnTo = routeState.returnTo
   const backgroundLocation = routeState.backgroundLocation
   const justCreated = routeState.justCreated
@@ -283,17 +287,44 @@ export function DiscoveryDetailPage({
   const pageClassName =
     'sterna-discovery-screen fixed inset-0 z-40 !p-0 overflow-hidden bg-stone-950'
 
-  const isMinimized = snapPoint === MINIMIZED_SNAP_POINT
-  const isExpanded =
-    !isMinimized && snapPoint !== PEEK_SNAP_POINT && snapPoint !== null
-  const expandedSnapPoint = useMeasuredDrawerSnapPoint({
+  const handleDrawerSnapPointsChange = useCallback(
+    (nextSnapPoints: { peek: number; expanded: number | null }) => {
+      const previousSnapPoints = measuredDrawerSnapPointsRef.current
+      measuredDrawerSnapPointsRef.current = nextSnapPoints
+      setSnapPoint((currentSnapPoint) => {
+        if (
+          previousSnapPoints === null ||
+          currentSnapPoint === previousSnapPoints.peek
+        ) {
+          return nextSnapPoints.peek
+        }
+        if (
+          previousSnapPoints.expanded !== null &&
+          currentSnapPoint === previousSnapPoints.expanded
+        ) {
+          return nextSnapPoints.expanded ?? nextSnapPoints.peek
+        }
+        return currentSnapPoint
+      })
+    },
+    [],
+  )
+  const measuredDrawerSnapPoints = useMeasuredDrawerSnapPoints({
     controlsRef: drawerControlsRef,
     contentRef: expandedContentRef,
     enabled: Boolean(discovery),
-    isExpanded,
     measurementKey: discovery?.id ?? null,
-    onSnapPointChange: setSnapPoint,
+    onSnapPointsChange: handleDrawerSnapPointsChange,
   })
+  const peekSnapPoint = measuredDrawerSnapPoints?.peek ?? MINIMIZED_SNAP_POINT
+  const expandedSnapPoint = measuredDrawerSnapPoints?.expanded ?? null
+  const isMinimized = snapPoint === MINIMIZED_SNAP_POINT
+  const isExpanded =
+    expandedSnapPoint !== null && snapPoint === expandedSnapPoint
+  const drawerSnapPoints =
+    expandedSnapPoint === null
+      ? [MINIMIZED_SNAP_POINT, peekSnapPoint]
+      : [MINIMIZED_SNAP_POINT, peekSnapPoint, expandedSnapPoint]
 
   useEffect(() => {
     if (!isActionMenuOpen) return
@@ -455,8 +486,9 @@ export function DiscoveryDetailPage({
         data-drawer-state={
           isMinimized ? 'minimized' : isExpanded ? 'expanded' : 'peek'
         }
-        data-snap-points={`${MINIMIZED_SNAP_POINT},${PEEK_SNAP_POINT},expanded`}
-        data-expanded-snap-point={expandedSnapPoint ?? 'null'}
+        data-snap-points={drawerSnapPoints.join(',')}
+        data-peek-snap-point={measuredDrawerSnapPoints?.peek ?? 'null'}
+        data-expanded-snap-point={expandedSnapPoint}
         data-snap-point={snapPoint}
         className="relative z-50"
       >
@@ -465,11 +497,7 @@ export function DiscoveryDetailPage({
           onOpenChange={() => undefined}
           modal={false}
           disablePointerDismissal
-          snapPoints={[
-            MINIMIZED_SNAP_POINT,
-            PEEK_SNAP_POINT,
-            expandedSnapPoint ?? EXPANDED_FALLBACK_SNAP_POINT,
-          ]}
+          snapPoints={drawerSnapPoints}
           snapPoint={snapPoint}
           onSnapPointChange={(nextSnapPoint) => {
             if (nextSnapPoint !== null) setSnapPoint(nextSnapPoint)
@@ -477,8 +505,7 @@ export function DiscoveryDetailPage({
           snapToSequentialPoints
         >
           <DrawerContent
-            contentDriven
-            className={`border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-[background-color,color,box-shadow] duration-200 ease-out motion-reduce:transition-none ${isExpanded ? 'bg-card/95 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.2)]' : isMinimized ? 'bg-black/20 text-white' : 'bg-black/50 text-white'}`}
+            className={`[--drawer-content-max-height:100dvh] border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-[background-color,color,box-shadow] duration-200 ease-out motion-reduce:transition-none ${isExpanded ? 'bg-card/95 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.2)]' : isMinimized ? 'bg-black/20 text-white' : 'bg-black/50 text-white'}`}
           >
             <div
               ref={drawerControlsRef}
@@ -490,37 +517,31 @@ export function DiscoveryDetailPage({
                 onClick={() => {
                   setSnapPoint(
                     isExpanded
-                      ? PEEK_SNAP_POINT
+                      ? peekSnapPoint
                       : isMinimized
-                        ? PEEK_SNAP_POINT
+                        ? peekSnapPoint
                         : MINIMIZED_SNAP_POINT,
                   )
                 }}
                 className={isExpanded ? '' : '[&>span]:bg-white/70'}
               />
-              <DrawerHeader
-                className={`shrink-0 px-5 pt-0 text-left ${isMinimized ? 'hidden' : 'pb-[max(0.75rem,var(--sterna-safe-area-bottom))]'}`}
-              >
+              <DrawerHeader className="shrink-0 items-center px-5 pt-0 pb-[max(0.75rem,var(--sterna-safe-area-bottom))] text-center">
                 <DrawerTitle render={<h1 className="sr-only" />}>
                   {discovery.name}
                 </DrawerTitle>
-                {!isMinimized && (
-                  <button
-                    type="button"
-                    className={`min-h-11 w-full truncate rounded-xl px-0 text-left font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
-                    aria-controls="discovery-detail-expanded-content"
-                    aria-expanded={isExpanded}
-                    onClick={() =>
-                      setSnapPoint(
-                        isExpanded
-                          ? PEEK_SNAP_POINT
-                          : (expandedSnapPoint ?? EXPANDED_FALLBACK_SNAP_POINT),
-                      )
-                    }
-                  >
-                    {discovery.name}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={expandedSnapPoint === null}
+                  className={`min-h-11 w-full truncate rounded-xl px-0 text-center font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
+                  aria-controls="discovery-detail-expanded-content"
+                  aria-expanded={isExpanded}
+                  onClick={() => {
+                    if (expandedSnapPoint === null) return
+                    setSnapPoint(isExpanded ? peekSnapPoint : expandedSnapPoint)
+                  }}
+                >
+                  {discovery.name}
+                </button>
               </DrawerHeader>
             </div>
 
@@ -530,7 +551,7 @@ export function DiscoveryDetailPage({
               data-testid="discovery-detail-expanded-content"
               data-base-ui-swipe-ignore=""
               aria-hidden={!isExpanded}
-              className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))] ${!isExpanded ? 'invisible pointer-events-none absolute inset-x-0 top-full h-0 overflow-hidden opacity-0' : ''}`}
+              className="min-h-0 flex-1 touch-auto overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))]"
             >
               <DiscoveryDetailsContent
                 discovery={discovery}
@@ -644,7 +665,6 @@ function DiscoveryPhotoZoom({
           imageFit: 'contain',
           preload: 1,
         }}
-        animation={{ fade: 180, swipe: 260 }}
         zoom={{
           maxZoomPixelRatio: 3,
           doubleTapDelay: 250,

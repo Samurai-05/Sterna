@@ -15,11 +15,7 @@ export function DiscoveryDetailsContent({
 }) {
   return (
     <div className="border-t border-border/70 pt-5">
-      <div
-        role="group"
-        aria-label="Discovery metadata"
-        className="rounded-xl border border-border/70 bg-secondary/45 p-4"
-      >
+      <div role="group" aria-label="Discovery metadata">
         <div className="flex items-center gap-2 text-sm font-semibold text-primary">
           <CategoryIcon category={discovery.category} className="size-4" />
           {categoryLabel(discovery.category)}
