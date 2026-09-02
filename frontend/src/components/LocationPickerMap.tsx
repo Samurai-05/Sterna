@@ -11,8 +11,8 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 
 import {
   getCurrentDevicePosition,
-  isNativeAndroid,
 } from '@/lib/device-location'
+import { defaultGlobeViewport } from '@/lib/map-viewport'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -24,7 +24,7 @@ export interface LocationPickerMapHandle {
 }
 
 interface LocationPickerMapProps {
-  coordinates: [number, number]
+  coordinates?: [number, number]
   onChange: (coordinates: [number, number]) => void
   className?: string
 }
@@ -46,7 +46,15 @@ export const LocationPickerMap = forwardRef<
 
   useImperativeHandle(ref, () => ({
     flyTo: (nextCoordinates, zoom = 15) => {
-      marker.current?.setLngLat(nextCoordinates)
+      if (!marker.current && map.current) {
+        marker.current = createLocationMarker(
+          map.current,
+          nextCoordinates,
+          onChangeRef,
+        )
+      } else {
+        marker.current?.setLngLat(nextCoordinates)
+      }
       map.current?.flyTo({ center: nextCoordinates, zoom })
     },
   }))
@@ -59,8 +67,8 @@ export const LocationPickerMap = forwardRef<
     const instance = new Map({
       container: mapContainer.current,
       style: mapStyle,
-      center: initialCoordinates.current,
-      zoom: 13,
+      center: initialCoordinates.current ?? defaultGlobeViewport.center,
+      zoom: initialCoordinates.current ? 13 : defaultGlobeViewport.zoom,
     })
 
     instance.addControl(
@@ -71,36 +79,37 @@ export const LocationPickerMap = forwardRef<
     const geolocate = new GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: false,
+      showUserLocation: false,
     })
     instance.addControl(geolocate, 'top-right')
 
-    const pin = new Marker({ draggable: true, color: '#2d5a3d' })
-      .setLngLat(initialCoordinates.current)
-      .addTo(instance)
-
-    pin.on('dragend', () => {
-      const { lng, lat } = pin.getLngLat()
-      onChangeRef.current([lng, lat])
-    })
+    if (initialCoordinates.current) {
+      marker.current = createLocationMarker(
+        instance,
+        initialCoordinates.current,
+        onChangeRef,
+      )
+    }
 
     const moveToPosition = (coordinates: [number, number]) => {
-      pin.setLngLat(coordinates)
+      if (!marker.current) {
+        marker.current = createLocationMarker(
+          instance,
+          coordinates,
+          onChangeRef,
+        )
+      } else {
+        marker.current.setLngLat(coordinates)
+      }
       instance.flyTo({ center: coordinates, zoom: 15 })
       onChangeRef.current(coordinates)
     }
 
     instance.on('click', (event) => {
-      pin.setLngLat(event.lngLat)
-      onChangeRef.current([event.lngLat.lng, event.lngLat.lat])
+      moveToPosition([event.lngLat.lng, event.lngLat.lat])
     })
 
-    geolocate.on('geolocate', (event) => {
-      const { longitude, latitude } = event.coords
-      moveToPosition([longitude, latitude])
-    })
-
-    let nativeLocateButton: HTMLButtonElement | null = null
-    const onNativeLocate = (event: Event) => {
+    const onLocate = (event: Event) => {
       event.preventDefault()
       event.stopImmediatePropagation()
       void getCurrentDevicePosition().then(
@@ -109,20 +118,17 @@ export const LocationPickerMap = forwardRef<
       )
     }
 
-    if (isNativeAndroid()) {
-      nativeLocateButton = instance
-        .getContainer()
-        .querySelector<HTMLButtonElement>('.maplibregl-ctrl-geolocate')
-      nativeLocateButton?.addEventListener('click', onNativeLocate, true)
-    }
+    const locateButton = instance
+      .getContainer()
+      .querySelector<HTMLButtonElement>('.maplibregl-ctrl-geolocate')
+    locateButton?.addEventListener('click', onLocate, true)
 
     map.current = instance
-    marker.current = pin
 
     return () => {
       map.current = null
       marker.current = null
-      nativeLocateButton?.removeEventListener('click', onNativeLocate, true)
+      locateButton?.removeEventListener('click', onLocate, true)
       instance.remove()
     }
   }, [])
@@ -136,3 +142,18 @@ export const LocationPickerMap = forwardRef<
     />
   )
 })
+
+function createLocationMarker(
+  map: Map,
+  coordinates: [number, number],
+  onChangeRef: { current: (coordinates: [number, number]) => void },
+): Marker {
+  const marker = new Marker({ draggable: true, color: '#2d5a3d' })
+    .setLngLat(coordinates)
+    .addTo(map)
+  marker.on('dragend', () => {
+    const { lng, lat } = marker.getLngLat()
+    onChangeRef.current([lng, lat])
+  })
+  return marker
+}

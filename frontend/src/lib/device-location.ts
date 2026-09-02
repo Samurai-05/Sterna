@@ -33,6 +33,7 @@ export type DeviceLocationPosition = {
   coords: {
     latitude: number
     longitude: number
+    accuracy: number
   }
 }
 
@@ -40,19 +41,21 @@ export type DeviceLocationOptions = {
   enableHighAccuracy?: boolean
   timeout?: number
   maximumAge?: number
+  maximumAcceptedAccuracy?: number
 }
 
 const nativeLocationOptions: NativePositionOptions = {
   enableHighAccuracy: true,
   timeout: 10000,
-  maximumAge: 60000,
+  maximumAge: 0,
   enableLocationFallback: true,
 }
 
 const defaultWebLocationOptions: DeviceLocationOptions = {
   enableHighAccuracy: true,
   timeout: 8000,
-  maximumAge: 60000,
+  maximumAge: 0,
+  maximumAcceptedAccuracy: 1000,
 }
 
 let pendingNativePosition: Promise<DeviceLocationPosition> | null = null
@@ -72,7 +75,16 @@ export function getCurrentDevicePosition(
     if (!pendingNativePosition) {
       pendingNativePosition = Promise.resolve()
         .then(() => Geolocation.getCurrentPosition(nativeLocationOptions))
-        .then(toDeviceLocationPosition)
+        .then(async (position) => {
+          // getCurrentPosition may return an Android cached/fallback position
+          // even though location services are disabled. Confirm the system
+          // state before treating it as the user's current position.
+          await Geolocation.checkPermissions()
+          return toDeviceLocationPosition(
+            position,
+            webOptions.maximumAcceptedAccuracy,
+          )
+        })
         .catch((error: unknown) => {
           throw normalizeLocationError(error)
         })
@@ -89,6 +101,8 @@ export function getCurrentDevicePosition(
 function getBrowserPosition(
   options: DeviceLocationOptions,
 ): Promise<DeviceLocationPosition> {
+  const { maximumAcceptedAccuracy, ...browserOptions } = options
+
   return new Promise((resolve, reject) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       reject(
@@ -101,22 +115,45 @@ function getBrowserPosition(
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => resolve(toDeviceLocationPosition(position)),
+      (position) => {
+        try {
+          resolve(
+            toDeviceLocationPosition(position, maximumAcceptedAccuracy),
+          )
+        } catch (error) {
+          reject(error)
+        }
+      },
       (error) => reject(normalizeLocationError(error)),
-      options,
+      browserOptions,
     )
   })
 }
 
-function toDeviceLocationPosition(position: {
-  timestamp: number
-  coords: { latitude: number; longitude: number }
-}): DeviceLocationPosition {
+function toDeviceLocationPosition(
+  position: {
+    timestamp: number
+    coords: { latitude: number; longitude: number; accuracy: number }
+  },
+  maximumAcceptedAccuracy?: number,
+): DeviceLocationPosition {
+  if (
+    maximumAcceptedAccuracy !== undefined &&
+    (!Number.isFinite(position.coords.accuracy) ||
+      position.coords.accuracy > maximumAcceptedAccuracy)
+  ) {
+    throw new DeviceLocationError(
+      'unavailable',
+      'The available device location is too imprecise.',
+    )
+  }
+
   return {
     timestamp: position.timestamp,
     coords: {
       latitude: position.coords.latitude,
       longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
     },
   }
 }

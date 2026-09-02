@@ -19,7 +19,7 @@ import {
   searchLocations,
 } from '@/lib/api'
 import type { MapTarget } from '@/lib/map-target'
-import { defaultMapViewport, getStoredMapViewport } from '@/lib/map-viewport'
+import { getStoredMapViewport } from '@/lib/map-viewport'
 import {
   clearRecentSearches,
   loadRecentSearches,
@@ -45,8 +45,8 @@ export function SearchPage() {
   const [recentSearches, setRecentSearches] = useState(() =>
     userId ? loadRecentSearches(userId) : [],
   )
-  const [nearbyOrigin, setNearbyOrigin] = useState<[number, number]>(
-    () => getStoredMapViewport()?.center ?? defaultMapViewport.center,
+  const [nearbyOrigin, setNearbyOrigin] = useState<[number, number] | null>(
+    () => getStoredMapViewport()?.center ?? null,
   )
   const { data: activeMap } = useActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
@@ -147,6 +147,8 @@ export function SearchPage() {
   ])
 
   const nearbyResults = useMemo<NearbyResult[]>(() => {
+    if (!nearbyOrigin) return []
+
     const candidates: SearchResult[] = [
       ...(poisQuery.data ?? []).map((poi) => ({
         id: `poi:${poi.id}`,

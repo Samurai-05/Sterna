@@ -5,6 +5,7 @@ import { Route, Routes, useLocation } from 'react-router'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { clearSession, saveSession } from '@/lib/session'
 import { loadRecentSearches, saveRecentSearch } from '@/lib/recent-searches'
+import { saveMapViewport } from '@/lib/map-viewport'
 import * as api from '@/lib/api'
 import { SearchPage } from './SearchPage'
 
@@ -103,6 +104,7 @@ describe('SearchPage', () => {
 
   it('suggests nearby POIs and previous discoveries by distance', async () => {
     prepareSessionAndQueries()
+    saveMapViewport({ center: [2.3522, 48.8566], zoom: 12 })
     vi.mocked(api.getPois).mockResolvedValue([
       {
         id: 'poi-1',

@@ -3,9 +3,9 @@ export type MapViewport = {
   zoom: number
 }
 
-export const defaultMapViewport: MapViewport = {
-  center: [2.3522, 48.8566],
-  zoom: 12,
+export const defaultGlobeViewport: MapViewport = {
+  center: [0, 20],
+  zoom: 1.5,
 }
 
 const mapViewportStorageKey = 'sterna.mapViewport'
