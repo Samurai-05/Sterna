@@ -15,25 +15,31 @@ export function DiscoveryDetailsContent({
 }) {
   return (
     <div className="border-t border-border/70 pt-5">
-      <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-        <CategoryIcon category={discovery.category} className="size-4" />
-        {categoryLabel(discovery.category)}
-      </div>
-      <div className="mt-5 grid gap-3 text-sm text-muted-foreground">
-        <p className="flex items-start gap-2">
-          <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>{discoveryLocationLabel(discovery)}</span>
-        </p>
-        <p className="flex items-start gap-2">
-          <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>
-            Added by {discovery.author} · {discovery.relativeDate}
-          </span>
-        </p>
-        <p className="flex items-start gap-2">
-          <UsersRound className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>{groupId ? 'Shared group map' : 'Personal map'}</span>
-        </p>
+      <div
+        role="group"
+        aria-label="Discovery metadata"
+        className="rounded-xl border border-border/70 bg-secondary/45 p-4"
+      >
+        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+          <CategoryIcon category={discovery.category} className="size-4" />
+          {categoryLabel(discovery.category)}
+        </div>
+        <div className="mt-4 grid gap-3 text-sm text-muted-foreground">
+          <p className="flex items-start gap-2">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>{discoveryLocationLabel(discovery)}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>
+              Added by {discovery.author} · {discovery.relativeDate}
+            </span>
+          </p>
+          <p className="flex items-start gap-2">
+            <UsersRound className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>{groupId ? 'Shared group map' : 'Personal map'}</span>
+          </p>
+        </div>
       </div>
       <p className="mt-6 text-base leading-6 text-foreground">
         {discovery.description || 'No description added.'}

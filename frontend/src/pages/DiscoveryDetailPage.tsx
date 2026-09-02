@@ -375,6 +375,15 @@ export function DiscoveryDetailPage({
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[60] flex justify-between px-[max(1rem,var(--sterna-safe-area-left))] pr-[max(1rem,var(--sterna-safe-area-right))] pt-[max(1rem,var(--sterna-safe-area-top))]">
         <FloatingBackButton onClick={handleBack} />
+        {galleryDiscoveries.length > 1 && (
+          <output
+            aria-live="polite"
+            aria-label={`Photo ${activeDiscoveryIndex + 1} of ${galleryDiscoveries.length}`}
+            className="pointer-events-none absolute left-1/2 top-[max(1rem,var(--sterna-safe-area-top))] -translate-x-1/2 rounded-full border border-white/15 bg-black/45 px-3 py-1.5 font-sans text-xs font-medium tabular-nums text-white shadow-lg backdrop-blur-md"
+          >
+            {activeDiscoveryIndex + 1} / {galleryDiscoveries.length}
+          </output>
+        )}
         {isAuthor && (
           <div ref={actionMenuRef} className="pointer-events-auto relative">
             <Button
@@ -469,7 +478,7 @@ export function DiscoveryDetailPage({
         >
           <DrawerContent
             contentDriven
-            className={`border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-colors duration-300 ${isExpanded ? 'bg-card/90 text-foreground' : isMinimized ? 'bg-black/10 text-white' : 'bg-black/45 text-white'}`}
+            className={`border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-[background-color,color,box-shadow] duration-200 ease-out motion-reduce:transition-none ${isExpanded ? 'bg-card/95 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.2)]' : isMinimized ? 'bg-black/20 text-white' : 'bg-black/50 text-white'}`}
           >
             <div
               ref={drawerControlsRef}
@@ -633,7 +642,13 @@ function DiscoveryPhotoZoom({
         carousel={{
           finite: true,
           imageFit: 'contain',
-          preload: 0,
+          preload: 1,
+        }}
+        animation={{ fade: 180, swipe: 260 }}
+        zoom={{
+          maxZoomPixelRatio: 3,
+          doubleTapDelay: 250,
+          scrollToZoom: true,
         }}
         styles={{
           root: { backgroundColor: 'transparent' },

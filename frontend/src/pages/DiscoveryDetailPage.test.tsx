@@ -42,6 +42,9 @@ vi.mock('yet-another-react-lightbox', () => ({
     on,
     onErrorCapture,
     render,
+    carousel,
+    animation,
+    zoom,
   }: {
     open: boolean
     slides: Array<{ src: string; alt?: string }>
@@ -52,6 +55,13 @@ vi.mock('yet-another-react-lightbox', () => ({
     render?: {
       slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
     }
+    carousel?: { preload?: number }
+    animation?: { fade?: number; swipe?: number }
+    zoom?: {
+      maxZoomPixelRatio?: number
+      doubleTapDelay?: number
+      scrollToZoom?: boolean
+    }
   }) =>
     open ? (
       <InlineLightboxTestDouble
@@ -60,6 +70,9 @@ vi.mock('yet-another-react-lightbox', () => ({
         on={on}
         onErrorCapture={onErrorCapture}
         render={render}
+        carousel={carousel}
+        animation={animation}
+        zoom={zoom}
         slides={slides}
       />
     ) : null,
@@ -71,6 +84,9 @@ function InlineLightboxTestDouble({
   on,
   onErrorCapture,
   render,
+  carousel,
+  animation,
+  zoom,
   slides,
 }: {
   index: number
@@ -79,6 +95,13 @@ function InlineLightboxTestDouble({
   onErrorCapture?: (event: SyntheticEvent<HTMLDivElement>) => void
   render?: {
     slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
+  }
+  carousel?: { preload?: number }
+  animation?: { fade?: number; swipe?: number }
+  zoom?: {
+    maxZoomPixelRatio?: number
+    doubleTapDelay?: number
+    scrollToZoom?: boolean
   }
   slides: Array<{ src: string; alt?: string }>
 }) {
@@ -91,6 +114,12 @@ function InlineLightboxTestDouble({
       data-slide-count={slides.length}
       data-inline-width={inline?.style?.width}
       data-inline-height={inline?.style?.height}
+      data-carousel-preload={carousel?.preload}
+      data-animation-fade={animation?.fade}
+      data-animation-swipe={animation?.swipe}
+      data-zoom-max-pixel-ratio={zoom?.maxZoomPixelRatio}
+      data-zoom-double-tap-delay={zoom?.doubleTapDelay}
+      data-zoom-scroll-to-zoom={zoom?.scrollToZoom}
       className={inline?.className}
       onErrorCapture={onErrorCapture}
       style={inline?.style}
@@ -285,6 +314,23 @@ describe('DiscoveryDetailPage', () => {
     bounds.mockRestore()
   })
 
+  it('groups the contextual discovery details separately from its narrative', async () => {
+    renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Alpine meadow' }),
+    )
+
+    const metadata = await screen.findByRole('group', {
+      name: 'Discovery metadata',
+    })
+    expect(metadata).toHaveTextContent('Landscape')
+    expect(metadata).toHaveTextContent('Added by Explorer · today')
+    expect(metadata).toHaveTextContent('Personal map')
+    expect(metadata).not.toHaveTextContent('A quiet meadow above the lake.')
+    expect(screen.getByText('A quiet meadow above the lake.')).toBeVisible()
+  })
+
   it('keeps author actions accessible from the compact drawer', async () => {
     renderPage()
 
@@ -328,6 +374,41 @@ describe('DiscoveryDetailPage', () => {
     expect(viewer).toHaveAttribute('data-inline-width', '100%')
     expect(viewer).toHaveAttribute('data-inline-height', '100%')
     expect(viewer).toHaveClass('absolute', 'inset-0')
+  })
+
+  it('preloads the adjacent slide and tunes the fullscreen viewer for tactile zoom', async () => {
+    renderPage()
+
+    const viewer = await screen.findByTestId('inline-photo-viewer')
+
+    expect(viewer).toHaveAttribute('data-carousel-preload', '1')
+    expect(viewer).toHaveAttribute('data-animation-fade', '180')
+    expect(viewer).toHaveAttribute('data-animation-swipe', '260')
+    expect(viewer).toHaveAttribute('data-zoom-max-pixel-ratio', '3')
+    expect(viewer).toHaveAttribute('data-zoom-double-tap-delay', '250')
+    expect(viewer).toHaveAttribute('data-zoom-scroll-to-zoom', 'true')
+  })
+
+  it('shows the current photo position in the fullscreen controls', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Lac de Bretaye',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+
+    renderPage({
+      returnTo: '/collection',
+      galleryIds: [7, 8],
+      gallerySource: 'personal',
+    })
+
+    expect(await screen.findByLabelText('Photo 1 of 2')).toBeVisible()
+
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+
+    expect(await screen.findByLabelText('Photo 2 of 2')).toBeVisible()
   })
 
   it('keeps the carousel mounted and shows a local unavailable slide when one photo fails', async () => {
