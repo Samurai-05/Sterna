@@ -33,7 +33,10 @@ import {
 } from '@/lib/api'
 import { useDiscoveryPhotoSources } from '@/hooks/useDiscoveryPhotoSource'
 import { discoveryPath } from '@/lib/discovery-path'
-import { handleDiscoveryDrawerOpenChange } from '@/lib/discovery-drawer'
+import {
+  handleDiscoveryDrawerOpenChange,
+  handleViewerBackRequest as handleViewerBackRequestState,
+} from '@/lib/discovery-drawer'
 import { resolveDiscoveryGroupId } from '@/lib/discovery-group'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { imageUrl, type Discovery } from '@/lib/mock-data'
@@ -97,6 +100,17 @@ export function DiscoveryDetailPage({
 
     navigate(returnTo, { replace: true })
   }
+
+  const handleViewerBackRequest = () =>
+    handleViewerBackRequestState({
+      isDeleteDialogOpen,
+      isActionMenuOpen,
+      closeDeleteDialog: () => setIsDeleteDialogOpen(false),
+      closeActionMenu: () => setIsActionMenuOpen(false),
+      restoreActionMenuFocus: () =>
+        window.setTimeout(() => actionTriggerRef.current?.focus(), 0),
+      handleBack,
+    })
 
   useEffect(() => {
     if (!justCreated || createdFeedbackConsumedRef.current) return
@@ -302,7 +316,7 @@ export function DiscoveryDetailPage({
 
   const peekSnapPoint = useMeasuredDrawerPeekSnapPoint({
     controlsRef: drawerControlsRef,
-    enabled: Boolean(discovery),
+    enabled: Boolean(discovery) && !isLoading,
     fallbackSnapPoint: PEEK_FALLBACK_SNAP_POINT,
     measurementKey: discovery?.id ?? null,
   })
@@ -341,22 +355,13 @@ export function DiscoveryDetailPage({
         setIsActionMenuOpen(false)
       }
     }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return
-      event.preventDefault()
-      setIsActionMenuOpen(false)
-      actionTriggerRef.current?.focus()
-    }
-
     document.addEventListener('pointerdown', handlePointerDown)
-    document.addEventListener('keydown', handleKeyDown)
     actionMenuRef.current
       ?.querySelector<HTMLElement>('[role="menuitem"]')
       ?.focus()
 
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown)
-      document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isActionMenuOpen])
 
@@ -501,7 +506,11 @@ export function DiscoveryDetailPage({
         <Drawer
           open
           onOpenChange={(nextOpen, eventDetails) =>
-            handleDiscoveryDrawerOpenChange(nextOpen, eventDetails, handleBack)
+            handleDiscoveryDrawerOpenChange(
+              nextOpen,
+              eventDetails,
+              handleViewerBackRequest,
+            )
           }
           modal={false}
           disablePointerDismissal

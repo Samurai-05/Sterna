@@ -340,6 +340,94 @@ describe('DiscoveryDetailPage', () => {
     )
   })
 
+  it('closes the action menu on the first Escape and navigates on the second', async () => {
+    renderPage(undefined, { withPreviousContext: true })
+
+    const trigger = await screen.findByRole('button', { name: 'More actions' })
+    fireEvent.click(trigger)
+    expect(
+      screen.getByRole('menuitem', { name: 'Delete discovery' }),
+    ).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('menuitem', { name: 'Delete discovery' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/7',
+    )
+    await waitFor(() => expect(trigger).toHaveFocus())
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(screen.getByTestId('location-probe')).toHaveTextContent(
+        '/collection',
+      ),
+    )
+  })
+
+  it('closes the delete dialog on the first Escape and navigates on the second', async () => {
+    renderPage(undefined, { withPreviousContext: true })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
+    expect(
+      screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
+    ).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('alertdialog', { name: 'Delete discovery?' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/7',
+    )
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(screen.getByTestId('location-probe')).toHaveTextContent(
+        '/collection',
+      ),
+    )
+  })
+
+  it('waits to measure the All Groups peek controls until the drawer is rendered', async () => {
+    let resolveGroups!: (groups: []) => void
+    getGroupsMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveGroups = resolve
+      }),
+    )
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 123 } as DOMRect)
+
+    try {
+      renderPage(
+        { galleryIds: [7], gallerySource: 'all-groups' },
+        { initialPath: '/discoveries/7' },
+      )
+
+      expect(await screen.findByText('Loading discovery…')).toBeVisible()
+      expect(
+        screen.queryByTestId('discovery-detail-drawer'),
+      ).not.toBeInTheDocument()
+      expect(bounds).not.toHaveBeenCalled()
+
+      await act(async () => resolveGroups([]))
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-peek-snap-point', '123'),
+      )
+    } finally {
+      bounds.mockRestore()
+    }
+  })
+
   it('groups the contextual discovery details separately from its narrative', async () => {
     const scrollHeight = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
