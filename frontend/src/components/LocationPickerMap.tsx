@@ -9,6 +9,11 @@ import {
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
+import {
+  getCurrentDevicePosition,
+  isNativeAndroid,
+} from '@/lib/device-location'
+
 setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
@@ -78,6 +83,12 @@ export const LocationPickerMap = forwardRef<
       onChangeRef.current([lng, lat])
     })
 
+    const moveToPosition = (coordinates: [number, number]) => {
+      pin.setLngLat(coordinates)
+      instance.flyTo({ center: coordinates, zoom: 15 })
+      onChangeRef.current(coordinates)
+    }
+
     instance.on('click', (event) => {
       pin.setLngLat(event.lngLat)
       onChangeRef.current([event.lngLat.lng, event.lngLat.lat])
@@ -85,10 +96,25 @@ export const LocationPickerMap = forwardRef<
 
     geolocate.on('geolocate', (event) => {
       const { longitude, latitude } = event.coords
-      pin.setLngLat([longitude, latitude])
-      instance.flyTo({ center: [longitude, latitude], zoom: 15 })
-      onChangeRef.current([longitude, latitude])
+      moveToPosition([longitude, latitude])
     })
+
+    let nativeLocateButton: HTMLButtonElement | null = null
+    const onNativeLocate = (event: Event) => {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      void getCurrentDevicePosition().then(
+        ({ coords }) => moveToPosition([coords.longitude, coords.latitude]),
+        () => undefined,
+      )
+    }
+
+    if (isNativeAndroid()) {
+      nativeLocateButton = instance
+        .getContainer()
+        .querySelector<HTMLButtonElement>('.maplibregl-ctrl-geolocate')
+      nativeLocateButton?.addEventListener('click', onNativeLocate, true)
+    }
 
     map.current = instance
     marker.current = pin
@@ -96,6 +122,7 @@ export const LocationPickerMap = forwardRef<
     return () => {
       map.current = null
       marker.current = null
+      nativeLocateButton?.removeEventListener('click', onNativeLocate, true)
       instance.remove()
     }
   }, [])

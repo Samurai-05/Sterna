@@ -28,6 +28,7 @@ import {
 } from '@/lib/recent-searches'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
+import { getCurrentDevicePosition } from '@/lib/device-location'
 
 type SearchResult = RecentSearch
 
@@ -60,10 +61,13 @@ export function SearchPage() {
   }, [query])
 
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
+    void getCurrentDevicePosition({
+      enableHighAccuracy: false,
+      maximumAge: 5 * 60 * 1000,
+      timeout: 5000,
+    }).then(
       ({ coords }) => setNearbyOrigin([coords.longitude, coords.latitude]),
       () => undefined,
-      { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 5000 },
     )
   }, [])
 

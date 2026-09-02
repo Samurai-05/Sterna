@@ -44,6 +44,10 @@ import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
+import {
+  getCurrentDevicePosition,
+  isNativeAndroid,
+} from '@/lib/device-location'
 
 export function MapPage({ active }: { active: boolean }) {
   const [activeFilter, setActiveFilter] = useState<
@@ -52,9 +56,10 @@ export function MapPage({ active }: { active: boolean }) {
   const [initialViewport, setInitialViewport] = useState<MapViewport | null>(
     () =>
       getStoredMapViewport() ??
-      (navigator.geolocation ? null : defaultMapViewport),
+      (isNativeAndroid() || navigator.geolocation ? null : defaultMapViewport),
   )
   const mapRef = useRef<MapCanvasHandle>(null)
+  const locationRequestStartedRef = useRef(false)
   const navigate = useNavigate()
   const location = useLocation()
   const mapTarget = getMapTarget(location.state)
@@ -65,11 +70,11 @@ export function MapPage({ active }: { active: boolean }) {
   useEffect(() => {
     if (initialViewport) return
 
+    if (locationRequestStartedRef.current) return
+    locationRequestStartedRef.current = true
     let activeRequest = true
-    const geolocation = navigator.geolocation
-    if (!geolocation) return
 
-    geolocation.getCurrentPosition(
+    void getCurrentDevicePosition().then(
       ({ coords }) => {
         if (!activeRequest) return
         setInitialViewport({
@@ -80,7 +85,6 @@ export function MapPage({ active }: { active: boolean }) {
       () => {
         if (activeRequest) setInitialViewport(defaultMapViewport)
       },
-      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8000 },
     )
 
     return () => {
@@ -269,7 +273,17 @@ export function MapPage({ active }: { active: boolean }) {
           variant="outline"
           className="size-11 rounded-full bg-card shadow-sm"
           aria-label="Locate me"
-          onClick={() => mapRef.current?.locate()}
+          onClick={() => {
+            if (!isNativeAndroid()) {
+              mapRef.current?.locate()
+              return
+            }
+
+            void getCurrentDevicePosition().then(
+              () => mapRef.current?.locate(),
+              () => undefined,
+            )
+          }}
         >
           <LocateFixed className="size-5" />
         </Button>
