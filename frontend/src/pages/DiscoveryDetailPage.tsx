@@ -35,9 +35,11 @@ import { discoveryPath } from '@/lib/discovery-path'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { imageUrl, type Discovery } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
-import { useMeasuredDrawerSnapPoints } from '@/hooks/useMeasuredDrawerSnapPoint'
+import { useMeasuredDrawerPeekSnapPoint } from '@/hooks/useMeasuredDrawerPeekSnapPoint'
 
-const MINIMIZED_SNAP_POINT = '1.75rem'
+const MINIMIZED_SNAP_POINT = 36
+const PEEK_FALLBACK_SNAP_POINT = 96
+const EXPANDED_SNAP_POINT = 0.55
 const EMPTY_GALLERY: Discovery[] = []
 const UNLOADED_PHOTO_SOURCE =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
@@ -50,6 +52,8 @@ type GalleryPhotoSlide = SlideImage & {
 type DiscoveryDetailPageProps = {
   presentation?: 'page' | 'overlay'
 }
+
+type DiscoveryDrawerState = 'minimized' | 'peek' | 'expanded'
 
 export function DiscoveryDetailPage({
   presentation = 'page',
@@ -70,20 +74,13 @@ export function DiscoveryDetailPage({
     () => getDiscoveryRouteState(location.state).justCreated === true,
   )
   const createdFeedbackConsumedRef = useRef(false)
-  const [snapPoint, setSnapPoint] = useState<string | number>(
-    MINIMIZED_SNAP_POINT,
-  )
+  const [drawerState, setDrawerState] = useState<DiscoveryDrawerState>('peek')
   const [deletedDiscoveryIds, setDeletedDiscoveryIds] = useState<Set<number>>(
     () => new Set(),
   )
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const actionTriggerRef = useRef<HTMLButtonElement>(null)
   const drawerControlsRef = useRef<HTMLDivElement>(null)
-  const expandedContentRef = useRef<HTMLDivElement>(null)
-  const measuredDrawerSnapPointsRef = useRef<{
-    peek: number
-    expanded: number | null
-  } | null>(null)
   const routeReturnTo = routeState.returnTo
   const backgroundLocation = routeState.backgroundLocation
   const justCreated = routeState.justCreated
@@ -287,44 +284,38 @@ export function DiscoveryDetailPage({
   const pageClassName =
     'sterna-discovery-screen fixed inset-0 z-40 !p-0 overflow-hidden bg-stone-950'
 
-  const handleDrawerSnapPointsChange = useCallback(
-    (nextSnapPoints: { peek: number; expanded: number | null }) => {
-      const previousSnapPoints = measuredDrawerSnapPointsRef.current
-      measuredDrawerSnapPointsRef.current = nextSnapPoints
-      setSnapPoint((currentSnapPoint) => {
-        if (
-          previousSnapPoints === null ||
-          currentSnapPoint === previousSnapPoints.peek
-        ) {
-          return nextSnapPoints.peek
-        }
-        if (
-          previousSnapPoints.expanded !== null &&
-          currentSnapPoint === previousSnapPoints.expanded
-        ) {
-          return nextSnapPoints.expanded ?? nextSnapPoints.peek
-        }
-        return currentSnapPoint
-      })
-    },
-    [],
-  )
-  const measuredDrawerSnapPoints = useMeasuredDrawerSnapPoints({
+  const peekSnapPoint = useMeasuredDrawerPeekSnapPoint({
     controlsRef: drawerControlsRef,
-    contentRef: expandedContentRef,
     enabled: Boolean(discovery),
+    fallbackSnapPoint: PEEK_FALLBACK_SNAP_POINT,
     measurementKey: discovery?.id ?? null,
-    onSnapPointsChange: handleDrawerSnapPointsChange,
   })
-  const peekSnapPoint = measuredDrawerSnapPoints?.peek ?? MINIMIZED_SNAP_POINT
-  const expandedSnapPoint = measuredDrawerSnapPoints?.expanded ?? null
-  const isMinimized = snapPoint === MINIMIZED_SNAP_POINT
-  const isExpanded =
-    expandedSnapPoint !== null && snapPoint === expandedSnapPoint
-  const drawerSnapPoints =
-    expandedSnapPoint === null
-      ? [MINIMIZED_SNAP_POINT, peekSnapPoint]
-      : [MINIMIZED_SNAP_POINT, peekSnapPoint, expandedSnapPoint]
+  const drawerSnapPoints = [
+    MINIMIZED_SNAP_POINT,
+    peekSnapPoint,
+    EXPANDED_SNAP_POINT,
+  ]
+  const snapPoint =
+    drawerState === 'minimized'
+      ? MINIMIZED_SNAP_POINT
+      : drawerState === 'expanded'
+        ? EXPANDED_SNAP_POINT
+        : peekSnapPoint
+  const isMinimized = drawerState === 'minimized'
+  const isExpanded = drawerState === 'expanded'
+
+  const handleSnapPointChange = (nextSnapPoint: string | number | null) => {
+    if (nextSnapPoint === null) return
+    if (nextSnapPoint === MINIMIZED_SNAP_POINT) {
+      setDrawerState('minimized')
+      return
+    }
+    if (nextSnapPoint === EXPANDED_SNAP_POINT) {
+      setDrawerState('expanded')
+      return
+    }
+    setDrawerState('peek')
+  }
 
   useEffect(() => {
     if (!isActionMenuOpen) return
@@ -483,12 +474,10 @@ export function DiscoveryDetailPage({
 
       <div
         data-testid="discovery-detail-drawer"
-        data-drawer-state={
-          isMinimized ? 'minimized' : isExpanded ? 'expanded' : 'peek'
-        }
+        data-drawer-state={drawerState}
         data-snap-points={drawerSnapPoints.join(',')}
-        data-peek-snap-point={measuredDrawerSnapPoints?.peek ?? 'null'}
-        data-expanded-snap-point={expandedSnapPoint}
+        data-peek-snap-point={peekSnapPoint}
+        data-expanded-snap-point={EXPANDED_SNAP_POINT}
         data-snap-point={snapPoint}
         className="relative z-50"
       >
@@ -499,13 +488,11 @@ export function DiscoveryDetailPage({
           disablePointerDismissal
           snapPoints={drawerSnapPoints}
           snapPoint={snapPoint}
-          onSnapPointChange={(nextSnapPoint) => {
-            if (nextSnapPoint !== null) setSnapPoint(nextSnapPoint)
-          }}
+          onSnapPointChange={handleSnapPointChange}
           snapToSequentialPoints
         >
           <DrawerContent
-            className={`[--drawer-content-max-height:100dvh] border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-[background-color,color,box-shadow] duration-200 ease-out motion-reduce:transition-none ${isExpanded ? 'bg-card/95 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.2)]' : isMinimized ? 'bg-black/20 text-white' : 'bg-black/50 text-white'}`}
+            className={`!h-[55dvh] !max-h-[55dvh] border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-[transform,background-color,color,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] will-change-transform data-swiping:duration-0 motion-reduce:transition-none ${isExpanded ? 'bg-card/95 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.2)]' : isMinimized ? 'bg-black/20 text-white' : 'bg-black/50 text-white'}`}
           >
             <div
               ref={drawerControlsRef}
@@ -515,12 +502,8 @@ export function DiscoveryDetailPage({
                 data-testid="drawer-handle"
                 aria-label={isMinimized ? 'Expand details' : 'Collapse details'}
                 onClick={() => {
-                  setSnapPoint(
-                    isExpanded
-                      ? peekSnapPoint
-                      : isMinimized
-                        ? peekSnapPoint
-                        : MINIMIZED_SNAP_POINT,
+                  setDrawerState(
+                    isExpanded || isMinimized ? 'peek' : 'minimized',
                   )
                 }}
                 className={isExpanded ? '' : '[&>span]:bg-white/70'}
@@ -531,14 +514,12 @@ export function DiscoveryDetailPage({
                 </DrawerTitle>
                 <button
                   type="button"
-                  disabled={expandedSnapPoint === null}
                   className={`min-h-11 w-full truncate rounded-xl px-0 text-center font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
                   aria-controls="discovery-detail-expanded-content"
                   aria-expanded={isExpanded}
-                  onClick={() => {
-                    if (expandedSnapPoint === null) return
-                    setSnapPoint(isExpanded ? peekSnapPoint : expandedSnapPoint)
-                  }}
+                  onClick={() =>
+                    setDrawerState(isExpanded ? 'peek' : 'expanded')
+                  }
                 >
                   {discovery.name}
                 </button>
@@ -546,7 +527,6 @@ export function DiscoveryDetailPage({
             </div>
 
             <div
-              ref={expandedContentRef}
               id="discovery-detail-expanded-content"
               data-testid="discovery-detail-expanded-content"
               data-base-ui-swipe-ignore=""

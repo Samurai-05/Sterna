@@ -18,7 +18,6 @@ import {
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { Route, Routes, useLocation, useNavigate } from 'react-router'
-import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
 import { DiscoveryDetailPage } from './DiscoveryDetailPage'
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -244,37 +243,6 @@ function LocationProbe() {
 }
 
 describe('DiscoveryDetailPage', () => {
-  it('derives an expanded pixel snap point that stays above the measured peek', () => {
-    expect(
-      getDiscoveryDetailExpandedSnapPoint({
-        contentHeight: 120,
-        controlsHeight: 56,
-        viewportHeight: 800,
-      }),
-    ).toBe(176)
-    expect(
-      getDiscoveryDetailExpandedSnapPoint({
-        contentHeight: 600,
-        controlsHeight: 56,
-        viewportHeight: 800,
-      }),
-    ).toBe(656)
-    expect(
-      getDiscoveryDetailExpandedSnapPoint({
-        contentHeight: 20,
-        controlsHeight: 260,
-        viewportHeight: 400,
-      }),
-    ).toBeGreaterThan(260)
-    expect(
-      getDiscoveryDetailExpandedSnapPoint({
-        contentHeight: 20,
-        controlsHeight: 260,
-        viewportHeight: 270,
-      }),
-    ).toBeNull()
-  })
-
   it('uses the photo-first layout with a peek drawer and no conventional page title', async () => {
     const scrollHeight = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
@@ -607,12 +575,10 @@ describe('DiscoveryDetailPage', () => {
       renderPage()
 
       const drawer = await screen.findByTestId('discovery-detail-drawer')
-      expect(drawer).toHaveAttribute(
-        'data-snap-points',
-        expect.stringContaining('1.75rem'),
-      )
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(drawer).toHaveAttribute('data-snap-points', '36,96,0.55')
       await waitFor(() =>
-        expect(drawer).toHaveAttribute('data-drawer-state', 'peek'),
+        expect(drawer).toHaveAttribute('data-snap-points', '36,56,0.55'),
       )
       expect(
         screen.getByRole('button', { name: 'Alpine meadow' }),
@@ -643,7 +609,7 @@ describe('DiscoveryDetailPage', () => {
     }
   })
 
-  it('keeps one stable drawer popup and measures its centered peek state', async () => {
+  it('keeps a stable 55dvh popup with semantic snap points and measured peek', async () => {
     const bounds = vi
       .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
       .mockReturnValue({ height: 112 } as DOMRect)
@@ -655,11 +621,24 @@ describe('DiscoveryDetailPage', () => {
       await waitFor(() =>
         expect(drawer).toHaveAttribute('data-peek-snap-point', '112'),
       )
-      expect(drawer.getAttribute('data-snap-points')).not.toContain(',5rem,')
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(drawer).toHaveAttribute('data-snap-points', '36,112,0.55')
+      expect(drawer).toHaveAttribute('data-snap-point', '112')
 
       const popup = document.querySelector('[data-slot="drawer-popup"]')
       expect(popup).not.toHaveClass('!h-auto', 'relative')
-      expect(popup).toHaveClass('touch-none')
+      expect(popup).toHaveClass(
+        '!h-[55dvh]',
+        '!max-h-[55dvh]',
+        'touch-none',
+        'will-change-transform',
+        'transition-[transform,background-color,color,box-shadow]',
+        'duration-[450ms]',
+        'data-swiping:duration-0',
+      )
+      expect(popup).toHaveClass(
+        '[transition-timing-function:cubic-bezier(0.32,0.72,0,1)]',
+      )
 
       const title = screen.getByRole('button', { name: 'Alpine meadow' })
       expect(title).toHaveClass('text-center')
@@ -667,7 +646,13 @@ describe('DiscoveryDetailPage', () => {
 
       const details = screen.getByTestId('discovery-detail-expanded-content')
       expect(details).not.toHaveClass('invisible', 'absolute', 'h-0')
-      expect(details).toHaveClass('touch-auto')
+      expect(details).toHaveClass(
+        'touch-auto',
+        'flex-1',
+        'min-h-0',
+        'overflow-y-auto',
+        'overscroll-contain',
+      )
     } finally {
       bounds.mockRestore()
     }
