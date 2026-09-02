@@ -53,6 +53,22 @@ afterEach(() => {
 })
 
 describe('AddDiscoveryPage', () => {
+  it('uses the selected category color instead of the generic brand green', async () => {
+    vi.mocked(getActiveMap).mockResolvedValue({ groupId: null, name: null })
+
+    renderWithProviders(<AddDiscoveryPage />, { route: '/add' })
+
+    const landscape = screen.getByRole('button', { name: 'Landscape' })
+    fireEvent.click(landscape)
+
+    expect(landscape).toHaveAttribute('aria-pressed', 'true')
+    expect(landscape).toHaveClass('bg-[#DBEAFE]')
+    expect(landscape).toHaveStyle({
+      borderColor: '#2563EB',
+      color: '#2563EB',
+    })
+  })
+
   it('navigates immediately with transient creation state and invalidates discovery caches', async () => {
     saveSession({
       accessToken: 'test-token',

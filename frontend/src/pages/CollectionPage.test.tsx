@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/api', async () => {
@@ -49,9 +49,40 @@ describe('collection page', () => {
     renderWithProviders(<CollectionPage />, { route: '/collection' })
 
     expect(await screen.findByText('No discoveries yet')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Add a discovery' })).toHaveAttribute(
-      'href',
-      '/add',
-    )
+    expect(
+      screen.getByRole('link', { name: 'Add a discovery' }),
+    ).toHaveAttribute('href', '/add')
+  })
+
+  it('shows a readable title and category badge in detailed list mode', async () => {
+    api.getDiscoveries.mockResolvedValue([
+      {
+        id: 1,
+        userId: '1',
+        groupId: null,
+        name: 'Alpine lake',
+        category: 'landscape',
+        location: '46.5000, 6.6000',
+        imageId: 'lake',
+        description: 'A quiet lake surrounded by mountains.',
+        author: 'Emma',
+        initials: 'E',
+        relativeDate: 'today',
+        coordinates: [6.6, 46.5],
+        countryCode: 'CHE',
+      },
+    ])
+
+    renderWithProviders(<CollectionPage />, { route: '/collection' })
+
+    const discoveryCard = (await screen.findByText('Alpine lake')).closest('a')
+    expect(discoveryCard).not.toBeNull()
+    expect(
+      screen.queryByText('A quiet lake surrounded by mountains.'),
+    ).not.toBeInTheDocument()
+    expect(
+      within(discoveryCard!).getByText('Landscape').parentElement,
+    ).toHaveClass('rounded-full')
+    expect(screen.getByText('Switzerland')).toBeInTheDocument()
   })
 })

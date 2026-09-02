@@ -22,6 +22,7 @@ import {
   type Discovery,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
+import { categoryAppearance } from '@/lib/category-appearance'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
 import { getDiscoveryRouteState } from '@/lib/route-state'
@@ -236,7 +237,15 @@ function EditDiscoveryForm({
                 type="button"
                 aria-pressed={category === item.id}
                 onClick={() => setCategory(item.id)}
-                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${category === item.id ? 'border-primary bg-accent text-primary' : 'border-border bg-card'}`}
+                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-colors ${category === item.id ? categoryAppearance[item.id].background : 'border-border bg-card text-foreground'}`}
+                style={
+                  category === item.id
+                    ? {
+                        borderColor: categoryAppearance[item.id].color,
+                        color: categoryAppearance[item.id].color,
+                      }
+                    : undefined
+                }
               >
                 <CategoryIcon category={item.id} className="size-4" />
                 {item.label}

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
@@ -29,5 +29,9 @@ describe('PoiCard', () => {
     expect(image).toHaveAttribute('src', expect.stringContaining('width=640'))
     expect(image).toHaveAttribute('loading', 'lazy')
     expect(image).toHaveAttribute('decoding', 'async')
+
+    const card = screen.getByRole('link', { name: /Example POI/ })
+    expect(within(card).getByText('POI')).toHaveClass('rounded-full')
+    expect(screen.queryByText('Point of interest')).not.toBeInTheDocument()
   })
 })
