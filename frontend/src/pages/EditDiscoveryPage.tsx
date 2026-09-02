@@ -236,7 +236,7 @@ function EditDiscoveryForm({
                 type="button"
                 aria-pressed={category === item.id}
                 onClick={() => setCategory(item.id)}
-                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${category === item.id ? 'border-primary bg-green-50 text-primary' : 'border-border bg-card'}`}
+                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${category === item.id ? 'border-primary bg-accent text-primary' : 'border-border bg-card'}`}
               >
                 <CategoryIcon category={item.id} className="size-4" />
                 {item.label}

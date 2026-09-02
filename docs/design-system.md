@@ -124,11 +124,15 @@ Sterna uses slightly warm neutrals.
 | `surface-subtle` | `#F0EEE8` | Secondary surfaces |
 | `border` | `#E7E5E0` | Borders and separators |
 | `text-primary` | `#1C1917` | Main text |
-| `text-secondary` | `#78716C` | Secondary text |
+| `text-secondary` | `#6F6A64` | Secondary text |
 | `text-disabled` | `#A8A29E` | Disabled / muted text |
 | `disabled` | `#E7E5E0` | Disabled controls |
 
 The majority of the interface should use neutral colors.
+
+`text-secondary` was `#78716C` until we measured it: 4.40:1 on the background,
+just under the 4.5:1 AA threshold, on the colour that carries most of the
+secondary text in the app. `#6F6A64` reads the same and gives 4.92:1.
 
 ---
 
@@ -296,7 +300,7 @@ maps or other product surfaces.
 |---|---|
 | Background | `#FFFFFF` |
 | Border | `#E7E5E0` |
-| Icon | `#78716C` |
+| Icon | `#6F6A64` |
 | Text | `#1C1917` |
 
 ### Active category
@@ -509,8 +513,8 @@ Do not use accent actions as the default CTA style.
 
 ### Inactive item
 
-- icon: `#78716C`;
-- text: `#78716C`.
+- icon: `#6F6A64`;
+- text: `#6F6A64`.
 
 Active state should not rely only on color. Icon shape, weight or another visual cue may also be used.
 
@@ -700,7 +704,7 @@ SURFACE_SUBTLE          #F0EEE8
 BORDER                  #E7E5E0
 
 TEXT_PRIMARY            #1C1917
-TEXT_SECONDARY          #78716C
+TEXT_SECONDARY          #6F6A64
 TEXT_DISABLED           #A8A29E
 
 SUCCESS                 #2F7D50
@@ -736,7 +740,7 @@ FONT_DISPLAY            Fraunces
 
   /* Text */
   --color-text-primary: #1C1917;
-  --color-text-secondary: #78716C;
+  --color-text-secondary: #6F6A64;
   --color-text-disabled: #A8A29E;
 
   /* Semantic */

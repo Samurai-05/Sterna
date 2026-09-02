@@ -202,4 +202,35 @@ describe('authentication pages', () => {
     await screen.findByRole('heading', { name: 'Explore map' })
     expect(window.localStorage.getItem('sterna.auth')).toContain('test-token')
   })
+
+  it('announces a rejected login as an error, not as a hint', async () => {
+    vi.spyOn(window, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Invalid credentials.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+
+    renderAt('/login')
+
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'explorer@sterna.app' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'wrong-password' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Log in' }))
+
+    const message = await screen.findByRole('alert')
+    expect(message).toHaveTextContent('Invalid credentials.')
+    expect(message).toHaveClass('text-destructive')
+  })
+
+  it('does not offer a password reset, since there is no reset flow', () => {
+    renderAt('/login')
+
+    expect(
+      screen.queryByRole('button', { name: /forgot password/i }),
+    ).not.toBeInTheDocument()
+  })
 })

@@ -68,9 +68,9 @@ function GroupFilterButton({
       aria-label={label}
       title={label}
       onClick={onClick}
-      className={`flex h-9 w-max max-w-40 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors ${
+      className={`flex h-9 w-max max-w-40 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 ${
         active
-          ? 'border-primary bg-green-50 text-primary'
+          ? 'border-primary bg-accent text-primary'
           : 'border-border bg-card text-foreground'
       }`}
     >

@@ -133,6 +133,11 @@ export function CollectionPage() {
     poisQuery.isLoading
   const isError =
     activeDiscoveriesQuery.isError || groupsQuery.isError || poisQuery.isError
+  const isEmpty =
+    !isLoading &&
+    !isError &&
+    filteredDiscoveries.length === 0 &&
+    filteredPois.length === 0
   const updateGalleryState = (
     updates: Partial<Record<'group' | 'view', string>>,
   ) => {
@@ -160,6 +165,7 @@ export function CollectionPage() {
   return (
     <main className="min-h-dvh bg-background">
       <div className="sterna-gallery-content space-y-4 px-5">
+        <h1 className="sr-only">Collection</h1>
         <label className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground focus-within:ring-2 focus-within:ring-ring/30">
           <Search className="size-4" />
           <span className="sr-only">Search gallery</span>
@@ -238,9 +244,29 @@ export function CollectionPage() {
                 : `${formatCount(filteredDiscoveries.length, 'discovery')} · ${formatCount(filteredPois.length, 'POI')}`}
         </p>
         {isError && (
-          <p role="status" className="text-sm text-muted-foreground">
+          <p role="alert" className="text-sm text-destructive">
             Unable to load part of your gallery.
           </p>
+        )}
+        {isEmpty && (
+          <div className="rounded-2xl border border-dashed border-border bg-card px-5 py-10 text-center">
+            <p className="sterna-label text-foreground">
+              {query || category ? 'Nothing matches' : 'No discoveries yet'}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {query || category
+                ? 'Try another search or category.'
+                : 'Add a photo and it shows up here and on your map.'}
+            </p>
+            {!query && !category && (
+              <Link
+                to="/add"
+                className="mt-4 inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              >
+                Add a discovery
+              </Link>
+            )}
+          </div>
         )}
         {view === 'grid' && (
           <div className="-mx-5 grid grid-cols-3 gap-px">
@@ -373,7 +399,7 @@ function CategoryButton({
             ? `${appearance.background} border-transparent ring-2 ${appearance.ring}`
             : 'border-border bg-card'
           : active
-            ? 'border-primary bg-green-50 text-primary'
+            ? 'border-primary bg-accent text-primary'
             : 'border-border bg-card'
       }`}
     >

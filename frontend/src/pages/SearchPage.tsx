@@ -227,7 +227,7 @@ export function SearchPage() {
                       if (userId) clearRecentSearches(userId)
                       setRecentSearches([])
                     }}
-                    className="text-xs font-medium text-primary"
+                    className="min-h-11 px-1 text-xs font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:rounded-md"
                   >
                     Clear
                   </button>
@@ -292,7 +292,7 @@ export function SearchPage() {
                 key={result.id}
                 type="button"
                 onClick={() => selectResult(result)}
-                className="flex min-h-16 w-full items-center gap-3 px-4 text-left"
+                className="flex min-h-16 w-full items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   {result.kind === 'place' ? (
@@ -366,7 +366,7 @@ function ResultButton({
     <button
       type="button"
       onClick={() => onSelect(result)}
-      className="flex min-h-16 w-full items-center gap-3 px-4 text-left"
+      className="flex min-h-16 w-full items-center gap-3 px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         {icon}

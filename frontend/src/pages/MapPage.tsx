@@ -351,7 +351,7 @@ function ActiveMapSelector({
         aria-expanded={isOpen}
         aria-controls="active-map-menu"
         onClick={() => setIsOpen((open) => !open)}
-        className="flex h-12 w-full items-center gap-2 rounded-xl border border-white/80 bg-card/95 px-3 text-left shadow-md backdrop-blur transition-colors hover:bg-card"
+        className="flex h-12 w-full items-center gap-2 rounded-xl border border-white/80 bg-card/95 px-3 text-left shadow-md backdrop-blur transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
       >
         <MapChoiceIcon personal={!activeGroupId} active compact>
           {activeGroupId ? (
@@ -361,7 +361,7 @@ function ActiveMapSelector({
           )}
         </MapChoiceIcon>
         <span className="min-w-0 flex-1">
-          <span className="block text-[8px] font-bold uppercase leading-none tracking-[0.12em] text-muted-foreground">
+          <span className="block text-[11px] font-bold uppercase leading-none tracking-[0.12em] text-muted-foreground">
             Active map
           </span>
           <span className="mt-0.5 block truncate text-sm font-semibold leading-4 text-foreground">
@@ -434,7 +434,7 @@ function MapMenuItem({
       aria-checked={active}
       disabled={disabled}
       onClick={onClick}
-      className={`flex min-h-16 w-full items-center gap-3 border-b border-border/70 px-4 text-left transition-colors last:border-b-0 disabled:opacity-60 ${active ? 'bg-green-50' : 'bg-card hover:bg-muted/70'}`}
+      className={`flex min-h-16 w-full items-center gap-3 border-b border-border/70 px-4 text-left transition-colors last:border-b-0 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 ${active ? 'bg-accent' : 'bg-card hover:bg-muted/70'}`}
     >
       <MapChoiceIcon personal={personal} active={active}>
         {icon}
@@ -460,7 +460,7 @@ function MapChoiceIcon({
 }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center ${compact ? 'size-7 rounded-lg' : 'size-10 rounded-xl'} ${personal ? 'bg-violet-100 text-violet-800' : active ? 'bg-emerald-100 text-primary' : 'bg-[#fbf1ec] text-[#b8572b]'}`}
+      className={`flex shrink-0 items-center justify-center ${compact ? 'size-7 rounded-lg' : 'size-10 rounded-xl'} ${personal ? 'bg-violet-100 text-violet-800' : active ? 'bg-primary/10 text-primary' : 'bg-terra-50 text-terra-600'}`}
     >
       {children}
     </span>
@@ -482,7 +482,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium text-foreground transition-colors ${
+      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 ${
         appearance
           ? active
             ? `${appearance.background} border-transparent ring-2 ${appearance.ring}`

@@ -133,8 +133,8 @@ export function RegisterPage() {
         </Button>
         {submissionMessage && (
           <p
-            role="status"
-            className="text-center text-sm leading-5 text-muted-foreground"
+            role="alert"
+            className="text-center text-sm leading-5 text-destructive"
           >
             {submissionMessage}
           </p>

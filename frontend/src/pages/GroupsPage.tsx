@@ -69,7 +69,7 @@ export function GroupsPage() {
               className={cn(
                 'flex min-h-20 items-center gap-3 rounded-2xl border p-4',
                 personalIsActive
-                  ? 'border-primary/20 bg-green-50'
+                  ? 'border-primary/20 bg-accent'
                   : 'border-border bg-card shadow-sm',
               )}
             >
@@ -119,7 +119,7 @@ export function GroupsPage() {
                 className={cn(
                   'flex min-h-20 items-center gap-3 rounded-2xl border p-4',
                   group.isActive
-                    ? 'border-primary/20 bg-green-50'
+                    ? 'border-primary/20 bg-accent'
                     : 'border-border bg-card shadow-sm',
                 )}
               >
@@ -128,7 +128,7 @@ export function GroupsPage() {
                     'flex size-11 items-center justify-center rounded-full',
                     group.isActive
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-[#fbf1ec] text-[#b8572b]',
+                      : 'bg-terra-50 text-terra-600',
                   )}
                 >
                   <UsersRound className="size-5" />

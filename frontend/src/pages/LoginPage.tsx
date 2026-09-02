@@ -96,14 +96,6 @@ export function LoginPage() {
           onChange={(event) => setPassword(event.target.value)}
           error={errors.password}
         />
-        <div className="flex justify-end">
-          <button
-            type="button"
-            className="min-h-11 px-1 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            Forgot password?
-          </button>
-        </div>
         <Button
           type="submit"
           disabled={isSubmitting}
@@ -113,8 +105,8 @@ export function LoginPage() {
         </Button>
         {submissionMessage && (
           <p
-            role="status"
-            className="text-center text-sm leading-5 text-muted-foreground"
+            role="alert"
+            className="text-center text-sm leading-5 text-destructive"
           >
             {submissionMessage}
           </p>
