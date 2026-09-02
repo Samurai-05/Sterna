@@ -9,7 +9,6 @@ import { DiscoveryCard } from '@/components/DiscoveryCard'
 import { UserAvatarImage } from '@/components/UserAvatarImage'
 import { Progress } from '@/components/ui/progress'
 import {
-  ApiError,
   deleteAccount,
   getAuthoredDiscoveries,
   getAuthoredPois,
@@ -38,7 +37,7 @@ export function ProfilePage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const accessToken = session?.accessToken
 
-  const { data: currentUser, error: currentUserError } = useQuery({
+  const { data: currentUser } = useQuery({
     queryKey: ['current-user', session?.accessToken],
     queryFn: () => getCurrentUser(accessToken!),
     enabled: Boolean(accessToken),
@@ -120,16 +119,6 @@ export function ProfilePage() {
     const nextSession = { accessToken, user: currentUser }
     saveSession(nextSession)
   }, [accessToken, currentUser])
-
-  useEffect(() => {
-    if (
-      currentUserError instanceof ApiError &&
-      currentUserError.status === 401
-    ) {
-      clearSession()
-      navigate('/auth', { replace: true })
-    }
-  }, [currentUserError, navigate])
 
   useEffect(() => {
     if (!isAccountSheetOpen) return

@@ -1,4 +1,5 @@
 import type { AuthSession, AuthenticatedUser } from '@/lib/session'
+import { clearSession, loadSession } from '@/lib/session'
 import type { Discovery, DiscoveryCategory, Landmark } from '@/lib/mock-data'
 import type { PersistedLocationSource } from './discovery-location'
 import { getCountryName } from '@/lib/countries'
@@ -482,6 +483,8 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
 }
 
 async function responseError(response: Response): Promise<ApiError> {
+  if (response.status === 401) discardRejectedSession()
+
   let message = response.statusText || 'Something went wrong.'
   const text = await response.text()
 
@@ -497,6 +500,17 @@ async function responseError(response: Response): Promise<ApiError> {
   }
 
   return new ApiError(message, response.status)
+}
+
+/**
+ * A token the API rejects is dead for every screen, not only the one that made
+ * the call, so it is dropped here rather than on each caller. Guarded on a
+ * session existing: a failed login is also a 401 and must not be treated as an
+ * expiry.
+ */
+function discardRejectedSession() {
+  if (!loadSession()) return
+  clearSession()
 }
 
 async function responseJson<TResponse>(response: Response): Promise<TResponse> {
