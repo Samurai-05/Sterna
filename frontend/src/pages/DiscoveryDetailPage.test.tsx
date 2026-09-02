@@ -1,11 +1,23 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ReactNode } from 'react'
+import {
+  StrictMode,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react'
 
-import { getDiscovery, getPhoto } from '@/lib/api'
+import {
+  deleteDiscovery,
+  getAllGroupDiscoveries,
+  getDiscovery,
+  getDiscoveries,
+  getPhoto,
+} from '@/lib/api'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
-import { Route, Routes } from 'react-router'
+import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
 import { DiscoveryDetailPage } from './DiscoveryDetailPage'
 
@@ -14,6 +26,8 @@ vi.mock('@/lib/api', async (importOriginal) => {
   return {
     ...actual,
     getDiscovery: vi.fn(),
+    getDiscoveries: vi.fn(),
+    getAllGroupDiscoveries: vi.fn(),
     getPhoto: vi.fn(),
     deleteDiscovery: vi.fn(),
   }
@@ -22,28 +36,90 @@ vi.mock('@/lib/api', async (importOriginal) => {
 vi.mock('yet-another-react-lightbox', () => ({
   default: ({
     open,
-    close,
     slides,
+    index = 0,
+    inline,
+    on,
+    onErrorCapture,
     render,
   }: {
     open: boolean
-    close: () => void
     slides: Array<{ src: string; alt?: string }>
-    render?: { controls?: () => ReactNode }
+    index?: number
+    inline?: { className?: string; style?: CSSProperties }
+    on?: { view?: (props: { index: number }) => void }
+    onErrorCapture?: (event: SyntheticEvent<HTMLDivElement>) => void
+    render?: {
+      slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
+    }
   }) =>
     open ? (
-      <div role="dialog" aria-label="Photo viewer">
-        <button type="button" onClick={close}>
-          Close
-        </button>
-        <img src={slides[0].src} alt={slides[0].alt} />
-        {render?.controls?.()}
-      </div>
+      <InlineLightboxTestDouble
+        index={index}
+        inline={inline}
+        on={on}
+        onErrorCapture={onErrorCapture}
+        render={render}
+        slides={slides}
+      />
     ) : null,
 }))
 
+function InlineLightboxTestDouble({
+  index,
+  inline,
+  on,
+  onErrorCapture,
+  render,
+  slides,
+}: {
+  index: number
+  inline?: { className?: string; style?: CSSProperties }
+  on?: { view?: (props: { index: number }) => void }
+  onErrorCapture?: (event: SyntheticEvent<HTMLDivElement>) => void
+  render?: {
+    slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
+  }
+  slides: Array<{ src: string; alt?: string }>
+}) {
+  const [activeIndex, setActiveIndex] = useState(index)
+  const activeSlide = slides[activeIndex]
+
+  return (
+    <div
+      data-testid="inline-photo-viewer"
+      data-slide-count={slides.length}
+      data-inline-width={inline?.style?.width}
+      data-inline-height={inline?.style?.height}
+      className={inline?.className}
+      onErrorCapture={onErrorCapture}
+      style={inline?.style}
+    >
+      {render?.slide?.({ slide: activeSlide }) ?? (
+        <img src={activeSlide.src} alt={activeSlide.alt} />
+      )}
+      {slides.length > 1 && (
+        <button
+          type="button"
+          data-testid="lightbox-next"
+          onClick={() => {
+            const nextIndex = Math.min(activeIndex + 1, slides.length - 1)
+            setActiveIndex(nextIndex)
+            on?.view?.({ index: nextIndex })
+          }}
+        >
+          Next slide
+        </button>
+      )}
+    </div>
+  )
+}
+
 const getDiscoveryMock = vi.mocked(getDiscovery)
+const getDiscoveriesMock = vi.mocked(getDiscoveries)
+const getAllGroupDiscoveriesMock = vi.mocked(getAllGroupDiscoveries)
 const getPhotoMock = vi.mocked(getPhoto)
+const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
 
 const discovery = {
   id: 7,
@@ -76,7 +152,10 @@ beforeEach(() => {
     },
   })
   getDiscoveryMock.mockResolvedValue(discovery)
+  getDiscoveriesMock.mockResolvedValue([discovery])
+  getAllGroupDiscoveriesMock.mockResolvedValue([discovery])
   getPhotoMock.mockResolvedValue(new Blob(['photo']))
+  deleteDiscoveryMock.mockResolvedValue(undefined)
 })
 
 afterEach(() => {
@@ -84,15 +163,54 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-function renderPage() {
+function renderPage(
+  state?: unknown,
+  options: {
+    initialPath?: string
+    withPreviousContext?: boolean
+    strictMode?: boolean
+  } = {},
+) {
+  const detailPath = options.initialPath ?? '/discoveries/7'
+  const initialEntries = options.withPreviousContext
+    ? ['/collection', { pathname: detailPath, state }]
+    : [{ pathname: detailPath, state }]
+
+  const routes = (
+    <>
+      <Routes>
+        <Route
+          path="/discoveries/:discoveryId"
+          element={<DiscoveryDetailPage />}
+        />
+      </Routes>
+      <LocationProbe />
+    </>
+  )
+
   return renderWithProviders(
-    <Routes>
-      <Route
-        path="/discoveries/:discoveryId"
-        element={<DiscoveryDetailPage />}
-      />
-    </Routes>,
-    { route: '/discoveries/7' },
+    options.strictMode ? <StrictMode>{routes}</StrictMode> : routes,
+    {
+      initialEntries,
+      initialIndex: options.withPreviousContext ? 1 : undefined,
+    },
+  )
+}
+
+function LocationProbe() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  return (
+    <>
+      <output data-testid="location-probe">
+        {location.pathname}
+        {location.search}
+      </output>
+      <button type="button" onClick={() => navigate(-1)}>
+        Browser back
+      </button>
+    </>
   )
 }
 
@@ -187,40 +305,368 @@ describe('DiscoveryDetailPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('opens and closes the viewer without requesting the detail photo again', async () => {
+  it('keeps the photo in the unified inline viewer without opening a dialog', async () => {
     renderPage()
 
     const photo = await screen.findByRole('img', { name: 'Alpine meadow' })
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
 
     fireEvent.click(photo)
 
     expect(
-      await screen.findByRole('dialog', { name: 'Photo viewer' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('dialog', { name: 'Photo viewer' }),
+    ).not.toBeInTheDocument()
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
+  })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-    await waitFor(() =>
+  it('gives Inline a measurable full-size container', async () => {
+    renderPage()
+
+    const viewer = await screen.findByTestId('inline-photo-viewer')
+
+    expect(viewer).toHaveAttribute('data-inline-width', '100%')
+    expect(viewer).toHaveAttribute('data-inline-height', '100%')
+    expect(viewer).toHaveClass('absolute', 'inset-0')
+  })
+
+  it('keeps the carousel mounted and shows a local unavailable slide when one photo fails', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Broken lake',
+      imageObjectKey: 'photos/broken.jpg',
+    }
+    const thirdDiscovery = {
+      ...discovery,
+      id: 9,
+      name: 'Reachable summit',
+      imageObjectKey: 'photos/summit.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([
+      discovery,
+      secondDiscovery,
+      thirdDiscovery,
+    ])
+    getPhotoMock.mockImplementation(async (_token, imageObjectKey) => {
+      if (imageObjectKey === 'photos/broken.jpg') {
+        throw new Error('photo unavailable')
+      }
+      return new Blob([imageObjectKey])
+    })
+
+    renderPage({
+      returnTo: '/collection',
+      galleryIds: [7, 8, 9],
+      gallerySource: 'personal',
+    })
+
+    await screen.findByTestId('inline-photo-viewer')
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+    expect(
+      await screen.findByRole('status', { name: 'Photo unavailable' }),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+    expect(
+      await screen.findByRole('button', { name: 'Reachable summit' }),
+    ).toBeVisible()
+    expect(screen.getByRole('img', { name: 'Reachable summit' })).toBeVisible()
+  })
+
+  it('keeps authenticated gallery sources after StrictMode remounts the effect', async () => {
+    renderPage(undefined, { strictMode: true })
+
+    expect(
+      await screen.findByRole('img', { name: 'Alpine meadow' }),
+    ).toHaveAttribute('src', expect.stringContaining('blob:'))
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+  })
+
+  it('marks an undecodable authenticated photo unavailable and revokes its Blob URL', async () => {
+    const imagePrototype = globalThis.Image.prototype
+    const originalDecode = Object.getOwnPropertyDescriptor(
+      imagePrototype,
+      'decode',
+    )
+    Object.defineProperty(imagePrototype, 'decode', {
+      configurable: true,
+      value: vi.fn().mockRejectedValue(new Error('decode failed')),
+    })
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL')
+
+    try {
+      renderPage()
+
       expect(
-        screen.queryByRole('dialog', { name: 'Photo viewer' }),
-      ).not.toBeInTheDocument(),
+        await screen.findByRole('status', { name: 'Photo unavailable' }),
+      ).toBeInTheDocument()
+      expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+      expect(revokeObjectURL).toHaveBeenCalledWith(
+        expect.stringContaining('blob:'),
+      )
+    } finally {
+      if (originalDecode) {
+        Object.defineProperty(imagePrototype, 'decode', originalDecode)
+      } else {
+        delete (imagePrototype as { decode?: unknown }).decode
+      }
+    }
+  })
+
+  it('turns a Lightbox image error into a local unavailable slide', async () => {
+    renderPage()
+
+    fireEvent.error(await screen.findByRole('img', { name: 'Alpine meadow' }))
+
+    expect(
+      await screen.findByRole('status', { name: 'Photo unavailable' }),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+  })
+
+  it('synchronizes the active discovery and all drawer metadata with the carousel', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      userId: '2',
+      name: 'Lac de Bretaye',
+      category: 'plant' as const,
+      description: 'A lake framed by alpine meadows.',
+      author: 'Friend',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+    getPhotoMock.mockImplementation(
+      async (_token, imageObjectKey) => new Blob([imageObjectKey]),
+    )
+
+    renderPage({
+      returnTo: '/collection',
+      galleryIds: [7, 8],
+      gallerySource: 'personal',
+    })
+
+    expect(await screen.findByTestId('inline-photo-viewer')).toHaveAttribute(
+      'data-slide-count',
+      '2',
+    )
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+
+    expect(
+      await screen.findByRole('button', { name: 'Lac de Bretaye' }),
+    ).toBeVisible()
+    expect(getPhotoMock).toHaveBeenCalledTimes(2)
+    expect(new Set(getPhotoMock.mock.calls.map((call) => call[1])).size).toBe(2)
+    expect(screen.getByText('A lake framed by alpine meadows.')).toBeVisible()
+    expect(screen.getByText('Plant')).toBeVisible()
+    expect(screen.getByText(/Added by Friend/)).toBeVisible()
+    expect(
+      screen.queryByRole('button', { name: 'More actions' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('exposes minimized, peek, and expanded drawer states sequentially', async () => {
+    renderPage()
+
+    const drawer = await screen.findByTestId('discovery-detail-drawer')
+    expect(drawer).toHaveAttribute('data-snap-points', '1.75rem,5rem,expanded')
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+    expect(screen.getByRole('button', { name: 'Alpine meadow' })).toBeVisible()
+
+    const handle = screen.getByRole('button', { name: 'Collapse details' })
+    expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
+    fireEvent.click(handle)
+    expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
+    expect(
+      screen.queryByRole('button', { name: 'Alpine meadow' }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
+    expect(
+      await screen.findByText('A quiet meadow above the lake.'),
+    ).toBeVisible()
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+  })
+
+  it('replaces the URL on carousel changes so browser back leaves the gallery', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Lac de Bretaye',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8],
+        gallerySource: 'personal',
+      },
+      { withPreviousContext: true },
+    )
+
+    fireEvent.click(await screen.findByTestId('lightbox-next'))
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/8',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Browser back' }))
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/collection',
+    )
+  })
+
+  it('deletes a middle slide, displays its adjacent discovery, and replaces the URL with it', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Lac de Bretaye',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    const thirdDiscovery = {
+      ...discovery,
+      id: 9,
+      name: 'Dents du Midi',
+      imageObjectKey: 'photos/dents.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([
+      discovery,
+      secondDiscovery,
+      thirdDiscovery,
+    ])
+
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8, 9],
+        gallerySource: 'personal',
+      },
+      {
+        initialPath: '/discoveries/8',
+      },
+    )
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete discovery' }))
+
+    await waitFor(() =>
+      expect(deleteDiscoveryMock).toHaveBeenCalledWith('test-token', '8'),
     )
     expect(
-      screen.getByRole('heading', { name: 'Alpine meadow' }),
+      await screen.findByRole('button', { name: 'Dents du Midi' }),
+    ).toBeVisible()
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/9',
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Lac de Bretaye' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'More actions' }),
     ).toBeInTheDocument()
   })
 
-  it('renders a collapsed fullscreen details handle without requesting another photo', async () => {
-    renderPage()
+  it('uses the target discovery group when All Groups carousel navigation changes slides', async () => {
+    const firstGroupDiscovery = {
+      ...discovery,
+      id: 7,
+      name: 'Group 12 discovery',
+      groupId: '12',
+      groupIds: ['12'],
+      personal: false,
+    }
+    const secondGroupDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Group 27 discovery',
+      groupId: '27',
+      groupIds: ['27'],
+      personal: false,
+      description: 'A different group context.',
+      imageObjectKey: 'photos/group-27.jpg',
+    }
+    getAllGroupDiscoveriesMock.mockResolvedValue([
+      firstGroupDiscovery,
+      secondGroupDiscovery,
+    ])
 
-    fireEvent.click(await screen.findByRole('img', { name: 'Alpine meadow' }))
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8],
+        gallerySource: 'all-groups',
+      },
+      { initialPath: '/discoveries/7?group=12' },
+    )
+
+    fireEvent.click(await screen.findByTestId('lightbox-next'))
 
     expect(
-      await screen.findByRole('dialog', { name: 'Photo viewer' }),
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('viewer-details-drawer')).toBeInTheDocument()
-    expect(screen.getByTestId('viewer-details-handle')).toBeInTheDocument()
-    expect(getPhotoMock).toHaveBeenCalledTimes(1)
+      await screen.findByRole('button', { name: 'Group 27 discovery' }),
+    ).toBeVisible()
+    expect(screen.getByText('A different group context.')).toBeVisible()
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/8?group=27',
+    )
+  })
+
+  it('keeps the discovery title visible in the collapsed drawer', async () => {
+    renderPage()
+
+    const title = await screen.findByRole('button', { name: 'Alpine meadow' })
+    expect(title).toBeVisible()
+    expect(screen.getByTestId('discovery-detail-drawer')).toBeInTheDocument()
+    expect(
+      document.querySelectorAll('[data-slot="drawer-swipe-handle"]'),
+    ).toHaveLength(1)
+  })
+
+  it('shows expanded discovery details from the main drawer', async () => {
+    renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Alpine meadow' }),
+    )
+
+    expect(
+      await screen.findByText('A quiet meadow above the lake.'),
+    ).toBeVisible()
+    expect(screen.getByText('Personal map')).toBeVisible()
+  })
+
+  it('shows and automatically hides the post-creation confirmation', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      renderPage({ returnTo: '/', justCreated: true })
+      await act(async () => {
+        await Promise.resolve()
+        await Promise.resolve()
+      })
+      await screen.findByRole('heading', { name: 'Alpine meadow' })
+
+      expect(
+        screen.getByRole('status', { name: 'Discovery added' }),
+      ).toBeInTheDocument()
+
+      act(() => {
+        vi.advanceTimersByTime(1_200)
+      })
+
+      expect(
+        screen.queryByRole('status', { name: 'Discovery added' }),
+      ).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
