@@ -43,7 +43,7 @@ export function QrScanner({
         type="button"
         onClick={onCancel}
         aria-label="Cancel scan"
-        className="flex size-12 items-center justify-center rounded-full bg-black/60 text-white"
+        className="flex size-12 items-center justify-center rounded-full bg-black/60 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-white/80"
       >
         <X className="size-6" />
       </button>

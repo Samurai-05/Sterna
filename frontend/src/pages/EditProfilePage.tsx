@@ -140,7 +140,7 @@ function ProfileForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6 px-5">
       <section className="flex flex-col items-center gap-3">
-        <span className="relative flex size-28 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-[#C4622D] font-display text-4xl font-semibold text-white">
+        <span className="relative flex size-28 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-terra-500 font-display text-4xl font-semibold text-white">
           {browserPhotoUrl ? (
             <img
               src={browserPhotoUrl}

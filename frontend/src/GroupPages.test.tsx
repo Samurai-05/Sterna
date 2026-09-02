@@ -216,6 +216,15 @@ describe('group detail', () => {
     expect(qrCode.tagName.toLowerCase()).toBe('svg')
   })
 
+  it('does not promise QR scanning on a platform that cannot scan', async () => {
+    renderAt('/groups/12')
+
+    await screen.findByText('AB3K-9QZ2')
+    expect(
+      screen.getByText('Share this code. Scanning the QR code needs the Android app.'),
+    ).toBeInTheDocument()
+  })
+
   it('reports a group it cannot see as not found rather than falling back', async () => {
     api.getGroup.mockRejectedValue(new ApiError('No such group.', 404))
     renderAt('/groups/99')

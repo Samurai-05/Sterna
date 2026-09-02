@@ -49,7 +49,7 @@ export function DiscoveryGroupSelector({
           aria-pressed={personalSelected}
           aria-label={`Add to ${personalMapName}`}
           onClick={togglePersonal}
-          className={`flex h-10 w-max shrink-0 snap-start items-center gap-1.5 rounded-xl border px-2 py-1 text-left text-xs transition-colors ${personalSelected ? 'border-primary bg-green-50' : 'border-border bg-background'}`}
+          className={`flex h-10 w-max shrink-0 snap-start items-center gap-1.5 rounded-xl border px-2 py-1 text-left text-xs transition-colors ${personalSelected ? 'border-primary bg-accent' : 'border-border bg-background'}`}
         >
           <span
             className={`flex size-5 shrink-0 items-center justify-center rounded-md ${personalSelected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
@@ -74,7 +74,7 @@ export function DiscoveryGroupSelector({
               aria-pressed={selected}
               aria-label={`Add to ${group.name}`}
               onClick={() => toggleGroup(group.id)}
-              className={`flex h-10 w-max shrink-0 snap-start items-center gap-1.5 rounded-xl border px-2 py-1 text-left text-xs transition-colors ${selected ? 'border-primary bg-green-50' : 'border-border bg-background'}`}
+              className={`flex h-10 w-max shrink-0 snap-start items-center gap-1.5 rounded-xl border px-2 py-1 text-left text-xs transition-colors ${selected ? 'border-primary bg-accent' : 'border-border bg-background'}`}
             >
               <span
                 className={`flex size-5 shrink-0 items-center justify-center rounded-md ${selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}

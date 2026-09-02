@@ -25,6 +25,7 @@ import {
   initialsOf,
   leaveGroup,
 } from '@/lib/api'
+import { isQrScanAvailable } from '@/lib/qr-scan'
 import { loadSession } from '@/lib/session'
 
 export function GroupDetailPage() {
@@ -185,7 +186,9 @@ export function GroupDetailPage() {
         <section className="rounded-2xl border border-border bg-card p-5">
           <h2 className="sterna-section-title">Invite others</h2>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
-            Share this code, or let them scan the QR code from the app.
+            {isQrScanAvailable()
+              ? 'Share this code, or let them scan the QR code from the app.'
+              : 'Share this code. Scanning the QR code needs the Android app.'}
           </p>
           <div className="mt-3 flex items-center gap-3">
             <span className="flex h-12 flex-1 items-center justify-center rounded-xl border border-border bg-background text-lg font-semibold tracking-[0.3em]">
@@ -206,7 +209,7 @@ export function GroupDetailPage() {
             </Button>
           </div>
           {copied && (
-            <p role="status" className="mt-2 text-sm text-primary">
+            <p role="status" className="mt-2 text-sm text-success">
               Code copied.
             </p>
           )}
@@ -221,7 +224,7 @@ export function GroupDetailPage() {
         </section>
 
         {group.isActive && (
-          <p className="flex h-12 items-center justify-center gap-2 rounded-xl border border-primary/20 bg-green-50 text-sm font-semibold text-primary">
+          <p className="flex h-12 items-center justify-center gap-2 rounded-xl border border-primary/20 bg-accent text-sm font-semibold text-primary">
             <Check className="size-4" />
             This is your active map
           </p>
@@ -242,7 +245,7 @@ export function GroupDetailPage() {
                   {member.userName}
                 </span>
                 {member.role === 'owner' && (
-                  <span className="shrink-0 rounded-full bg-[#fbf1ec] px-2 py-1 text-xs font-semibold text-[#b8572b]">
+                  <span className="shrink-0 rounded-full bg-terra-50 px-2 py-1 text-xs font-semibold text-terra-600">
                     Owner
                   </span>
                 )}

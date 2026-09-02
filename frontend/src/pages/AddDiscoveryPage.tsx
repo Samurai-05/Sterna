@@ -591,7 +591,7 @@ export function AddDiscoveryPage() {
         </section>
         <section>
           <p className="mb-2 text-sm font-semibold">Photo</p>
-          <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/45 bg-green-50 text-center text-sm text-muted-foreground">
+          <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/45 bg-accent text-center text-sm text-muted-foreground">
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -684,7 +684,7 @@ export function AddDiscoveryPage() {
                 key={item.id}
                 type="button"
                 onClick={() => setCategory(item.id)}
-                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${category === item.id ? 'border-primary bg-green-50 text-primary' : 'border-border bg-card'}`}
+                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${category === item.id ? 'border-primary bg-accent text-primary' : 'border-border bg-card'}`}
               >
                 <CategoryIcon category={item.id} className="size-4" />
                 {item.label}
@@ -800,8 +800,8 @@ export function AddDiscoveryPage() {
         </Button>
         {formMessage && (
           <p
-            role="status"
-            className="text-center text-sm text-muted-foreground"
+            role="alert"
+            className="text-center text-sm text-destructive"
           >
             {formMessage}
           </p>
