@@ -36,8 +36,7 @@ import {
 } from '@/lib/category-appearance'
 import { getMapTarget } from '@/lib/map-target'
 import {
-  defaultMapViewport,
-  getStoredMapViewport,
+  defaultGlobeViewport,
   type MapViewport,
 } from '@/lib/map-viewport'
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
@@ -47,6 +46,7 @@ import { personalMapName } from '@/lib/personal-map-name'
 import {
   getCurrentDevicePosition,
   isNativeAndroid,
+  type DeviceLocationPosition,
 } from '@/lib/device-location'
 
 export function MapPage({ active }: { active: boolean }) {
@@ -55,11 +55,15 @@ export function MapPage({ active }: { active: boolean }) {
   >(null)
   const [initialViewport, setInitialViewport] = useState<MapViewport | null>(
     () =>
-      getStoredMapViewport() ??
-      (isNativeAndroid() || navigator.geolocation ? null : defaultMapViewport),
+      isNativeAndroid() || navigator.geolocation ? null : defaultGlobeViewport,
   )
   const mapRef = useRef<MapCanvasHandle>(null)
-  const locationRequestStartedRef = useRef(false)
+  const initialLocationRequestRef = useRef<Promise<DeviceLocationPosition> | null>(
+    null,
+  )
+  const [deviceLocation, setDeviceLocation] = useState<
+    [number, number] | null
+  >(null)
   const navigate = useNavigate()
   const location = useLocation()
   const mapTarget = getMapTarget(location.state)
@@ -70,20 +74,26 @@ export function MapPage({ active }: { active: boolean }) {
   useEffect(() => {
     if (initialViewport) return
 
-    if (locationRequestStartedRef.current) return
-    locationRequestStartedRef.current = true
     let activeRequest = true
+    const locationRequest =
+      initialLocationRequestRef.current ?? getCurrentDevicePosition()
+    initialLocationRequestRef.current = locationRequest
 
-    void getCurrentDevicePosition().then(
+    void locationRequest.then(
       ({ coords }) => {
         if (!activeRequest) return
+        const coordinates: [number, number] = [
+          coords.longitude,
+          coords.latitude,
+        ]
+        setDeviceLocation(coordinates)
         setInitialViewport({
-          center: [coords.longitude, coords.latitude],
+          center: coordinates,
           zoom: 13,
         })
       },
       () => {
-        if (activeRequest) setInitialViewport(defaultMapViewport)
+        if (activeRequest) setInitialViewport(defaultGlobeViewport)
       },
     )
 
@@ -188,6 +198,7 @@ export function MapPage({ active }: { active: boolean }) {
           discoveries={visibleDiscoveries}
           landmarks={visibleLandmarks}
           exploredCountryCodes={exploredCountryCodes}
+          userLocation={deviceLocation ?? undefined}
           photoAccessToken={session?.accessToken}
           onSelectDiscovery={handleSelectDiscovery}
           onSelectLandmark={handleSelectLandmark}
@@ -274,14 +285,16 @@ export function MapPage({ active }: { active: boolean }) {
           className="size-11 rounded-full bg-card shadow-sm"
           aria-label="Locate me"
           onClick={() => {
-            if (!isNativeAndroid()) {
-              mapRef.current?.locate()
-              return
-            }
-
             void getCurrentDevicePosition().then(
-              () => mapRef.current?.locate(),
-              () => undefined,
+              ({ coords }) => {
+                const coordinates: [number, number] = [
+                  coords.longitude,
+                  coords.latitude,
+                ]
+                setDeviceLocation(coordinates)
+                mapRef.current?.locate(coordinates)
+              },
+              () => setDeviceLocation(null),
             )
           }}
         >

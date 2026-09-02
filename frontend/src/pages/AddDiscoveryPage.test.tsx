@@ -320,7 +320,9 @@ describe('AddDiscoveryPage', () => {
       configurable: true,
       value: {
         getCurrentPosition: vi.fn((success) =>
-          success({ coords: { longitude: 7.4474, latitude: 46.948 } }),
+          success({
+            coords: { longitude: 7.4474, latitude: 46.948, accuracy: 12 },
+          }),
         ),
       },
     })
