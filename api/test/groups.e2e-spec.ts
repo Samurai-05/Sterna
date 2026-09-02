@@ -560,6 +560,126 @@ describe('Groups (e2e)', () => {
       expect(survivor).toBeDefined();
       expect(survivor?.groupId).toBeNull();
     });
+
+    it('preserves every remaining destination when deleting a group', async () => {
+      const deleted = await createGroup('Multi-destination deleted');
+      const remaining = await createGroup('Multi-destination remaining');
+
+      for (const group of [deleted, remaining]) {
+        await request(app.getHttpServer())
+          .post('/api/groups/join')
+          .set(auth(linus))
+          .send({ inviteCode: group.inviteCode })
+          .expect(200);
+      }
+
+      const cases = [
+        {
+          title: 'delete-false-only',
+          token: ada,
+          personal: false,
+          both: false,
+        },
+        {
+          title: 'delete-false-both',
+          token: linus,
+          personal: false,
+          both: true,
+        },
+        { title: 'delete-true-only', token: ada, personal: true, both: false },
+        {
+          title: 'delete-true-both',
+          token: linus,
+          personal: true,
+          both: true,
+        },
+      ];
+
+      const created: DiscoveryResponse[] = [];
+      for (const testCase of cases) {
+        const body = {
+          ...(await discovery(testCase.token, deleted.id, testCase.title)),
+          personal: testCase.personal,
+          ...(testCase.both ? { groupIds: [remaining.id] } : {}),
+        };
+
+        const response = await request(app.getHttpServer())
+          .post('/api/discoveries')
+          .set(auth(testCase.token))
+          .send(body)
+          .expect(201);
+
+        created.push(response.body as DiscoveryResponse);
+      }
+
+      await request(app.getHttpServer())
+        .delete(`/api/groups/${deleted.id}`)
+        .set(auth(ada))
+        .expect(204);
+
+      const authored = await Promise.all(
+        [ada, linus].map(async (token) => {
+          const response = await request(app.getHttpServer())
+            .get('/api/discoveries/authored')
+            .set(auth(token))
+            .expect(200);
+          return response.body as DiscoveryResponse[];
+        }),
+      );
+      const finalByTitle = new Map(
+        authored
+          .flat()
+          .map((discoveryInCollection) => [
+            discoveryInCollection.title,
+            discoveryInCollection,
+          ]),
+      );
+
+      expect(finalByTitle.get('delete-false-only')).toEqual(
+        expect.objectContaining({
+          personal: true,
+          groupIds: [],
+          groupId: null,
+        }),
+      );
+      expect(finalByTitle.get('delete-false-both')).toEqual(
+        expect.objectContaining({
+          personal: false,
+          groupIds: [remaining.id],
+          groupId: null,
+        }),
+      );
+      expect(finalByTitle.get('delete-true-only')).toEqual(
+        expect.objectContaining({
+          personal: true,
+          groupIds: [],
+          groupId: null,
+        }),
+      );
+      expect(finalByTitle.get('delete-true-both')).toEqual(
+        expect.objectContaining({
+          personal: true,
+          groupIds: [remaining.id],
+          groupId: null,
+        }),
+      );
+
+      const remainingMap = await request(app.getHttpServer())
+        .get(`/api/groups/${remaining.id}/discoveries`)
+        .set(auth(ada))
+        .expect(200);
+      const remainingTitles = (remainingMap.body as DiscoveryResponse[]).map(
+        (discoveryInGroup) => discoveryInGroup.title,
+      );
+
+      expect(remainingTitles).toEqual(
+        expect.arrayContaining(['delete-false-both', 'delete-true-both']),
+      );
+      expect(remainingTitles).not.toEqual(
+        expect.arrayContaining(['delete-false-only', 'delete-true-only']),
+      );
+      expect(created).toHaveLength(4);
+    });
   });
 
   describe('leaving a group', () => {
@@ -621,6 +741,117 @@ describe('Groups (e2e)', () => {
 
       expect(moved).toBeDefined();
       expect(moved?.groupId).toBeNull();
+    });
+
+    it('applies all leave destination semantics to multiple discoveries', async () => {
+      const leaving = await createGroup('Multi-destination leaving');
+      const remaining = await createGroup('Multi-destination leave survivor');
+
+      for (const group of [leaving, remaining]) {
+        await request(app.getHttpServer())
+          .post('/api/groups/join')
+          .set(auth(linus))
+          .send({ inviteCode: group.inviteCode })
+          .expect(200);
+      }
+
+      const cases = [
+        { title: 'leave-false-only', personal: false, both: false },
+        { title: 'leave-false-both', personal: false, both: true },
+        { title: 'leave-true-only', personal: true, both: false },
+        { title: 'leave-true-both', personal: true, both: true },
+      ];
+
+      for (const testCase of cases) {
+        const body = {
+          ...(await discovery(linus, leaving.id, testCase.title)),
+          personal: testCase.personal,
+          ...(testCase.both ? { groupIds: [remaining.id] } : {}),
+        };
+
+        await request(app.getHttpServer())
+          .post('/api/discoveries')
+          .set(auth(linus))
+          .send(body)
+          .expect(201);
+      }
+
+      await request(app.getHttpServer())
+        .delete(`/api/groups/${leaving.id}/members/me`)
+        .set(auth(linus))
+        .expect(204);
+
+      const authored = await request(app.getHttpServer())
+        .get('/api/discoveries/authored')
+        .set(auth(linus))
+        .expect(200);
+      const finalByTitle = new Map(
+        (authored.body as DiscoveryResponse[]).map((discoveryInCollection) => [
+          discoveryInCollection.title,
+          discoveryInCollection,
+        ]),
+      );
+
+      expect(finalByTitle.get('leave-false-only')).toEqual(
+        expect.objectContaining({ personal: true, groupIds: [] }),
+      );
+      expect(finalByTitle.get('leave-false-both')).toEqual(
+        expect.objectContaining({ personal: false, groupIds: [remaining.id] }),
+      );
+      expect(finalByTitle.get('leave-true-only')).toEqual(
+        expect.objectContaining({ personal: true, groupIds: [] }),
+      );
+      expect(finalByTitle.get('leave-true-both')).toEqual(
+        expect.objectContaining({ personal: true, groupIds: [remaining.id] }),
+      );
+    });
+
+    it('restores a moved discovery despite its stale legacy group_id', async () => {
+      const original = await createGroup('Stale legacy original');
+      const destination = await createGroup('Stale legacy destination');
+
+      for (const group of [original, destination]) {
+        await request(app.getHttpServer())
+          .post('/api/groups/join')
+          .set(auth(linus))
+          .send({ inviteCode: group.inviteCode })
+          .expect(200);
+      }
+
+      const created = await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set(auth(linus))
+        .send(await discovery(linus, original.id, 'stale-group-id-regression'))
+        .expect(201);
+      const createdDiscovery = created.body as DiscoveryResponse;
+      expect(createdDiscovery.groupId).toBe(original.id);
+      expect(createdDiscovery.groupIds).toEqual([original.id]);
+
+      const updated = await request(app.getHttpServer())
+        .patch(`/api/discoveries/${createdDiscovery.id}`)
+        .set(auth(linus))
+        .send({ groupIds: [destination.id] })
+        .expect(200);
+      const moved = updated.body as DiscoveryResponse;
+      expect(moved.groupId).toBe(original.id);
+      expect(moved.groupIds).toEqual([destination.id]);
+
+      await request(app.getHttpServer())
+        .delete(`/api/groups/${destination.id}/members/me`)
+        .set(auth(linus))
+        .expect(204);
+
+      const personal = await request(app.getHttpServer())
+        .get('/api/discoveries')
+        .set(auth(linus))
+        .expect(200);
+      const restored = (personal.body as DiscoveryResponse[]).find(
+        (discoveryInMap) => discoveryInMap.id === createdDiscovery.id,
+      );
+
+      expect(restored).toEqual(
+        expect.objectContaining({ personal: true, groupIds: [] }),
+      );
     });
 
     // uq_group_members_one_owner_per_group permits zero owners; this is what

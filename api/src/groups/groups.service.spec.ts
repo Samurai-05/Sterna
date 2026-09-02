@@ -266,6 +266,21 @@ describe('GroupsService', () => {
         indexOfStatement('DELETE FROM groups'),
       );
     });
+
+    it('restores affected discoveries from their remaining group destinations', async () => {
+      answer([{ role: GroupRole.Owner }]);
+
+      await service.remove('1', '7');
+
+      const restore = query.mock.calls.find((call) =>
+        call[0].includes('WITH removed'),
+      );
+
+      expect(restore?.[0]).toContain('DELETE FROM discovery_groups');
+      expect(restore?.[0]).toContain('remaining.group_id <> $1');
+      expect(restore?.[0]).toContain('NOT EXISTS');
+      expect(restore?.[1]).toEqual(['7']);
+    });
   });
 
   describe('leave', () => {
@@ -298,6 +313,22 @@ describe('GroupsService', () => {
       expect(indexOfStatement('DELETE FROM discovery_groups')).toBeLessThan(
         indexOfStatement('DELETE FROM group_members'),
       );
+    });
+
+    it('restores discoveries based on junction rows rather than legacy group_id', async () => {
+      answer([{ role: GroupRole.Member }]);
+
+      await service.leave('2', '7');
+
+      const restore = query.mock.calls.find((call) =>
+        call[0].includes('RETURNING dg.discovery_id'),
+      );
+
+      expect(restore?.[0]).toContain('DELETE FROM discovery_groups');
+      expect(restore?.[0]).toContain('d.user_id = $1');
+      expect(restore?.[0]).toContain('remaining.group_id <> $2');
+      expect(restore?.[0]).toContain('NOT EXISTS');
+      expect(restore?.[1]).toEqual(['2', '7']);
     });
 
     it('answers 404 to someone who is not a member', async () => {

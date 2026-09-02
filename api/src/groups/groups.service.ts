@@ -206,21 +206,47 @@ export class GroupsService {
 
   /**
    * Owner only. The group's discoveries are not destroyed with it — they go
-   * back to the personal maps of whoever took them, which is also what
-   * fk_discoveries_group ON DELETE SET NULL says the schema intends.
+   * back to the personal maps of whoever took them when the deleted group was
+   * their last group destination.
    */
   async remove(userId: string, groupId: string): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
       await this.requireOwner(userId, groupId, manager);
 
-      // Before the memberships, or fk_discoveries_group_membership (RESTRICT)
-      // aborts the delete below.
+      // Remove the group's destinations and restore discoveries that have no
+      // other group destination. The CTE keeps the affected discovery ids
+      // attached to the same atomic mutation that removes the junction rows.
+      await manager.query(
+        `WITH removed AS (
+          DELETE FROM discovery_groups
+          WHERE group_id = $1
+          RETURNING discovery_id
+        )
+        UPDATE discoveries d
+        SET is_personal = CASE
+          WHEN NOT EXISTS (
+            SELECT 1
+            FROM discovery_groups remaining
+            WHERE remaining.discovery_id = d.id
+              AND remaining.group_id <> $1
+          )
+          THEN TRUE
+          ELSE d.is_personal
+        END
+        WHERE d.id IN (SELECT discovery_id FROM removed)`,
+        [groupId],
+      );
+
+      // Legacy group_id is retained as provenance for compatibility. It is
+      // not used to decide visibility, but must be cleared before removing
+      // memberships because fk_discoveries_group_membership is RESTRICT.
       await manager.query(
         `UPDATE discoveries
-            SET group_id = NULL, is_personal = TRUE
+            SET group_id = NULL
           WHERE group_id = $1`,
         [groupId],
       );
+
       await manager.query(`DELETE FROM group_members WHERE group_id = $1`, [
         groupId,
       ]);
@@ -237,21 +263,39 @@ export class GroupsService {
         throw new ConflictException(OWNER_CANNOT_LEAVE);
       }
 
-      // Same RESTRICT as above, narrowed to this member's rows: their
-      // discoveries move to their personal map rather than disappearing.
+      // Remove only this member's destination for the group and restore the
+      // affected discoveries when no other group destination remains. The
+      // CTE prevents the affected ids from being lost between those steps.
       await manager.query(
-        `UPDATE discoveries
-            SET group_id = NULL, is_personal = TRUE
-          WHERE user_id = $1 AND group_id = $2`,
-        [userId, groupId],
-      );
-
-      await manager.query(
-        `DELETE FROM discovery_groups dg
+        `WITH removed AS (
+          DELETE FROM discovery_groups dg
           USING discoveries d
           WHERE dg.discovery_id = d.id
             AND d.user_id = $1
-            AND dg.group_id = $2`,
+            AND dg.group_id = $2
+          RETURNING dg.discovery_id
+        )
+        UPDATE discoveries d
+        SET is_personal = CASE
+          WHEN NOT EXISTS (
+            SELECT 1
+            FROM discovery_groups remaining
+            WHERE remaining.discovery_id = d.id
+              AND remaining.group_id <> $2
+          )
+          THEN TRUE
+          ELSE d.is_personal
+        END
+        WHERE d.id IN (SELECT discovery_id FROM removed)`,
+        [userId, groupId],
+      );
+
+      // Clear stale/provenance values that would otherwise keep the member
+      // row from being deleted by fk_discoveries_group_membership (RESTRICT).
+      await manager.query(
+        `UPDATE discoveries
+            SET group_id = NULL
+          WHERE user_id = $1 AND group_id = $2`,
         [userId, groupId],
       );
 
