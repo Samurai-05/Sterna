@@ -490,7 +490,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
               <img
                 src={markerImage}
                 alt=""
-                className={`relative size-full object-contain ${landmark.discovered ? '' : 'opacity-70'}`}
+                className={`relative size-full object-cover ${landmark.discovered ? '' : 'opacity-70'}`}
               />
             </span>
             <span className="sr-only">

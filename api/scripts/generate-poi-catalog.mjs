@@ -138,6 +138,31 @@ const appealByCategory = {
 // Keep the verified opening year until that Wikidata-derived value is fixed.
 const yearOverrides = { Q54495: 1932 };
 
+// The Wikidata-linked Commons file is sometimes missing, low resolution, or
+// not representative of the place (e.g. a detail shot instead of a full
+// view). Override with a better Commons filename (as used in the file's own
+// "Special:Redirect/file/<name>" URL) when one is identified.
+const imageOverrides = {
+  // Wikidata-linked image was a close-up of a wall/relief detail, not the
+  // palace itself.
+  AZ: 'Palace_of_Shirvanshahs_common.JPG',
+  // Wikidata-linked image was obscured by foliage and a parked car.
+  BB: '161115_Nidhe_Israel_Synagogue.jpg',
+  // Wikidata-linked image was a 17th-century engraving, not a photo.
+  MZ: 'Les ruines du Fort de Sofala en 2018.jpg',
+  // Wikidata-linked image was a cluttered street scene (billboards, cars).
+  GM: 'Kanifing Pipeline mosque 2025 1A.jpg',
+  // Wikidata-linked image was a historical map, not a photo of the site.
+  ER: 'Adulis (8529061940).jpg',
+  // Wikidata-linked file ("Copy of IMG 1654.jpg") no longer exists on
+  // Commons — was a dead link.
+  KE: 'Mount Longonot in Kenya 01.jpg',
+  // Wikidata-linked image was low-resolution and had tourists in frame.
+  KH: 'Angkor Wat with its reflection (cropped).jpg',
+  // Wikidata-linked image was low-resolution (480x360).
+  PH: 'Crater Lake at the Mount Pinatubo Caldera in the Philippines.jpg',
+};
+
 function historicalDate(year) {
   if (!Number.isInteger(year)) return null;
   if (year < 0) {
@@ -327,7 +352,10 @@ const pois = codes.map((countryCode) => {
     description: descriptionFor(row, entity, labels),
     longitude: row[columns.lon],
     latitude: row[columns.lat],
-    imageUrl: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${row[columns.img]}?width=1600`,
+    // Unlike row[columns.img] (already percent-encoded by the upstream
+    // dataset), imageOverrides holds plain Commons filenames and must be
+    // encoded here.
+    imageUrl: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${imageOverrides[countryCode] ? encodeURIComponent(imageOverrides[countryCode]) : row[columns.img]}?width=1600`,
   };
 });
 
