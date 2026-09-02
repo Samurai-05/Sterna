@@ -168,16 +168,39 @@ export function CollectionPage() {
     <main className="min-h-dvh bg-background">
       <div className="sterna-gallery-content space-y-4 px-5">
         <h1 className="sr-only">Collection</h1>
-        <label className="flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground focus-within:ring-2 focus-within:ring-ring/30">
-          <Search className="size-4" />
-          <span className="sr-only">Search gallery</span>
-          <input
-            className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search discoveries and POIs"
-          />
-        </label>
+        <div className="flex items-center gap-2">
+          <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground focus-within:ring-2 focus-within:ring-ring/30">
+            <Search className="size-4 shrink-0" />
+            <span className="sr-only">Search gallery</span>
+            <input
+              className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search discoveries and POIs"
+            />
+          </label>
+          <button
+            type="button"
+            aria-label={
+              view === 'grid'
+                ? 'Switch to detailed view'
+                : 'Switch to photo grid'
+            }
+            aria-pressed={view === 'grid'}
+            onClick={() =>
+              updateGalleryState({
+                view: view === 'grid' ? 'detailed' : 'grid',
+              })
+            }
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          >
+            {view === 'grid' ? (
+              <List className="size-4" aria-hidden="true" />
+            ) : (
+              <Grid2X2 className="size-4" aria-hidden="true" />
+            )}
+          </button>
+        </div>
         <div className="flex gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <CategoryButton
             active={category === null}
@@ -214,27 +237,6 @@ export function CollectionPage() {
               onValueChange={(group) => updateGalleryState({ group })}
             />
           )}
-          <button
-            type="button"
-            aria-label={
-              view === 'grid'
-                ? 'Switch to detailed view'
-                : 'Switch to photo grid'
-            }
-            aria-pressed={view === 'grid'}
-            onClick={() =>
-              updateGalleryState({
-                view: view === 'grid' ? 'detailed' : 'grid',
-              })
-            }
-            className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-          >
-            {view === 'grid' ? (
-              <List className="size-4" aria-hidden="true" />
-            ) : (
-              <Grid2X2 className="size-4" aria-hidden="true" />
-            )}
-          </button>
         </div>
         <p className="text-sm text-muted-foreground">
           {isLoading
@@ -343,6 +345,7 @@ export function CollectionPage() {
                   locationLabel={discoveryLocationLabel(discovery)}
                   galleryIds={galleryIds}
                   gallerySource={gallerySource}
+                  layout="list"
                 />
               )
             })}

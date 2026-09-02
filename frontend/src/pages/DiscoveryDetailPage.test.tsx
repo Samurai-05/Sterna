@@ -57,7 +57,7 @@ vi.mock('yet-another-react-lightbox', () => ({
     render?: {
       slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
     }
-    carousel?: { preload?: number }
+    carousel?: { preload?: number; imageFit?: string; padding?: number }
     animation?: { fade?: number; swipe?: number }
     zoom?: {
       maxZoomPixelRatio?: number
@@ -104,7 +104,7 @@ function InlineLightboxTestDouble({
   render?: {
     slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
   }
-  carousel?: { preload?: number }
+  carousel?: { preload?: number; imageFit?: string; padding?: number }
   animation?: { fade?: number; swipe?: number }
   zoom?: {
     maxZoomPixelRatio?: number
@@ -127,6 +127,8 @@ function InlineLightboxTestDouble({
       data-inline-width={inline?.style?.width}
       data-inline-height={inline?.style?.height}
       data-carousel-preload={carousel?.preload}
+      data-carousel-image-fit={carousel?.imageFit}
+      data-carousel-padding={carousel?.padding}
       data-animation-fade={animation?.fade}
       data-animation-swipe={animation?.swipe}
       data-zoom-max-pixel-ratio={zoom?.maxZoomPixelRatio}
@@ -452,12 +454,21 @@ describe('DiscoveryDetailPage', () => {
       const metadata = await screen.findByRole('group', {
         name: 'Discovery metadata',
       })
-      expect(metadata).toHaveTextContent('Landscape')
-      expect(metadata).toHaveTextContent('Added by Explorer · today')
+      expect(metadata.firstElementChild).toHaveTextContent('Landscape')
+      expect(metadata.firstElementChild).toHaveClass(
+        'rounded-full',
+        'bg-[#DBEAFE]',
+      )
+      expect(metadata.firstElementChild).toHaveStyle({
+        borderColor: '#2563EB',
+      })
+      expect(metadata).toHaveTextContent('Added byExplorer')
+      expect(metadata).toHaveTextContent('Datetoday')
       expect(metadata).toHaveTextContent('Personal map')
-      expect(metadata).not.toHaveClass('rounded-xl', 'bg-secondary/45')
+      expect(metadata.querySelectorAll('.rounded-xl')).toHaveLength(4)
       expect(metadata).not.toHaveTextContent('A quiet meadow above the lake.')
       expect(screen.getByText('A quiet meadow above the lake.')).toBeVisible()
+      expect(screen.getByRole('heading', { name: 'Description' })).toBeVisible()
     } finally {
       scrollHeight.mockRestore()
       bounds.mockRestore()
@@ -474,8 +485,13 @@ describe('DiscoveryDetailPage', () => {
       screen.queryByRole('menuitem', { name: 'Edit discovery' }),
     ).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    const actionTrigger = screen.getByRole('button', { name: 'More actions' })
+    expect(actionTrigger).toHaveClass('bg-white/90', 'text-black')
+    fireEvent.click(actionTrigger)
 
+    expect(
+      screen.getByRole('menu', { name: 'Photo actions' }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('menuitem', { name: 'Edit discovery' }),
     ).toBeInTheDocument()
@@ -488,8 +504,13 @@ describe('DiscoveryDetailPage', () => {
     renderPage()
 
     const photo = await screen.findByRole('img', { name: 'Alpine meadow' })
+    const photoRegion = screen.getByRole('region', {
+      name: 'Discovery photo',
+    })
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
     expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+    expect(photoRegion).toHaveClass('bg-white')
+    expect(photoRegion.closest('main')).toHaveClass('bg-white')
 
     fireEvent.click(photo)
 
@@ -497,6 +518,45 @@ describe('DiscoveryDetailPage', () => {
       screen.queryByRole('dialog', { name: 'Photo viewer' }),
     ).not.toBeInTheDocument()
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('toggles an immersive black view when the photo background is pressed', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('img', { name: 'Alpine meadow' })
+    const screenRoot = photo.closest('main')
+    expect(screenRoot).toHaveAttribute('data-controls-visible', 'true')
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'More actions' })).toBeVisible()
+    expect(screen.getByTestId('discovery-detail-drawer')).toBeInTheDocument()
+
+    fireEvent.click(photo)
+
+    expect(screenRoot).toHaveAttribute('data-controls-visible', 'false')
+    expect(screenRoot).toHaveClass('bg-black')
+    expect(
+      screen.queryByRole('button', { name: 'Go back' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'More actions' }),
+    ).not.toBeInTheDocument()
+    const hiddenDrawer = screen.getByTestId('discovery-detail-drawer')
+    expect(hiddenDrawer).toHaveAttribute('data-controls-visible', 'false')
+    expect(document.querySelector('[data-slot="drawer-popup"]')).toHaveClass(
+      'opacity-0',
+      '!pointer-events-none',
+    )
+
+    fireEvent.click(photo)
+
+    expect(screenRoot).toHaveAttribute('data-controls-visible', 'true')
+    expect(screenRoot).toHaveClass('bg-white')
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeVisible()
+    const restoredDrawer = screen.getByTestId('discovery-detail-drawer')
+    expect(restoredDrawer).toHaveAttribute('data-controls-visible', 'true')
+    expect(document.querySelector('[data-slot="drawer-popup"]')).toHaveClass(
+      'opacity-100',
+    )
   })
 
   it('gives Inline a measurable full-size container', async () => {
@@ -515,6 +575,8 @@ describe('DiscoveryDetailPage', () => {
     const viewer = await screen.findByTestId('inline-photo-viewer')
 
     expect(viewer).toHaveAttribute('data-carousel-preload', '1')
+    expect(viewer).toHaveAttribute('data-carousel-image-fit', 'contain')
+    expect(viewer).toHaveAttribute('data-carousel-padding', '0')
     expect(viewer).not.toHaveAttribute('data-animation-fade')
     expect(viewer).not.toHaveAttribute('data-animation-swipe')
     expect(viewer).toHaveAttribute('data-zoom-max-pixel-ratio', '3')
@@ -542,7 +604,13 @@ describe('DiscoveryDetailPage', () => {
       gallerySource: 'personal',
     })
 
-    expect(await screen.findByLabelText('Photo 1 of 2')).toBeVisible()
+    const counter = await screen.findByLabelText('Photo 1 of 2')
+    expect(counter).toBeVisible()
+    expect(counter).toHaveClass('bg-white', 'text-black')
+    expect(screen.getByRole('button', { name: 'Go back' })).toHaveClass(
+      'bg-white',
+      'text-black',
+    )
 
     fireEvent.click(screen.getByTestId('lightbox-next'))
 
@@ -680,13 +748,14 @@ describe('DiscoveryDetailPage', () => {
     expect(new Set(getPhotoMock.mock.calls.map((call) => call[1])).size).toBe(2)
     expect(screen.getByText('A lake framed by alpine meadows.')).toBeVisible()
     expect(screen.getByText('Plant')).toBeVisible()
-    expect(screen.getByText(/Added by Friend/)).toBeVisible()
+    expect(screen.getByText('Added by')).toBeVisible()
+    expect(screen.getByText('Friend')).toBeVisible()
     expect(
       screen.queryByRole('button', { name: 'More actions' }),
     ).not.toBeInTheDocument()
   })
 
-  it('exposes minimized, peek, and expanded drawer states sequentially', async () => {
+  it('keeps the title visible while toggling between compact and expanded states', async () => {
     const scrollHeight = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
       .mockReturnValue(320)
@@ -699,43 +768,28 @@ describe('DiscoveryDetailPage', () => {
 
       const drawer = await screen.findByTestId('discovery-detail-drawer')
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-      expect(drawer).toHaveAttribute('data-snap-points', '36,96,0.55')
+      expect(drawer).toHaveAttribute('data-snap-points', '72,0.55')
       await waitFor(() =>
-        expect(drawer).toHaveAttribute('data-snap-points', '36,56,0.55'),
+        expect(drawer).toHaveAttribute('data-snap-points', '56,0.55'),
       )
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toBeVisible()
+      const title = screen.getByRole('button', { name: 'Alpine meadow' })
+      expect(title).toBeVisible()
+      expect(title).toHaveProperty('tabIndex', 0)
 
-      const handle = screen.getByRole('button', { name: 'Collapse details' })
+      const handle = screen.getByRole('button', { name: 'Expand details' })
       expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
+      expect(handle).toHaveClass('h-6', 'py-0', 'items-center')
       fireEvent.click(handle)
-      expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
-      expect(handle).toHaveClass('h-9', 'py-0', 'items-center')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toHaveAttribute('tabindex', '-1')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toBeInTheDocument()
-
-      fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
-      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toHaveProperty('tabIndex', 0)
-
-      fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
+      expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
       expect(
         await screen.findByText('A quiet meadow above the lake.'),
       ).toBeVisible()
-      expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toHaveProperty('tabIndex', 0)
+      expect(title).toBeVisible()
+      expect(title).toHaveProperty('tabIndex', 0)
 
       fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(title).toBeVisible()
     } finally {
       scrollHeight.mockRestore()
       bounds.mockRestore()
@@ -755,7 +809,7 @@ describe('DiscoveryDetailPage', () => {
         expect(drawer).toHaveAttribute('data-peek-snap-point', '112'),
       )
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-      expect(drawer).toHaveAttribute('data-snap-points', '36,112,0.55')
+      expect(drawer).toHaveAttribute('data-snap-points', '112,0.55')
       expect(drawer).toHaveAttribute('data-snap-point', '112')
 
       const popup = document.querySelector('[data-slot="drawer-popup"]')
@@ -765,7 +819,7 @@ describe('DiscoveryDetailPage', () => {
         '!max-h-[55dvh]',
         'touch-none',
         'will-change-transform',
-        'transition-[transform,background-color,color,box-shadow]',
+        'transition-[transform,background-color,color,box-shadow,opacity]',
         'duration-[450ms]',
         'data-swiping:duration-0',
       )
@@ -774,7 +828,7 @@ describe('DiscoveryDetailPage', () => {
       )
 
       const title = screen.getByRole('button', { name: 'Alpine meadow' })
-      expect(title).toHaveClass('text-center')
+      expect(title).toHaveClass('text-center', 'font-sans', '!font-bold')
       expect(title).not.toHaveClass('text-left')
 
       const details = screen.getByTestId('discovery-detail-expanded-content')

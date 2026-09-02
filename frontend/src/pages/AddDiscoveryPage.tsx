@@ -25,6 +25,7 @@ import {
   type PersistedLocationSource,
   type SelectedLocation,
 } from '@/lib/discovery-location'
+import { categoryAppearance } from '@/lib/category-appearance'
 import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
@@ -683,8 +684,17 @@ export function AddDiscoveryPage() {
               <button
                 key={item.id}
                 type="button"
+                aria-pressed={category === item.id}
                 onClick={() => setCategory(item.id)}
-                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${category === item.id ? 'border-primary bg-accent text-primary' : 'border-border bg-card'}`}
+                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-colors ${category === item.id ? categoryAppearance[item.id].background : 'border-border bg-card text-foreground'}`}
+                style={
+                  category === item.id
+                    ? {
+                        borderColor: categoryAppearance[item.id].color,
+                        color: categoryAppearance[item.id].color,
+                      }
+                    : undefined
+                }
               >
                 <CategoryIcon category={item.id} className="size-4" />
                 {item.label}
@@ -799,10 +809,7 @@ export function AddDiscoveryPage() {
           {mutation.isPending ? 'Saving discovery...' : 'Save discovery'}
         </Button>
         {formMessage && (
-          <p
-            role="alert"
-            className="text-center text-sm text-destructive"
-          >
+          <p role="alert" className="text-center text-sm text-destructive">
             {formMessage}
           </p>
         )}
