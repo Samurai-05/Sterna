@@ -236,13 +236,15 @@ function PasswordForm({ accessToken }: { accessToken: string }) {
       setNewPassword('')
       setConfirmNewPassword('')
       setConfirmMessage('Password updated. Signing you out…')
-      clearSession()
+      // Navigate first: clearing the session is what sends the shell back to
+      // the welcome screen, which would drop the notice below.
       navigate('/login', {
         replace: true,
         state: {
           notice: 'Password updated. Sign in again with your new password.',
         },
       })
+      clearSession()
     },
     onError: (error) => {
       setFormMessage(

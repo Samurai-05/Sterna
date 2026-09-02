@@ -7,7 +7,7 @@ import {
   getSystemBarAppearance,
 } from '@/lib/system-bars'
 import { getDiscoveryRouteState } from '@/lib/route-state'
-import { loadSession } from '@/lib/session'
+import { useSession } from '@/hooks/useSession'
 import { AddDiscoveryPage } from '@/pages/AddDiscoveryPage'
 import { CollectionPage } from '@/pages/CollectionPage'
 import { CreateGroupPage } from '@/pages/CreateGroupPage'
@@ -31,8 +31,8 @@ const mainRoutes = new Set(['/', '/collection', '/groups', '/profile'])
 function App() {
   const location = useLocation()
   const { pathname } = location
-  const showBottomNavigation =
-    mainRoutes.has(pathname) && Boolean(loadSession())
+  const session = useSession()
+  const showBottomNavigation = mainRoutes.has(pathname) && Boolean(session)
 
   useEffect(() => {
     void applySystemBarAppearance(getSystemBarAppearance(pathname))
@@ -111,7 +111,12 @@ function isDiscoveryDetailPath(pathname: string) {
 }
 
 function RequireAuthentication() {
-  return loadSession() ? <Outlet /> : <Navigate to="/auth" replace />
+  // Reads the session reactively: the API drops it as soon as a request comes
+  // back 401, and that has to pull the user out of the shell straight away
+  // instead of leaving them on screens that silently render empty.
+  const session = useSession()
+
+  return session ? <Outlet /> : <Navigate to="/auth" replace />
 }
 
 export default App
