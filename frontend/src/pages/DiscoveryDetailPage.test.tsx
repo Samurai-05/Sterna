@@ -1,10 +1,16 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { useState, type CSSProperties } from 'react'
 
-import { getDiscovery, getPhoto } from '@/lib/api'
+import {
+  deleteDiscovery,
+  getDiscovery,
+  getDiscoveries,
+  getPhoto,
+} from '@/lib/api'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
-import { Route, Routes } from 'react-router'
+import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
 import { DiscoveryDetailPage } from './DiscoveryDetailPage'
 
@@ -13,6 +19,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
   return {
     ...actual,
     getDiscovery: vi.fn(),
+    getDiscoveries: vi.fn(),
     getPhoto: vi.fn(),
     deleteDiscovery: vi.fn(),
   }
@@ -22,19 +29,71 @@ vi.mock('yet-another-react-lightbox', () => ({
   default: ({
     open,
     slides,
+    index = 0,
+    inline,
+    on,
   }: {
     open: boolean
     slides: Array<{ src: string; alt?: string }>
+    index?: number
+    inline?: { className?: string; style?: CSSProperties }
+    on?: { view?: (props: { index: number }) => void }
   }) =>
     open ? (
-      <div data-testid="inline-photo-viewer">
-        <img src={slides[0].src} alt={slides[0].alt} />
-      </div>
+      <InlineLightboxTestDouble
+        index={index}
+        inline={inline}
+        on={on}
+        slides={slides}
+      />
     ) : null,
 }))
 
+function InlineLightboxTestDouble({
+  index,
+  inline,
+  on,
+  slides,
+}: {
+  index: number
+  inline?: { className?: string; style?: CSSProperties }
+  on?: { view?: (props: { index: number }) => void }
+  slides: Array<{ src: string; alt?: string }>
+}) {
+  const [activeIndex, setActiveIndex] = useState(index)
+  const activeSlide = slides[activeIndex]
+
+  return (
+    <div
+      data-testid="inline-photo-viewer"
+      data-slide-count={slides.length}
+      data-inline-width={inline?.style?.width}
+      data-inline-height={inline?.style?.height}
+      className={inline?.className}
+      style={inline?.style}
+    >
+      <img src={activeSlide.src} alt={activeSlide.alt} />
+      {slides.length > 1 && (
+        <button
+          type="button"
+          data-testid="lightbox-next"
+          onClick={() => {
+            const nextIndex = Math.min(activeIndex + 1, slides.length - 1)
+            setActiveIndex(nextIndex)
+            on?.view?.({ index: nextIndex })
+          }}
+        >
+          Next slide
+        </button>
+      )}
+    </div>
+  )
+}
+
 const getDiscoveryMock = vi.mocked(getDiscovery)
+const getDiscoveriesMock = vi.mocked(getDiscoveries)
 const getPhotoMock = vi.mocked(getPhoto)
+const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
 
 const discovery = {
   id: 7,
@@ -67,7 +126,9 @@ beforeEach(() => {
     },
   })
   getDiscoveryMock.mockResolvedValue(discovery)
+  getDiscoveriesMock.mockResolvedValue([discovery])
   getPhotoMock.mockResolvedValue(new Blob(['photo']))
+  deleteDiscoveryMock.mockResolvedValue(undefined)
 })
 
 afterEach(() => {
@@ -75,17 +136,45 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-function renderPage(state?: unknown) {
+function renderPage(
+  state?: unknown,
+  options: { withPreviousContext?: boolean } = {},
+) {
+  const initialEntries = options.withPreviousContext
+    ? ['/collection', { pathname: '/discoveries/7', state }]
+    : [{ pathname: '/discoveries/7', state }]
+
   return renderWithProviders(
-    <Routes>
-      <Route
-        path="/discoveries/:discoveryId"
-        element={<DiscoveryDetailPage />}
-      />
-    </Routes>,
+    <>
+      <Routes>
+        <Route
+          path="/discoveries/:discoveryId"
+          element={<DiscoveryDetailPage />}
+        />
+      </Routes>
+      <LocationProbe />
+    </>,
     {
-      initialEntries: [{ pathname: '/discoveries/7', state }],
+      initialEntries,
+      initialIndex: options.withPreviousContext ? 1 : undefined,
     },
+  )
+}
+
+function LocationProbe() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  return (
+    <>
+      <output data-testid="location-probe">
+        {location.pathname}
+        {location.search}
+      </output>
+      <button type="button" onClick={() => navigate(-1)}>
+        Browser back
+      </button>
+    </>
   )
 }
 
@@ -193,6 +282,151 @@ describe('DiscoveryDetailPage', () => {
       screen.queryByRole('dialog', { name: 'Photo viewer' }),
     ).not.toBeInTheDocument()
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('gives Inline a measurable full-size container', async () => {
+    renderPage()
+
+    const viewer = await screen.findByTestId('inline-photo-viewer')
+
+    expect(viewer).toHaveAttribute('data-inline-width', '100%')
+    expect(viewer).toHaveAttribute('data-inline-height', '100%')
+    expect(viewer).toHaveClass('absolute', 'inset-0')
+  })
+
+  it('keeps the authenticated loading error placeholder when the detail photo fails', async () => {
+    getPhotoMock.mockRejectedValueOnce(new Error('photo unavailable'))
+
+    renderPage()
+
+    expect(
+      await screen.findByRole('img', { name: 'Photo unavailable' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('inline-photo-viewer')).not.toBeInTheDocument()
+  })
+
+  it('synchronizes the active discovery and all drawer metadata with the carousel', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      userId: '2',
+      name: 'Lac de Bretaye',
+      category: 'plant' as const,
+      description: 'A lake framed by alpine meadows.',
+      author: 'Friend',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+    getPhotoMock.mockImplementation(
+      async (_token, imageObjectKey) => new Blob([imageObjectKey]),
+    )
+
+    renderPage({
+      returnTo: '/collection',
+      galleryIds: [7, 8],
+      gallerySource: 'personal',
+    })
+
+    expect(await screen.findByTestId('inline-photo-viewer')).toHaveAttribute(
+      'data-slide-count',
+      '2',
+    )
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+
+    expect(
+      await screen.findByRole('button', { name: 'Lac de Bretaye' }),
+    ).toBeVisible()
+    expect(getPhotoMock).toHaveBeenCalledTimes(2)
+    expect(new Set(getPhotoMock.mock.calls.map((call) => call[1])).size).toBe(2)
+    expect(screen.getByText('A lake framed by alpine meadows.')).toBeVisible()
+    expect(screen.getByText('Plant')).toBeVisible()
+    expect(screen.getByText(/Added by Friend/)).toBeVisible()
+    expect(
+      screen.queryByRole('button', { name: 'More actions' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('exposes minimized, peek, and expanded drawer states sequentially', async () => {
+    renderPage()
+
+    const drawer = await screen.findByTestId('discovery-detail-drawer')
+    expect(drawer).toHaveAttribute('data-snap-points', '1.75rem,5rem,expanded')
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+    expect(screen.getByRole('button', { name: 'Alpine meadow' })).toBeVisible()
+
+    fireEvent.click(screen.getByTestId('drawer-handle'))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
+    expect(
+      screen.queryByRole('button', { name: 'Alpine meadow' }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('drawer-handle'))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
+    expect(
+      await screen.findByText('A quiet meadow above the lake.'),
+    ).toBeVisible()
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+  })
+
+  it('replaces the URL on carousel changes so browser back leaves the gallery', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Lac de Bretaye',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8],
+        gallerySource: 'personal',
+      },
+      { withPreviousContext: true },
+    )
+
+    fireEvent.click(await screen.findByTestId('lightbox-next'))
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/8',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Browser back' }))
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/collection',
+    )
+  })
+
+  it('removes a deleted slide and continues with the adjacent discovery', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Lac de Bretaye',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+
+    renderPage({
+      returnTo: '/collection',
+      galleryIds: [7, 8],
+      gallerySource: 'personal',
+    })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete discovery' }))
+
+    await waitFor(() =>
+      expect(deleteDiscoveryMock).toHaveBeenCalledWith('test-token', '7'),
+    )
+    expect(
+      await screen.findByRole('button', { name: 'Lac de Bretaye' }),
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('button', { name: 'More actions' }),
+    ).toBeInTheDocument()
   })
 
   it('keeps the discovery title visible in the collapsed drawer', async () => {
