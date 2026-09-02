@@ -588,18 +588,28 @@ describe('DiscoveryDetailPage', () => {
       expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
       fireEvent.click(handle)
       expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
+      expect(handle).toHaveClass('h-9', 'py-0', 'items-center')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toHaveAttribute('tabindex', '-1')
       expect(
         screen.getByRole('button', { name: 'Alpine meadow' }),
       ).toBeInTheDocument()
 
       fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toHaveProperty('tabIndex', 0)
 
       fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
       expect(
         await screen.findByText('A quiet meadow above the lake.'),
       ).toBeVisible()
       expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toHaveProperty('tabIndex', 0)
 
       fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')

@@ -506,7 +506,7 @@ export function DiscoveryDetailPage({
                     isExpanded || isMinimized ? 'peek' : 'minimized',
                   )
                 }}
-                className={isExpanded ? '' : '[&>span]:bg-white/70'}
+                className={`h-9 py-0 items-center ${isExpanded ? '' : '[&>span]:bg-white/70'}`}
               />
               <DrawerHeader className="shrink-0 items-center px-5 pt-0 pb-[max(0.75rem,var(--sterna-safe-area-bottom))] text-center">
                 <DrawerTitle render={<h1 className="sr-only" />}>
@@ -514,6 +514,7 @@ export function DiscoveryDetailPage({
                 </DrawerTitle>
                 <button
                   type="button"
+                  tabIndex={isMinimized ? -1 : 0}
                   className={`min-h-11 w-full truncate rounded-xl px-0 text-center font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
                   aria-controls="discovery-detail-expanded-content"
                   aria-expanded={isExpanded}
