@@ -13,12 +13,12 @@ import {
   getAllGroupDiscoveries,
   getDiscovery,
   getDiscoveries,
+  getGroups,
   getPhoto,
 } from '@/lib/api'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { Route, Routes, useLocation, useNavigate } from 'react-router'
-import { getDiscoveryDetailExpandedSnapPoint } from '@/lib/discovery-detail'
 import { DiscoveryDetailPage } from './DiscoveryDetailPage'
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -28,6 +28,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     getDiscovery: vi.fn(),
     getDiscoveries: vi.fn(),
     getAllGroupDiscoveries: vi.fn(),
+    getGroups: vi.fn(),
     getPhoto: vi.fn(),
     deleteDiscovery: vi.fn(),
   }
@@ -42,6 +43,10 @@ vi.mock('yet-another-react-lightbox', () => ({
     on,
     onErrorCapture,
     render,
+    carousel,
+    animation,
+    zoom,
+    controller,
   }: {
     open: boolean
     slides: Array<{ src: string; alt?: string }>
@@ -52,6 +57,17 @@ vi.mock('yet-another-react-lightbox', () => ({
     render?: {
       slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
     }
+    carousel?: { preload?: number }
+    animation?: { fade?: number; swipe?: number }
+    zoom?: {
+      maxZoomPixelRatio?: number
+      doubleTapDelay?: number
+      scrollToZoom?: boolean
+    }
+    controller?: {
+      closeOnBackdropClick?: boolean
+      closeOnEscape?: boolean
+    }
   }) =>
     open ? (
       <InlineLightboxTestDouble
@@ -60,6 +76,10 @@ vi.mock('yet-another-react-lightbox', () => ({
         on={on}
         onErrorCapture={onErrorCapture}
         render={render}
+        carousel={carousel}
+        animation={animation}
+        zoom={zoom}
+        controller={controller}
         slides={slides}
       />
     ) : null,
@@ -71,6 +91,10 @@ function InlineLightboxTestDouble({
   on,
   onErrorCapture,
   render,
+  carousel,
+  animation,
+  zoom,
+  controller,
   slides,
 }: {
   index: number
@@ -79,6 +103,17 @@ function InlineLightboxTestDouble({
   onErrorCapture?: (event: SyntheticEvent<HTMLDivElement>) => void
   render?: {
     slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
+  }
+  carousel?: { preload?: number }
+  animation?: { fade?: number; swipe?: number }
+  zoom?: {
+    maxZoomPixelRatio?: number
+    doubleTapDelay?: number
+    scrollToZoom?: boolean
+  }
+  controller?: {
+    closeOnBackdropClick?: boolean
+    closeOnEscape?: boolean
   }
   slides: Array<{ src: string; alt?: string }>
 }) {
@@ -91,6 +126,14 @@ function InlineLightboxTestDouble({
       data-slide-count={slides.length}
       data-inline-width={inline?.style?.width}
       data-inline-height={inline?.style?.height}
+      data-carousel-preload={carousel?.preload}
+      data-animation-fade={animation?.fade}
+      data-animation-swipe={animation?.swipe}
+      data-zoom-max-pixel-ratio={zoom?.maxZoomPixelRatio}
+      data-zoom-double-tap-delay={zoom?.doubleTapDelay}
+      data-zoom-scroll-to-zoom={zoom?.scrollToZoom}
+      data-controller-close-on-backdrop-click={controller?.closeOnBackdropClick}
+      data-controller-close-on-escape={controller?.closeOnEscape}
       className={inline?.className}
       onErrorCapture={onErrorCapture}
       style={inline?.style}
@@ -118,6 +161,7 @@ function InlineLightboxTestDouble({
 const getDiscoveryMock = vi.mocked(getDiscovery)
 const getDiscoveriesMock = vi.mocked(getDiscoveries)
 const getAllGroupDiscoveriesMock = vi.mocked(getAllGroupDiscoveries)
+const getGroupsMock = vi.mocked(getGroups)
 const getPhotoMock = vi.mocked(getPhoto)
 const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
 
@@ -154,6 +198,7 @@ beforeEach(() => {
   getDiscoveryMock.mockResolvedValue(discovery)
   getDiscoveriesMock.mockResolvedValue([discovery])
   getAllGroupDiscoveriesMock.mockResolvedValue([discovery])
+  getGroupsMock.mockResolvedValue([])
   getPhotoMock.mockResolvedValue(new Blob(['photo']))
   deleteDiscoveryMock.mockResolvedValue(undefined)
 })
@@ -215,41 +260,38 @@ function LocationProbe() {
 }
 
 describe('DiscoveryDetailPage', () => {
-  it('caps the expanded snap point at half the viewport without enlarging short content', () => {
-    expect(
-      getDiscoveryDetailExpandedSnapPoint({
-        contentHeight: 120,
-        controlsHeight: 56,
-        viewportHeight: 800,
-      }),
-    ).toBeCloseTo(0.22)
-    expect(
-      getDiscoveryDetailExpandedSnapPoint({
-        contentHeight: 600,
-        controlsHeight: 56,
-        viewportHeight: 800,
-      }),
-    ).toBe(0.5)
-  })
-
   it('uses the photo-first layout with a peek drawer and no conventional page title', async () => {
-    renderPage()
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(320)
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 96 } as DOMRect)
 
-    expect(
-      await screen.findByRole('heading', { name: 'Alpine meadow' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('heading', { name: 'Discovery' }),
-    ).not.toBeInTheDocument()
-    expect(screen.getByTestId('discovery-detail-drawer')).toHaveAttribute(
-      'data-snap-point',
-      '5rem',
-    )
-    const expandedContent = screen.getByTestId(
-      'discovery-detail-expanded-content',
-    )
-    expect(expandedContent).toHaveAttribute('aria-hidden', 'true')
-    expect(expandedContent).toHaveClass('invisible')
+    try {
+      renderPage()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Alpine meadow' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', { name: 'Discovery' }),
+      ).not.toBeInTheDocument()
+      await waitFor(() =>
+        expect(screen.getByTestId('discovery-detail-drawer')).toHaveAttribute(
+          'data-snap-point',
+          '96',
+        ),
+      )
+      const expandedContent = screen.getByTestId(
+        'discovery-detail-expanded-content',
+      )
+      expect(expandedContent).toHaveAttribute('aria-hidden', 'true')
+      expect(expandedContent).not.toHaveClass('invisible')
+    } finally {
+      scrollHeight.mockRestore()
+      bounds.mockRestore()
+    }
   })
 
   it('toggles the normal drawer from the title area', async () => {
@@ -283,6 +325,143 @@ describe('DiscoveryDetailPage', () => {
 
     scrollHeight.mockRestore()
     bounds.mockRestore()
+  })
+
+  it('routes Escape through the viewer back navigation', async () => {
+    renderPage(undefined, { withPreviousContext: true })
+
+    await screen.findByTestId('inline-photo-viewer')
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location-probe')).toHaveTextContent(
+        '/collection',
+      ),
+    )
+  })
+
+  it('closes the action menu on the first Escape and navigates on the second', async () => {
+    renderPage(undefined, { withPreviousContext: true })
+
+    const trigger = await screen.findByRole('button', { name: 'More actions' })
+    fireEvent.click(trigger)
+    expect(
+      screen.getByRole('menuitem', { name: 'Delete discovery' }),
+    ).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('menuitem', { name: 'Delete discovery' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/7',
+    )
+    await waitFor(() => expect(trigger).toHaveFocus())
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(screen.getByTestId('location-probe')).toHaveTextContent(
+        '/collection',
+      ),
+    )
+  })
+
+  it('closes the delete dialog on the first Escape and navigates on the second', async () => {
+    renderPage(undefined, { withPreviousContext: true })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
+    expect(
+      screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
+    ).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('alertdialog', { name: 'Delete discovery?' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/7',
+    )
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(screen.getByTestId('location-probe')).toHaveTextContent(
+        '/collection',
+      ),
+    )
+  })
+
+  it('waits to measure the All Groups peek controls until the drawer is rendered', async () => {
+    let resolveGroups!: (groups: []) => void
+    getGroupsMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveGroups = resolve
+      }),
+    )
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 123 } as DOMRect)
+
+    try {
+      renderPage(
+        { galleryIds: [7], gallerySource: 'all-groups' },
+        { initialPath: '/discoveries/7' },
+      )
+
+      expect(await screen.findByText('Loading discovery…')).toBeVisible()
+      expect(
+        screen.queryByTestId('discovery-detail-drawer'),
+      ).not.toBeInTheDocument()
+      expect(bounds).not.toHaveBeenCalled()
+
+      await act(async () => resolveGroups([]))
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-peek-snap-point', '123'),
+      )
+    } finally {
+      bounds.mockRestore()
+    }
+  })
+
+  it('groups the contextual discovery details separately from its narrative', async () => {
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(320)
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 56 } as DOMRect)
+
+    try {
+      renderPage()
+
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-drawer-state', 'peek'),
+      )
+      const titleToggle = screen.getByRole('button', {
+        name: 'Alpine meadow',
+      })
+      expect(titleToggle).not.toBeDisabled()
+      fireEvent.click(titleToggle)
+
+      const metadata = await screen.findByRole('group', {
+        name: 'Discovery metadata',
+      })
+      expect(metadata).toHaveTextContent('Landscape')
+      expect(metadata).toHaveTextContent('Added by Explorer · today')
+      expect(metadata).toHaveTextContent('Personal map')
+      expect(metadata).not.toHaveClass('rounded-xl', 'bg-secondary/45')
+      expect(metadata).not.toHaveTextContent('A quiet meadow above the lake.')
+      expect(screen.getByText('A quiet meadow above the lake.')).toBeVisible()
+    } finally {
+      scrollHeight.mockRestore()
+      bounds.mockRestore()
+    }
   })
 
   it('keeps author actions accessible from the compact drawer', async () => {
@@ -328,6 +507,46 @@ describe('DiscoveryDetailPage', () => {
     expect(viewer).toHaveAttribute('data-inline-width', '100%')
     expect(viewer).toHaveAttribute('data-inline-height', '100%')
     expect(viewer).toHaveClass('absolute', 'inset-0')
+  })
+
+  it('preloads the adjacent slide without overriding YARL slide timing', async () => {
+    renderPage()
+
+    const viewer = await screen.findByTestId('inline-photo-viewer')
+
+    expect(viewer).toHaveAttribute('data-carousel-preload', '1')
+    expect(viewer).not.toHaveAttribute('data-animation-fade')
+    expect(viewer).not.toHaveAttribute('data-animation-swipe')
+    expect(viewer).toHaveAttribute('data-zoom-max-pixel-ratio', '3')
+    expect(viewer).toHaveAttribute('data-zoom-double-tap-delay', '250')
+    expect(viewer).toHaveAttribute('data-zoom-scroll-to-zoom', 'true')
+    expect(viewer).toHaveAttribute(
+      'data-controller-close-on-backdrop-click',
+      'false',
+    )
+    expect(viewer).toHaveAttribute('data-controller-close-on-escape', 'false')
+  })
+
+  it('shows the current photo position in the fullscreen controls', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Lac de Bretaye',
+      imageObjectKey: 'photos/lac.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+
+    renderPage({
+      returnTo: '/collection',
+      galleryIds: [7, 8],
+      gallerySource: 'personal',
+    })
+
+    expect(await screen.findByLabelText('Photo 1 of 2')).toBeVisible()
+
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+
+    expect(await screen.findByLabelText('Photo 2 of 2')).toBeVisible()
   })
 
   it('keeps the carousel mounted and shows a local unavailable slide when one photo fails', async () => {
@@ -468,32 +687,109 @@ describe('DiscoveryDetailPage', () => {
   })
 
   it('exposes minimized, peek, and expanded drawer states sequentially', async () => {
-    renderPage()
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(320)
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 56 } as DOMRect)
 
-    const drawer = await screen.findByTestId('discovery-detail-drawer')
-    expect(drawer).toHaveAttribute('data-snap-points', '1.75rem,5rem,expanded')
-    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-    expect(screen.getByRole('button', { name: 'Alpine meadow' })).toBeVisible()
+    try {
+      renderPage()
 
-    const handle = screen.getByRole('button', { name: 'Collapse details' })
-    expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
-    fireEvent.click(handle)
-    expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
-    expect(
-      screen.queryByRole('button', { name: 'Alpine meadow' }),
-    ).not.toBeInTheDocument()
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(drawer).toHaveAttribute('data-snap-points', '36,96,0.55')
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-snap-points', '36,56,0.55'),
+      )
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toBeVisible()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
-    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      const handle = screen.getByRole('button', { name: 'Collapse details' })
+      expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
+      fireEvent.click(handle)
+      expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
+      expect(handle).toHaveClass('h-9', 'py-0', 'items-center')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toHaveAttribute('tabindex', '-1')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
-    expect(
-      await screen.findByText('A quiet meadow above the lake.'),
-    ).toBeVisible()
-    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+      fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toHaveProperty('tabIndex', 0)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
-    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
+      expect(
+        await screen.findByText('A quiet meadow above the lake.'),
+      ).toBeVisible()
+      expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+      expect(
+        screen.getByRole('button', { name: 'Alpine meadow' }),
+      ).toHaveProperty('tabIndex', 0)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+    } finally {
+      scrollHeight.mockRestore()
+      bounds.mockRestore()
+    }
+  })
+
+  it('keeps a stable 55dvh popup with semantic snap points and measured peek', async () => {
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ height: 112 } as DOMRect)
+
+    try {
+      renderPage()
+
+      const drawer = await screen.findByTestId('discovery-detail-drawer')
+      await waitFor(() =>
+        expect(drawer).toHaveAttribute('data-peek-snap-point', '112'),
+      )
+      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(drawer).toHaveAttribute('data-snap-points', '36,112,0.55')
+      expect(drawer).toHaveAttribute('data-snap-point', '112')
+
+      const popup = document.querySelector('[data-slot="drawer-popup"]')
+      expect(popup).not.toHaveClass('!h-auto', 'relative')
+      expect(popup).toHaveClass(
+        '!h-[55dvh]',
+        '!max-h-[55dvh]',
+        'touch-none',
+        'will-change-transform',
+        'transition-[transform,background-color,color,box-shadow]',
+        'duration-[450ms]',
+        'data-swiping:duration-0',
+      )
+      expect(popup).toHaveClass(
+        '[transition-timing-function:cubic-bezier(0.32,0.72,0,1)]',
+      )
+
+      const title = screen.getByRole('button', { name: 'Alpine meadow' })
+      expect(title).toHaveClass('text-center')
+      expect(title).not.toHaveClass('text-left')
+
+      const details = screen.getByTestId('discovery-detail-expanded-content')
+      expect(details).not.toHaveClass('invisible', 'absolute', 'h-0')
+      expect(details).not.toHaveAttribute('data-base-ui-swipe-ignore')
+      expect(details).toHaveClass(
+        'touch-auto',
+        'flex-1',
+        'min-h-0',
+        'overflow-y-auto',
+        'overscroll-contain',
+      )
+    } finally {
+      bounds.mockRestore()
+    }
   })
 
   it('replaces the URL on carousel changes so browser back leaves the gallery', async () => {
@@ -599,6 +895,26 @@ describe('DiscoveryDetailPage', () => {
       firstGroupDiscovery,
       secondGroupDiscovery,
     ])
+    getGroupsMock.mockResolvedValue([
+      {
+        id: '12',
+        name: 'Group 12',
+        description: null,
+        role: 'member',
+        isActive: true,
+        memberCount: 1,
+        discoveryCount: 1,
+      },
+      {
+        id: '27',
+        name: 'Group 27',
+        description: null,
+        role: 'member',
+        isActive: true,
+        memberCount: 1,
+        discoveryCount: 1,
+      },
+    ])
 
     renderPage(
       {
@@ -617,6 +933,58 @@ describe('DiscoveryDetailPage', () => {
     expect(screen.getByText('A different group context.')).toBeVisible()
     expect(screen.getByTestId('location-probe')).toHaveTextContent(
       '/discoveries/8?group=27',
+    )
+  })
+
+  it('uses an accessible All Groups membership when the primary group is not accessible', async () => {
+    const firstGroupDiscovery = {
+      ...discovery,
+      id: 7,
+      name: 'Group A discovery',
+      groupId: 'A',
+      groupIds: ['A', 'B'],
+      personal: false,
+    }
+    const secondGroupDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Group B discovery',
+      groupId: 'A',
+      groupIds: ['A', 'B'],
+      personal: false,
+    }
+    getAllGroupDiscoveriesMock.mockResolvedValue([
+      firstGroupDiscovery,
+      secondGroupDiscovery,
+    ])
+    getGroupsMock.mockResolvedValue([
+      {
+        id: 'B',
+        name: 'Group B',
+        description: null,
+        role: 'member',
+        isActive: true,
+        memberCount: 1,
+        discoveryCount: 1,
+      },
+    ])
+
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8],
+        gallerySource: 'all-groups',
+      },
+      { initialPath: '/discoveries/7?group=A' },
+    )
+
+    fireEvent.click(await screen.findByTestId('lightbox-next'))
+
+    expect(
+      await screen.findByRole('button', { name: 'Group B discovery' }),
+    ).toBeVisible()
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/8?group=B',
     )
   })
 
