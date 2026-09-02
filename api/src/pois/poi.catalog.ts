@@ -121,7 +121,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 49.83333,
     latitude: 40.36611,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Azerbaigian-baku3.jpg?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palace_of_Shirvanshahs_common.JPG?width=1600',
   },
   {
     countryCode: 'BA',
@@ -141,7 +141,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -59.61522,
     latitude: 13.09942,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nidhe%20Israel%20Synagogue.JPG?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/161115_Nidhe_Israel_Synagogue.jpg?width=1600',
   },
   {
     countryCode: 'BD',
@@ -541,7 +541,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 39.66056,
     latitude: 15.26361,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/MapHymiariteKingdom.jpg?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Adulis%20(8529061940).jpg?width=1600',
   },
   {
     countryCode: 'ES',
@@ -661,7 +661,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: -16.68494,
     latitude: 13.45773,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gambia%20Kanifing%20Municipal%202020-04-16%20085%20-%20Mapillary%20%28KuVEMVusr0T1Z8k3%20Xr1-w%29%20%28cropped%29.jpg?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kanifing%20Pipeline%20mosque%202025%201A.jpg?width=1600',
   },
   {
     countryCode: 'GN',
@@ -881,7 +881,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 36.45694,
     latitude: -0.91528,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Copy%20of%20IMG%201654.jpg?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Longonot%20in%20Kenya%2001.jpg?width=1600',
   },
   {
     countryCode: 'KG',
@@ -901,7 +901,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 103.86667,
     latitude: 13.4125,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Angkor%20wat%20temple.jpg?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Angkor%20Wat%20with%20its%20reflection%20(cropped).jpg?width=1600',
   },
   {
     countryCode: 'KI',
@@ -1261,7 +1261,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 34.71667,
     latitude: -20.15,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sofala1683.jpg?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Les%20ruines%20du%20Fort%20de%20Sofala%20en%202018.jpg?width=1600',
   },
   {
     countryCode: 'NA',
@@ -1401,7 +1401,7 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     longitude: 120.35,
     latitude: 15.13,
     imageUrl:
-      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pinatubo%20Crater%20Lake%20%28052005%29.jpg?width=1600',
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Crater%20Lake%20at%20the%20Mount%20Pinatubo%20Caldera%20in%20the%20Philippines.jpg?width=1600',
   },
   {
     countryCode: 'PK',
