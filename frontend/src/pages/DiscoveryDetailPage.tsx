@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Link,
   useLocation,
@@ -14,6 +14,7 @@ import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 
 import { DiscoveryDetailsContent } from '@/components/DiscoveryDetailsContent'
 import { DiscoveryPhotoPlaceholder } from '@/components/DiscoveryPhoto'
+import { ALL_GROUPS } from '@/components/GalleryGroupFilter'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -23,14 +24,26 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { ConfirmActionDialog } from '@/components/ui/confirm-action-dialog'
-import { deleteDiscovery, getDiscovery, getGroupDiscoveries } from '@/lib/api'
-import { useDiscoveryPhotoSource } from '@/hooks/useDiscoveryPhotoSource'
+import {
+  deleteDiscovery,
+  getAllGroupDiscoveries,
+  getDiscoveries,
+  getDiscovery,
+  getGroupDiscoveries,
+} from '@/lib/api'
+import { useDiscoveryPhotoSources } from '@/hooks/useDiscoveryPhotoSource'
+import { discoveryPath } from '@/lib/discovery-path'
 import { getDiscoveryRouteState } from '@/lib/route-state'
-import type { Discovery } from '@/lib/mock-data'
+import { imageUrl, type Discovery } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 import { useMeasuredDrawerSnapPoint } from '@/hooks/useMeasuredDrawerSnapPoint'
 
+const MINIMIZED_SNAP_POINT = '1.75rem'
 const PEEK_SNAP_POINT = '5rem'
+const EXPANDED_FALLBACK_SNAP_POINT = 0.5
+const EMPTY_GALLERY: Discovery[] = []
+const UNLOADED_PHOTO_SOURCE =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
 type DiscoveryDetailPageProps = {
   presentation?: 'page' | 'overlay'
@@ -46,6 +59,9 @@ export function DiscoveryDetailPage({
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const groupId = searchParams.get('group')
+  const routeState = getDiscoveryRouteState(location.state)
+  const gallerySource =
+    routeState.gallerySource ?? (groupId ? 'group' : 'personal')
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false)
   const [showCreatedFeedback, setShowCreatedFeedback] = useState(
@@ -53,11 +69,13 @@ export function DiscoveryDetailPage({
   )
   const createdFeedbackConsumedRef = useRef(false)
   const [snapPoint, setSnapPoint] = useState<string | number>(PEEK_SNAP_POINT)
+  const [deletedDiscoveryIds, setDeletedDiscoveryIds] = useState<Set<number>>(
+    () => new Set(),
+  )
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const actionTriggerRef = useRef<HTMLButtonElement>(null)
   const drawerControlsRef = useRef<HTMLDivElement>(null)
   const expandedContentRef = useRef<HTMLDivElement>(null)
-  const routeState = getDiscoveryRouteState(location.state)
   const routeReturnTo = routeState.returnTo
   const backgroundLocation = routeState.backgroundLocation
   const justCreated = routeState.justCreated
@@ -113,25 +131,110 @@ export function DiscoveryDetailPage({
   const personalQuery = useQuery({
     queryKey: ['discovery', session?.user.id, discoveryId],
     queryFn: () => getDiscovery(session!.accessToken, discoveryId!),
-    enabled: Boolean(session && discoveryId && !groupId),
+    enabled: Boolean(
+      session && discoveryId && gallerySource === 'personal' && !groupId,
+    ),
   })
 
-  // Shares its cache with the group map, so opening a card is usually instant.
-  const groupQuery = useQuery({
-    queryKey: ['group-discoveries', session?.user.id, groupId],
-    queryFn: () => getGroupDiscoveries(session!.accessToken, groupId!),
-    select: (items) =>
-      items.find((item) => String(item.id) === discoveryId) ?? null,
-    enabled: Boolean(session && discoveryId && groupId),
+  const galleryQuery = useQuery({
+    queryKey:
+      gallerySource === 'personal'
+        ? ['discoveries', session?.user.id]
+        : [
+            'group-discoveries',
+            session?.user.id,
+            gallerySource === 'all-groups' ? ALL_GROUPS : groupId,
+          ],
+    queryFn: () => {
+      if (gallerySource === 'all-groups') {
+        return getAllGroupDiscoveries(session!.accessToken)
+      }
+      if (gallerySource === 'group' && groupId) {
+        return getGroupDiscoveries(session!.accessToken, groupId)
+      }
+      return getDiscoveries(session!.accessToken)
+    },
+    enabled: Boolean(
+      session && discoveryId && (gallerySource !== 'group' || Boolean(groupId)),
+    ),
   })
 
-  const discovery = groupId ? groupQuery.data : personalQuery.data
-  const isLoading = groupId ? groupQuery.isLoading : personalQuery.isLoading
+  const routeGalleryIds = routeState.galleryIds
+  const detailDiscovery =
+    personalQuery.data ??
+    galleryQuery.data?.find((item) => String(item.id) === discoveryId)
+  const galleryDiscoveries = useMemo(() => {
+    const sourceItems = galleryQuery.data ?? EMPTY_GALLERY
+    const orderedItems = routeGalleryIds
+      ? routeGalleryIds
+          .map((id) => sourceItems.find((item) => item.id === id))
+          .filter((item): item is Discovery => Boolean(item))
+      : sourceItems
+    const withoutDeleted = orderedItems.filter(
+      (item) => !deletedDiscoveryIds.has(item.id),
+    )
+
+    if (
+      detailDiscovery &&
+      !deletedDiscoveryIds.has(detailDiscovery.id) &&
+      !withoutDeleted.some((item) => item.id === detailDiscovery.id)
+    ) {
+      return [...withoutDeleted, detailDiscovery]
+    }
+
+    return withoutDeleted.length > 0
+      ? withoutDeleted
+      : detailDiscovery && !deletedDiscoveryIds.has(detailDiscovery.id)
+        ? [detailDiscovery]
+        : EMPTY_GALLERY
+  }, [deletedDiscoveryIds, detailDiscovery, galleryQuery.data, routeGalleryIds])
+  const routeIndex = Math.max(
+    0,
+    galleryDiscoveries.findIndex((item) => String(item.id) === discoveryId),
+  )
+
+  const discovery = galleryDiscoveries[routeIndex] ?? detailDiscovery
+  const isLoading =
+    !detailDiscovery && (personalQuery.isLoading || galleryQuery.isLoading)
+  const activeDiscoveryIndex = discovery
+    ? Math.max(
+        0,
+        galleryDiscoveries.findIndex((item) => item.id === discovery.id),
+      )
+    : 0
+
+  const navigateToSlide = useCallback(
+    (nextIndex: number) => {
+      const nextDiscovery = galleryDiscoveries[nextIndex]
+      if (!nextDiscovery) return
+
+      navigate(discoveryPath(nextDiscovery.id, groupId), {
+        replace: true,
+        state: {
+          returnTo: routeReturnTo,
+          backgroundLocation,
+          galleryIds: routeGalleryIds,
+          gallerySource,
+        },
+      })
+    },
+    [
+      backgroundLocation,
+      galleryDiscoveries,
+      gallerySource,
+      groupId,
+      navigate,
+      routeGalleryIds,
+      routeReturnTo,
+    ],
+  )
+
   const deleteMutation = useMutation({
-    mutationFn: () => deleteDiscovery(session!.accessToken, discoveryId!),
+    mutationFn: () =>
+      deleteDiscovery(session!.accessToken, String(discovery!.id)),
     onSuccess: () => {
       queryClient.removeQueries({
-        queryKey: ['discovery', session?.user.id, discoveryId],
+        queryKey: ['discovery', session?.user.id, String(discovery!.id)],
       })
       queryClient.invalidateQueries({
         queryKey: ['discoveries', session?.user.id],
@@ -142,19 +245,32 @@ export function DiscoveryDetailPage({
       queryClient.invalidateQueries({
         queryKey: ['pois', session?.user.id],
       })
-      handleBack()
+      if (galleryDiscoveries.length <= 1) {
+        handleBack()
+        return
+      }
+
+      const deletedIndex = activeDiscoveryIndex
+      setDeletedDiscoveryIds((current) => {
+        const next = new Set(current)
+        next.add(discovery!.id)
+        return next
+      })
+      navigateToSlide(Math.min(deletedIndex, galleryDiscoveries.length - 2))
     },
   })
 
   const pageClassName =
     'sterna-discovery-screen fixed inset-0 z-40 !p-0 overflow-hidden bg-stone-950'
 
-  const isNormalDrawerExpanded = snapPoint !== PEEK_SNAP_POINT
+  const isMinimized = snapPoint === MINIMIZED_SNAP_POINT
+  const isExpanded =
+    !isMinimized && snapPoint !== PEEK_SNAP_POINT && snapPoint !== null
   const expandedSnapPoint = useMeasuredDrawerSnapPoint({
     controlsRef: drawerControlsRef,
     contentRef: expandedContentRef,
     enabled: Boolean(discovery),
-    isExpanded: isNormalDrawerExpanded,
+    isExpanded,
     measurementKey: discovery?.id ?? null,
     onSnapPointChange: setSnapPoint,
   })
@@ -214,19 +330,18 @@ export function DiscoveryDetailPage({
 
   const isAuthor =
     discovery.userId === undefined || discovery.userId === session?.user.id
-  const isExpanded = isNormalDrawerExpanded
-  const discoverySnapPoints = [
-    PEEK_SNAP_POINT,
-    expandedSnapPoint ?? PEEK_SNAP_POINT,
-  ] as const
 
   return (
     <main className={pageClassName} data-presentation={presentation}>
       <section
-        className="absolute inset-0 bg-stone-950"
+        className="absolute inset-0 h-full w-full bg-stone-950"
         aria-label="Discovery photo"
       >
-        <DiscoveryPhotoZoom discovery={discovery} />
+        <DiscoveryPhotoZoom
+          discoveries={galleryDiscoveries}
+          activeIndex={activeDiscoveryIndex}
+          onView={navigateToSlide}
+        />
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/35 to-transparent"
           aria-hidden="true"
@@ -303,6 +418,10 @@ export function DiscoveryDetailPage({
 
       <div
         data-testid="discovery-detail-drawer"
+        data-drawer-state={
+          isMinimized ? 'minimized' : isExpanded ? 'expanded' : 'peek'
+        }
+        data-snap-points={`${MINIMIZED_SNAP_POINT},${PEEK_SNAP_POINT},expanded`}
         data-expanded-snap-point={expandedSnapPoint ?? 'null'}
         data-snap-point={snapPoint}
         className="relative z-50"
@@ -312,7 +431,11 @@ export function DiscoveryDetailPage({
           onOpenChange={() => undefined}
           modal={false}
           disablePointerDismissal
-          snapPoints={[...discoverySnapPoints]}
+          snapPoints={[
+            MINIMIZED_SNAP_POINT,
+            PEEK_SNAP_POINT,
+            expandedSnapPoint ?? EXPANDED_FALLBACK_SNAP_POINT,
+          ]}
           snapPoint={snapPoint}
           onSnapPointChange={(nextSnapPoint) => {
             if (nextSnapPoint !== null) setSnapPoint(nextSnapPoint)
@@ -321,33 +444,44 @@ export function DiscoveryDetailPage({
         >
           <DrawerContent
             contentDriven
-            className={`border border-white/10 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-colors duration-300 ${isExpanded ? 'bg-card/95 text-foreground' : 'bg-black/50 text-white'}`}
+            className={`border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-colors duration-300 ${isExpanded ? 'bg-card/90 text-foreground' : isMinimized ? 'bg-black/10 text-white' : 'bg-black/45 text-white'}`}
           >
             <div
               ref={drawerControlsRef}
-              className={`z-10 ${isExpanded ? 'relative' : 'absolute inset-x-0 bottom-0 rounded-t-[inherit] border-t border-white/10 bg-black/50 backdrop-blur-xl'}`}
+              className="relative z-10 rounded-t-[inherit] border-t border-white/15"
             >
               <DrawerSwipeHandle
-                className={isExpanded ? '' : '[&>span]:bg-white/60'}
+                data-testid="drawer-handle"
+                onClick={() =>
+                  setSnapPoint(
+                    isMinimized ? PEEK_SNAP_POINT : MINIMIZED_SNAP_POINT,
+                  )
+                }
+                className={isExpanded ? '' : '[&>span]:bg-white/70'}
               />
-              <DrawerHeader className="shrink-0 px-5 pt-0 pb-[max(0.75rem,var(--sterna-safe-area-bottom))] text-left">
+              <DrawerHeader
+                className={`shrink-0 px-5 pt-0 text-left ${isMinimized ? 'hidden' : 'pb-[max(0.75rem,var(--sterna-safe-area-bottom))]'}`}
+              >
                 <DrawerTitle render={<h1 className="sr-only" />}>
                   {discovery.name}
                 </DrawerTitle>
-                <button
-                  type="button"
-                  className={`min-h-11 w-full truncate rounded-xl px-0 text-left font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
-                  aria-controls="discovery-detail-expanded-content"
-                  aria-expanded={isExpanded}
-                  onClick={() => {
-                    if (expandedSnapPoint === null) return
-                    setSnapPoint(
-                      isExpanded ? PEEK_SNAP_POINT : expandedSnapPoint,
-                    )
-                  }}
-                >
-                  {discovery.name}
-                </button>
+                {!isMinimized && (
+                  <button
+                    type="button"
+                    className={`min-h-11 w-full truncate rounded-xl px-0 text-left font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
+                    aria-controls="discovery-detail-expanded-content"
+                    aria-expanded={isExpanded}
+                    onClick={() =>
+                      setSnapPoint(
+                        isExpanded
+                          ? PEEK_SNAP_POINT
+                          : (expandedSnapPoint ?? EXPANDED_FALLBACK_SNAP_POINT),
+                      )
+                    }
+                  >
+                    {discovery.name}
+                  </button>
+                )}
               </DrawerHeader>
             </div>
 
@@ -357,7 +491,7 @@ export function DiscoveryDetailPage({
               data-testid="discovery-detail-expanded-content"
               data-base-ui-swipe-ignore=""
               aria-hidden={!isExpanded}
-              className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))] ${!isExpanded ? 'invisible pointer-events-none' : ''}`}
+              className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))] ${!isExpanded ? 'invisible pointer-events-none absolute inset-x-0 top-full h-0 overflow-hidden opacity-0' : ''}`}
             >
               <DiscoveryDetailsContent
                 discovery={discovery}
@@ -393,15 +527,40 @@ export function DiscoveryDetailPage({
   )
 }
 
-function DiscoveryPhotoZoom({ discovery }: { discovery: Discovery }) {
-  const { source, status, placeholderRef } = useDiscoveryPhotoSource({
-    discovery,
+function DiscoveryPhotoZoom({
+  discoveries,
+  activeIndex,
+  onView,
+}: {
+  discoveries: Discovery[]
+  activeIndex: number
+  onView: (index: number) => void
+}) {
+  const { sources, status, placeholderRef } = useDiscoveryPhotoSources({
+    discoveries,
+    activeIndex,
     width: 1200,
     variant: 'detail',
-    lazy: false,
   })
+  const activeDiscovery = discoveries[activeIndex]
+  const activeSource = activeDiscovery
+    ? (sources[activeDiscovery.id] ??
+      (!activeDiscovery.imageObjectKey
+        ? imageUrl(activeDiscovery.imageId, 1200)
+        : null))
+    : null
+  const slides = useMemo(
+    () =>
+      discoveries.map((discovery) => ({
+        src: discovery.imageObjectKey
+          ? (sources[discovery.id] ?? UNLOADED_PHOTO_SOURCE)
+          : imageUrl(discovery.imageId, 1200),
+        alt: discovery.name,
+      })),
+    [discoveries, sources],
+  )
 
-  if (!source) {
+  if (!activeDiscovery || !activeSource) {
     return (
       <DiscoveryPhotoPlaceholder
         ref={placeholderRef}
@@ -412,16 +571,19 @@ function DiscoveryPhotoZoom({ discovery }: { discovery: Discovery }) {
   }
 
   return (
-    <div className="absolute inset-0 z-0">
+    <div className="absolute inset-0 z-0 h-full w-full">
       <Lightbox
         open
         close={() => undefined}
-        slides={[{ src: source, alt: discovery.name }]}
+        index={activeIndex}
+        slides={slides}
         plugins={[Inline, Zoom]}
         inline={{
-          className: 'absolute inset-0 z-0',
-          'aria-label': `${discovery.name} photo`,
+          className: 'absolute inset-0 z-0 h-full w-full',
+          style: { width: '100%', height: '100%' },
+          'aria-label': `${activeDiscovery.name} photo`,
         }}
+        on={{ view: ({ index }) => onView(index) }}
         className="!bg-transparent"
         carousel={{ finite: true, imageFit: 'contain', preload: 0 }}
         toolbar={{ buttons: [] }}

@@ -6,12 +6,15 @@ import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { discoveryPath } from '@/lib/discovery-path'
 import { categoryLabel, type Discovery } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import type { DiscoveryRouteState } from '@/lib/route-state'
 
 export function DiscoveryCard({
   discovery,
   groupId,
   className,
   locationLabel,
+  galleryIds,
+  gallerySource,
 }: {
   discovery: Discovery
   /** Set when the card sits on a group's shared map. */
@@ -19,13 +22,19 @@ export function DiscoveryCard({
   className?: string
   /** Overrides the raw stored location when a friendlier label is available. */
   locationLabel?: string
+  galleryIds?: number[]
+  gallerySource?: DiscoveryRouteState['gallerySource']
 }) {
   const location = useLocation()
 
   return (
     <Link
       to={discoveryPath(discovery.id, groupId)}
-      state={{ returnTo: `${location.pathname}${location.search}` }}
+      state={{
+        returnTo: `${location.pathname}${location.search}`,
+        galleryIds,
+        gallerySource,
+      }}
       className={cn(
         'group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99]',
         className,

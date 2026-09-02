@@ -159,9 +159,11 @@ export function MapPage({ active }: { active: boolean }) {
         state: {
           returnTo: '/',
           backgroundLocation: locationRef.current,
+          galleryIds: visibleDiscoveries.map((discovery) => discovery.id),
+          gallerySource: activeGroupId ? 'group' : 'personal',
         } satisfies DiscoveryRouteState,
       }),
-    [navigate, activeGroupId],
+    [navigate, activeGroupId, visibleDiscoveries],
   )
   const handleSelectLandmark = useCallback(
     (id: string) => navigate(`/landmarks/${id}`, { state: { from: 'map' } }),

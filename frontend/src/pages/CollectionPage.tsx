@@ -42,6 +42,7 @@ import {
 } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
+import type { DiscoveryRouteState } from '@/lib/route-state'
 
 type CollectionFilter = DiscoveryCategory | 'pois' | null
 
@@ -120,6 +121,12 @@ export function CollectionPage() {
       ),
     [category, normalizedQuery, sourcePois],
   )
+  const gallerySource: DiscoveryRouteState['gallerySource'] = selectedGroupId
+    ? 'group'
+    : selectedGroup === ALL_GROUPS
+      ? 'all-groups'
+      : 'personal'
+  const galleryIds = filteredDiscoveries.map((discovery) => discovery.id)
   const isLoading =
     activeDiscoveriesQuery.isLoading ||
     groupsQuery.isLoading ||
@@ -251,7 +258,11 @@ export function CollectionPage() {
                 <Link
                   key={discovery.id}
                   to={discoveryPath(discovery.id, discoveryGroupId)}
-                  state={{ returnTo: `${location.pathname}${location.search}` }}
+                  state={{
+                    returnTo: `${location.pathname}${location.search}`,
+                    galleryIds,
+                    gallerySource,
+                  }}
                   className="relative aspect-square overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                 >
                   <DiscoveryPhoto
@@ -302,6 +313,8 @@ export function CollectionPage() {
                   discovery={discovery}
                   groupId={discoveryGroupId}
                   locationLabel={discoveryLocationLabel(discovery)}
+                  galleryIds={galleryIds}
+                  gallerySource={gallerySource}
                 />
               )
             })}
