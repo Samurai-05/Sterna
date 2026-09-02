@@ -18,11 +18,15 @@ export function useMeasuredDrawerPeekSnapPoint({
 
     let retryId: number | undefined
     let resizeObserver: ResizeObserver | undefined
+    let cleanupMeasurement: (() => void) | undefined
 
     const attachMeasurement = () => {
       const controls = controlsRef.current
       if (!controls) {
-        retryId = window.setTimeout(attachMeasurement, 0)
+        retryId = window.setTimeout(() => {
+          retryId = undefined
+          cleanupMeasurement = attachMeasurement()
+        }, 0)
         return
       }
 
@@ -53,7 +57,7 @@ export function useMeasuredDrawerPeekSnapPoint({
       }
     }
 
-    const cleanupMeasurement = attachMeasurement()
+    cleanupMeasurement = attachMeasurement()
 
     return () => {
       if (retryId !== undefined) window.clearTimeout(retryId)

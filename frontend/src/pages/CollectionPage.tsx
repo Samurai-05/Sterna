@@ -18,7 +18,6 @@ import {
   getGroupDiscoveries,
   getGroups,
   getPois,
-  type GroupSummary,
 } from '@/lib/api'
 import {
   categoryAppearance,
@@ -26,6 +25,7 @@ import {
   type CategoryAppearance,
 } from '@/lib/category-appearance'
 import { discoveryPath } from '@/lib/discovery-path'
+import { resolveDiscoveryGroupId } from '@/lib/discovery-group'
 import { getPoiImageUrl } from '@/lib/poi-image'
 import {
   loadGalleryView,
@@ -37,7 +37,6 @@ import {
   categories,
   discoveries,
   landmarks,
-  type Discovery,
   type DiscoveryCategory,
 } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
@@ -100,7 +99,10 @@ export function CollectionPage() {
       ? allGroupDiscoveriesQuery
       : personalDiscoveriesQuery
   const visibleDiscoveries =
-    activeDiscoveriesQuery.data ?? (session ? EMPTY_DISCOVERIES : discoveries)
+    selectedGroup === ALL_GROUPS && groupsQuery.isLoading
+      ? EMPTY_DISCOVERIES
+      : (activeDiscoveriesQuery.data ??
+        (session ? EMPTY_DISCOVERIES : discoveries))
   const filteredDiscoveries = useMemo(
     () =>
       visibleDiscoveries.filter(
@@ -245,11 +247,11 @@ export function CollectionPage() {
         {view === 'grid' && (
           <div className="-mx-5 grid grid-cols-3 gap-px">
             {filteredDiscoveries.map((discovery) => {
-              const discoveryGroupId = galleryDiscoveryGroupId(
+              const discoveryGroupId = resolveDiscoveryGroupId(
                 discovery,
-                selectedGroup,
+                gallerySource,
                 selectedGroupId,
-                groups,
+                groups.map((group) => group.id),
               )
               const showAuthor =
                 Boolean(session) && discovery.userId !== session?.user.id
@@ -300,18 +302,18 @@ export function CollectionPage() {
         <div className="grid grid-cols-2 gap-3">
           {view === 'detailed' &&
             filteredDiscoveries.map((discovery) => {
-              const discoveryGroupId = galleryDiscoveryGroupId(
+              const discoveryGroupId = resolveDiscoveryGroupId(
                 discovery,
-                selectedGroup,
+                gallerySource,
                 selectedGroupId,
-                groups,
+                groups.map((group) => group.id),
               )
 
               return (
                 <DiscoveryCard
                   key={discovery.id}
                   discovery={discovery}
-                  groupId={discoveryGroupId}
+                  groupId={discoveryGroupId ?? undefined}
                   locationLabel={discoveryLocationLabel(discovery)}
                   galleryIds={galleryIds}
                   gallerySource={gallerySource}
@@ -336,20 +338,6 @@ function normalizeGallerySource(source: string | null) {
   if (!source || source === 'all' || source === 'mine') return PERSONAL_MAP
 
   return source
-}
-
-function galleryDiscoveryGroupId(
-  discovery: Discovery,
-  selectedSource: string,
-  selectedGroupId: string | null,
-  groups: GroupSummary[],
-) {
-  if (selectedGroupId) return selectedGroupId
-  if (selectedSource !== ALL_GROUPS) return undefined
-
-  const membershipIds = new Set(groups.map((group) => group.id))
-
-  return discovery.groupIds?.find((groupId) => membershipIds.has(groupId))
 }
 
 function CategoryButton({

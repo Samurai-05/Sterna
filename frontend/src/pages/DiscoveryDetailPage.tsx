@@ -28,10 +28,13 @@ import {
   getAllGroupDiscoveries,
   getDiscoveries,
   getDiscovery,
+  getGroups,
   getGroupDiscoveries,
 } from '@/lib/api'
 import { useDiscoveryPhotoSources } from '@/hooks/useDiscoveryPhotoSource'
 import { discoveryPath } from '@/lib/discovery-path'
+import { handleDiscoveryDrawerOpenChange } from '@/lib/discovery-drawer'
+import { resolveDiscoveryGroupId } from '@/lib/discovery-group'
 import { getDiscoveryRouteState } from '@/lib/route-state'
 import { imageUrl, type Discovery } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
@@ -164,6 +167,12 @@ export function DiscoveryDetailPage({
     ),
   })
 
+  const groupsQuery = useQuery({
+    queryKey: ['groups', session?.user.id],
+    queryFn: () => getGroups(session!.accessToken),
+    enabled: Boolean(session && gallerySource === 'all-groups'),
+  })
+
   const routeGalleryIds = routeState.galleryIds
   const detailDiscovery =
     personalQuery.data ??
@@ -200,7 +209,8 @@ export function DiscoveryDetailPage({
 
   const discovery = galleryDiscoveries[routeIndex] ?? detailDiscovery
   const isLoading =
-    !detailDiscovery && (personalQuery.isLoading || galleryQuery.isLoading)
+    (gallerySource === 'all-groups' && groupsQuery.isLoading) ||
+    (!detailDiscovery && (personalQuery.isLoading || galleryQuery.isLoading))
   const activeDiscoveryIndex = discovery
     ? Math.max(
         0,
@@ -213,7 +223,12 @@ export function DiscoveryDetailPage({
       navigate(
         discoveryPath(
           nextDiscovery.id,
-          resolveDiscoveryGroupId(nextDiscovery, gallerySource, groupId),
+          resolveDiscoveryGroupId(
+            nextDiscovery,
+            gallerySource,
+            groupId,
+            groupsQuery.data?.map((group) => group.id),
+          ),
         ),
         {
           replace: true,
@@ -230,6 +245,7 @@ export function DiscoveryDetailPage({
       backgroundLocation,
       gallerySource,
       groupId,
+      groupsQuery.data,
       navigate,
       routeGalleryIds,
       routeReturnTo,
@@ -374,6 +390,7 @@ export function DiscoveryDetailPage({
     discovery,
     gallerySource,
     groupId,
+    groupsQuery.data?.map((group) => group.id),
   )
   const isAuthor =
     discovery.userId === undefined || discovery.userId === session?.user.id
@@ -483,7 +500,9 @@ export function DiscoveryDetailPage({
       >
         <Drawer
           open
-          onOpenChange={() => undefined}
+          onOpenChange={(nextOpen, eventDetails) =>
+            handleDiscoveryDrawerOpenChange(nextOpen, eventDetails, handleBack)
+          }
           modal={false}
           disablePointerDismissal
           snapPoints={drawerSnapPoints}
@@ -530,7 +549,6 @@ export function DiscoveryDetailPage({
             <div
               id="discovery-detail-expanded-content"
               data-testid="discovery-detail-expanded-content"
-              data-base-ui-swipe-ignore=""
               aria-hidden={!isExpanded}
               className="min-h-0 flex-1 touch-auto overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,var(--sterna-safe-area-bottom))]"
             >
@@ -655,7 +673,7 @@ function DiscoveryPhotoZoom({
           root: { backgroundColor: 'transparent' },
           container: { backgroundColor: 'transparent' },
         }}
-        controller={{ closeOnBackdropClick: false }}
+        controller={{ closeOnBackdropClick: false, closeOnEscape: false }}
       />
     </div>
   )
@@ -681,17 +699,6 @@ function GalleryPhotoState({
       {unavailable ? `Photo unavailable for ${name}.` : 'Loading photo…'}
     </div>
   )
-}
-
-function resolveDiscoveryGroupId(
-  discovery: Discovery,
-  gallerySource: 'personal' | 'group' | 'all-groups',
-  currentGroupId: string | null,
-) {
-  if (gallerySource === 'personal') return null
-  if (gallerySource === 'group') return currentGroupId
-
-  return discovery.groupId ?? discovery.groupIds?.[0] ?? null
 }
 
 function FloatingBackButton({ onClick }: { onClick: () => void }) {

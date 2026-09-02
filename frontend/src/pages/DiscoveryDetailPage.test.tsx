@@ -13,6 +13,7 @@ import {
   getAllGroupDiscoveries,
   getDiscovery,
   getDiscoveries,
+  getGroups,
   getPhoto,
 } from '@/lib/api'
 import { saveSession } from '@/lib/session'
@@ -27,6 +28,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     getDiscovery: vi.fn(),
     getDiscoveries: vi.fn(),
     getAllGroupDiscoveries: vi.fn(),
+    getGroups: vi.fn(),
     getPhoto: vi.fn(),
     deleteDiscovery: vi.fn(),
   }
@@ -44,6 +46,7 @@ vi.mock('yet-another-react-lightbox', () => ({
     carousel,
     animation,
     zoom,
+    controller,
   }: {
     open: boolean
     slides: Array<{ src: string; alt?: string }>
@@ -61,6 +64,10 @@ vi.mock('yet-another-react-lightbox', () => ({
       doubleTapDelay?: number
       scrollToZoom?: boolean
     }
+    controller?: {
+      closeOnBackdropClick?: boolean
+      closeOnEscape?: boolean
+    }
   }) =>
     open ? (
       <InlineLightboxTestDouble
@@ -72,6 +79,7 @@ vi.mock('yet-another-react-lightbox', () => ({
         carousel={carousel}
         animation={animation}
         zoom={zoom}
+        controller={controller}
         slides={slides}
       />
     ) : null,
@@ -86,6 +94,7 @@ function InlineLightboxTestDouble({
   carousel,
   animation,
   zoom,
+  controller,
   slides,
 }: {
   index: number
@@ -101,6 +110,10 @@ function InlineLightboxTestDouble({
     maxZoomPixelRatio?: number
     doubleTapDelay?: number
     scrollToZoom?: boolean
+  }
+  controller?: {
+    closeOnBackdropClick?: boolean
+    closeOnEscape?: boolean
   }
   slides: Array<{ src: string; alt?: string }>
 }) {
@@ -119,6 +132,8 @@ function InlineLightboxTestDouble({
       data-zoom-max-pixel-ratio={zoom?.maxZoomPixelRatio}
       data-zoom-double-tap-delay={zoom?.doubleTapDelay}
       data-zoom-scroll-to-zoom={zoom?.scrollToZoom}
+      data-controller-close-on-backdrop-click={controller?.closeOnBackdropClick}
+      data-controller-close-on-escape={controller?.closeOnEscape}
       className={inline?.className}
       onErrorCapture={onErrorCapture}
       style={inline?.style}
@@ -146,6 +161,7 @@ function InlineLightboxTestDouble({
 const getDiscoveryMock = vi.mocked(getDiscovery)
 const getDiscoveriesMock = vi.mocked(getDiscoveries)
 const getAllGroupDiscoveriesMock = vi.mocked(getAllGroupDiscoveries)
+const getGroupsMock = vi.mocked(getGroups)
 const getPhotoMock = vi.mocked(getPhoto)
 const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
 
@@ -182,6 +198,7 @@ beforeEach(() => {
   getDiscoveryMock.mockResolvedValue(discovery)
   getDiscoveriesMock.mockResolvedValue([discovery])
   getAllGroupDiscoveriesMock.mockResolvedValue([discovery])
+  getGroupsMock.mockResolvedValue([])
   getPhotoMock.mockResolvedValue(new Blob(['photo']))
   deleteDiscoveryMock.mockResolvedValue(undefined)
 })
@@ -310,6 +327,19 @@ describe('DiscoveryDetailPage', () => {
     bounds.mockRestore()
   })
 
+  it('routes Escape through the viewer back navigation', async () => {
+    renderPage(undefined, { withPreviousContext: true })
+
+    await screen.findByTestId('inline-photo-viewer')
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location-probe')).toHaveTextContent(
+        '/collection',
+      ),
+    )
+  })
+
   it('groups the contextual discovery details separately from its narrative', async () => {
     const scrollHeight = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
@@ -402,6 +432,11 @@ describe('DiscoveryDetailPage', () => {
     expect(viewer).toHaveAttribute('data-zoom-max-pixel-ratio', '3')
     expect(viewer).toHaveAttribute('data-zoom-double-tap-delay', '250')
     expect(viewer).toHaveAttribute('data-zoom-scroll-to-zoom', 'true')
+    expect(viewer).toHaveAttribute(
+      'data-controller-close-on-backdrop-click',
+      'false',
+    )
+    expect(viewer).toHaveAttribute('data-controller-close-on-escape', 'false')
   })
 
   it('shows the current photo position in the fullscreen controls', async () => {
@@ -656,6 +691,7 @@ describe('DiscoveryDetailPage', () => {
 
       const details = screen.getByTestId('discovery-detail-expanded-content')
       expect(details).not.toHaveClass('invisible', 'absolute', 'h-0')
+      expect(details).not.toHaveAttribute('data-base-ui-swipe-ignore')
       expect(details).toHaveClass(
         'touch-auto',
         'flex-1',
@@ -771,6 +807,26 @@ describe('DiscoveryDetailPage', () => {
       firstGroupDiscovery,
       secondGroupDiscovery,
     ])
+    getGroupsMock.mockResolvedValue([
+      {
+        id: '12',
+        name: 'Group 12',
+        description: null,
+        role: 'member',
+        isActive: true,
+        memberCount: 1,
+        discoveryCount: 1,
+      },
+      {
+        id: '27',
+        name: 'Group 27',
+        description: null,
+        role: 'member',
+        isActive: true,
+        memberCount: 1,
+        discoveryCount: 1,
+      },
+    ])
 
     renderPage(
       {
@@ -789,6 +845,58 @@ describe('DiscoveryDetailPage', () => {
     expect(screen.getByText('A different group context.')).toBeVisible()
     expect(screen.getByTestId('location-probe')).toHaveTextContent(
       '/discoveries/8?group=27',
+    )
+  })
+
+  it('uses an accessible All Groups membership when the primary group is not accessible', async () => {
+    const firstGroupDiscovery = {
+      ...discovery,
+      id: 7,
+      name: 'Group A discovery',
+      groupId: 'A',
+      groupIds: ['A', 'B'],
+      personal: false,
+    }
+    const secondGroupDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Group B discovery',
+      groupId: 'A',
+      groupIds: ['A', 'B'],
+      personal: false,
+    }
+    getAllGroupDiscoveriesMock.mockResolvedValue([
+      firstGroupDiscovery,
+      secondGroupDiscovery,
+    ])
+    getGroupsMock.mockResolvedValue([
+      {
+        id: 'B',
+        name: 'Group B',
+        description: null,
+        role: 'member',
+        isActive: true,
+        memberCount: 1,
+        discoveryCount: 1,
+      },
+    ])
+
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8],
+        gallerySource: 'all-groups',
+      },
+      { initialPath: '/discoveries/7?group=A' },
+    )
+
+    fireEvent.click(await screen.findByTestId('lightbox-next'))
+
+    expect(
+      await screen.findByRole('button', { name: 'Group B discovery' }),
+    ).toBeVisible()
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/8?group=B',
     )
   })
 
