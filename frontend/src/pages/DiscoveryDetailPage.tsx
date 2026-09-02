@@ -8,12 +8,11 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router'
-import Lightbox from 'yet-another-react-lightbox'
+import Lightbox, { type SlideImage } from 'yet-another-react-lightbox'
 import Inline from 'yet-another-react-lightbox/plugins/inline'
 import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 
 import { DiscoveryDetailsContent } from '@/components/DiscoveryDetailsContent'
-import { DiscoveryPhotoPlaceholder } from '@/components/DiscoveryPhoto'
 import { ALL_GROUPS } from '@/components/GalleryGroupFilter'
 import { Button } from '@/components/ui/button'
 import {
@@ -44,6 +43,11 @@ const EXPANDED_FALLBACK_SNAP_POINT = 0.5
 const EMPTY_GALLERY: Discovery[] = []
 const UNLOADED_PHOTO_SOURCE =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
+
+type GalleryPhotoSlide = SlideImage & {
+  discoveryId: number
+  state: 'idle' | 'loading' | 'success' | 'error'
+}
 
 type DiscoveryDetailPageProps = {
   presentation?: 'page' | 'overlay'
@@ -203,30 +207,39 @@ export function DiscoveryDetailPage({
       )
     : 0
 
-  const navigateToSlide = useCallback(
-    (nextIndex: number) => {
-      const nextDiscovery = galleryDiscoveries[nextIndex]
-      if (!nextDiscovery) return
-
-      navigate(discoveryPath(nextDiscovery.id, groupId), {
-        replace: true,
-        state: {
-          returnTo: routeReturnTo,
-          backgroundLocation,
-          galleryIds: routeGalleryIds,
-          gallerySource,
+  const navigateToDiscovery = useCallback(
+    (nextDiscovery: Discovery) => {
+      navigate(
+        discoveryPath(
+          nextDiscovery.id,
+          resolveDiscoveryGroupId(nextDiscovery, gallerySource, groupId),
+        ),
+        {
+          replace: true,
+          state: {
+            returnTo: routeReturnTo,
+            backgroundLocation,
+            galleryIds: routeGalleryIds,
+            gallerySource,
+          },
         },
-      })
+      )
     },
     [
       backgroundLocation,
-      galleryDiscoveries,
       gallerySource,
       groupId,
       navigate,
       routeGalleryIds,
       routeReturnTo,
     ],
+  )
+  const navigateToSlide = useCallback(
+    (nextIndex: number) => {
+      const nextDiscovery = galleryDiscoveries[nextIndex]
+      if (nextDiscovery) navigateToDiscovery(nextDiscovery)
+    },
+    [galleryDiscoveries, navigateToDiscovery],
   )
 
   const deleteMutation = useMutation({
@@ -251,12 +264,19 @@ export function DiscoveryDetailPage({
       }
 
       const deletedIndex = activeDiscoveryIndex
+      const remainingDiscoveries = galleryDiscoveries.filter(
+        (item) => item.id !== discovery!.id,
+      )
+      const adjacentDiscovery =
+        remainingDiscoveries[
+          Math.min(deletedIndex, remainingDiscoveries.length - 1)
+        ]
       setDeletedDiscoveryIds((current) => {
         const next = new Set(current)
         next.add(discovery!.id)
         return next
       })
-      navigateToSlide(Math.min(deletedIndex, galleryDiscoveries.length - 2))
+      if (adjacentDiscovery) navigateToDiscovery(adjacentDiscovery)
     },
   })
 
@@ -328,6 +348,11 @@ export function DiscoveryDetailPage({
     )
   }
 
+  const discoveryGroupId = resolveDiscoveryGroupId(
+    discovery,
+    gallerySource,
+    groupId,
+  )
   const isAuthor =
     discovery.userId === undefined || discovery.userId === session?.user.id
 
@@ -452,11 +477,16 @@ export function DiscoveryDetailPage({
             >
               <DrawerSwipeHandle
                 data-testid="drawer-handle"
-                onClick={() =>
+                aria-label={isMinimized ? 'Expand details' : 'Collapse details'}
+                onClick={() => {
                   setSnapPoint(
-                    isMinimized ? PEEK_SNAP_POINT : MINIMIZED_SNAP_POINT,
+                    isExpanded
+                      ? PEEK_SNAP_POINT
+                      : isMinimized
+                        ? PEEK_SNAP_POINT
+                        : MINIMIZED_SNAP_POINT,
                   )
-                }
+                }}
                 className={isExpanded ? '' : '[&>span]:bg-white/70'}
               />
               <DrawerHeader
@@ -495,7 +525,7 @@ export function DiscoveryDetailPage({
             >
               <DiscoveryDetailsContent
                 discovery={discovery}
-                groupId={groupId}
+                groupId={discoveryGroupId}
                 isAuthor={isAuthor}
               />
             </div>
@@ -536,42 +566,39 @@ function DiscoveryPhotoZoom({
   activeIndex: number
   onView: (index: number) => void
 }) {
-  const { sources, status, placeholderRef } = useDiscoveryPhotoSources({
+  const { sources, states, onSourceError } = useDiscoveryPhotoSources({
     discoveries,
     activeIndex,
     width: 1200,
     variant: 'detail',
   })
   const activeDiscovery = discoveries[activeIndex]
-  const activeSource = activeDiscovery
-    ? (sources[activeDiscovery.id] ??
-      (!activeDiscovery.imageObjectKey
-        ? imageUrl(activeDiscovery.imageId, 1200)
-        : null))
-    : null
   const slides = useMemo(
     () =>
-      discoveries.map((discovery) => ({
+      discoveries.map((discovery): GalleryPhotoSlide => ({
         src: discovery.imageObjectKey
           ? (sources[discovery.id] ?? UNLOADED_PHOTO_SOURCE)
           : imageUrl(discovery.imageId, 1200),
         alt: discovery.name,
+        discoveryId: discovery.id,
+        state: discovery.imageObjectKey
+          ? (states[discovery.id] ?? 'idle')
+          : 'success',
       })),
-    [discoveries, sources],
+    [discoveries, sources, states],
   )
 
-  if (!activeDiscovery || !activeSource) {
-    return (
-      <DiscoveryPhotoPlaceholder
-        ref={placeholderRef}
-        className="size-full bg-stone-950 text-white"
-        unavailable={status === 'error'}
-      />
-    )
-  }
+  if (!activeDiscovery) return null
 
   return (
-    <div className="absolute inset-0 z-0 h-full w-full">
+    <div
+      className="absolute inset-0 z-0 h-full w-full"
+      onErrorCapture={(event) => {
+        const source = (event.target as HTMLImageElement).src
+        const failedSlide = slides.find((slide) => slide.src === source)
+        if (failedSlide) onSourceError(failedSlide.discoveryId)
+      }}
+    >
       <Lightbox
         open
         close={() => undefined}
@@ -585,13 +612,28 @@ function DiscoveryPhotoZoom({
         }}
         on={{ view: ({ index }) => onView(index) }}
         className="!bg-transparent"
-        carousel={{ finite: true, imageFit: 'contain', preload: 0 }}
         toolbar={{ buttons: [] }}
         render={{
+          slide: ({ slide }) => {
+            const photoSlide = slide as GalleryPhotoSlide
+            if (photoSlide.state === 'success') return undefined
+
+            return (
+              <GalleryPhotoState
+                state={photoSlide.state}
+                name={photoSlide.alt ?? 'Discovery'}
+              />
+            )
+          },
           buttonPrev: () => null,
           buttonNext: () => null,
           buttonClose: () => null,
           buttonZoom: () => null,
+        }}
+        carousel={{
+          finite: true,
+          imageFit: 'contain',
+          preload: 0,
         }}
         styles={{
           root: { backgroundColor: 'transparent' },
@@ -601,6 +643,39 @@ function DiscoveryPhotoZoom({
       />
     </div>
   )
+}
+
+function GalleryPhotoState({
+  state,
+  name,
+}: {
+  state: GalleryPhotoSlide['state']
+  name: string
+}) {
+  const unavailable = state === 'error'
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy={!unavailable}
+      aria-label={unavailable ? 'Photo unavailable' : 'Loading discovery photo'}
+      className="flex size-full items-center justify-center bg-stone-950 px-6 text-center text-sm text-white/70"
+    >
+      {unavailable ? `Photo unavailable for ${name}.` : 'Loading photo…'}
+    </div>
+  )
+}
+
+function resolveDiscoveryGroupId(
+  discovery: Discovery,
+  gallerySource: 'personal' | 'group' | 'all-groups',
+  currentGroupId: string | null,
+) {
+  if (gallerySource === 'personal') return null
+  if (gallerySource === 'group') return currentGroupId
+
+  return discovery.groupId ?? discovery.groupIds?.[0] ?? null
 }
 
 function FloatingBackButton({ onClick }: { onClick: () => void }) {

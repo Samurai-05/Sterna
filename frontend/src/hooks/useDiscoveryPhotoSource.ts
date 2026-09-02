@@ -12,6 +12,7 @@ import { imageUrl, type Discovery } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 
 export type DiscoveryPhotoSourceStatus = 'loading' | 'success' | 'error'
+export type DiscoveryPhotoLoadState = 'idle' | DiscoveryPhotoSourceStatus
 
 export function useDiscoveryPhotoSource({
   discovery,
@@ -170,9 +171,9 @@ export function useDiscoveryPhotoSource({
 }
 
 /**
- * Loads the active gallery photo and its immediate neighbours. The source map
- * deliberately contains placeholders for slides that have not been visited;
- * this keeps the Lightbox carousel complete without downloading the gallery.
+ * Loads the active gallery photo and its immediate neighbours. Each slide has
+ * an explicit load state so the Lightbox can stay mounted while one photo is
+ * still loading or unavailable.
  */
 export function useDiscoveryPhotoSources({
   discoveries,
@@ -187,8 +188,9 @@ export function useDiscoveryPhotoSources({
 }): {
   sources: Record<number, string>
   status: DiscoveryPhotoSourceStatus
+  states: Record<number, DiscoveryPhotoLoadState>
   placeholderRef: RefObject<HTMLDivElement | null>
-  onSourceError: () => void
+  onSourceError: (discoveryId: number) => void
 } {
   const session = loadSession()
   const accessToken = session?.accessToken
@@ -198,7 +200,9 @@ export function useDiscoveryPhotoSources({
   const desiredKeysRef = useRef(new Set<string>())
   const mountedRef = useRef(true)
   const [sources, setSources] = useState<Record<number, string>>({})
-  const [errorKey, setErrorKey] = useState<string | null>(null)
+  const [states, setStates] = useState<Record<number, DiscoveryPhotoLoadState>>(
+    {},
+  )
 
   const currentDiscovery = discoveries[activeIndex]
   const desiredDiscoveries = useMemo(() => {
@@ -254,19 +258,59 @@ export function useDiscoveryPhotoSources({
           }
           return next
         })
+        setStates((current) => {
+          const next = { ...current }
+          for (const discovery of discoveries) {
+            if (
+              discovery.imageObjectKey &&
+              !sourceUrlsRef.current.has(
+                photoSourceKey(discovery, accessToken, variant),
+              ) &&
+              !desiredKeysRef.current.has(
+                photoSourceKey(discovery, accessToken, variant),
+              )
+            ) {
+              delete next[discovery.id]
+            }
+          }
+          return next
+        })
       }, 0)
     }
 
-    if (!accessToken) return undefined
+    if (!accessToken)
+      return () => {
+        if (releaseTimer !== undefined) window.clearTimeout(releaseTimer)
+      }
 
     for (const discovery of desiredDiscoveries) {
       const key = photoSourceKey(discovery, accessToken, variant)
-      if (!discovery.imageObjectKey || sourceUrlsRef.current.has(key)) continue
+      if (!discovery.imageObjectKey) {
+        continue
+      }
+      if (sourceUrlsRef.current.has(key)) {
+        const source = sourceUrlsRef.current.get(key)!
+        setSources((current) =>
+          current[discovery.id] === source
+            ? current
+            : { ...current, [discovery.id]: source },
+        )
+        continue
+      }
 
       let request = pendingRequestsRef.current.get(key)
       if (!request) {
         request = getPhoto(accessToken, discovery.imageObjectKey, variant).then(
-          (blob) => URL.createObjectURL(blob),
+          async (blob) => {
+            const objectUrl = URL.createObjectURL(blob)
+            try {
+              await decodePhoto(objectUrl)
+              return objectUrl
+            } catch (error) {
+              URL.revokeObjectURL(objectUrl)
+              throw error
+            }
+          },
         )
         pendingRequestsRef.current.set(key, request)
       }
@@ -281,17 +325,12 @@ export function useDiscoveryPhotoSources({
 
           sourceUrlsRef.current.set(key, objectUrl)
           setSources((current) => ({ ...current, [discovery.id]: objectUrl }))
-          if (key === photoSourceKey(currentDiscovery, accessToken, variant)) {
-            setErrorKey(null)
-          }
+          setStates((current) => ({ ...current, [discovery.id]: 'success' }))
         })
         .catch(() => {
           pendingRequestsRef.current.delete(key)
-          if (
-            mountedRef.current &&
-            key === photoSourceKey(currentDiscovery, accessToken, variant)
-          ) {
-            setErrorKey(key)
+          if (mountedRef.current && desiredKeysRef.current.has(key)) {
+            setStates((current) => ({ ...current, [discovery.id]: 'error' }))
           }
         })
     }
@@ -308,20 +347,19 @@ export function useDiscoveryPhotoSources({
     width,
   ])
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const sourceUrls = sourceUrlsRef.current
+    mountedRef.current = true
+
+    return () => {
       mountedRef.current = false
-      for (const objectUrl of sourceUrlsRef.current.values()) {
+      for (const objectUrl of sourceUrls.values()) {
         URL.revokeObjectURL(objectUrl)
       }
-      sourceUrlsRef.current.clear()
-    },
-    [],
-  )
+      sourceUrls.clear()
+    }
+  }, [])
 
-  const currentKey = currentDiscovery
-    ? photoSourceKey(currentDiscovery, accessToken, variant)
-    : null
   const visibleSources = useMemo(() => {
     const next: Record<number, string> = {}
     const desiredIds = new Set(desiredDiscoveries.map((item) => item.id))
@@ -340,34 +378,63 @@ export function useDiscoveryPhotoSources({
         ? imageUrl(currentDiscovery.imageId, width)
         : null))
     : null
+  const visibleStates = useMemo(() => {
+    const next: Record<number, DiscoveryPhotoLoadState> = {}
+    for (const discovery of desiredDiscoveries) {
+      next[discovery.id] = discovery.imageObjectKey
+        ? sources[discovery.id]
+          ? 'success'
+          : (states[discovery.id] ?? 'loading')
+        : 'success'
+    }
+    return next
+  }, [desiredDiscoveries, sources, states])
   const status: DiscoveryPhotoSourceStatus = currentSource
     ? 'success'
     : currentDiscovery?.imageObjectKey && !accessToken
       ? 'error'
-      : currentKey && errorKey === currentKey
+      : visibleStates[currentDiscovery?.id ?? -1] === 'error'
         ? 'error'
         : 'loading'
 
-  const onSourceError = useCallback(() => {
-    if (!currentKey) return
-    const objectUrl = sourceUrlsRef.current.get(currentKey)
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl)
-      sourceUrlsRef.current.delete(currentKey)
-    }
-    setSources((current) => {
-      const next = { ...current }
-      if (currentDiscovery) delete next[currentDiscovery.id]
-      return next
-    })
-    setErrorKey(currentKey)
-  }, [currentDiscovery, currentKey])
+  const onSourceError = useCallback(
+    (discoveryId: number) => {
+      const failedDiscovery = discoveries.find(
+        (discovery) => discovery.id === discoveryId,
+      )
+      if (!failedDiscovery) return
+
+      const failedKey = photoSourceKey(failedDiscovery, accessToken, variant)
+      const objectUrl = sourceUrlsRef.current.get(failedKey)
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+        sourceUrlsRef.current.delete(failedKey)
+      }
+      setSources((current) => {
+        const next = { ...current }
+        delete next[discoveryId]
+        return next
+      })
+      setStates((current) => ({ ...current, [discoveryId]: 'error' }))
+    },
+    [accessToken, discoveries, variant],
+  )
 
   return {
     sources: visibleSources,
     status,
+    states: visibleStates,
     placeholderRef,
     onSourceError,
+  }
+}
+
+async function decodePhoto(objectUrl: string) {
+  const image = new Image()
+  image.src = objectUrl
+
+  if (typeof image.decode === 'function') {
+    await image.decode()
   }
 }
 

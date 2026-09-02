@@ -74,20 +74,39 @@ function DrawerOverlay({
 
 function DrawerSwipeHandle({
   className,
+  onClick,
   ...props
-}: React.ComponentProps<'div'>) {
+}: React.ComponentProps<'button'>) {
+  const handleClassName = cn(
+    'relative z-10 flex shrink-0 justify-center py-2',
+    onClick
+      ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40'
+      : 'cursor-grab active:cursor-grabbing',
+    className,
+  )
+
+  if (!onClick) {
+    return (
+      <div
+        data-slot="drawer-swipe-handle"
+        aria-hidden="true"
+        className={handleClassName}
+      >
+        <span className="h-1 w-10 rounded-full bg-muted-foreground/35" />
+      </div>
+    )
+  }
+
   return (
-    <div
+    <button
+      type="button"
       data-slot="drawer-swipe-handle"
-      aria-hidden="true"
-      className={cn(
-        'relative z-10 flex shrink-0 cursor-grab justify-center py-2 active:cursor-grabbing',
-        className,
-      )}
+      className={handleClassName}
+      onClick={onClick}
       {...props}
     >
       <span className="h-1 w-10 rounded-full bg-muted-foreground/35" />
-    </div>
+    </button>
   )
 }
 

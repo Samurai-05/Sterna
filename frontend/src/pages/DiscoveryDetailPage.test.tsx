@@ -1,9 +1,16 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useState, type CSSProperties } from 'react'
+import {
+  StrictMode,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react'
 
 import {
   deleteDiscovery,
+  getAllGroupDiscoveries,
   getDiscovery,
   getDiscoveries,
   getPhoto,
@@ -20,6 +27,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     ...actual,
     getDiscovery: vi.fn(),
     getDiscoveries: vi.fn(),
+    getAllGroupDiscoveries: vi.fn(),
     getPhoto: vi.fn(),
     deleteDiscovery: vi.fn(),
   }
@@ -32,18 +40,26 @@ vi.mock('yet-another-react-lightbox', () => ({
     index = 0,
     inline,
     on,
+    onErrorCapture,
+    render,
   }: {
     open: boolean
     slides: Array<{ src: string; alt?: string }>
     index?: number
     inline?: { className?: string; style?: CSSProperties }
     on?: { view?: (props: { index: number }) => void }
+    onErrorCapture?: (event: SyntheticEvent<HTMLDivElement>) => void
+    render?: {
+      slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
+    }
   }) =>
     open ? (
       <InlineLightboxTestDouble
         index={index}
         inline={inline}
         on={on}
+        onErrorCapture={onErrorCapture}
+        render={render}
         slides={slides}
       />
     ) : null,
@@ -53,11 +69,17 @@ function InlineLightboxTestDouble({
   index,
   inline,
   on,
+  onErrorCapture,
+  render,
   slides,
 }: {
   index: number
   inline?: { className?: string; style?: CSSProperties }
   on?: { view?: (props: { index: number }) => void }
+  onErrorCapture?: (event: SyntheticEvent<HTMLDivElement>) => void
+  render?: {
+    slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
+  }
   slides: Array<{ src: string; alt?: string }>
 }) {
   const [activeIndex, setActiveIndex] = useState(index)
@@ -70,9 +92,12 @@ function InlineLightboxTestDouble({
       data-inline-width={inline?.style?.width}
       data-inline-height={inline?.style?.height}
       className={inline?.className}
+      onErrorCapture={onErrorCapture}
       style={inline?.style}
     >
-      <img src={activeSlide.src} alt={activeSlide.alt} />
+      {render?.slide?.({ slide: activeSlide }) ?? (
+        <img src={activeSlide.src} alt={activeSlide.alt} />
+      )}
       {slides.length > 1 && (
         <button
           type="button"
@@ -92,6 +117,7 @@ function InlineLightboxTestDouble({
 
 const getDiscoveryMock = vi.mocked(getDiscovery)
 const getDiscoveriesMock = vi.mocked(getDiscoveries)
+const getAllGroupDiscoveriesMock = vi.mocked(getAllGroupDiscoveries)
 const getPhotoMock = vi.mocked(getPhoto)
 const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
 
@@ -127,6 +153,7 @@ beforeEach(() => {
   })
   getDiscoveryMock.mockResolvedValue(discovery)
   getDiscoveriesMock.mockResolvedValue([discovery])
+  getAllGroupDiscoveriesMock.mockResolvedValue([discovery])
   getPhotoMock.mockResolvedValue(new Blob(['photo']))
   deleteDiscoveryMock.mockResolvedValue(undefined)
 })
@@ -138,13 +165,18 @@ afterEach(() => {
 
 function renderPage(
   state?: unknown,
-  options: { withPreviousContext?: boolean } = {},
+  options: {
+    initialPath?: string
+    withPreviousContext?: boolean
+    strictMode?: boolean
+  } = {},
 ) {
+  const detailPath = options.initialPath ?? '/discoveries/7'
   const initialEntries = options.withPreviousContext
-    ? ['/collection', { pathname: '/discoveries/7', state }]
-    : [{ pathname: '/discoveries/7', state }]
+    ? ['/collection', { pathname: detailPath, state }]
+    : [{ pathname: detailPath, state }]
 
-  return renderWithProviders(
+  const routes = (
     <>
       <Routes>
         <Route
@@ -153,7 +185,11 @@ function renderPage(
         />
       </Routes>
       <LocationProbe />
-    </>,
+    </>
+  )
+
+  return renderWithProviders(
+    options.strictMode ? <StrictMode>{routes}</StrictMode> : routes,
     {
       initialEntries,
       initialIndex: options.withPreviousContext ? 1 : undefined,
@@ -294,15 +330,100 @@ describe('DiscoveryDetailPage', () => {
     expect(viewer).toHaveClass('absolute', 'inset-0')
   })
 
-  it('keeps the authenticated loading error placeholder when the detail photo fails', async () => {
-    getPhotoMock.mockRejectedValueOnce(new Error('photo unavailable'))
+  it('keeps the carousel mounted and shows a local unavailable slide when one photo fails', async () => {
+    const secondDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Broken lake',
+      imageObjectKey: 'photos/broken.jpg',
+    }
+    const thirdDiscovery = {
+      ...discovery,
+      id: 9,
+      name: 'Reachable summit',
+      imageObjectKey: 'photos/summit.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([
+      discovery,
+      secondDiscovery,
+      thirdDiscovery,
+    ])
+    getPhotoMock.mockImplementation(async (_token, imageObjectKey) => {
+      if (imageObjectKey === 'photos/broken.jpg') {
+        throw new Error('photo unavailable')
+      }
+      return new Blob([imageObjectKey])
+    })
 
-    renderPage()
+    renderPage({
+      returnTo: '/collection',
+      galleryIds: [7, 8, 9],
+      gallerySource: 'personal',
+    })
+
+    await screen.findByTestId('inline-photo-viewer')
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+    expect(
+      await screen.findByRole('status', { name: 'Photo unavailable' }),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('lightbox-next'))
+    expect(
+      await screen.findByRole('button', { name: 'Reachable summit' }),
+    ).toBeVisible()
+    expect(screen.getByRole('img', { name: 'Reachable summit' })).toBeVisible()
+  })
+
+  it('keeps authenticated gallery sources after StrictMode remounts the effect', async () => {
+    renderPage(undefined, { strictMode: true })
 
     expect(
-      await screen.findByRole('img', { name: 'Photo unavailable' }),
+      await screen.findByRole('img', { name: 'Alpine meadow' }),
+    ).toHaveAttribute('src', expect.stringContaining('blob:'))
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+  })
+
+  it('marks an undecodable authenticated photo unavailable and revokes its Blob URL', async () => {
+    const imagePrototype = globalThis.Image.prototype
+    const originalDecode = Object.getOwnPropertyDescriptor(
+      imagePrototype,
+      'decode',
+    )
+    Object.defineProperty(imagePrototype, 'decode', {
+      configurable: true,
+      value: vi.fn().mockRejectedValue(new Error('decode failed')),
+    })
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL')
+
+    try {
+      renderPage()
+
+      expect(
+        await screen.findByRole('status', { name: 'Photo unavailable' }),
+      ).toBeInTheDocument()
+      expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+      expect(revokeObjectURL).toHaveBeenCalledWith(
+        expect.stringContaining('blob:'),
+      )
+    } finally {
+      if (originalDecode) {
+        Object.defineProperty(imagePrototype, 'decode', originalDecode)
+      } else {
+        delete (imagePrototype as { decode?: unknown }).decode
+      }
+    }
+  })
+
+  it('turns a Lightbox image error into a local unavailable slide', async () => {
+    renderPage()
+
+    fireEvent.error(await screen.findByRole('img', { name: 'Alpine meadow' }))
+
+    expect(
+      await screen.findByRole('status', { name: 'Photo unavailable' }),
     ).toBeInTheDocument()
-    expect(screen.queryByTestId('inline-photo-viewer')).not.toBeInTheDocument()
+    expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
   })
 
   it('synchronizes the active discovery and all drawer metadata with the carousel', async () => {
@@ -354,13 +475,15 @@ describe('DiscoveryDetailPage', () => {
     expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
     expect(screen.getByRole('button', { name: 'Alpine meadow' })).toBeVisible()
 
-    fireEvent.click(screen.getByTestId('drawer-handle'))
+    const handle = screen.getByRole('button', { name: 'Collapse details' })
+    expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
+    fireEvent.click(handle)
     expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
     expect(
       screen.queryByRole('button', { name: 'Alpine meadow' }),
     ).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByTestId('drawer-handle'))
+    fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
     expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
 
     fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
@@ -368,6 +491,9 @@ describe('DiscoveryDetailPage', () => {
       await screen.findByText('A quiet meadow above the lake.'),
     ).toBeVisible()
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
   })
 
   it('replaces the URL on carousel changes so browser back leaves the gallery', async () => {
@@ -399,34 +525,99 @@ describe('DiscoveryDetailPage', () => {
     )
   })
 
-  it('removes a deleted slide and continues with the adjacent discovery', async () => {
+  it('deletes a middle slide, displays its adjacent discovery, and replaces the URL with it', async () => {
     const secondDiscovery = {
       ...discovery,
       id: 8,
       name: 'Lac de Bretaye',
       imageObjectKey: 'photos/lac.jpg',
     }
-    getDiscoveriesMock.mockResolvedValue([discovery, secondDiscovery])
+    const thirdDiscovery = {
+      ...discovery,
+      id: 9,
+      name: 'Dents du Midi',
+      imageObjectKey: 'photos/dents.jpg',
+    }
+    getDiscoveriesMock.mockResolvedValue([
+      discovery,
+      secondDiscovery,
+      thirdDiscovery,
+    ])
 
-    renderPage({
-      returnTo: '/collection',
-      galleryIds: [7, 8],
-      gallerySource: 'personal',
-    })
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8, 9],
+        gallerySource: 'personal',
+      },
+      {
+        initialPath: '/discoveries/8',
+      },
+    )
 
     fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
     fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
     fireEvent.click(screen.getByRole('button', { name: 'Delete discovery' }))
 
     await waitFor(() =>
-      expect(deleteDiscoveryMock).toHaveBeenCalledWith('test-token', '7'),
+      expect(deleteDiscoveryMock).toHaveBeenCalledWith('test-token', '8'),
     )
     expect(
-      await screen.findByRole('button', { name: 'Lac de Bretaye' }),
+      await screen.findByRole('button', { name: 'Dents du Midi' }),
     ).toBeVisible()
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/9',
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Lac de Bretaye' }),
+    ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'More actions' }),
     ).toBeInTheDocument()
+  })
+
+  it('uses the target discovery group when All Groups carousel navigation changes slides', async () => {
+    const firstGroupDiscovery = {
+      ...discovery,
+      id: 7,
+      name: 'Group 12 discovery',
+      groupId: '12',
+      groupIds: ['12'],
+      personal: false,
+    }
+    const secondGroupDiscovery = {
+      ...discovery,
+      id: 8,
+      name: 'Group 27 discovery',
+      groupId: '27',
+      groupIds: ['27'],
+      personal: false,
+      description: 'A different group context.',
+      imageObjectKey: 'photos/group-27.jpg',
+    }
+    getAllGroupDiscoveriesMock.mockResolvedValue([
+      firstGroupDiscovery,
+      secondGroupDiscovery,
+    ])
+
+    renderPage(
+      {
+        returnTo: '/collection',
+        galleryIds: [7, 8],
+        gallerySource: 'all-groups',
+      },
+      { initialPath: '/discoveries/7?group=12' },
+    )
+
+    fireEvent.click(await screen.findByTestId('lightbox-next'))
+
+    expect(
+      await screen.findByRole('button', { name: 'Group 27 discovery' }),
+    ).toBeVisible()
+    expect(screen.getByText('A different group context.')).toBeVisible()
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '/discoveries/8?group=27',
+    )
   })
 
   it('keeps the discovery title visible in the collapsed drawer', async () => {
