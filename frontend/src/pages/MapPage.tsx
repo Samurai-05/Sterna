@@ -194,7 +194,7 @@ export function MapPage({ active }: { active: boolean }) {
         </div>
       )}
       <div
-        className="pointer-events-none absolute inset-0 bg-[#f7f5f0]/20"
+        className="pointer-events-none absolute inset-0 bg-[#f7f5f0]/10"
         aria-hidden="true"
       />
       <div

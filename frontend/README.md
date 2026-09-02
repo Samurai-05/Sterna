@@ -97,3 +97,20 @@ npx cap open android
 - The `QueryClientProvider` (TanStack Query) is set up at the root and powers
   calls to the Sterna API.
 - The PWA manifest and service worker are generated during `npm run build`.
+
+### Country fog asset
+
+The map's `countries-fog.geo.json` is a frontend-only derivative of the
+semantic country data in `../api/src/countries/countries.geo.json`. Regenerate
+it after changing the source with:
+
+```bash
+npm run generate:countries-fog
+```
+
+The generator removes interior rings below 100 km², which removes small
+unclassified water holes that read as visual noise at world and continent
+scale. Rings at or above that threshold are retained as significant lakes.
+Small rings containing a separate country feature are also retained to
+protect enclaves, microstates and other meaningful land areas. The API/PostGIS
+country-detection data are not modified by this preparation step.

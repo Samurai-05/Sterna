@@ -14,6 +14,9 @@ const {
   const instances: Array<{
     options: { center: [number, number]; zoom: number; minZoom?: number }
     controls: unknown[]
+    addLayerCalls: Array<{ layer: unknown; beforeId?: string }>
+    addSourceCalls: Array<{ id: string; source: unknown }>
+    featureStateCalls: Array<{ target: unknown; state: unknown }>
     emit: (event: string) => void
     resizeCalls: number
     flyToCalls: Array<{ center: [number, number]; zoom: number }>
@@ -37,6 +40,10 @@ const {
   class MapMock {
     options: { center: [number, number]; zoom: number; minZoom?: number }
     controls: unknown[] = []
+    addLayerCalls: Array<{ layer: unknown; beforeId?: string }> = []
+    addSourceCalls: Array<{ id: string; source: unknown }> = []
+    featureStateCalls: Array<{ target: unknown; state: unknown }> = []
+    sources = new Map<string, unknown>()
     resizeCalls = 0
     flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
     resetNorthPitchCalls = 0
@@ -57,8 +64,42 @@ const {
       return this
     }
 
-    getSource() {
-      return undefined
+    getSource(id: string) {
+      return this.sources.get(id)
+    }
+
+    addSource(id: string, source: unknown) {
+      this.sources.set(id, source)
+      this.addSourceCalls.push({ id, source })
+      return this
+    }
+
+    addLayer(layer: unknown, beforeId?: string) {
+      this.addLayerCalls.push({ layer, beforeId })
+      return this
+    }
+
+    getStyle() {
+      return {
+        layers: [
+          { id: 'base-roads', type: 'line', 'source-layer': 'transportation' },
+          { id: 'boundary_3', type: 'line', 'source-layer': 'boundary' },
+          { id: 'label_city', type: 'symbol' },
+        ],
+      }
+    }
+
+    isSourceLoaded() {
+      return true
+    }
+
+    setFeatureState(target: unknown, state: unknown) {
+      this.featureStateCalls.push({ target, state })
+      return this
+    }
+
+    setProjection() {
+      return this
     }
 
     getCenter() {
@@ -275,6 +316,100 @@ describe('MapCanvas', () => {
     )
 
     unmount()
+  })
+
+  it('adds the frontend fog source and layer below native boundaries', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(<MapCanvas exploredCountryCodes={['DEU']} />)
+
+    act(() => mapInstances[0].emit('load'))
+    act(() => mapInstances[0].emit('sourcedata'))
+
+    expect(mapInstances[0].addSourceCalls).toEqual([
+      {
+        id: 'countries-fog',
+        source: {
+          type: 'geojson',
+          data: '/countries-fog.geo.json',
+          promoteId: 'A3',
+        },
+      },
+    ])
+    expect(mapInstances[0].addLayerCalls).toHaveLength(1)
+    expect(mapInstances[0].addLayerCalls[0]).toMatchObject({
+      beforeId: 'boundary_3',
+      layer: {
+        id: 'unexplored-countries-fog',
+        type: 'fill',
+        source: 'countries-fog',
+        maxzoom: 9,
+        paint: {
+          'fill-color': '#2f4439',
+        },
+      },
+    })
+    expect(
+      (
+        mapInstances[0].addLayerCalls[0].layer as {
+          paint: { 'fill-opacity': unknown[] }
+        }
+      ).paint['fill-opacity'].slice(0, 3),
+    ).toEqual(['interpolate', ['linear'], ['zoom']])
+  })
+
+  it('updates fog feature-state for personal, group, and disputed countries', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const { rerender } = render(
+      <MapCanvas exploredCountryCodes={['RUS', 'CHE']} />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    act(() => mapInstances[0].emit('sourcedata'))
+
+    expect(mapInstances[0].featureStateCalls).toEqual([
+      {
+        target: { source: 'countries-fog', id: 'RUS' },
+        state: { explored: true },
+      },
+      {
+        target: { source: 'countries-fog', id: 'CHE' },
+        state: { explored: true },
+      },
+      {
+        target: { source: 'countries-fog', id: 'XCR' },
+        state: { explored: true },
+      },
+    ])
+
+    rerender(<MapCanvas exploredCountryCodes={['UKR']} />)
+
+    expect(mapInstances[0].featureStateCalls.slice(-4)).toEqual(
+      expect.arrayContaining([
+        {
+          target: { source: 'countries-fog', id: 'UKR' },
+          state: { explored: true },
+        },
+        {
+          target: { source: 'countries-fog', id: 'XCR' },
+          state: { explored: true },
+        },
+        {
+          target: { source: 'countries-fog', id: 'RUS' },
+          state: { explored: false },
+        },
+        {
+          target: { source: 'countries-fog', id: 'CHE' },
+          state: { explored: false },
+        },
+      ]),
+    )
   })
 
   it('restores the viewport saved by a previous map instance', () => {
