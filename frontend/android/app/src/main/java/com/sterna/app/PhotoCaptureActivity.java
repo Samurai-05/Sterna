@@ -37,6 +37,7 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -95,6 +96,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     private boolean usingFrontCamera;
     private boolean flashEnabled;
     private boolean captureInProgress;
+    private boolean cameraInitializationFailed;
     private LocationManager locationManager;
     private LocationListener locationListener;
     private Location latestLocation;
@@ -138,12 +140,10 @@ public class PhotoCaptureActivity extends AppCompatActivity {
         cameraPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 granted -> {
-                    if (granted) {
-                        startCamera();
-                    } else {
-                        getPreferences(MODE_PRIVATE).edit().putBoolean("camera_denied", true).apply();
-                        showStatus("Camera unavailable. You can still choose a photo from Gallery.");
-                    }
+                    CameraPermissionFlow.handlePermissionResult(
+                            granted,
+                            this::startCamera,
+                            this::showCameraPermissionStatus);
                 });
         locationPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestMultiplePermissions(),
@@ -463,14 +463,17 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     }
 
     private void requestOrStartCamera() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
-            startCamera();
-        } else if (!getPreferences(MODE_PRIVATE).getBoolean("camera_denied", false)) {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
-        } else {
-            showStatus("Camera unavailable. You can still choose a photo from Gallery.");
-        }
+        CameraPermissionFlow.requestOrStartCamera(
+                () -> ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED,
+                () -> cameraPermissionLauncher.launch(Manifest.permission.CAMERA),
+                this::startCamera);
+    }
+
+    private void showCameraPermissionStatus() {
+        showStatus(CameraPermissionFlow.denialMessage(
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                        this, Manifest.permission.CAMERA)));
     }
 
     private boolean hasLocationPermission() {
@@ -590,6 +593,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     }
 
     private void startCamera() {
+        cameraInitializationFailed = false;
         ListenableFuture<ProcessCameraProvider> providerFuture =
                 ProcessCameraProvider.getInstance(this);
         providerFuture.addListener(() -> {
@@ -597,6 +601,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
                 cameraProvider = providerFuture.get();
                 bindCamera();
             } catch (Exception exception) {
+                cameraInitializationFailed = true;
                 Log.e(TAG, "Unable to initialize CameraX", exception);
                 showStatus("Camera unavailable. You can still choose a photo from Gallery.");
             }
@@ -637,6 +642,7 @@ public class PhotoCaptureActivity extends AppCompatActivity {
             switchCameraButton.setVisibility(hasBackCamera && hasFrontCamera ? View.VISIBLE : View.GONE);
             showStatus("");
         } catch (Exception exception) {
+            cameraInitializationFailed = true;
             Log.e(TAG, "Unable to bind CameraX", exception);
             showStatus("Camera unavailable. You can still choose a photo from Gallery.");
             return;
@@ -659,7 +665,14 @@ public class PhotoCaptureActivity extends AppCompatActivity {
     private void capturePhoto() {
         if (imageCapture == null || captureInProgress) {
             if (imageCapture == null) {
-                showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    showCameraPermissionStatus();
+                } else if (cameraInitializationFailed) {
+                    showStatus("Camera unavailable. You can still choose a photo from Gallery.");
+                } else {
+                    showStatus("Camera is still starting. Please wait or choose a photo from Gallery.");
+                }
             }
             return;
         }
