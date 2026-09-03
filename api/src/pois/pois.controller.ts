@@ -134,6 +134,7 @@ export class PoisController {
     // set-before-the-handler-runs year(s) the photos route uses for
     // truly-immutable keyed uploads.
     response.setHeader('Cache-Control', 'public, max-age=86400');
+    response.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     return new StreamableFile(stream, { type: contentType });
   }
