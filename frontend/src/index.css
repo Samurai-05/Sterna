@@ -57,14 +57,24 @@
     env(safe-area-inset-right, 0px),
     var(--safe-area-inset-right, 0px)
   );
-  --sterna-safe-area-bottom: max(
-    env(safe-area-inset-bottom, 0px),
-    var(--safe-area-inset-bottom, 0px)
-  );
+  --sterna-safe-area-bottom: 0px;
   --sterna-safe-area-left: max(
     env(safe-area-inset-left, 0px),
     var(--safe-area-inset-left, 0px)
   );
+}
+
+html.sterna-native {
+  --sterna-safe-area-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    var(--safe-area-inset-bottom, 0px)
+  );
+}
+
+@media (display-mode: standalone) {
+  html:not(.sterna-native) {
+    --sterna-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 .sterna-discovery-screen {

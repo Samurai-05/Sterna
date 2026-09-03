@@ -171,6 +171,7 @@ export class PoisService {
           WHERE member.user_id = $1 AND member.is_active = TRUE
           LIMIT 1
         ) active_map ON TRUE
+        WHERE poi.is_active
         ORDER BY poi.title ASC
       `,
       [userId, POI_DISCOVERY_RADIUS_METERS],
@@ -213,6 +214,7 @@ export class PoisService {
               )
           ) AS discovered
         FROM pois poi
+        WHERE poi.is_active
         ORDER BY poi.title ASC
       `,
       [userId, POI_DISCOVERY_RADIUS_METERS],
@@ -275,7 +277,8 @@ export class PoisService {
               )
           ) AS discovered
         FROM pois poi
-        WHERE ST_DWithin(
+        WHERE poi.is_active
+          AND ST_DWithin(
           poi.location::geography,
           ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
           $4
@@ -308,7 +311,7 @@ export class PoisService {
    * DiscoveriesService.update confirming a discovery against it). */
   async requireExists(id: string): Promise<void> {
     const [row] = await this.pois.query<{ exists: boolean }[]>(
-      `SELECT EXISTS (SELECT 1 FROM pois WHERE id = $1)`,
+      `SELECT EXISTS (SELECT 1 FROM pois WHERE id = $1 AND is_active)`,
       [id],
     );
     if (!row?.exists) {
@@ -323,7 +326,7 @@ export class PoisService {
    */
   async getImage(id: string, requestedWidth?: number): Promise<PoiImage> {
     const poi = await this.pois.findOne({
-      where: { id },
+      where: { id, isActive: true },
       select: { imageUrl: true },
     });
     if (!poi?.imageUrl) {

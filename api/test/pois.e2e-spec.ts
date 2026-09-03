@@ -64,7 +64,7 @@ describe('PoisController (e2e)', () => {
     await request(app.getHttpServer()).get('/api/pois/authored').expect(401);
   });
 
-  it('lists at least one seeded point of interest per MVP country', async () => {
+  it('lists the complete active point-of-interest catalogue', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/pois')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -72,7 +72,7 @@ describe('PoisController (e2e)', () => {
 
     const body = response.body as PoiResponse[];
 
-    expect(body.length).toBeGreaterThanOrEqual(195);
+    expect(body).toHaveLength(921);
     expect(body).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

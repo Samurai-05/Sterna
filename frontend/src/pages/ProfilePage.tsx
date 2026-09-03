@@ -4,12 +4,14 @@ import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { PasswordInput } from '@/components/auth/PasswordInput'
+import { CountryFlag } from '@/components/CountryFlag'
 import { ProfileCategoryBreakdown } from '@/components/ProfileCategoryBreakdown'
 import { ProfileDiscoveryCard } from '@/components/ProfileDiscoveryCard'
 import { ProfileExplorationOverTime } from '@/components/ProfileExplorationOverTime'
 import { ProfileExplorationStats } from '@/components/ProfileExplorationStats'
 import { ProfileWorldMap } from '@/components/ProfileWorldMap'
 import { UserAvatarImage } from '@/components/UserAvatarImage'
+import { VisitedPoiThumbnail } from '@/components/VisitedPoiThumbnail'
 import {
   Drawer,
   DrawerContent,
@@ -17,14 +19,13 @@ import {
   DrawerSwipeHandle,
   DrawerTitle,
 } from '@/components/ui/drawer'
-import { Progress } from '@/components/ui/progress'
 import {
   deleteAccount,
   getAuthoredDiscoveries,
   getAuthoredPois,
   getCurrentUser,
 } from '@/lib/api'
-import { getCountryName } from '@/lib/countries'
+import { COUNTRY_COUNT, getCountryName } from '@/lib/countries'
 import {
   exploredCountryCodes,
   explorationOverTime,
@@ -108,9 +109,11 @@ export function ProfilePage() {
   const profileDiscoveries = uniqueProfileDiscoveries(sourceDiscoveries)
   const exploredCodes = exploredCountryCodes(profileDiscoveries)
   const exploredCountries = exploredCodes
-    .map((countryCode) => getCountryName(countryCode))
-    .filter((country): country is string => Boolean(country))
-    .sort((a, b) => a.localeCompare(b))
+    .flatMap((code) => {
+      const name = getCountryName(code)
+      return name ? [{ code, name }] : []
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
   const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
   const explorationMonths = explorationOverTime(profileDiscoveries)
   const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
@@ -118,10 +121,9 @@ export function ProfilePage() {
     accessToken && isDiscoveriesError && !backendDiscoveries,
   )
   const isPoisLoading = Boolean(accessToken && isPoisPending)
-  const isPoisUnavailable = Boolean(accessToken && isPoisError && !backendPois)
-  const progress = sourceLandmarks.length
-    ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
-    : 0
+  const isPoisUnavailable = Boolean(
+    accessToken && isPoisError && !backendPois,
+  )
 
   useEffect(() => {
     if (!accessToken || !currentUser) return
@@ -220,10 +222,16 @@ export function ProfilePage() {
                     ? null
                     : exploredCodes.length
                 }
+                countryTotal={COUNTRY_COUNT}
                 pois={
                   isPoisLoading || isPoisUnavailable
                     ? null
                     : discoveredLandmarks.length
+                }
+                poiTotal={
+                  isPoisLoading || isPoisUnavailable
+                    ? null
+                    : sourceLandmarks.length
                 }
               />
             </div>
@@ -253,68 +261,52 @@ export function ProfilePage() {
             </div>
           </section>
 
-          <section aria-labelledby="recent-discoveries-heading">
-            <div className="flex items-end justify-between gap-4">
-              <h2
-                id="recent-discoveries-heading"
-                className="sterna-section-title"
-              >
-                Recent discoveries
-              </h2>
-              <Link
-                to="/collection"
-                className="flex min-h-11 items-center text-sm font-semibold text-primary"
-              >
-                See all
-              </Link>
-            </div>
+          <section aria-labelledby="countries-explored-heading">
+            <h2
+              id="countries-explored-heading"
+              className="sterna-section-title"
+            >
+              Countries explored
+            </h2>
             {isDiscoveriesLoading ? (
-              <p className="mt-4 text-sm text-muted-foreground" role="status">
-                Loading recent discoveries…
+              <p className="mt-3 text-sm text-muted-foreground" role="status">
+                Loading explored countries…
               </p>
             ) : isDiscoveriesUnavailable ? (
-              <p className="mt-4 text-sm text-muted-foreground" role="status">
-                Recent discoveries are temporarily unavailable.
+              <p className="mt-3 text-sm text-muted-foreground" role="status">
+                Country data is temporarily unavailable.
               </p>
-            ) : recentDiscoveries.length ? (
-              <div className="-mr-5 mt-4 flex snap-x gap-4 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {recentDiscoveries.map((discovery) => (
-                  <ProfileDiscoveryCard
-                    key={discovery.id}
-                    discovery={discovery}
-                  />
-                ))}
-              </div>
             ) : (
-              <p className="mt-4 text-sm text-muted-foreground">
-                No recent discoveries yet.
-              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {exploredCountries.length ? (
+                  exploredCountries.map((country) => (
+                    <CountryFlag
+                      key={country.code}
+                      countryCode={country.code}
+                      countryName={country.name}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No countries explored yet.
+                  </p>
+                )}
+              </div>
             )}
           </section>
 
-          <section aria-labelledby="points-of-interest-heading">
-            <div className="flex items-baseline justify-between gap-4">
-              <h2
-                id="points-of-interest-heading"
-                className="sterna-section-title"
-              >
-                Points of interest
-              </h2>
-              {!isPoisLoading && !isPoisUnavailable && (
-                <p className="text-sm tabular-nums text-muted-foreground">
-                  {discoveredLandmarks.length} of {sourceLandmarks.length}{' '}
-                  discovered
-                </p>
-              )}
-            </div>
+          <section aria-labelledby="visited-pois-heading">
+            <h2 id="visited-pois-heading" className="sterna-section-title">
+              POIs visited
+            </h2>
             {isPoisLoading ? (
-              <p className="mt-4 text-sm text-muted-foreground" role="status">
-                Loading point of interest progress…
+              <p className="mt-3 text-sm text-muted-foreground" role="status">
+                Loading visited POIs…
               </p>
             ) : isPoisUnavailable ? (
-              <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-4 py-3">
+              <div className="mt-3 flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-4 py-3">
                 <p className="text-sm text-muted-foreground" role="status">
-                  Point of interest progress is temporarily unavailable.
+                  Visited POIs are temporarily unavailable.
                 </p>
                 <button
                   type="button"
@@ -325,17 +317,16 @@ export function ProfilePage() {
                 </button>
               </div>
             ) : (
-              <div className="mt-4 rounded-2xl border border-border bg-card p-4">
-                <Progress
-                  className="h-2.5"
-                  value={progress}
-                  aria-label="Point of interest exploration progress"
-                  aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
-                />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {discoveredLandmarks.length} / {sourceLandmarks.length} points
-                  of interest discovered
-                </p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                {discoveredLandmarks.length ? (
+                  discoveredLandmarks.map((landmark) => (
+                    <VisitedPoiThumbnail key={landmark.id} poi={landmark} />
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No POIs visited yet.
+                  </p>
+                )}
               </div>
             )}
           </section>
@@ -375,38 +366,42 @@ export function ProfilePage() {
             }
           />
 
-          <section aria-labelledby="countries-explored-heading">
-            <h2
-              id="countries-explored-heading"
-              className="sterna-section-title"
-            >
-              Countries explored
-            </h2>
+          <section aria-labelledby="recent-discoveries-heading">
+            <div className="flex items-end justify-between gap-4">
+              <h2
+                id="recent-discoveries-heading"
+                className="sterna-section-title"
+              >
+                Recent discoveries
+              </h2>
+              <Link
+                to="/collection"
+                className="flex min-h-11 items-center text-sm font-semibold text-primary"
+              >
+                See all
+              </Link>
+            </div>
             {isDiscoveriesLoading ? (
-              <p className="mt-3 text-sm text-muted-foreground" role="status">
-                Loading explored countries…
+              <p className="mt-4 text-sm text-muted-foreground" role="status">
+                Loading recent discoveries…
               </p>
             ) : isDiscoveriesUnavailable ? (
-              <p className="mt-3 text-sm text-muted-foreground" role="status">
-                Country data is temporarily unavailable.
+              <p className="mt-4 text-sm text-muted-foreground" role="status">
+                Recent discoveries are temporarily unavailable.
               </p>
-            ) : (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {exploredCountries.length ? (
-                  exploredCountries.map((country) => (
-                    <span
-                      key={country}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium leading-4"
-                    >
-                      {country}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No countries explored yet.
-                  </p>
-                )}
+            ) : recentDiscoveries.length ? (
+              <div className="-mr-5 mt-4 flex snap-x gap-4 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {recentDiscoveries.map((discovery) => (
+                  <ProfileDiscoveryCard
+                    key={discovery.id}
+                    discovery={discovery}
+                  />
+                ))}
               </div>
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">
+                No recent discoveries yet.
+              </p>
             )}
           </section>
         </div>

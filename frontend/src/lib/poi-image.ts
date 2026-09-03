@@ -1,10 +1,11 @@
 import { imageUrl } from './mock-data'
 import { resolveApiUrl } from './api-url'
 
-export type PoiImageVariant = 'map' | 'card' | 'detail'
+export type PoiImageVariant = 'map' | 'thumbnail' | 'card' | 'detail'
 
 export const poiImageWidths: Record<PoiImageVariant, number> = {
   map: 192,
+  thumbnail: 128,
   card: 640,
   detail: 1200,
 }

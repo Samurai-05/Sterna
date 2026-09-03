@@ -17,6 +17,7 @@ describe('getPoiImageUrl', () => {
 
   it.each([
     ['map', 192],
+    ['thumbnail', 128],
     ['card', 640],
     ['detail', 1200],
   ] as const)('requests the %s width for POI images', (size, width) => {
