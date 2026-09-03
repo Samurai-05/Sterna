@@ -1,11 +1,14 @@
-import { Award, Check, LogOut, Settings, Trash2 } from 'lucide-react'
+import { Check, LogOut, Settings, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { PasswordInput } from '@/components/auth/PasswordInput'
-import { CategoryIcon } from '@/components/CategoryIcon'
-import { DiscoveryCard } from '@/components/DiscoveryCard'
+import { ProfileCategoryBreakdown } from '@/components/ProfileCategoryBreakdown'
+import { ProfileDiscoveryCard } from '@/components/ProfileDiscoveryCard'
+import { ProfileExplorationOverTime } from '@/components/ProfileExplorationOverTime'
+import { ProfileExplorationStats } from '@/components/ProfileExplorationStats'
+import { ProfileWorldMap } from '@/components/ProfileWorldMap'
 import { UserAvatarImage } from '@/components/UserAvatarImage'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -14,18 +17,15 @@ import {
   getAuthoredPois,
   getCurrentUser,
 } from '@/lib/api'
-import { categoryAppearance } from '@/lib/category-appearance'
 import { getCountryName } from '@/lib/countries'
-import { categories, discoveries, landmarks } from '@/lib/mock-data'
+import {
+  exploredCountryCodes,
+  explorationOverTime,
+  recentProfileDiscoveries,
+  uniqueProfileDiscoveries,
+} from '@/lib/profile-analytics'
+import { discoveries, landmarks } from '@/lib/mock-data'
 import { clearSession, loadSession, saveSession } from '@/lib/session'
-
-const ACTIVITY_MONTH_COUNT = 6
-const ACTIVITY_CHART = {
-  left: 28,
-  right: 304,
-  top: 18,
-  bottom: 126,
-}
 
 export function ProfilePage() {
   const navigate = useNavigate()
@@ -42,12 +42,22 @@ export function ProfilePage() {
     queryFn: () => getCurrentUser(accessToken!),
     enabled: Boolean(accessToken),
   })
-  const { data: backendDiscoveries } = useQuery({
+  const {
+    data: backendDiscoveries,
+    isPending: isDiscoveriesPending,
+    isError: isDiscoveriesError,
+    refetch: refetchDiscoveries,
+  } = useQuery({
     queryKey: ['discoveries', session?.user.id, 'authored'],
     queryFn: () => getAuthoredDiscoveries(accessToken!),
     enabled: Boolean(accessToken),
   })
-  const { data: backendPois } = useQuery({
+  const {
+    data: backendPois,
+    isPending: isPoisPending,
+    isError: isPoisError,
+    refetch: refetchPois,
+  } = useQuery({
     queryKey: ['pois', session?.user.id, 'authored'],
     queryFn: () => getAuthoredPois(accessToken!),
     enabled: Boolean(accessToken),
@@ -66,49 +76,17 @@ export function ProfilePage() {
   const discoveredLandmarks = sourceLandmarks.filter(
     (landmark) => landmark.discovered,
   )
-  const exploredCountries = [
-    ...new Set(
-      sourceDiscoveries
-        .map((discovery) => getCountryName(discovery.countryCode))
-        .filter((country): country is string => Boolean(country)),
-    ),
-  ]
-  const categoryCounts = categories
-    .map((category) => ({
-      ...category,
-      count: sourceDiscoveries.filter(
-        (discovery) => discovery.category === category.id,
-      ).length,
-    }))
-    .filter((category) => category.count > 0)
-  const categoryTotal = categoryCounts.reduce(
-    (total, category) => total + category.count,
-    0,
-  )
-  const categoryMaximum = Math.max(
-    ...categoryCounts.map((category) => category.count),
-    1,
-  )
-  const monthlyActivity = buildMonthlyActivity(sourceDiscoveries)
-  const activityMaximum = Math.max(
-    ...monthlyActivity.map((month) => month.count),
-    1,
-  )
-  const activityPoints = monthlyActivity.map((month, index) => ({
-    ...month,
-    x:
-      ACTIVITY_CHART.left +
-      (index * (ACTIVITY_CHART.right - ACTIVITY_CHART.left)) /
-        (ACTIVITY_MONTH_COUNT - 1),
-    y:
-      ACTIVITY_CHART.bottom -
-      (month.count / activityMaximum) *
-        (ACTIVITY_CHART.bottom - ACTIVITY_CHART.top),
-  }))
-  const activityPolyline = activityPoints
-    .map((point) => `${point.x},${point.y}`)
-    .join(' ')
-  const hasRecentActivity = monthlyActivity.some((month) => month.count > 0)
+  const profileDiscoveries = uniqueProfileDiscoveries(sourceDiscoveries)
+  const exploredCodes = exploredCountryCodes(profileDiscoveries)
+  const exploredCountries = exploredCodes
+    .map((countryCode) => getCountryName(countryCode))
+    .filter((country): country is string => Boolean(country))
+  const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
+  const explorationMonths = explorationOverTime(profileDiscoveries)
+  const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
+  const isDiscoveriesUnavailable = Boolean(accessToken && isDiscoveriesError)
+  const isPoisLoading = Boolean(accessToken && isPoisPending)
+  const isPoisUnavailable = Boolean(accessToken && isPoisError)
   const progress = sourceLandmarks.length
     ? (discoveredLandmarks.length / sourceLandmarks.length) * 100
     : 0
@@ -206,267 +184,195 @@ export function ProfilePage() {
           </div>
         </section>
       </div>
-      <div className="-mt-6 space-y-8 rounded-t-3xl bg-card px-5 pb-2 pt-8">
-        <section aria-labelledby="pois-heading">
-          <h2
-            id="pois-heading"
-            className="font-display text-[22px] font-semibold leading-7"
-          >
-            POIs
-          </h2>
-          <div className="mt-3 rounded-2xl border border-border bg-background p-4 shadow-sm">
-            <p className="flex items-center gap-2 text-[15px] font-semibold leading-5">
-              <Award className="size-5 text-primary" aria-hidden="true" />
-              Exploration progress
-            </p>
-            <Progress
-              className="mt-3"
-              value={progress}
-              aria-label="Point of interest exploration progress"
-              aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
-            />
-            <p className="mt-3 text-sm text-muted-foreground">
-              {discoveredLandmarks.length} / {sourceLandmarks.length} points of
-              interest discovered
-            </p>
-          </div>
-        </section>
-        <section aria-labelledby="discoveries-by-category-heading">
-          <h2
-            id="discoveries-by-category-heading"
-            className="font-display text-[22px] font-semibold leading-7"
-          >
-            Discoveries by category
-          </h2>
-          <div className="mt-4 rounded-2xl border border-border bg-background p-4 shadow-sm">
-            <div className="flex items-baseline justify-between gap-4">
-              <p className="text-sm font-semibold">Your distribution</p>
-              <p className="text-sm tabular-nums text-muted-foreground">
-                {categoryTotal} total
-              </p>
+      <div className="-mt-6 rounded-t-3xl bg-background px-5 pb-12 pt-8">
+        <div className="mx-auto max-w-lg space-y-10">
+          <section aria-labelledby="your-exploration-heading">
+            <h2 id="your-exploration-heading" className="sterna-section-title">
+              Your exploration
+            </h2>
+            <div className="mt-6">
+              <ProfileExplorationStats
+                discoveries={
+                  isDiscoveriesLoading || isDiscoveriesUnavailable
+                    ? null
+                    : profileDiscoveries.length
+                }
+                countries={
+                  isDiscoveriesLoading || isDiscoveriesUnavailable
+                    ? null
+                    : exploredCodes.length
+                }
+                pois={
+                  isPoisLoading || isPoisUnavailable
+                    ? null
+                    : discoveredLandmarks.length
+                }
+              />
             </div>
-            {categoryCounts.length ? (
-              <div
-                role="list"
-                aria-label="Discovery distribution by category"
-                className="relative mt-5 grid gap-2"
-                style={{
-                  gridTemplateColumns: `repeat(${categoryCounts.length}, minmax(0, 1fr))`,
-                }}
-              >
-                <div
-                  className="pointer-events-none absolute inset-x-0 top-40 border-t border-border"
-                  aria-hidden="true"
-                />
-                {categoryCounts.map((category) => {
-                  const appearance = categoryAppearance[category.id]
-                  const discoveryLabel =
-                    category.count === 1 ? 'discovery' : 'discoveries'
-                  const relativeHeight =
-                    (category.count / categoryMaximum) * 100
+            <div className="mt-6">
+              {isDiscoveriesLoading ? (
+                <ProfileWorldMap exploredCountryCodes={[]} />
+              ) : isDiscoveriesUnavailable ? (
+                <div className="rounded-2xl border border-border bg-secondary px-4 py-6 text-center">
+                  <p className="text-sm text-muted-foreground" role="status">
+                    Exploration data is temporarily unavailable.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void refetchDiscoveries()}
+                    className="mt-3 min-h-11 rounded-xl px-4 text-sm font-semibold text-primary hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : (
+                <ProfileWorldMap exploredCountryCodes={exploredCodes} />
+              )}
+            </div>
+          </section>
 
-                  return (
-                    <div
-                      key={category.id}
-                      role="listitem"
-                      aria-label={`${category.label}: ${category.count} ${discoveryLabel}`}
-                      className="relative z-10 min-w-0"
-                    >
-                      <div className="flex h-40 flex-col">
-                        <span className="h-6 text-center text-xs font-semibold tabular-nums text-foreground">
-                          {category.count}
-                        </span>
-                        <div className="flex flex-1 items-end px-1">
-                          <div
-                            data-category-bar={category.id}
-                            className="mx-auto w-3/4 min-w-2 max-w-10 rounded-t-md transition-[height] duration-500"
-                            style={{
-                              height: `${relativeHeight}%`,
-                              backgroundColor: appearance.color,
-                            }}
-                            aria-hidden="true"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-2 flex flex-col items-center gap-1 text-center">
-                        <span
-                          className={`flex size-7 items-center justify-center rounded-md ${appearance.background}`}
-                          aria-hidden="true"
-                        >
-                          <CategoryIcon
-                            category={category.id}
-                            className="size-3.5"
-                          />
-                        </span>
-                        <div
-                          className="max-w-full break-words text-[10px] font-medium leading-3 text-muted-foreground"
-                          aria-hidden="true"
-                        >
-                          {category.label}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+          <section aria-labelledby="recent-discoveries-heading">
+            <div className="flex items-end justify-between gap-4">
+              <h2
+                id="recent-discoveries-heading"
+                className="sterna-section-title"
+              >
+                Recent discoveries
+              </h2>
+              <Link
+                to="/collection"
+                className="flex min-h-11 items-center text-sm font-semibold text-primary"
+              >
+                See all
+              </Link>
+            </div>
+            {isDiscoveriesLoading ? (
+              <p className="mt-4 text-sm text-muted-foreground" role="status">
+                Loading recent discoveries…
+              </p>
+            ) : isDiscoveriesUnavailable ? (
+              <p className="mt-4 text-sm text-muted-foreground" role="status">
+                Recent discoveries are temporarily unavailable.
+              </p>
+            ) : recentDiscoveries.length ? (
+              <div className="-mr-5 mt-4 flex snap-x gap-4 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {recentDiscoveries.map((discovery) => (
+                  <ProfileDiscoveryCard
+                    key={discovery.id}
+                    discovery={discovery}
+                  />
+                ))}
               </div>
             ) : (
               <p className="mt-4 text-sm text-muted-foreground">
-                No discoveries yet.
-              </p>
-            )}
-          </div>
-        </section>
-        <section aria-labelledby="discovery-activity-heading">
-          <h2
-            id="discovery-activity-heading"
-            className="font-display text-[22px] font-semibold leading-7"
-          >
-            Discovery activity
-          </h2>
-          <div className="mt-4 rounded-2xl border border-border bg-background p-4 shadow-sm">
-            <div className="flex items-baseline justify-between gap-4">
-              <p className="text-sm font-semibold">Monthly creations</p>
-              <p className="text-xs text-muted-foreground">Last 6 months</p>
-            </div>
-            {hasRecentActivity ? (
-              <svg
-                viewBox="0 0 320 166"
-                role="img"
-                aria-label={`Discovery creations by month: ${monthlyActivity
-                  .map((month) => `${month.label}: ${month.count}`)
-                  .join(', ')}`}
-                className="mt-4 h-auto w-full overflow-visible"
-              >
-                <line
-                  x1={ACTIVITY_CHART.left}
-                  x2={ACTIVITY_CHART.right}
-                  y1={ACTIVITY_CHART.top}
-                  y2={ACTIVITY_CHART.top}
-                  className="stroke-border/50"
-                  strokeDasharray="4 5"
-                />
-                <line
-                  x1={ACTIVITY_CHART.left}
-                  x2={ACTIVITY_CHART.right}
-                  y1={ACTIVITY_CHART.bottom}
-                  y2={ACTIVITY_CHART.bottom}
-                  className="stroke-border"
-                />
-                <text
-                  x="4"
-                  y={ACTIVITY_CHART.top + 4}
-                  className="fill-muted-foreground text-[9px] tabular-nums"
-                >
-                  {activityMaximum}
-                </text>
-                <text
-                  x="12"
-                  y={ACTIVITY_CHART.bottom + 4}
-                  className="fill-muted-foreground text-[9px] tabular-nums"
-                >
-                  0
-                </text>
-                <polyline
-                  points={activityPolyline}
-                  fill="none"
-                  stroke="#2D5A3D"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {activityPoints.map((point) => (
-                  <g key={point.key}>
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r="4.5"
-                      fill="#FFFFFF"
-                      stroke="#2D5A3D"
-                      strokeWidth="3"
-                    />
-                    <text
-                      x={point.x}
-                      y={Math.max(point.y - 10, 10)}
-                      textAnchor="middle"
-                      className="fill-foreground text-[9px] font-semibold tabular-nums"
-                    >
-                      {point.count}
-                    </text>
-                    <text
-                      x={point.x}
-                      y="151"
-                      textAnchor="middle"
-                      className="fill-muted-foreground text-[9px] font-medium"
-                    >
-                      {point.label}
-                    </text>
-                  </g>
-                ))}
-              </svg>
-            ) : (
-              <p className="mt-4 text-sm text-muted-foreground">
-                No discoveries created in the last 6 months.
-              </p>
-            )}
-          </div>
-        </section>
-        <section aria-labelledby="countries-explored-heading">
-          <h2
-            id="countries-explored-heading"
-            className="font-display text-[22px] font-semibold leading-7"
-          >
-            Countries explored
-          </h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {exploredCountries.length ? (
-              exploredCountries.map((country) => (
-                <span
-                  key={country}
-                  className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium leading-4"
-                >
-                  {country}
-                </span>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No countries explored yet.
-              </p>
-            )}
-          </div>
-        </section>
-        <section className="pb-2" aria-labelledby="recent-discoveries-heading">
-          <div className="mb-3 flex items-center justify-between">
-            <h2
-              id="recent-discoveries-heading"
-              className="font-display text-[22px] font-semibold leading-7"
-            >
-              Recent
-            </h2>
-            <Link
-              to="/collection"
-              className="flex min-h-11 items-center text-sm font-semibold text-primary"
-            >
-              See all
-            </Link>
-          </div>
-          <div className="-mr-5 flex snap-x gap-3 overflow-x-auto pb-2 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {sourceDiscoveries.length ? (
-              sourceDiscoveries
-                .slice(0, 3)
-                .map((discovery) => (
-                  <DiscoveryCard
-                    key={discovery.id}
-                    discovery={discovery}
-                    className="w-[min(68vw,16rem)] shrink-0 snap-start"
-                  />
-                ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
                 No recent discoveries yet.
               </p>
             )}
-          </div>
-        </section>
+          </section>
+
+          <section aria-labelledby="points-of-interest-heading">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2
+                id="points-of-interest-heading"
+                className="sterna-section-title"
+              >
+                Points of interest
+              </h2>
+              {!isPoisLoading && !isPoisUnavailable && (
+                <p className="text-sm tabular-nums text-muted-foreground">
+                  {discoveredLandmarks.length} of {sourceLandmarks.length}{' '}
+                  discovered
+                </p>
+              )}
+            </div>
+            {isPoisLoading ? (
+              <p className="mt-4 text-sm text-muted-foreground" role="status">
+                Loading point of interest progress…
+              </p>
+            ) : isPoisUnavailable ? (
+              <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-4 py-3">
+                <p className="text-sm text-muted-foreground" role="status">
+                  Point of interest progress is temporarily unavailable.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void refetchPois()}
+                  className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-semibold text-primary hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+                <Progress
+                  className="h-2.5"
+                  value={progress}
+                  aria-label="Point of interest exploration progress"
+                  aria-valuetext={`${discoveredLandmarks.length} of ${sourceLandmarks.length} points of interest discovered`}
+                />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {discoveredLandmarks.length} / {sourceLandmarks.length} points
+                  of interest discovered
+                </p>
+              </div>
+            )}
+          </section>
+
+          <section aria-labelledby="discoveries-by-category-heading">
+            <h2
+              id="discoveries-by-category-heading"
+              className="sterna-section-title"
+            >
+              Discoveries by category
+            </h2>
+            <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+              {isDiscoveriesLoading || isDiscoveriesUnavailable ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {isDiscoveriesLoading
+                    ? 'Loading category breakdown…'
+                    : 'Category data is temporarily unavailable.'}
+                </p>
+              ) : (
+                <ProfileCategoryBreakdown discoveries={profileDiscoveries} />
+              )}
+            </div>
+          </section>
+
+          <ProfileExplorationOverTime
+            months={isDiscoveriesUnavailable ? [] : explorationMonths}
+          />
+
+          <section aria-labelledby="countries-explored-heading">
+            <h2
+              id="countries-explored-heading"
+              className="sterna-section-title"
+            >
+              Countries explored
+            </h2>
+            {isDiscoveriesUnavailable ? (
+              <p className="mt-3 text-sm text-muted-foreground" role="status">
+                Country data is temporarily unavailable.
+              </p>
+            ) : (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {exploredCountries.length ? (
+                  exploredCountries.map((country) => (
+                    <span
+                      key={country}
+                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium leading-4"
+                    >
+                      {country}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No countries explored yet.
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
       {isAccountSheetOpen && (
         <div
@@ -588,40 +494,4 @@ export function ProfilePage() {
       )}
     </main>
   )
-}
-
-function buildMonthlyActivity(
-  sourceDiscoveries: typeof discoveries,
-  now = new Date(),
-) {
-  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const months = Array.from({ length: ACTIVITY_MONTH_COUNT }, (_, index) => {
-    const month = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() - (ACTIVITY_MONTH_COUNT - 1 - index),
-      1,
-    )
-
-    return {
-      key: `${month.getFullYear()}-${month.getMonth()}`,
-      year: month.getFullYear(),
-      month: month.getMonth(),
-      label: new Intl.DateTimeFormat('en', { month: 'short' }).format(month),
-      count: 0,
-    }
-  })
-  const monthByKey = new Map(months.map((month) => [month.key, month]))
-
-  for (const discovery of sourceDiscoveries) {
-    if (!discovery.createdAt) continue
-    const createdAt = new Date(discovery.createdAt)
-    if (Number.isNaN(createdAt.getTime())) continue
-
-    const month = monthByKey.get(
-      `${createdAt.getFullYear()}-${createdAt.getMonth()}`,
-    )
-    if (month) month.count += 1
-  }
-
-  return months
 }
