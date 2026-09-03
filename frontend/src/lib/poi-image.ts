@@ -17,7 +17,11 @@ export function getPoiImageUrl(
   if (!source) return imageUrl(fallbackImageId, width)
 
   try {
-    const url = new URL(source)
+    // A base is required for the same-origin `/api/pois/:id/image` path the
+    // backend now returns (proxied through this server rather than linking
+    // to Wikimedia directly — see PoisService.getImage). Harmless for an
+    // already-absolute URL, since `new URL` then ignores the base.
+    const url = new URL(source, window.location.origin)
     url.searchParams.set('width', String(width))
     return url.toString()
   } catch {
