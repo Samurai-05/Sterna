@@ -312,13 +312,14 @@ describe('App', () => {
     )
   })
 
-  it('uses a person icon for the personal map selector', async () => {
+  it('uses My map and a person icon for the personal map selector', async () => {
     renderWithProviders(<App />, { route: '/' })
 
-    const personalMapName = await screen.findByText("Explorer's map")
+    const personalMapName = await screen.findByText('My map')
     const selector = personalMapName.closest('button')!
 
     expect(selector.querySelector('.lucide-user-round')).toBeInTheDocument()
+    expect(selector).not.toHaveTextContent("Explorer's map")
     expect(within(selector).queryByText('E')).not.toBeInTheDocument()
   })
 
