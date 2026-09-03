@@ -577,9 +577,10 @@ export function DiscoveryDetailPage({
       onPointerDownCapture={handlePhotoPointerDown}
     >
       <section
-        className="absolute inset-0 h-full w-full bg-[var(--sterna-viewer-background)]"
+        className={`absolute inset-x-0 top-0 w-full bg-[var(--sterna-viewer-background)] transition-[height] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${isExpanded ? 'h-[45dvh]' : 'h-full'}`}
         aria-label="Discovery photo"
         data-photo-gesture-surface="true"
+        data-photo-position={isExpanded ? 'raised' : 'fullscreen'}
       >
         <DiscoveryPhotoZoom
           discoveries={galleryDiscoveries}
@@ -599,12 +600,12 @@ export function DiscoveryDetailPage({
         <FloatingBackButton onClick={handleBack} />
         {isAuthor && (
           <div className="pointer-events-auto flex gap-2">
-            <Button asChild variant="ghost" size="icon-lg" className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white">
+            <Button asChild variant="ghost" size="icon-lg" className="rounded-full border border-border bg-white text-black shadow-lg hover:bg-muted hover:text-black">
               <Link to={`/discoveries/${discovery.id}/edit`} state={{ returnTo }} aria-label="Edit discovery">
                 <Pencil className="size-5" />
               </Link>
             </Button>
-            <Button type="button" variant="ghost" size="icon-lg" className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white" aria-label="Delete discovery" onClick={() => setIsDeleteDialogOpen(true)}>
+            <Button type="button" variant="ghost" size="icon-lg" className="rounded-full border border-border bg-white text-black shadow-lg hover:bg-muted hover:text-black" aria-label="Delete discovery" onClick={() => setIsDeleteDialogOpen(true)}>
               <Trash2 className="size-5" />
             </Button>
           </div>

@@ -325,6 +325,26 @@ describe('DiscoveryDetailPage', () => {
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
   })
 
+  it('raises the photo into the space above the expanded metadata drawer', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const title = await screen.findByRole('button', { name: 'Alpine meadow' })
+
+    expect(photo).toHaveAttribute('data-photo-position', 'fullscreen')
+    expect(photo).toHaveClass('h-full')
+
+    fireEvent.click(title)
+
+    expect(photo).toHaveAttribute('data-photo-position', 'raised')
+    expect(photo).toHaveClass('h-[45dvh]')
+
+    fireEvent.click(title)
+
+    expect(photo).toHaveAttribute('data-photo-position', 'fullscreen')
+    expect(photo).toHaveClass('h-full')
+  })
+
   it('keeps a mouse photo drag active when movement and release leave the photo', async () => {
     renderPage()
 
@@ -947,8 +967,13 @@ describe('DiscoveryDetailPage', () => {
     ).toBeInTheDocument()
     const edit = screen.getByRole('link', { name: 'Edit discovery' })
     expect(edit).toHaveAttribute('href', '/discoveries/7/edit')
+    expect(edit).toHaveClass('bg-white', 'text-black')
     expect(edit.querySelector('svg')).toHaveClass('size-5')
-    expect(screen.getByRole('button', { name: 'Delete discovery' })).toBeVisible()
+    const deleteButton = screen.getByRole('button', {
+      name: 'Delete discovery',
+    })
+    expect(deleteButton).toBeVisible()
+    expect(deleteButton).toHaveClass('bg-white', 'text-black')
     expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
   })
 
