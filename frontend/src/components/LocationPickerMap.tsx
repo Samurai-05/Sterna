@@ -9,7 +9,9 @@ import {
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
-import { getCurrentDevicePosition } from '@/lib/device-location'
+import {
+  getCurrentDevicePosition,
+} from '@/lib/device-location'
 import { defaultGlobeViewport } from '@/lib/map-viewport'
 
 setWorkerUrl(maplibreWorkerUrl)

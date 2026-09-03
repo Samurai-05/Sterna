@@ -286,14 +286,12 @@ describe('DiscoveryDetailPage', () => {
     expect(document.querySelector('main')).toHaveClass(
       'bg-[var(--sterna-viewer-background)]',
     )
-    expect(photoSection).toHaveClass('bg-[var(--sterna-viewer-background)]')
+    expect(photoSection).toHaveClass(
+      'bg-[var(--sterna-viewer-background)]',
+    )
 
     const drawer = document.querySelector('[data-slot="drawer-popup"]')
-    expect(drawer).toHaveClass(
-      'bg-card/92',
-      'backdrop-blur-md',
-      'text-foreground',
-    )
+    expect(drawer).toHaveClass('bg-card/92', 'backdrop-blur-md', 'text-foreground')
     expect(screen.getByRole('button', { name: 'Alpine meadow' })).toHaveClass(
       'text-foreground',
     )
@@ -362,9 +360,7 @@ describe('DiscoveryDetailPage', () => {
     const photo = await screen.findByRole('region', { name: 'Discovery photo' })
     const viewer = document.querySelector('main') as HTMLElement
     const drawer = screen.getByTestId('discovery-detail-drawer')
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
 
     fireEvent.pointerDown(photo, {
@@ -424,9 +420,7 @@ describe('DiscoveryDetailPage', () => {
     const photo = await screen.findByRole('region', { name: 'Discovery photo' })
     const viewer = document.querySelector('main') as HTMLElement
     const drawer = screen.getByTestId('discovery-detail-drawer')
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
 
     fireEvent.pointerDown(photo, {
@@ -456,9 +450,7 @@ describe('DiscoveryDetailPage', () => {
 
     const photo = await screen.findByRole('region', { name: 'Discovery photo' })
     const drawer = screen.getByTestId('discovery-detail-drawer')
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
 
     fireEvent.pointerDown(photo, {
@@ -489,9 +481,7 @@ describe('DiscoveryDetailPage', () => {
     const photo = await screen.findByRole('region', { name: 'Discovery photo' })
     const drawer = screen.getByTestId('discovery-detail-drawer')
     const main = document.querySelector('main')
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
     expect(main).toHaveAttribute('data-controls-visible', 'true')
 
@@ -520,9 +510,7 @@ describe('DiscoveryDetailPage', () => {
 
     const photo = await screen.findByRole('region', { name: 'Discovery photo' })
     const drawer = screen.getByTestId('discovery-detail-drawer')
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
 
     vi.useFakeTimers()
@@ -585,9 +573,7 @@ describe('DiscoveryDetailPage', () => {
     renderPage()
 
     const drawer = await screen.findByTestId('discovery-detail-drawer')
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
 
     fireEvent.click(await screen.findByText('A quiet meadow above the lake.'))
@@ -824,9 +810,7 @@ describe('DiscoveryDetailPage', () => {
   it('collapses the expanded drawer on the first Escape and navigates on the second', async () => {
     renderPage(undefined, { withPreviousContext: true })
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Alpine meadow' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
     expect(screen.getByTestId('discovery-detail-drawer')).toHaveAttribute(
       'data-drawer-state',
       'expanded',
@@ -854,9 +838,7 @@ describe('DiscoveryDetailPage', () => {
   it('closes the delete dialog on the first Escape and navigates on the second', async () => {
     renderPage(undefined, { withPreviousContext: true })
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Delete discovery' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete discovery' }))
     expect(
       screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
     ).toBeInTheDocument()
@@ -966,9 +948,7 @@ describe('DiscoveryDetailPage', () => {
     const edit = screen.getByRole('link', { name: 'Edit discovery' })
     expect(edit).toHaveAttribute('href', '/discoveries/7/edit')
     expect(edit.querySelector('svg')).toHaveClass('size-5')
-    expect(
-      screen.getByRole('button', { name: 'Delete discovery' }),
-    ).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Delete discovery' })).toBeVisible()
     expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
   })
 
@@ -1361,9 +1341,7 @@ describe('DiscoveryDetailPage', () => {
       },
     )
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Delete discovery' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete discovery' }))
     fireEvent.click(screen.getByRole('button', { name: 'Delete discovery' }))
 
     await waitFor(() =>
@@ -1378,9 +1356,7 @@ describe('DiscoveryDetailPage', () => {
     expect(
       screen.queryByRole('button', { name: 'Lac de Bretaye' }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Delete discovery' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete discovery' })).toBeInTheDocument()
   })
 
   it('uses the target discovery group when All Groups carousel navigation changes slides', async () => {

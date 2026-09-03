@@ -41,7 +41,8 @@ describe('BottomNavigation icons', () => {
   it('marks the active item with more than colour', () => {
     renderAt('/collection')
 
-    const box = screen.getByRole('link', { name: 'Gallery' }).firstElementChild
+    const box = screen.getByRole('link', { name: 'Gallery' })
+      .firstElementChild
     expect(box).toHaveClass('[&>svg]:stroke-[2.5px]')
   })
 

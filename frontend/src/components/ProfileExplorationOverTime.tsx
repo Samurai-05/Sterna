@@ -2,12 +2,22 @@ import type { ProfileExplorationMonth } from '@/lib/profile-analytics'
 
 const CHART = { left: 28, right: 304, top: 16, bottom: 118 }
 
+export type ProfileExplorationOverTimeStatus = 'loading' | 'error' | 'ready'
+
 export function ProfileExplorationOverTime({
+  status = 'ready',
   months,
 }: {
+  status?: ProfileExplorationOverTimeStatus
   months: ProfileExplorationMonth[] | null
 }) {
-  const isLoading = months === null
+  const effectiveStatus: ProfileExplorationOverTimeStatus =
+    status === 'error'
+      ? 'error'
+      : status === 'loading' || months === null
+        ? 'loading'
+        : 'ready'
+
   const safeMonths = months ?? []
   const maximum = Math.max(...safeMonths.map((month) => month.count), 1)
   const points = safeMonths.map((month, index) => ({
@@ -26,15 +36,19 @@ export function ProfileExplorationOverTime({
         Exploration over time
       </h2>
       <div className="mt-4 rounded-2xl border border-border bg-card p-4">
-        {isLoading ? (
+        {effectiveStatus === 'loading' ? (
           <p className="text-sm text-muted-foreground" role="status">
             Loading exploration over time…
+          </p>
+        ) : effectiveStatus === 'error' ? (
+          <p className="text-sm text-muted-foreground" role="status">
+            Exploration activity is temporarily unavailable.
           </p>
         ) : hasActivity ? (
           <svg
             viewBox="0 0 320 156"
             role="img"
-            aria-label={`Discoveries by month: ${months
+            aria-label={`Discoveries by month: ${safeMonths
               .map((month) => `${month.label}: ${month.count}`)
               .join(', ')}`}
             className="h-auto w-full overflow-visible"

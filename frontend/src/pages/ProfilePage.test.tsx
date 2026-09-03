@@ -247,8 +247,14 @@ describe('ProfilePage', () => {
       ),
     ).toBeInTheDocument()
     expect(
+      screen.getByText('Exploration activity is temporarily unavailable.'),
+    ).toBeInTheDocument()
+    expect(
       screen.getByText('Country data is temporarily unavailable.'),
     ).toBeInTheDocument()
+    expect(
+      screen.queryByText('No discoveries recorded in the last 6 months.'),
+    ).not.toBeInTheDocument()
   })
 
   it('does not render false empty states while discoveries are loading', async () => {

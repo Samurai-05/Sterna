@@ -56,12 +56,10 @@ setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
 const countryLabelOpacityExpression: ExpressionSpecification = [
-  'interpolate',
-  ['linear'],
+  'step',
   ['zoom'],
-  3.4,
   0,
-  4.4,
+  2,
   1,
 ]
 
@@ -167,7 +165,15 @@ interface DiscoveryMarkerEntry {
   iconRoot: Root
   discovery: DiscoveryMarkerData
   photoState: PhotoLoadState
+  photoRequestGeneration: number
   objectUrl?: string
+}
+
+interface LandmarkMarkerEntry {
+  data: LandmarkMarkerData
+  marker: Marker
+  root: Root
+  scaledElement: { current: HTMLElement | null }
 }
 
 interface ClusterFeature {
@@ -509,14 +515,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         number,
         Promise<number>
       >()
-      const landmarkMarkers = new globalThis.Map<
-        string,
-        {
-          marker: Marker
-          root: Root
-          scaledElement: { current: HTMLElement | null }
-        }
-      >()
+      const landmarkMarkers = new globalThis.Map<string, LandmarkMarkerEntry>()
       const scaledMarkerElements = new Set<HTMLElement>()
       let discoveryGeneration = 0
       let active = true
@@ -590,7 +589,12 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           .addTo(instance)
         markers.add(marker)
         roots.add(root)
-        landmarkMarkers.set(landmark.id, { marker, root, scaledElement })
+        landmarkMarkers.set(landmark.id, {
+          data: landmark,
+          marker,
+          root,
+          scaledElement,
+        })
       }
 
       const removeLandmarkMarker = (id: string) => {
@@ -624,8 +628,27 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
 
         for (const landmark of visibleLandmarks) {
-          if (!landmarkMarkers.has(landmark.id)) {
+          const existing = landmarkMarkers.get(landmark.id)
+          if (!existing) {
             createLandmarkMarker(landmark)
+          } else {
+            const prev = existing.data
+            const coordinatesChanged =
+              prev.coordinates[0] !== landmark.coordinates[0] ||
+              prev.coordinates[1] !== landmark.coordinates[1]
+            const visualChanged =
+              prev.name !== landmark.name ||
+              prev.discovered !== landmark.discovered ||
+              prev.imageId !== landmark.imageId ||
+              prev.imageUrl !== landmark.imageUrl
+
+            if (visualChanged) {
+              removeLandmarkMarker(landmark.id)
+              createLandmarkMarker(landmark)
+            } else if (coordinatesChanged) {
+              existing.marker.setLngLat(landmark.coordinates)
+              existing.data = landmark
+            }
           }
         }
       }
@@ -693,6 +716,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           iconRoot,
           discovery,
           photoState: 'idle',
+          photoRequestGeneration: 0,
         }
         applyDiscoveryMarkerVisual(entry, instance.getZoom())
         markers.add(marker)
@@ -711,10 +735,20 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           return
         }
 
+        const requestGeneration = ++entry.photoRequestGeneration
+        const requestedImageObjectKey = discovery.imageObjectKey
+        const requestedToken = token
+
         entry.photoState = 'loading'
-        void getPhoto(token, discovery.imageObjectKey, 'map')
+        void getPhoto(requestedToken, requestedImageObjectKey, 'map')
           .then(async (blob) => {
-            if (!active || discoveryMarkers.get(discovery.id) !== entry) {
+            if (
+              !active ||
+              discoveryMarkers.get(discovery.id) !== entry ||
+              entry.photoRequestGeneration !== requestGeneration ||
+              entry.discovery.imageObjectKey !== requestedImageObjectKey ||
+              photoAccessTokenRef.current !== requestedToken
+            ) {
               return
             }
 
@@ -727,7 +761,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             if (
               !active ||
               discoveryMarkers.get(discovery.id) !== entry ||
-              entry.objectUrl !== objectUrl
+              entry.photoRequestGeneration !== requestGeneration ||
+              entry.discovery.imageObjectKey !== requestedImageObjectKey ||
+              photoAccessTokenRef.current !== requestedToken
             ) {
               if (entry.objectUrl === objectUrl) {
                 URL.revokeObjectURL(objectUrl)
@@ -741,7 +777,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             applyDiscoveryMarkerVisual(entry, instance.getZoom())
           })
           .catch(() => {
-            if (!active || discoveryMarkers.get(discovery.id) !== entry) {
+            if (
+              !active ||
+              discoveryMarkers.get(discovery.id) !== entry ||
+              entry.photoRequestGeneration !== requestGeneration ||
+              entry.discovery.imageObjectKey !== requestedImageObjectKey ||
+              photoAccessTokenRef.current !== requestedToken
+            ) {
               return
             }
             if (entry.objectUrl) {
@@ -1204,13 +1246,17 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       }
 
       const reconcileDiscoveries = (nextDiscoveries: DiscoveryMarkerData[]) => {
-        const source = instance.getSource(DISCOVERY_SOURCE_ID) as
-          GeoJSONSource | undefined
-        source?.setData(toDiscoveryFeatureCollection(nextDiscoveries))
-
         discoveryGeneration++
         clusterExpansionZooms.clear()
         pendingClusterExpansionZooms.clear()
+
+        for (const clusterId of [...clusterMarkers.keys()]) {
+          removeClusterMarker(clusterId)
+        }
+
+        const source = instance.getSource(DISCOVERY_SOURCE_ID) as
+          GeoJSONSource | undefined
+        source?.setData(toDiscoveryFeatureCollection(nextDiscoveries))
 
         const nextIds = new Set(nextDiscoveries.map((d) => d.id))
 
@@ -1263,6 +1309,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             }
 
             if (prev.imageObjectKey !== discovery.imageObjectKey) {
+              existing.photoRequestGeneration++
               if (existing.objectUrl) {
                 URL.revokeObjectURL(existing.objectUrl)
                 existing.objectUrl = undefined

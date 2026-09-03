@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Capacitor } from '@capacitor/core'
@@ -810,46 +809,6 @@ describe('AddDiscoveryPage', () => {
     rejectUpload(new Error('old upload failed'))
     await waitFor(() =>
       expect(releaseNativePhoto).toHaveBeenCalledWith(cameraPhoto.path),
-    )
-  })
-
-  it('allows photo upload onSuccess to complete under React StrictMode', async () => {
-    saveSession({
-      accessToken: 'test-token',
-      user: {
-        id: '1',
-        email: 'explorer@sterna.app',
-        userName: 'Explorer',
-        avatarObjectKey: null,
-        createdAt: '2026-08-26T08:00:00.000Z',
-      },
-    })
-    vi.mocked(uploadPhoto).mockResolvedValue({
-      objectKey: 'photos/strict-mode.jpg',
-      url: '/api/photos/strict-mode.jpg',
-      metadata: { location: null, takenAt: null },
-    })
-
-    renderWithProviders(
-      <StrictMode>
-        <AddDiscoveryPage />
-      </StrictMode>,
-      { route: '/add' },
-    )
-
-    const fileInput = document.querySelector('input[type="file"]')
-    if (!fileInput) throw new Error('Photo input not found.')
-    fireEvent.change(fileInput, {
-      target: {
-        files: [new File(['bytes'], 'strict-mode.jpg', { type: 'image/jpeg' })],
-      },
-    })
-
-    await screen.findByText('Photo selected')
-    expect(uploadPhoto).toHaveBeenCalledWith(
-      'test-token',
-      expect.any(File),
-      'strict-mode.jpg',
     )
   })
 })

@@ -117,7 +117,9 @@ function getBrowserPosition(
     navigator.geolocation.getCurrentPosition(
       (position) => {
         try {
-          resolve(toDeviceLocationPosition(position, maximumAcceptedAccuracy))
+          resolve(
+            toDeviceLocationPosition(position, maximumAcceptedAccuracy),
+          )
         } catch (error) {
           reject(error)
         }

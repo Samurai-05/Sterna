@@ -229,9 +229,7 @@ describe('group detail', () => {
 
     await screen.findByText('AB3K-9QZ2')
     expect(
-      screen.getByText(
-        'Share this code. Scanning the QR code needs the Android app.',
-      ),
+      screen.getByText('Share this code. Scanning the QR code needs the Android app.'),
     ).toBeInTheDocument()
   })
 
@@ -399,9 +397,7 @@ describe('opening a discovery from a group map', () => {
     expect(
       await screen.findByRole('link', { name: 'Edit discovery' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Delete discovery' }),
-    ).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Delete discovery' })).toBeVisible()
   })
 
   it('deletes a discovery once after the application dialog is confirmed', async () => {
@@ -410,9 +406,7 @@ describe('opening a discovery from a group map', () => {
     ])
     renderAt('/discoveries/22?group=12')
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Delete discovery' }),
-    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete discovery' }))
     expect(
       screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
     ).toBeInTheDocument()
@@ -464,7 +458,9 @@ describe('opening a discovery from a group map', () => {
       ],
     })
 
-    fireEvent.click(await screen.findByRole('link', { name: 'Edit discovery' }))
+    fireEvent.click(
+      await screen.findByRole('link', { name: 'Edit discovery' }),
+    )
     fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
     await screen.findByRole('link', { name: 'Edit discovery' })
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))

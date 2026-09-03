@@ -181,9 +181,9 @@ describe('authenticated photo variants', () => {
   })
 
   it('reuses a resolved photo within the cache TTL', async () => {
-    const fetchMock = vi
-      .spyOn(window, 'fetch')
-      .mockResolvedValue(new Response('image', { status: 200 }))
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue(
+      new Response('image', { status: 200 }),
+    )
 
     await getPhoto('token', 'photos/reused.jpg', 'card')
     await getPhoto('token', 'photos/reused.jpg', 'card')
@@ -193,11 +193,9 @@ describe('authenticated photo variants', () => {
 
   it('fetches again after the resolved photo cache expires', async () => {
     vi.useFakeTimers()
-    const fetchMock = vi
-      .spyOn(window, 'fetch')
-      .mockImplementation(() =>
-        Promise.resolve(new Response('image', { status: 200 })),
-      )
+    const fetchMock = vi.spyOn(window, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response('image', { status: 200 })),
+    )
 
     await getPhoto('token', 'photos/expired.jpg', 'card')
     vi.advanceTimersByTime(PHOTO_CACHE_TTL_MS)
@@ -207,11 +205,9 @@ describe('authenticated photo variants', () => {
   })
 
   it('keeps map, card, and detail variants in separate cache entries', async () => {
-    const fetchMock = vi
-      .spyOn(window, 'fetch')
-      .mockImplementation(() =>
-        Promise.resolve(new Response('image', { status: 200 })),
-      )
+    const fetchMock = vi.spyOn(window, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response('image', { status: 200 })),
+    )
 
     await Promise.all([
       getPhoto('token', 'photos/variants.jpg', 'map'),
@@ -228,11 +224,9 @@ describe('authenticated photo variants', () => {
   })
 
   it('keeps different access tokens in separate cache entries', async () => {
-    const fetchMock = vi
-      .spyOn(window, 'fetch')
-      .mockImplementation(() =>
-        Promise.resolve(new Response('image', { status: 200 })),
-      )
+    const fetchMock = vi.spyOn(window, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response('image', { status: 200 })),
+    )
 
     await getPhoto('token-a', 'photos/token-isolation.jpg', 'card')
     await getPhoto('token-b', 'photos/token-isolation.jpg', 'card')
@@ -246,9 +240,9 @@ describe('authenticated photo variants', () => {
       .mockRejectedValueOnce(new Error('network unavailable'))
       .mockResolvedValueOnce(new Response('image', { status: 200 }))
 
-    await expect(getPhoto('token', 'photos/retry.jpg', 'card')).rejects.toThrow(
-      'network unavailable',
-    )
+    await expect(
+      getPhoto('token', 'photos/retry.jpg', 'card'),
+    ).rejects.toThrow('network unavailable')
     const result = await getPhoto('token', 'photos/retry.jpg', 'card')
     expect(result.size).toBeGreaterThan(0)
 

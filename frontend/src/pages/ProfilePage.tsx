@@ -335,12 +335,17 @@ export function ProfilePage() {
           </section>
 
           <ProfileExplorationOverTime
-            months={
+            status={
               isDiscoveriesLoading
-                ? null
+                ? 'loading'
                 : isDiscoveriesUnavailable
-                  ? []
-                  : explorationMonths
+                  ? 'error'
+                  : 'ready'
+            }
+            months={
+              isDiscoveriesLoading || isDiscoveriesUnavailable
+                ? null
+                : explorationMonths
             }
           />
 

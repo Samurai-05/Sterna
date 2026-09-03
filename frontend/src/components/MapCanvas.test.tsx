@@ -369,7 +369,7 @@ vi.mock('maplibre-gl', () => {
 })
 
 import { MapCanvas } from './MapCanvas'
-import type { MapCanvasHandle } from './MapCanvas'
+import type { DiscoveryMarkerData, MapCanvasHandle } from './MapCanvas'
 
 const originalUserAgent = window.navigator.userAgent
 
@@ -601,7 +601,7 @@ describe('MapCanvas', () => {
     ).toEqual(['interpolate', ['linear'], ['zoom']])
   })
 
-  it('fades in country label layers between zoom 3.4 and 4.4', () => {
+  it('shows only country label layers fully from zoom 2', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'test-browser',
@@ -615,17 +615,17 @@ describe('MapCanvas', () => {
       {
         layerId: 'label_country_3',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+        value: ['step', ['zoom'], 0, 2, 1],
       },
       {
         layerId: 'label_country_2',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+        value: ['step', ['zoom'], 0, 2, 1],
       },
       {
         layerId: 'label_country_1',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+        value: ['step', ['zoom'], 0, 2, 1],
       },
     ])
   })
@@ -1615,5 +1615,274 @@ describe('MapCanvas', () => {
     // Exactly one new marker was created for D3
     expect(markerInstances).toHaveLength(4)
     expect(markerInstances[3].removed).toBe(false)
+  })
+
+  it('reconciles POI markers: preserves unchanged POI identity, updates false -> true discovered appearance, and updates coordinates', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const initialLandmarks = [
+      {
+        id: 'poi-1',
+        name: 'POI 1',
+        imageId: 'poi1',
+        discovered: false,
+        coordinates: [6, 46] as [number, number],
+      },
+      {
+        id: 'poi-2',
+        name: 'POI 2',
+        imageId: 'poi2',
+        discovered: false,
+        coordinates: [7, 47] as [number, number],
+      },
+    ]
+
+    const { rerender } = render(
+      <MapCanvas
+        initialViewport={{ center: [6.5, 46.5], zoom: 6 }}
+        landmarks={initialLandmarks}
+      />,
+    )
+
+    expect(markerInstances).toHaveLength(2)
+    const poi1Marker = markerInstances[0]
+    const poi2Marker = markerInstances[1]
+
+    expect(poi1Marker.element?.querySelector('span.grayscale')).not.toBeNull()
+    expect(poi1Marker.element?.textContent).toContain('Undiscovered')
+
+    // Rerender: POI 1 becomes discovered (visual change), POI 2 moves (coordinates change)
+    const updatedLandmarks = [
+      {
+        id: 'poi-1',
+        name: 'POI 1',
+        imageId: 'poi1',
+        discovered: true,
+        coordinates: [6, 46] as [number, number],
+      },
+      {
+        id: 'poi-2',
+        name: 'POI 2',
+        imageId: 'poi2',
+        discovered: false,
+        coordinates: [7.5, 47.5] as [number, number],
+      },
+    ]
+
+    rerender(
+      <MapCanvas
+        initialViewport={{ center: [6.5, 46.5], zoom: 6 }}
+        landmarks={updatedLandmarks}
+      />,
+    )
+
+    // POI 1 marker was replaced with discovered presentation
+    expect(poi1Marker.removed).toBe(true)
+    const newPoi1Marker = markerInstances.find(
+      (m) => m !== poi1Marker && m !== poi2Marker,
+    )
+    expect(newPoi1Marker).toBeDefined()
+    expect(newPoi1Marker?.element?.querySelector('span.grayscale')).toBeNull()
+    expect(newPoi1Marker?.element?.textContent).toContain('Discovered')
+
+    // POI 2 marker instance was preserved, not removed
+    expect(poi2Marker.removed).toBe(false)
+    expect(poi2Marker.coordinates).toEqual([7.5, 47.5])
+  })
+
+  it('prevents stale photo request race from overwriting a newer imageObjectKey', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    let resolveOldPhoto!: (blob: Blob) => void
+    let resolveNewPhoto!: (blob: Blob) => void
+
+    getPhotoMock.mockImplementation((_token, key) => {
+      if (key === 'photos/old.jpg') {
+        return new Promise<Blob>((resolve) => {
+          resolveOldPhoto = resolve
+        })
+      }
+      return new Promise<Blob>((resolve) => {
+        resolveNewPhoto = resolve
+      })
+    })
+
+    const createObjectURLSpy = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockImplementation((obj: Blob | MediaSource) => {
+        return (obj as { _name?: string })._name ?? 'blob:default'
+      })
+    const originalDecode = HTMLImageElement.prototype.decode
+    HTMLImageElement.prototype.decode = vi.fn().mockResolvedValue(undefined)
+
+    const initialDiscovery: DiscoveryMarkerData = {
+      id: 42,
+      name: 'Old Discovery',
+      category: 'plant',
+      imageId: 'old',
+      imageObjectKey: 'photos/old.jpg',
+      coordinates: [6, 46],
+    }
+
+    const { rerender } = render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 12.8 }}
+        discoveries={[initialDiscovery]}
+        photoAccessToken="token"
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(42)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    expect(getPhotoMock).toHaveBeenCalledWith('token', 'photos/old.jpg', 'map')
+
+    // Update discovery with new imageObjectKey before old request resolves
+    const updatedDiscovery: DiscoveryMarkerData = {
+      ...initialDiscovery,
+      imageObjectKey: 'photos/new.jpg',
+    }
+
+    rerender(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 12.8 }}
+        discoveries={[updatedDiscovery]}
+        photoAccessToken="token"
+      />,
+    )
+    await flushSpatialSync()
+
+    expect(getPhotoMock).toHaveBeenCalledWith('token', 'photos/new.jpg', 'map')
+
+    // Now resolve the old request
+    const oldBlob = new Blob(['old'])
+    Object.assign(oldBlob, { _name: 'blob:old-photo' })
+    await act(async () => {
+      resolveOldPhoto(oldBlob)
+      await flushSpatialSync()
+    })
+
+    const marker = markerInstances.find((m) =>
+      m.element?.querySelector('button[aria-label="View Old Discovery"]'),
+    )
+    const photoSpan = marker?.element?.querySelector(
+      '[data-discovery-photo]',
+    ) as HTMLElement
+    // Stale old photo must not be painted
+    expect(photoSpan.style.backgroundImage).not.toContain('blob:old-photo')
+
+    // Now resolve the new request
+    const newBlob = new Blob(['new'])
+    Object.assign(newBlob, { _name: 'blob:new-photo' })
+    await act(async () => {
+      resolveNewPhoto(newBlob)
+      await flushSpatialSync()
+    })
+
+    // Authoritative new photo is applied
+    expect(photoSpan.style.backgroundImage).toBe('url("blob:new-photo")')
+
+    if (originalDecode) HTMLImageElement.prototype.decode = originalDecode
+    else delete (HTMLImageElement.prototype as { decode?: unknown }).decode
+    createObjectURLSpy.mockRestore()
+  })
+
+  it('invalidates HTML cluster markers and revokes URLs when Discovery dataset changes', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const createObjectURLSpy = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockReturnValue('blob:cluster-representative-1')
+    const revokeObjectURL = vi
+      .spyOn(URL, 'revokeObjectURL')
+      .mockImplementation(() => {})
+    const originalDecode = HTMLImageElement.prototype.decode
+    HTMLImageElement.prototype.decode = vi.fn().mockResolvedValue(undefined)
+
+    const datasetA = [
+      {
+        id: 1,
+        name: 'A1',
+        category: 'plant' as const,
+        imageId: '1',
+        imageObjectKey: 'photos/1.jpg',
+        coordinates: [6, 46] as [number, number],
+      },
+      {
+        id: 2,
+        name: 'A2',
+        category: 'plant' as const,
+        imageId: '2',
+        imageObjectKey: 'photos/2.jpg',
+        coordinates: [6, 46] as [number, number],
+      },
+    ]
+
+    const { rerender } = render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 14 }}
+        discoveries={datasetA}
+        photoAccessToken="token"
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].clusterExpansionZoom = 16
+    mapInstances[0].clusterLeaves = [
+      unclusteredFeature(1),
+      unclusteredFeature(2),
+    ]
+    mapInstances[0].sourceFeatures = [clusterFeature(5, 2)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const oldClusterMarker = markerInstances.find((m) =>
+      m.element?.querySelector('[aria-label="Open 2 nearby discoveries"]'),
+    )
+    expect(oldClusterMarker).toBeDefined()
+    expect(oldClusterMarker?.removed).toBe(false)
+
+    // Dataset B with different discoveries
+    const datasetB = [
+      {
+        id: 10,
+        name: 'B1',
+        category: 'monument' as const,
+        imageId: '10',
+        coordinates: [20, 20] as [number, number],
+      },
+    ]
+
+    rerender(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 14 }}
+        discoveries={datasetB}
+        photoAccessToken="token"
+      />,
+    )
+
+    // Old cluster marker must be removed and its object URL revoked
+    expect(oldClusterMarker?.removed).toBe(true)
+    expect(revokeObjectURL).toHaveBeenCalledWith(
+      'blob:cluster-representative-1',
+    )
+
+    if (originalDecode) HTMLImageElement.prototype.decode = originalDecode
+    else delete (HTMLImageElement.prototype as { decode?: unknown }).decode
+    createObjectURLSpy.mockRestore()
+    revokeObjectURL.mockRestore()
   })
 })

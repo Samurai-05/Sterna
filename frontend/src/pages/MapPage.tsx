@@ -35,7 +35,10 @@ import {
   type CategoryAppearance,
 } from '@/lib/category-appearance'
 import { getMapTarget } from '@/lib/map-target'
-import { defaultGlobeViewport, type MapViewport } from '@/lib/map-viewport'
+import {
+  defaultGlobeViewport,
+  type MapViewport,
+} from '@/lib/map-viewport'
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
@@ -55,11 +58,12 @@ export function MapPage({ active }: { active: boolean }) {
       isNativeAndroid() || navigator.geolocation ? null : defaultGlobeViewport,
   )
   const mapRef = useRef<MapCanvasHandle>(null)
-  const initialLocationRequestRef =
-    useRef<Promise<DeviceLocationPosition> | null>(null)
-  const [deviceLocation, setDeviceLocation] = useState<[number, number] | null>(
+  const initialLocationRequestRef = useRef<Promise<DeviceLocationPosition> | null>(
     null,
   )
+  const [deviceLocation, setDeviceLocation] = useState<
+    [number, number] | null
+  >(null)
   const navigate = useNavigate()
   const location = useLocation()
   const mapTarget = getMapTarget(location.state)
