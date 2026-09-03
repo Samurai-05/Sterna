@@ -10,6 +10,8 @@ const {
   MockGeolocateControl,
   MockMap,
   MockNavigationControl,
+  ResizeObserverMock,
+  resizeObserverInstances,
 } = vi.hoisted(() => {
   const instances: Array<{
     options: { center: [number, number]; zoom: number; minZoom?: number }
@@ -21,7 +23,16 @@ const {
     resizeCalls: number
     flyToCalls: Array<{ center: [number, number]; zoom: number }>
     resetNorthPitchCalls: number
+    setMinZoomCalls: number[]
+    setZoomCalls: number[]
+    cameraForBoundsCalls: Array<{ bounds: unknown; options: unknown }>
+    cameraZoom: number
+    container: { clientWidth: number; clientHeight: number }
     bounds: { west: number; south: number; east: number; north: number }
+    getContainer: () => { clientWidth: number; clientHeight: number }
+    cameraForBounds: (bounds: unknown, options: unknown) => { zoom: number }
+    setMinZoom: (zoom: number) => unknown
+    setZoom: (zoom: number) => unknown
   }> = []
   const markers: Array<{
     element?: HTMLElement
@@ -29,9 +40,30 @@ const {
     removed: boolean
   }> = []
   const popupElements: HTMLElement[] = []
+  const resizeObserverInstances: Array<{
+    callback: ResizeObserverCallback
+    trigger: () => void
+  }> = []
   const getPhoto = vi.fn().mockResolvedValue(new Blob(['image']))
 
   class NavigationControl {}
+
+  class ResizeObserverMock {
+    callback: ResizeObserverCallback
+
+    constructor(callback: ResizeObserverCallback) {
+      this.callback = callback
+      resizeObserverInstances.push(this)
+    }
+
+    observe() {}
+
+    disconnect() {}
+
+    trigger() {
+      this.callback([], this as unknown as ResizeObserver)
+    }
+  }
 
   class GeolocateControl {
     trigger() {}
@@ -47,6 +79,11 @@ const {
     resizeCalls = 0
     flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
     resetNorthPitchCalls = 0
+    setMinZoomCalls: number[] = []
+    setZoomCalls: number[] = []
+    cameraForBoundsCalls: Array<{ bounds: unknown; options: unknown }> = []
+    cameraZoom = 1.3
+    container = { clientWidth: 320, clientHeight: 640 }
     bounds = { west: 0, south: 40, east: 10, north: 50 }
     listeners = new Map<string, Set<() => void>>()
 
@@ -110,6 +147,26 @@ const {
       return this.options.zoom
     }
 
+    getContainer() {
+      return this.container
+    }
+
+    cameraForBounds(bounds: unknown, options: unknown) {
+      this.cameraForBoundsCalls.push({ bounds, options })
+      return { zoom: this.cameraZoom }
+    }
+
+    setMinZoom(zoom: number) {
+      this.setMinZoomCalls.push(zoom)
+      return this
+    }
+
+    setZoom(zoom: number) {
+      this.setZoomCalls.push(zoom)
+      this.options.zoom = zoom
+      return this
+    }
+
     getBounds() {
       return {
         getWest: () => this.bounds.west,
@@ -159,6 +216,8 @@ const {
     MockGeolocateControl: GeolocateControl,
     MockMap: MapMock,
     MockNavigationControl: NavigationControl,
+    ResizeObserverMock,
+    resizeObserverInstances,
   }
 })
 
@@ -293,7 +352,41 @@ describe('MapCanvas', () => {
 
     render(<MapCanvas />)
 
-    expect(mapInstances[0].options.minZoom).toBe(1.5)
+    expect(mapInstances[0].options.minZoom).toBeUndefined()
+    expect(mapInstances[0].setMinZoomCalls).toEqual([1.3])
+  })
+
+  it('clamps an initial viewport below the responsive minimum without fitting the map', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const { unmount } = render(
+      <MapCanvas initialViewport={{ center: [0, 20], zoom: 1 }} />,
+    )
+
+    expect(mapInstances[0].setZoomCalls).toEqual([1.3])
+    expect(mapInstances[0].flyToCalls).toEqual([])
+    unmount()
+    window.sessionStorage.clear()
+  })
+
+  it('recalculates the minimum zoom when the map container is resized', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+    vi.stubGlobal('ResizeObserver', ResizeObserverMock)
+
+    render(<MapCanvas />)
+
+    mapInstances[0].container = { clientWidth: 800, clientHeight: 400 }
+    mapInstances[0].cameraZoom = 1.1
+    act(() => resizeObserverInstances[0].trigger())
+
+    expect(mapInstances[0].setMinZoomCalls).toEqual([1.3, 1.1])
+    expect(mapInstances[0].flyToCalls).toEqual([])
   })
 
   it('does not add MapLibre zoom controls while keeping geolocation controls', () => {

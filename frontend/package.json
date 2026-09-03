@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:remote": "vite --mode remote",
     "build": "tsc -b && vite build",
     "build:android": "tsc -b && vite build --mode android",
     "generate:countries-fog": "node scripts/generate-countries-fog.mjs",

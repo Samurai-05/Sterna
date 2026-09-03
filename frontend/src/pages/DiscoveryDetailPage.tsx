@@ -312,7 +312,7 @@ export function DiscoveryDetailPage({
   })
 
   const pageClassName =
-    'sterna-discovery-screen fixed inset-0 z-40 !p-0 overflow-hidden bg-stone-950'
+    'sterna-discovery-screen fixed inset-0 z-40 !p-0 overflow-hidden'
 
   const peekSnapPoint = useMeasuredDrawerPeekSnapPoint({
     controlsRef: drawerControlsRef,
@@ -367,11 +367,13 @@ export function DiscoveryDetailPage({
 
   if (isLoading) {
     return (
-      <main className={pageClassName}>
+      <main
+        className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
+      >
         <div className="absolute left-[max(1rem,var(--sterna-safe-area-left))] top-[max(1rem,var(--sterna-safe-area-top))] z-[60]">
           <FloatingBackButton onClick={handleBack} />
         </div>
-        <div className="flex size-full items-center justify-center bg-stone-950 text-sm text-white/70">
+        <div className="flex size-full items-center justify-center bg-[var(--sterna-viewer-background)] text-sm text-white/85">
           Loading discovery…
         </div>
       </main>
@@ -380,11 +382,13 @@ export function DiscoveryDetailPage({
 
   if (!discovery) {
     return (
-      <main className={pageClassName}>
+      <main
+        className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
+      >
         <div className="absolute left-[max(1rem,var(--sterna-safe-area-left))] top-[max(1rem,var(--sterna-safe-area-top))] z-[60]">
           <FloatingBackButton onClick={handleBack} />
         </div>
-        <div className="flex size-full items-center justify-center bg-stone-950 px-5 text-center text-sm text-white/70">
+        <div className="flex size-full items-center justify-center bg-[var(--sterna-viewer-background)] px-5 text-center text-sm text-white/85">
           Discovery not found.
         </div>
       </main>
@@ -401,9 +405,12 @@ export function DiscoveryDetailPage({
     discovery.userId === undefined || discovery.userId === session?.user.id
 
   return (
-    <main className={pageClassName} data-presentation={presentation}>
+    <main
+      className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
+      data-presentation={presentation}
+    >
       <section
-        className="absolute inset-0 h-full w-full bg-stone-950"
+        className="absolute inset-0 h-full w-full bg-[var(--sterna-viewer-background)]"
         aria-label="Discovery photo"
       >
         <DiscoveryPhotoZoom
@@ -487,7 +494,7 @@ export function DiscoveryDetailPage({
           role="status"
           aria-label="Discovery added"
           aria-live="polite"
-          className="pointer-events-none absolute left-1/2 top-[max(5rem,var(--sterna-safe-area-top))] z-[70] flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-xl animate-in fade-in-0 slide-in-from-top-2 duration-300"
+          className="pointer-events-none absolute left-1/2 top-[max(5rem,var(--sterna-safe-area-top))] z-[70] flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-primary/85 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-xl animate-in fade-in-0 slide-in-from-top-2 duration-300"
         >
           <Check className="size-4 text-green-200" aria-hidden="true" />
           Discovery added
@@ -520,7 +527,7 @@ export function DiscoveryDetailPage({
           snapToSequentialPoints
         >
           <DrawerContent
-            className={`!h-[55dvh] !max-h-[55dvh] border border-white/15 shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-[transform,background-color,color,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] will-change-transform data-swiping:duration-0 motion-reduce:transition-none ${isExpanded ? 'bg-card/95 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.2)]' : isMinimized ? 'bg-black/20 text-white' : 'bg-black/50 text-white'}`}
+            className="!h-[55dvh] !max-h-[55dvh] border border-white/15 bg-card text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-[transform,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] will-change-transform data-swiping:duration-0 motion-reduce:transition-none"
           >
             <div
               ref={drawerControlsRef}
@@ -534,7 +541,7 @@ export function DiscoveryDetailPage({
                     isExpanded || isMinimized ? 'peek' : 'minimized',
                   )
                 }}
-                className={`h-9 py-0 items-center ${isExpanded ? '' : '[&>span]:bg-white/70'}`}
+                className="h-9 items-center py-0"
               />
               <DrawerHeader className="shrink-0 items-center px-5 pt-0 pb-[max(0.75rem,var(--sterna-safe-area-bottom))] text-center">
                 <DrawerTitle render={<h1 className="sr-only" />}>
@@ -543,7 +550,7 @@ export function DiscoveryDetailPage({
                 <button
                   type="button"
                   tabIndex={isMinimized ? -1 : 0}
-                  className={`min-h-11 w-full truncate rounded-xl px-0 text-center font-display text-xl font-semibold leading-7 outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40 ${isExpanded ? 'text-foreground' : 'text-white'}`}
+                  className="min-h-11 w-full truncate rounded-xl px-0 text-center font-display text-xl font-semibold leading-7 text-foreground outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40"
                   aria-controls="discovery-detail-expanded-content"
                   aria-expanded={isExpanded}
                   onClick={() =>
@@ -703,7 +710,7 @@ function GalleryPhotoState({
       aria-live="polite"
       aria-busy={!unavailable}
       aria-label={unavailable ? 'Photo unavailable' : 'Loading discovery photo'}
-      className="flex size-full items-center justify-center bg-stone-950 px-6 text-center text-sm text-white/70"
+      className="flex size-full items-center justify-center bg-[var(--sterna-viewer-background)] px-6 text-center text-sm text-white/85"
     >
       {unavailable ? `Photo unavailable for ${name}.` : 'Loading photo…'}
     </div>

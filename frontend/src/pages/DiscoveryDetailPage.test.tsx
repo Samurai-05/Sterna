@@ -260,6 +260,45 @@ function LocationProbe() {
 }
 
 describe('DiscoveryDetailPage', () => {
+  it('keeps the viewer background stable and uses neutral drawer surfaces', async () => {
+    renderPage()
+
+    const photoSection = await screen.findByRole('region', {
+      name: 'Discovery photo',
+    })
+    expect(document.querySelector('main')).toHaveClass(
+      'bg-[var(--sterna-viewer-background)]',
+    )
+    expect(photoSection).toHaveClass(
+      'bg-[var(--sterna-viewer-background)]',
+    )
+
+    const drawer = document.querySelector('[data-slot="drawer-popup"]')
+    expect(drawer).toHaveClass('bg-card', 'text-foreground')
+    expect(screen.getByRole('button', { name: 'Alpine meadow' })).toHaveClass(
+      'text-foreground',
+    )
+  })
+
+  it('uses the stable viewer background for loading and missing discovery states', async () => {
+    getDiscoveryMock.mockReturnValue(new Promise(() => {}))
+    renderPage()
+
+    expect(await screen.findByText('Loading discovery…')).toHaveClass(
+      'bg-[var(--sterna-viewer-background)]',
+    )
+  })
+
+  it('uses the stable viewer background when the discovery is missing', async () => {
+    getDiscoveryMock.mockResolvedValue(null as never)
+    getDiscoveriesMock.mockResolvedValue([])
+    renderPage()
+
+    expect(await screen.findByText('Discovery not found.')).toHaveClass(
+      'bg-[var(--sterna-viewer-background)]',
+    )
+  })
+
   it('uses the photo-first layout with a peek drawer and no conventional page title', async () => {
     const scrollHeight = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
@@ -765,7 +804,7 @@ describe('DiscoveryDetailPage', () => {
         '!max-h-[55dvh]',
         'touch-none',
         'will-change-transform',
-        'transition-[transform,background-color,color,box-shadow]',
+        'transition-[transform,box-shadow]',
         'duration-[450ms]',
         'data-swiping:duration-0',
       )
@@ -1024,7 +1063,7 @@ describe('DiscoveryDetailPage', () => {
 
       expect(
         screen.getByRole('status', { name: 'Discovery added' }),
-      ).toBeInTheDocument()
+      ).toHaveClass('bg-primary/85')
 
       act(() => {
         vi.advanceTimersByTime(1_200)

@@ -10,6 +10,7 @@ import { categoryAppearance } from '@/lib/category-appearance'
 import {
   defaultMapViewport,
   getStoredMapViewport,
+  getResponsiveGlobeMinimumZoom,
   saveMapViewport,
   type MapViewport,
 } from '@/lib/map-viewport'
@@ -40,10 +41,9 @@ const photoPreopenZoom = 13
 // (~5) so pins stay visible while browsing a country, and only disappear once
 // zoomed out to a continent/world view where they'd overlap and clutter.
 const landmarkMinZoom = 5
-// Below this, the globe would shrink to a speck with mostly empty space
-// around it rather than filling the view — it's the whole point of showing
-// a globe at all. Also the low end of the marker scale range below.
-const globeMinZoom = 1.5
+// Marker scaling stays anchored to the original globe zoom reference even
+// though MapLibre's responsive minimum can now vary with the screen size.
+const markerScaleReferenceZoom = 1.5
 // Discovery/POI pins shrink continuously between the most zoomed-out globe
 // view and country level, so a full world view isn't dominated by full-size
 // pins, reaching full size by the time browsing a single country.
@@ -51,7 +51,9 @@ const markerMinScale = 0.35
 const markerScaleMaxZoom = 6
 
 function markerScaleForZoom(zoom: number): number {
-  const t = (zoom - globeMinZoom) / (markerScaleMaxZoom - globeMinZoom)
+  const t =
+    (zoom - markerScaleReferenceZoom) /
+    (markerScaleMaxZoom - markerScaleReferenceZoom)
   return markerMinScale + Math.min(Math.max(t, 0), 1) * (1 - markerMinScale)
 }
 
@@ -171,8 +173,24 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         style: mapStyle,
         center: viewport.center,
         zoom: viewport.zoom,
-        minZoom: globeMinZoom,
       })
+
+      const updateMinimumZoom = () => {
+        const minimumZoom = getResponsiveGlobeMinimumZoom(instance)
+        if (minimumZoom === null) return
+
+        instance.setMinZoom(minimumZoom)
+        if (instance.getZoom() < minimumZoom) {
+          instance.setZoom(minimumZoom)
+        }
+      }
+
+      updateMinimumZoom()
+      const resizeObserver =
+        typeof ResizeObserver === 'function'
+          ? new ResizeObserver(updateMinimumZoom)
+          : null
+      resizeObserver?.observe(mapContainer.current)
 
       const saveCurrentViewport = () => {
         const center = instance.getCenter()
@@ -277,6 +295,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       return () => {
         saveCurrentViewport()
+        resizeObserver?.disconnect()
         instance.off('moveend', saveCurrentViewport)
         instance.off('zoomend', saveCurrentViewport)
         applyExploredStatesRef.current = () => {}
