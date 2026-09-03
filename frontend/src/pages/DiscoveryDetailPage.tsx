@@ -106,7 +106,7 @@ export function DiscoveryDetailPage({
   )
   const createdFeedbackConsumedRef = useRef(false)
   const [drawerState, setDrawerState] = useState<DiscoveryDrawerState>('peek')
-  const [controlsVisible, setControlsVisible] = useState(true)
+  const controlsVisible = true
   const [deletedDiscoveryIds, setDeletedDiscoveryIds] = useState<Set<number>>(
     () => new Set(),
   )
@@ -245,8 +245,6 @@ export function DiscoveryDetailPage({
         setDrawerState('peek')
         return
       }
-
-      setControlsVisible((visible) => !visible)
     }
 
     const handlePhotoPointerCancel = () => {

@@ -497,7 +497,7 @@ describe('MapCanvas', () => {
     ).toEqual(['interpolate', ['linear'], ['zoom']])
   })
 
-  it('fades only country label layers based on globe zoom', () => {
+  it('shows only country label layers fully from zoom 2', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'test-browser',
@@ -511,17 +511,17 @@ describe('MapCanvas', () => {
       {
         layerId: 'label_country_3',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.3, 0, 3.7, 1],
+        value: ['step', ['zoom'], 0, 2, 1],
       },
       {
         layerId: 'label_country_2',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.3, 0, 3.7, 1],
+        value: ['step', ['zoom'], 0, 2, 1],
       },
       {
         layerId: 'label_country_1',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.3, 0, 3.7, 1],
+        value: ['step', ['zoom'], 0, 2, 1],
       },
     ])
   })

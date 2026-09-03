@@ -35,12 +35,10 @@ setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
 const countryLabelOpacityExpression: ExpressionSpecification = [
-  'interpolate',
-  ['linear'],
+  'step',
   ['zoom'],
-  3.3,
   0,
-  3.7,
+  2,
   1,
 ]
 

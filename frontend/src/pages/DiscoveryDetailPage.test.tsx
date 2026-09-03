@@ -496,7 +496,7 @@ describe('DiscoveryDetailPage', () => {
     expect(main).toHaveAttribute('data-controls-visible', 'true')
   })
 
-  it('toggles controls from a simple photo tap while the drawer is in peek', async () => {
+  it('keeps the top controls visible after a simple photo tap', async () => {
     renderPage()
 
     const photo = await screen.findByRole('region', { name: 'Discovery photo' })
@@ -514,7 +514,7 @@ describe('DiscoveryDetailPage', () => {
       clientX: 160,
       clientY: 180,
     })
-    expect(main).toHaveAttribute('data-controls-visible', 'false')
+    expect(main).toHaveAttribute('data-controls-visible', 'true')
 
     fireEvent.pointerDown(photo, {
       pointerId: 1,
