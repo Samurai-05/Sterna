@@ -18,22 +18,22 @@ export default function Problem() {
         <div className="relative mx-auto h-[400px] w-full max-w-[460px] sm:h-[500px]">
           <div className="absolute inset-x-[8%] bottom-[8%] top-[8%] rounded-[32px] bg-primary/[0.08]" />
           <Image
-            src="/assets/mockups/map.webp"
-            alt="Sterna map with saved discoveries"
-            width={1024}
-            height={1536}
+            src="/assets/screenshots/current/map-exploration.png"
+            alt="Sterna interactive exploration map with discoveries and points of interest"
+            width={390}
+            height={844}
             loading="lazy"
             decoding="async"
-            className="absolute bottom-0 left-0 z-10 h-auto w-[60%] -rotate-[7deg] select-none drop-shadow-[0_22px_38px_rgba(0,0,0,0.14)]"
+            className="absolute bottom-0 left-0 z-10 h-auto w-[60%] -rotate-[7deg] select-none rounded-[28px] drop-shadow-[0_22px_38px_rgba(0,0,0,0.14)]"
           />
           <Image
-            src="/assets/mockups/location.webp"
-            alt="A travel photo saved as a Sterna discovery"
-            width="720"
-            height="1200"
+            src="/assets/screenshots/current/gallery.png"
+            alt="Sterna gallery of geolocated discoveries and points of interest"
+            width={390}
+            height={844}
             loading="lazy"
             decoding="async"
-            className="absolute right-0 top-0 z-20 h-auto w-[64%] rotate-[6deg] select-none drop-shadow-[0_26px_44px_rgba(0,0,0,0.16)]"
+            className="absolute right-0 top-0 z-20 h-auto w-[64%] rotate-[6deg] select-none rounded-[28px] drop-shadow-[0_26px_44px_rgba(0,0,0,0.16)]"
           />
         </div>
       </div>
