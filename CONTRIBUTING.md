@@ -8,7 +8,8 @@ Please read this before contributing.
 git clone git@github.com:Samurai-05/Sterna.git
 cd Sterna
 cp .env.example .env
-docker compose up
+docker compose up -d --build
+docker compose exec api npm run migration:run
 ```
 
 | Service | URL | Note |
@@ -27,10 +28,11 @@ docker compose ps -a
 curl http://localhost:3000/api/health
 ```
 
-The `api`, `postgres`, and `minio` services should be healthy; `web` and
-`certbot` should be running; and the one-shot `minio-init` service should have
-exited successfully. The health response confirms both persistent
-dependencies:
+The migration command is required after the first startup and whenever new
+migrations are pulled. The `api`, `postgres`, and `minio` services should be
+healthy; `web` and `certbot` should be running; and the one-shot `minio-init`
+service should have exited successfully. The health response confirms both
+persistent dependencies:
 
 ```json
 {

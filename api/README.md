@@ -13,7 +13,7 @@ The API is designed to run as part of the root Docker Compose stack:
 
 ```bash
 cp .env.example .env
-docker compose up
+docker compose up -d --build
 docker compose exec api npm run migration:run
 ```
 

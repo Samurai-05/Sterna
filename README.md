@@ -87,8 +87,16 @@ The root Compose configuration runs the API, PostgreSQL + PostGIS, MinIO, and Ng
 
 ```bash
 cp .env.example .env
-docker compose up --build
+docker compose up -d --build
+docker compose exec api npm run migration:run
+docker compose ps -a
+curl http://localhost:3000/api/health
 ```
+
+The migration command is required after the first startup and whenever new
+migrations are pulled. The health response must report both the database and
+object storage as available. The one-shot `minio-init` service should appear
+as successfully exited in `docker compose ps -a`.
 
 | Service | URL | Port variable |
 |---|---|---|
@@ -112,7 +120,7 @@ The API runs in watch mode with `api/` mounted into its container, so changes ar
 
 - [Application architecture](docs/architecture/architecture.md)
 - [Architecture diagram](docs/architecture/diagrams/architecture.png)
-- [CI/CD](docs/architecture/ci_cd.md)
+- [Deploying a feature through CI/CD](docs/architecture/ci_cd.md#deploying-a-new-feature)
 - [Conceptual data model](docs/architecture/database/cdm/conceptual_data_model.png)
 - [Logical data model](docs/architecture/database/ldm/logical_data_model.md)
 - [ADR-001 — Frontend platform](docs/architecture/decisions/ADR-001-frontend-platform.md)
