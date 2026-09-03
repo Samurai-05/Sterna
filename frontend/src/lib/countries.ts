@@ -222,6 +222,8 @@ const countryNamesByCode: Record<string, string> = {
   ZWE: 'Zimbabwe',
 }
 
+export const COUNTRY_COUNT = Object.keys(countryNamesByCode).length
+
 /**
  * Country codes come from PostGIS now (issue #59 / ADR-005 —
  * DiscoveriesService resolves them at write time), so this file is just the
