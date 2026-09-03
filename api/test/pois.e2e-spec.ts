@@ -111,6 +111,9 @@ describe('PoisController (e2e)', () => {
       .expect(200);
 
     expect(imageResponse.headers['content-type']).toMatch(/^image\//);
+    expect(imageResponse.headers['cross-origin-resource-policy']).toBe(
+      'cross-origin',
+    );
     expect((imageResponse.body as Buffer).length).toBeGreaterThan(0);
   });
 
