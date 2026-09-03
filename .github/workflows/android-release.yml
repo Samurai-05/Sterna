@@ -83,14 +83,14 @@ jobs:
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Prepare release asset
-        run: cp "android/app/build/outputs/apk/release/app-release.apk" "Sterna-${GITHUB_REF_NAME}.apk"
+        run: cp "android/app/build/outputs/apk/release/app-release.apk" "Sterna.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: Sterna ${{ github.ref_name }}
-          files: frontend/Sterna-${{ github.ref_name }}.apk
+          files: frontend/Sterna.apk
           fail_on_unmatched_files: true
           generate_release_notes: true
 

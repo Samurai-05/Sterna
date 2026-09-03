@@ -66,7 +66,7 @@ export default function Team() {
       <div className="mx-auto max-w-6xl px-5 sm:px-6">
         <div className="mb-8 md:mb-10">
           <h2 className="font-display max-w-xl text-4xl font-semibold tracking-[-0.055em] text-black md:text-5xl">
-            Built by four students at HEIG-VD.
+            The team behind Sterna.
           </h2>
         </div>
 
