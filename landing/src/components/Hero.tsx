@@ -4,7 +4,8 @@ import { FaAndroid, FaGithub } from 'react-icons/fa';
 import GlobePolaroids from './GlobePolaroids';
 
 const githubUrl = 'https://github.com/Samurai-05/Sterna';
-const androidDownloadUrl = 'https://github.com/Samurai-05/Sterna/releases/latest/download/Sterna.apk';
+const androidDownloadPath = '/download';
+const androidDownloadUrl = 'https://sterna-app.ch/download';
 
 export default function Hero() {
   return (
@@ -35,7 +36,7 @@ export default function Hero() {
                 Star us on GitHub
               </a>
               <a
-                href={androidDownloadUrl}
+                href={androidDownloadPath}
                 className="group inline-flex min-h-12 items-center gap-2.5 rounded-full border border-primary/20 bg-white px-6 py-3.5 text-sm font-semibold text-primary shadow-[0_8px_24px_rgba(45,90,61,0.08)] transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/[0.04] hover:shadow-[0_12px_30px_rgba(45,90,61,0.13)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2"
               >
                 <FaAndroid className="h-4 w-4" aria-hidden="true" />
@@ -45,7 +46,7 @@ export default function Hero() {
 
             <div className="hidden items-center gap-3 rounded-2xl border border-black/[0.08] bg-white/80 px-3 py-2.5 text-left shadow-[0_8px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm sm:flex sm:gap-4 sm:px-4 sm:py-3">
               <a
-                href={androidDownloadUrl}
+                href={androidDownloadPath}
                 aria-label="Open the Sterna Android download"
                 className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2"
               >
