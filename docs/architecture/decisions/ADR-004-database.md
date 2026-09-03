@@ -82,8 +82,9 @@ The decision is fully implemented. TypeORM migrations own the schema and seed
 the bundled `api/src/countries/countries.geo.json` dataset. Discoveries store a
 derived ISO alpha-3 `country_code`; the database uses GiST indexes for country
 containment, country-distance fallbacks, discovery locations, and POI
-locations. Progress is derived from discoveries and POI proximity rather than
-being maintained in a separate progression table.
+locations. Progress is derived from discoveries and POI proximity — or an
+explicit `confirmed_poi_id` link on the discovery — rather than being
+maintained in a separate progression table.
 
 ## Future evolution
 

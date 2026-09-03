@@ -243,6 +243,9 @@ contains the discovery.
 
 A point of interest must not be considered discovered in another map automatically.
 
+A point of interest may also be considered discovered through an explicit user
+confirmation — see FR-41.
+
 ### FR-21 - Point of Interest Display and Consultation
 
 **Priority: SHOULD**
@@ -446,3 +449,31 @@ owner must not be able to perform those operations.
 The Android application should integrate native photo capture and gallery
 selection, current-location access, system back navigation, and group-invitation
 QR-code scanning.
+
+### FR-41 - Confirm-to-Unlock a Distant Point of Interest
+
+**Priority: SHOULD**
+
+A landmark is often photographed from well outside the 150-metre discovery
+radius in FR-20 — a mountain from the town below it, a monument from a nearby
+square. Widening that radius automatically is not viable: two points of
+interest can be close enough together that a wider radius would unlock both
+from a single visit.
+
+Instead, the user should be able to explicitly link one of their own
+discoveries to a specific, not-yet-discovered point of interest, confirming it
+is a photo of that place. This should be offered:
+
+* right after saving a new discovery, if it lies near a candidate point of
+  interest;
+
+* from a point of interest's own page, letting the user pick one of their
+  existing discoveries.
+
+How far a candidate point of interest may be from the discovery depends on how
+recognizable it is from a distance: a mountain or another large natural
+feature should be offered from much farther away than a monument, a museum, or
+another closely-viewed place.
+
+A point of interest confirmed this way must be considered discovered only in
+the map that discovery belongs to, consistent with FR-20.

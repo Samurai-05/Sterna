@@ -190,6 +190,16 @@ is recorded within 150 metres of it. This status is calculated independently
 for each personal or group map, so progress from one context does not leak into
 another.
 
+A landmark is often photographed from farther away than that — a mountain from
+the town below it, a monument from a nearby square. Rather than widening the
+automatic radius, which risks unlocking two nearby points of interest from a
+single visit, the user can explicitly confirm that one of their discoveries is
+a photo of a specific point of interest: right after saving a new discovery
+near one, or from that point of interest's own page against their existing
+discoveries. How far a candidate may be offered from depends on how
+recognizable it is from a distance — much farther for a mountain than for a
+monument or a museum.
+
 The profile provides a personal overview of the exploration completed by the
 currently signed-in user. It is based on that user's own discoveries and is
 independent of discoveries contributed by other group members. It includes:

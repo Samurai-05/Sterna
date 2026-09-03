@@ -123,8 +123,9 @@ Important relationships and invariants include:
 - a partial unique index permits at most one active group per user; no active
   group means the personal map is active;
 - country geometries and spatial indexes support country attribution;
-- POI exploration is derived from accessible discoveries within 150 metres,
-  rather than stored as a separate mutable flag.
+- POI exploration is derived from accessible discoveries within 150 metres, or
+  from an explicit `confirmed_poi_id` link on the discovery, rather than
+  stored as a separate mutable flag on the POI itself.
 
 The API performs personal and group filtering in its SQL queries. The client
 also keeps user-specific caches separate, but client-side filtering is not a
@@ -153,7 +154,24 @@ The frontend renders a country veil from bundled geographic data. When a
 discovery is created or moved, PostGIS assigns it to a country using polygon
 containment, with a small nearest-country fallback to compensate for simplified
 coastlines. The same database layer evaluates whether an accessible discovery
-is within the 150-metre radius of a catalogue POI.
+is within the 150-metre radius of a catalogue POI, or explicitly linked to one.
+
+A landmark is often photographed from well outside that 150-metre radius — a
+mountain from the town below it, a monument from a nearby square — but
+widening the automatic radius risks unlocking two nearby points of interest
+from a single visit. Instead, `GET /api/pois/nearby` returns undiscovered
+candidates around a point, each bounded by a radius inferred from its
+category (a mountain or another large natural feature reaches much farther
+than a monument or a museum), and the client offers those candidates for the
+user to confirm — after saving a new discovery, or from a point of interest's
+own page against the user's existing discoveries. Confirming one sets
+`confirmed_poi_id` on the discovery through `PATCH /api/discoveries/:id`;
+nothing is unlocked automatically from the wider search.
+
+POI photos are sourced from Wikimedia Commons but never linked to directly:
+`GET /api/pois/:id/image` fetches them server-side and re-serves them
+same-origin. The client's own network — often a locked-down campus one — may
+not be able to reach Wikimedia at all, while this server always can.
 
 Online place search is proxied by the API to Nominatim. This keeps provider
 policy in one place: requests are serialised to at most one per second, results
