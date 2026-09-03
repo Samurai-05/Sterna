@@ -121,8 +121,6 @@ The API runs in watch mode with `api/` mounted into its container, so changes ar
 - [Application architecture](docs/architecture/architecture.md)
 - [Architecture diagram](docs/architecture/diagrams/architecture.png)
 - [Deploying a feature through CI/CD](docs/architecture/ci_cd.md#deploying-a-new-feature)
-- [Conceptual data model](docs/architecture/database/cdm/conceptual_data_model.png)
-- [Logical data model](docs/architecture/database/ldm/logical_data_model.md)
 - [ADR-001 — Frontend platform](docs/architecture/decisions/ADR-001-frontend-platform.md)
 - [ADR-002 — Mapping stack](docs/architecture/decisions/ADR-002-mapping-stack.md)
 - [ADR-003 — Backend architecture](docs/architecture/decisions/ADR-003-backend-architecture.md)
