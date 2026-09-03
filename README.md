@@ -68,6 +68,9 @@ npm run build
 npm run start
 ```
 
+Original design exports and generated variants that are not served by the site
+are kept in `landing/design-assets/source`.
+
 ### Application frontend
 
 With the API running (see Docker Compose below), the frontend can be run locally from its own directory; it proxies `/api` requests to `http://localhost:3000` (see [`frontend/README.md`](frontend/README.md)):
@@ -99,26 +102,38 @@ The API runs in watch mode with `api/` mounted into its container, so changes ar
 
 ## Documentation
 
-- [Project description](docs/project_description.md)
-- [Functional requirements](docs/functional_requirements.md)
-- [Non-functional requirements](docs/non_functional_requirements.md)
-- [Frontend stack](docs/frontend-stack.md)
-- [Architecture](docs/architecture.md)
-- [API](api/README.md)
-- [Design system](docs/design-system.md)
-- [Landing page — narrative and implementation references](docs/landing-page-design.md)
-- [ADR-001 — Frontend platform](docs/decisions/ADR-001-frontend-platform.md)
-- [ADR-002 — Mapping stack](docs/decisions/ADR-002-mapping-stack.md)
-- [ADR-003 — Backend architecture](docs/decisions/ADR-003-backend-architecture.md)
-- [ADR-004 — Database](docs/decisions/ADR-004-database.md)
-- [ADR-005 — Country detection](docs/decisions/ADR-005-country-detection.md)
-- [ADR-006 — Photo storage](docs/decisions/ADR-006-photo-storage.md)
-- [ADR-007 — Deployment architecture](docs/decisions/ADR-007-deployment-architecture.md)
-- [ADR-008 — Backend framework](docs/decisions/ADR-008-backend-framework.md)
-- [ADR-009 — Authentication](docs/decisions/ADR-009-authentication.md)
-- [CI/CD](docs/ci_cd.md)
-- [Contributing guide](docs/CONTRIBUTING.md)
-- [Work process](docs/work_process.md)
+### Product
+
+- [Project description](docs/product/project_description.md)
+- [Functional requirements](docs/product/functional_requirements.md)
+- [Non-functional requirements](docs/product/non_functional_requirements.md)
+
+### Architecture
+
+- [Application architecture](docs/architecture/architecture.md)
+- [Architecture diagram](docs/architecture/diagrams/architecture.png)
+- [CI/CD](docs/architecture/ci_cd.md)
+- [Conceptual data model](docs/architecture/database/cdm/conceptual_data_model.png)
+- [Logical data model](docs/architecture/database/ldm/logical_data_model.md)
+- [ADR-001 — Frontend platform](docs/architecture/decisions/ADR-001-frontend-platform.md)
+- [ADR-002 — Mapping stack](docs/architecture/decisions/ADR-002-mapping-stack.md)
+- [ADR-003 — Backend architecture](docs/architecture/decisions/ADR-003-backend-architecture.md)
+- [ADR-004 — Database](docs/architecture/decisions/ADR-004-database.md)
+- [ADR-005 — Country detection](docs/architecture/decisions/ADR-005-country-detection.md)
+- [ADR-006 — Photo storage](docs/architecture/decisions/ADR-006-photo-storage.md)
+- [ADR-007 — Deployment architecture](docs/architecture/decisions/ADR-007-deployment-architecture.md)
+- [ADR-008 — Backend framework](docs/architecture/decisions/ADR-008-backend-framework.md)
+- [ADR-009 — Authentication](docs/architecture/decisions/ADR-009-authentication.md)
+
+### Project process
+
+- [Work process](docs/process/work_process.md)
+- [Contributing guide](CONTRIBUTING.md)
+
+### Component documentation
+
+- [API documentation](api/README.md)
+- [Application frontend](frontend/README.md)
 
 ## Team
 

@@ -3,6 +3,7 @@
 ## Status
 
 Accepted, amended 2026-09-01 — see "Amendment: password change revokes tokens" below.
+Implementation notes updated 2026-09-03.
 
 ## Context
 
@@ -21,10 +22,10 @@ a hashing algorithm, or where a client keeps its credentials.
 
 The constraints that actually narrow the choice:
 
-- the same bundle runs as a PWA and inside Capacitor, where the origin is `capacitor://` or
-  `http://localhost` — cross-site cookies are awkward there, and `SameSite` rules make a
-  cookie session fragile across the two targets;
-- the database schema is already fixed (`docs/database/ldm/logical_data_model.md`): `users`
+- the same bundle runs as a PWA and inside Capacitor, where the packaged Android application
+  uses the secure `https://localhost` origin — cross-site cookies are awkward there, and
+  `SameSite` rules make a cookie session fragile across the two targets;
+- the database schema is already fixed (`docs/architecture/database/ldm/logical_data_model.md`): `users`
   carries `email`, `password_hash`, `user_name` and timestamps, and there is no sessions or
   refresh-token table;
 - three weeks, four people, one of whom owns the backend area;
@@ -60,18 +61,19 @@ displays — the display name in particular, which FR-03 makes editable — is r
 ## Rationale and trade-offs
 
 A bearer token is the shape that works unchanged in both delivery targets, needs no CORS
-credential negotiation, and is trivially attachable from `fetch`, which `docs/frontend-stack.md`
-already fixes as the HTTP client.
+credential negotiation, and is trivially attachable through the native Fetch API used by
+the shared frontend.
 
-Statelessness is the real trade. It buys a guard that answers without touching the database,
-and it costs revocation:
+The original stateless design let the guard answer without touching the database but offered
+no early revocation. The password-change amendment below deliberately gives up the database-free
+guard check while retaining JWTs and avoiding a server-side session table:
 
-- **a stolen token stays valid until it expires.** Bounded by the 7-day default lifetime, by
-  the token carrying no authority beyond its owner's own data, and by NFR-23 requiring HTTPS
-  in production. `JWT_EXPIRES_IN_SECONDS` shortens it per deployment without a code change;
-- ~~**changing a password does not invalidate outstanding tokens.**~~ Reversed by the
-  amendment below. The rest of this section stands; the guard is no longer free of a
-  database round-trip.
+- **a stolen token stays valid until it expires, the password changes, or the account is
+  deleted.** It carries the same API authority as the account, including access to group data
+  allowed by current memberships. The 7-day default lifetime limits the window, HTTPS protects
+  the token in transit, and `JWT_EXPIRES_IN_SECONDS` can shorten it per deployment;
+- **changing a password invalidates outstanding tokens.** The guard compares the token's
+  issuance time with the user's `password_changed_at`, as detailed in the amendment below.
 
 Seven days is chosen against the alternative of a short access token: with no refresh
 endpoint, the access token lifetime *is* the session lifetime, and a mobile app that demands a
@@ -166,10 +168,14 @@ is still an email-verification flow that stays out of MVP scope. Two things were
 of that: the 409 no longer echoes the submitted address back into its message, and
 `POST /api/auth/register` is rate-limited alongside `login`, so enumerating a list of
 addresses is slow rather than free.
-- Deleting an account must clear the user's discoveries inside the same transaction, because
-  `fk_discoveries_group_membership` is `ON DELETE RESTRICT`. Deleting a group's only owner
-  currently leaves that group ownerless — `uq_group_members_one_owner_per_group` permits zero
-  owners — and the groups module owns that fix.
+
+## Implementation status
+
+- Deleting an account clears the user's discoveries inside the same transaction, because
+  `fk_discoveries_group_membership` is `ON DELETE RESTRICT`. For each group the user owns,
+  ownership is transferred to the longest-tenured remaining member; a group with no other
+  member is dissolved. The user's owned MinIO objects are purged after the database
+  transaction succeeds.
 - Authentication is the first behaviour covered by automated tests, as NFR-31 asks.
 
 ## Future evolution
@@ -178,5 +184,4 @@ addresses is slow rather than free.
 - **Breached-password rejection** against Pwned Passwords (ASVS §2.1.7), deferred as a network
   call on the registration path with no requirement behind it.
 - **Email change**, which needs re-authentication and a second uniqueness path.
-- **Password reset**, which needs outbound email — no infrastructure for it exists today, and
-  the login screen's "Forgot password?" control is currently inert.
+- **Password reset**, which needs outbound email infrastructure that does not exist today.

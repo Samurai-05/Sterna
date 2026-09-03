@@ -4,8 +4,8 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
  * The predefined points of interest the app discovers by proximity.
  *
  * Reference data rather than developer fixtures — the feature is empty without
- * it — so it ships as a migration and runs in every environment. Carried over
- * from the former `infra/postgres/init/008_seed_data.sql`. No users, groups,
+ * it — so it ships as a migration and runs in every environment. It replaces
+ * the former container initialization seed script. No users, groups,
  * memberships or discoveries are seeded: those are user-generated.
  *
  * That former script did run on the production volume, which already holds

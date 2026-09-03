@@ -4,8 +4,8 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
  * Brings `discoveries_category_check` in line with the capitalised
  * `DiscoveryCategory` enum (api/src/discoveries/discovery-category.ts).
  *
- * The values were capitalised in the original `infra/postgres/init/` DDL, went
- * lower-case when that DDL was converted into InitialSchema1787734644000
+ * The values were capitalised in the original container initialization DDL,
+ * went lower-case when that DDL was converted into InitialSchema1787734644000
  * (d091b5b), and were put back in #99 — an in-place edit of a migration that
  * had by then run on developer machines. TypeORM keys the `migrations` table
  * on class name, which the edit did not change, so those databases keep the

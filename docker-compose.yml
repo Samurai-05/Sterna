@@ -125,7 +125,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/postgres/bootstrap:/docker-entrypoint-initdb.d:ro
     healthcheck:
       # $$ escapes the expansion so it is resolved by the shell inside the
       # container (from the variables set above), not by Compose on the host.

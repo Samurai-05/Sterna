@@ -12,7 +12,7 @@ Sterna requires persistent storage for structured application data such as:
 - discoveries;
 - groups and memberships;
 - POIs;
-- progression data;
+- data used to derive exploration progress;
 - photo metadata.
 
 The data model is primarily relational, with clear relationships between users, discoveries, groups, and associated metadata.
@@ -27,7 +27,10 @@ PostGIS is an extension of PostgreSQL, not a separate database. It provides spat
 
 PostgreSQL is responsible for storing structured application data and enforcing relational constraints. PostGIS is responsible for the spatial representation and operations required by Sterna.
 
-The position of a discovery must be representable conceptually by a PostGIS spatial type such as `geography(Point, 4326)`. The exact SQL schema and column definitions are not fixed by this ADR.
+Discovery and POI positions are stored as `geometry(Point, 4326)` columns.
+Country boundaries are stored as `geometry(MultiPolygon, 4326)`. Queries that
+need distances in metres cast these geometries to `geography`, while GiST
+indexes support containment and proximity lookups.
 
 The Node.js backend remains the only access point for the data. It validates inputs, applies business rules, and orchestrates queries executed by PostGIS for operations such as country containment, POI proximity, and future region or grid queries.
 
@@ -70,14 +73,25 @@ The trade-off is the additional extension configuration and the need to design, 
 
 - the PostGIS extension and its geographical datasets must be configured and maintained;
 - spatial queries and indexes require appropriate design and monitoring;
-- the source and version of some geographical datasets still need to be selected.
+- the bundled country-boundary dataset must be versioned and kept consistent
+  with the country veil generated for the frontend.
+
+## Implementation status
+
+The decision is fully implemented. TypeORM migrations own the schema and seed
+the bundled `api/src/countries/countries.geo.json` dataset. Discoveries store a
+derived ISO alpha-3 `country_code`; the database uses GiST indexes for country
+containment, country-distance fallbacks, discovery locations, and POI
+locations. Progress is derived from discoveries and POI proximity — or an
+explicit `confirmed_poi_id` link on the discovery — rather than being
+maintained in a separate progression table.
 
 ## Future evolution
 
-This decision should be revisited if Sterna requires spatial capabilities beyond the current scope, such as:
+This decision should be revisited if Sterna's data volume or geographical
+model grows beyond the current scope, for example through:
 
 - large-scale distance queries;
-- spatial indexing;
 - intersections between geographical objects;
 - complex region queries;
 - server-side geographical aggregation.

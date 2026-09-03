@@ -32,7 +32,9 @@ PostgreSQL + PostGIS and MinIO are not directly accessible from the client.
 
 Node.js remains responsible for workflow orchestration, validation, authorization, and business decisions. PostGIS performs spatial operations on geographical data persisted in PostgreSQL, including containment and proximity queries when required.
 
-The specific Node.js web framework is not defined by this ADR and may be selected independently.
+The specific Node.js web framework is outside this ADR's scope; the subsequent
+[ADR-008](ADR-008-backend-framework.md) records the selection of NestJS and
+TypeORM.
 
 ### Rationale and trade-offs
 
