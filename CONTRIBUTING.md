@@ -23,8 +23,23 @@ docker compose up
 Confirm the stack came up correctly:
 
 ```bash
-docker compose ps                          # every service should be "healthy"
-curl http://localhost:3000/api/health      # {"status":"ok","info":{"database":{"status":"up"}},...}
+docker compose ps -a
+curl http://localhost:3000/api/health
+```
+
+The `api`, `postgres`, and `minio` services should be healthy; `web` and
+`certbot` should be running; and the one-shot `minio-init` service should have
+exited successfully. The health response confirms both persistent
+dependencies:
+
+```json
+{
+  "status": "ok",
+  "info": {
+    "database": { "status": "up" },
+    "storage": { "status": "up" }
+  }
+}
 ```
 
 ### Working on the API
@@ -48,7 +63,7 @@ inside it:
 docker compose up -d --build --renew-anon-volumes api
 ```
 
-Details, project layout and conventions: [`api/README.md`](../api/README.md).
+Details, project layout and conventions: [`api/README.md`](api/README.md).
 
 ### Working on the frontend
 
@@ -62,7 +77,7 @@ npm install
 npm run dev
 ```
 
-Details, project layout and conventions: [`frontend/README.md`](../frontend/README.md).
+Details, project layout and conventions: [`frontend/README.md`](frontend/README.md).
 
 Two files describe the stack, and the split matters: `docker-compose.yml` is the production
 definition (prebuilt image, no bind mount, no published API port) and
@@ -74,7 +89,7 @@ gets the first one. Anything development-only belongs in the override file.
 
 We use **GitHub Flow**: `main` is always deployable, all work goes through a branch and a pull request.
 
-1. Create or pick up an issue on the [board]().
+1. Create or pick up an issue on the GitHub Projects board.
 2. Create a branch from `main`.
 3. Develop, commit, push.
 4. Open a pull request linked to the issue.
@@ -84,22 +99,30 @@ Every issue is automatically added to the board. Move your card through the colu
 
 ## Issues
 
-Use the templates offered when opening a new issue.
+Create an issue with a clear problem or outcome, acceptance criteria, the most
+relevant label, and the appropriate sprint milestone. The repository does not
+currently provide issue templates.
 
 | Label | Use |
 |---|---|
-| `feature` | New functionality |
-| `bug` | Fix |
-| `infra` | CI/CD, deployment, tooling |
-| `docs` | Documentation |
+| `enhancement` | New functionality or improvement |
+| `bug` / `fix` | Defect or corrective change |
+| `documentation` / `README` | Documentation changes |
+| `Test` | Automated testing work |
+| `accessibility` | Accessibility improvements |
+| `Security` | Security-related work |
 
-Issues tied to a deliverable are attached to the corresponding milestone (`Week 1 – 08.24`, `Final deliverable – 09.04`).
+Issues are attached to the relevant project milestone: `Sprint 0 - Foundations`,
+`Sprint 1 - MVP`, or `Sprint 2 - Consolidations`.
 
 ## Deployment: TLS certificate
 
-Nginx is the public entry point (ADR-007): it serves the built frontend, terminates TLS
-and proxies `/api` to the API container. The API enables no CORS, so the frontend has to
-be served from the same origin as the API — that is what this single entry point provides.
+Nginx is the public entry point (ADR-007): it serves the built frontend,
+terminates TLS, and proxies `/api` to the API container. The web/PWA client is
+served from that same origin and therefore needs no CORS access. The API also
+allows the single `https://localhost` origin used by the packaged Capacitor
+Android application, with only the required methods and the `Content-Type` and
+`Authorization` headers.
 
 On first boot the image mints a temporary self-signed certificate, purely so Nginx can
 start: it refuses to boot when `ssl_certificate` points at a file that does not exist, and

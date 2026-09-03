@@ -26,26 +26,43 @@ MinIO will run as a self-hosted container and expose an **S3-compatible API**.
 
 The backend is responsible for communicating with MinIO.
 
-PostgreSQL + PostGIS stores only the metadata associated with a photo, including information such as:
+PostgreSQL stores only the metadata associated with a photo, including:
 
-- the discovery identifier;
-- the owner;
 - the MinIO object key;
-- the MIME type or other relevant file metadata.
+- the uploader;
+- the normalized MIME type and stored byte size;
+- creation time.
+
+Discoveries and user profiles reference the generated object key from their
+own rows. The photo metadata table therefore does not need a discovery ID, and
+one object can be checked independently of how it is referenced.
 
 The binary image itself is stored exclusively in MinIO.
 
 ```text
-Discovery
-   |
-   +-- metadata -----> PostgreSQL
-   |
-   +-- photo --------> MinIO
+Web / Android client
+         |
+         v
+ Authenticated API
+    /          \
+   v            v
+PostgreSQL     MinIO
+ownership      original and
+and references display variants
 ```
 
 Photo buckets are not intended to be publicly accessible.
 
-When direct photo access is required, the backend may issue temporary presigned URLs or proxy the resource according to the application's authorization rules.
+Photo access is proxied through the authenticated
+`GET /api/photos/:filename` endpoint. Before streaming an object, the backend
+checks whether the caller uploaded it or can access a personal/group discovery
+that references it. MinIO is private on the internal Compose network, so
+presigned URLs are not used by the delivered deployment.
+
+Uploads accept JPEG, PNG, and WebP images up to 10 MB. The API extracts the
+useful EXIF date and location before using Sharp to re-encode the original
+without metadata. It also generates map, card, and detail variants to avoid
+serving unnecessarily large images.
 
 ### Rationale and trade-offs
 
@@ -60,7 +77,7 @@ Self-hosting MinIO is suitable for the project because it:
 - avoids requiring an external paid cloud service;
 - runs easily with Docker Compose;
 - provides an administration interface useful during development;
-- supports presigned URLs and private buckets.
+- supports private buckets and server-side streaming.
 
 The trade-off is that Sterna becomes responsible for operating and persisting the object-storage service.
 
@@ -80,14 +97,24 @@ The trade-off is that Sterna becomes responsible for operating and persisting th
 - S3-compatible interface;
 - easy integration with Node.js;
 - private photo storage;
-- support for temporary presigned access;
+- access controlled by the API for both owners and authorised group members;
+- generated display variants and removal of embedded metadata;
 - easier future migration to a managed object-storage provider.
 
 ### Negative
 
 - one additional service must be deployed and maintained;
 - MinIO data volumes must be persisted correctly;
-- available VM disk space limits total photo storage;
+- available VM disk space limits total photo storage.
+
+## Implementation status
+
+The decision is fully implemented. The `photos` table records ownership and
+metadata, while discovery and avatar rows retain object-key references.
+Deleting a discovery, replacing an avatar, or deleting an account cleans up
+the corresponding object family when it is no longer needed. A periodic sweep
+also removes uploads older than 24 hours that were never attached to a
+discovery or profile.
 
 ## Future evolution
 

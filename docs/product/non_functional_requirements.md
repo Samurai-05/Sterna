@@ -2,7 +2,9 @@
 
 ## 1. Priorities
 
-The requirements use the following priorities:
+The priorities below reflect the order established during the initial project
+planning. They indicate importance, not implementation status: the delivered
+application also includes several **SHOULD** requirements and extensions.
 
 * **MUST**: required for the MVP;
 
@@ -20,7 +22,8 @@ The requirements use the following priorities:
 
 The application must use a shared React/TypeScript frontend built with Vite, targeting the web as an installable PWA and mobile platforms through Capacitor.
 
-For the MVP, the mobile target must be distributable and installable as an **APK** file.
+The Android target must be distributable and installable as an **APK** file. A
+tagged release must automatically produce a downloadable APK artifact.
 
 It must:
 
@@ -30,13 +33,18 @@ It must:
 
 * not require an external browser to be opened for use.
 
+The Android application must retain the shared core experience while allowing
+native integrations for photo capture, geolocation, system back navigation,
+and QR-code scanning.
+
 ### NFR-02 - Mobile-First Interface
 
 **Priority: MUST**
 
 The interface must be designed primarily for use on Android smartphones.
 
-All MVP features must be usable on screen widths between **360 px and 430 px CSS**, without global horizontal scrolling.
+All delivered features must be usable on screen widths between **360 px and 430
+px CSS**, without global horizontal scrolling.
 
 ### NFR-03 - Responsive Design
 
@@ -316,7 +324,7 @@ The repository must contain documentation allowing a new developer to:
 
 These five elements must be included in the delivered documentation.
 
-### NFR-30 - Continuous Integration
+### NFR-30 - Continuous Integration and Deployment
 
 **Priority: MUST**
 
@@ -331,6 +339,11 @@ The pipeline must at least verify:
 * that the quality checks defined by the project pass.
 
 A Pull Request whose pipeline fails must not be considered ready for integration.
+
+A successful merge into the main branch must automatically build and publish
+the production frontend and API container images, deploy them to the project VM,
+apply pending database migrations, and verify that the API and public HTTPS
+entry point are healthy.
 
 ### NFR-31 - Automated Tests
 
@@ -349,6 +362,18 @@ Automated tests should cover at least the following critical behaviors:
 * association of a discovery with the active context;
 
 * active context switching.
+
+The automated tests should also cover:
+
+* discovery editing and deletion;
+
+* personal and group data isolation;
+
+* gallery filtering and viewer navigation;
+
+* profile and account management;
+
+* native Android integration boundaries.
 
 ---
 
@@ -432,19 +457,22 @@ The name of the active context must be displayed as text on the Map.
 
 **Priority: SHOULD**
 
-All buttons and icons corresponding to the main MVP actions should have a visible label or an accessible name that identifies their function.
+All buttons and icons corresponding to the main delivered actions should have a
+visible label or an accessible name that identifies their function.
 
 ---
 
 ## 11. Project Constraints
 
-### NFR-39 - Controlled Scope
+### NFR-39 - Independence From Future Extensions
 
 **Priority: MUST**
 
-No feature defined as outside the MVP scope must be required for the operation of a mandatory MVP feature.
+No feature identified as a future extension must be required for the operation
+of the delivered application.
 
-The MVP must be installable, usable, and demonstrable without implementing features considered as extensions.
+The application must remain installable, usable, and demonstrable without the
+future extensions listed in the project description.
 
 ### NFR-40 - Extensibility
 

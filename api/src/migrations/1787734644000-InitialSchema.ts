@@ -3,9 +3,9 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
 /**
  * Baseline schema: users, groups, group memberships, discoveries and POIs.
  *
- * The SQL is carried over from the former `infra/postgres/init/002…007`
- * scripts, so that the schema is owned here rather than by container init
- * scripts that only ever run on an empty `postgres_data` volume.
+ * The SQL consolidates the former container initialization scripts so that
+ * the schema is owned here rather than by scripts that only ever run on an
+ * empty `postgres_data` volume.
  *
  * Those scripts did run on production, whose volume was created while they
  * still existed. So this migration has to cope with a database that already
@@ -19,10 +19,9 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
  * A database holding only some of the tables is not a state either path
  * produces, so it fails loudly rather than guessing at the difference.
  *
- * `CREATE EXTENSION postgis` is repeated (idempotently) from
- * `infra/postgres/bootstrap/001_enable_postgis.sql` so this migration can also
- * bring up a database that never went through the container's bootstrap
- * script — a test database, for instance.
+ * `CREATE EXTENSION postgis` is part of this migration so it can bring up any
+ * environment, including a fresh test database, without a separate container
+ * bootstrap script.
  */
 export class InitialSchema1787734644000 implements MigrationInterface {
   name = 'InitialSchema1787734644000';
@@ -48,9 +47,9 @@ export class InitialSchema1787734644000 implements MigrationInterface {
     }
 
     if (existing.length === InitialSchema1787734644000.TABLES.length) {
-      // Adopting a database built by infra/postgres/init/. Returning here still
-      // writes the row in `migrations`, which is the whole point: the schema
-      // comes under migration control without being rebuilt.
+      // Adopting a database built before migrations owned the schema. Returning
+      // here still writes the row in `migrations`, which is the whole point: the
+      // schema comes under migration control without being rebuilt.
       return;
     }
 

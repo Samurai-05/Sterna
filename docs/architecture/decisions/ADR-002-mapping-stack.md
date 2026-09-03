@@ -10,7 +10,7 @@ The map is a core component of Sterna. The solution must support:
 
 - displaying an interactive map;
 - distinguishing between explored and unexplored areas;
-- displaying observations and photos;
+- displaying discoveries and their photos;
 - displaying POIs;
 - displaying the user's location;
 - extensive visual customization;
@@ -51,7 +51,7 @@ OpenStreetMap data
  Custom Sterna style
         |
  + Sterna layers
-   - visits
+   - discoveries
    - POIs
    - explored areas
    - future exploration grid

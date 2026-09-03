@@ -36,13 +36,13 @@ Its responsibilities include:
 
 The API, PostgreSQL + PostGIS, and MinIO communicate through the internal Docker Compose network.
 
-The mobile target contains the same frontend packaged through Capacitor and reaches the Node.js API through Nginx over HTTPS.
+The Android target contains the same frontend packaged through Capacitor and reaches the Node.js API through Nginx over HTTPS.
 
 ```text
                      Internet
                     /        \
                    /          \
-          Web browser       Capacitor mobile
+          Web browser       Capacitor Android
            (PWA target)    (packaged frontend)
                  | HTTPS          | HTTPS API
                  \                /
@@ -101,6 +101,20 @@ This architecture is intentionally optimized for simplicity rather than high ava
 - storage capacity is limited by the VM;
 - persistent Docker volumes must be managed carefully;
 - availability depends on the school infrastructure.
+
+## Implementation status
+
+The production Compose stack implements this decision with six services:
+
+- `web`, which combines the built frontend and Nginx;
+- `api`, PostgreSQL/PostGIS, and MinIO on the internal network;
+- `minio-init`, which creates the configured private bucket;
+- `certbot`, which renews the Let's Encrypt certificate shared with Nginx.
+
+GitHub Actions publishes versioned web and API images to GHCR. A self-hosted
+runner on the same VM pulls them, applies database migrations before the API
+starts, launches the stack, and verifies both dependency health and access
+through Nginx. Deployment therefore requires no inbound SSH copy step.
 
 ## Operational considerations
 

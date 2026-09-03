@@ -16,7 +16,7 @@ pipeline, split into two stages:
 CI must pass before a pull request can be merged into `main`; a merge into
 `main` then triggers CD, so the reviewed change reaches the running
 environment without any manual step. This matches the Sprint 0 exit criterion
-described in `docs/work_process.md`: a commit pushed to the repository is
+described in `docs/process/work_process.md`: a commit pushed to the repository is
 automatically built, verified and deployed without manual intervention.
 Version-tagged Android releases use the separate workflow described below.
 
@@ -54,7 +54,7 @@ Release for the tag as `Sterna-vMAJOR.MINOR.PATCH.apk` (for example,
 
 ### Required GitHub Actions secrets
 
-Before publishing the first release, configure these repository secrets:
+Publishing a signed Android release requires these repository secrets:
 
 | Secret                             | Contents                                      |
 | ---------------------------------- | --------------------------------------------- |
@@ -93,23 +93,52 @@ Release page for `v0.1.0`.
 
 Runs after a merge into `main`:
 
-1. **Build the Docker image** for the application.
-2. **Publish the image to the GitHub Container Registry.**
-3. **Deploy automatically to the target environment.**
-   - Performed from a **self-hosted runner** running on the target VM itself,
-     which pulls the newly published image and restarts the corresponding
-     service.
-   - Deliberately **no SSH/SCP** step: the pipeline never pushes credentials
-     or files into the VM from the outside. The runner living on the VM pulls
-     from the registry instead, which keeps the VM as the only place that
-     needs registry credentials.
+1. **Build the web and API production images** in parallel.
+2. **Publish both images to GitHub Container Registry (GHCR)** with an
+   immutable commit-SHA tag and the moving `latest` tag.
+3. **Deploy from the self-hosted runner on the target VM.**
+   - Validate that every required deployment secret is present and that the
+     JWT signing key meets the API's minimum length.
+   - Pull the newly published images from GHCR.
+   - Start PostgreSQL and wait until it is healthy.
+   - Run pending TypeORM migrations in a temporary API container before the
+     long-running API starts.
+   - Start the complete production Compose stack.
+4. **Verify the deployed application.**
+   - Wait for the API healthcheck, which verifies PostgreSQL and MinIO
+     reachability.
+   - Verify the HTTP-to-HTTPS redirect, the application over HTTPS, and
+     `/api/health` through Nginx.
+
+The deployment deliberately uses **no SSH/SCP step**: the workflow does not
+push credentials or application files into the VM from outside. The runner on
+the VM pulls the versioned artifacts from the registry and applies the
+repository's production Compose definition.
+
+### Required deployment secrets
+
+The deployment job requires the following GitHub Actions repository secrets:
+
+| Secret | Purpose |
+|---|---|
+| `POSTGRES_USER` | PostgreSQL application user |
+| `POSTGRES_PASSWORD` | PostgreSQL password |
+| `POSTGRES_DB` | PostgreSQL database name |
+| `MINIO_ROOT_USER` | MinIO service user |
+| `MINIO_ROOT_PASSWORD` | MinIO service password |
+| `MINIO_BUCKET_NAME` | Private photo bucket created by `minio-init` |
+| `JWT_SECRET` | JWT signing key; must contain at least 32 characters |
+
+`SERVER_NAME` is deployment configuration rather than a secret and is set by
+the workflow to `labo-iot1.iict-heig-vd.ch`. Authentication to GHCR uses the
+short-lived `GITHUB_TOKEN` provided automatically to the workflow.
 
 ## Current status
 
 - The pipeline (CI build/test gate + CD image build, publish, and
   registry-pull deployment) is in place and running.
 - The Nginx reverse proxy and the rest of the single-VM architecture
-  described in `docs/architecture.md` are deployed: `deploy.yml` applies
+  described in `docs/architecture/architecture.md` are deployed: `deploy.yml` applies
   pending database migrations, brings up the full stack, waits for the API
   healthcheck, and verifies the app is reachable through Nginx (HTTP→HTTPS
   redirect, the app itself, and `/api/health` proxied through) before

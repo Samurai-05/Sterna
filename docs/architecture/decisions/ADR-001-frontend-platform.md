@@ -6,7 +6,11 @@ Accepted
 
 ## Context
 
-Sterna must target the web and mobile devices with a largely shared codebase. The interface must remain suitable for an interactive application while still being able to access certain native capabilities such as geolocation, the camera, and permissions.
+Sterna must target the web and Android devices with a largely shared codebase.
+The interface must remain suitable for an interactive application while still
+being able to access native capabilities such as geolocation, the camera, the
+photo gallery, system controls, and permissions. Other mobile platforms may be
+considered later but are not part of the delivered application.
 
 The project seeks a balance between code sharing, iteration speed, web experience quality, and access to mobile platforms. A fully native mobile solution would maximize control, but would substantially increase development and maintenance costs.
 
@@ -18,7 +22,7 @@ The selected frontend platform consists of:
 - TypeScript for static typing;
 - Vite for web development and builds;
 - PWA as an installable web target;
-- Capacitor to package the web application for mobile and access native capabilities.
+- Capacitor to package the web application for Android and access native capabilities.
 
 ### Rationale and trade-offs
 
@@ -30,7 +34,7 @@ Vite offers a fast development startup and a simple build pipeline for React and
 
 The shared frontend provides an installable web target through the PWA and can also be packaged for mobile through Capacitor. This gives the web and mobile targets a common codebase. A PWA alone does not guarantee consistent access to native features or mobile distribution equivalent to that of a store app.
 
-Capacitor keeps the web interface and logic in a mobile application and provides a bridge to native APIs. The trade-off is rendering in a WebView, along with maintaining plugins, Android/iOS configurations, and tests on real devices.
+Capacitor keeps the web interface and logic in a mobile application and provides a bridge to native APIs. The trade-off is rendering in a WebView, along with maintaining plugins, Android configuration, and tests on real devices.
 
 ## Alternatives considered
 
@@ -55,3 +59,11 @@ Capacitor keeps the web interface and logic in a mobile application and provides
 - mobile platform plugins and configurations must be maintained;
 - the frontend stack must integrate several building blocks rather than a single mobile framework;
 - this decision must be revisited if mapping performance or store requirements become incompatible with a WebView.
+
+## Implementation status
+
+The decision is fully implemented for the PWA and Android targets. The Android
+application uses Capacitor plugins for geolocation, application lifecycle and
+QR scanning, plus project-specific native code for camera/gallery selection
+and Android system integration. The Android build deliberately excludes the
+PWA service worker.
