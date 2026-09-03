@@ -8,7 +8,7 @@ export default function WeekendParisMockup() {
           <p className="font-display text-sm font-medium tracking-[-0.01em] text-primary">Weekend in Paris</p>
 
           <h2 className="font-display mt-4 text-balance text-[2.75rem] font-semibold leading-[0.95] tracking-[-0.065em] text-black sm:text-6xl lg:text-7xl">
-            One weekend. One map. Every discovery in its place.
+            One weekend. Every discovery in its place.
           </h2>
 
           <p className="mt-5 max-w-lg text-base leading-7 text-black/50 sm:text-lg sm:leading-8">
@@ -18,14 +18,14 @@ export default function WeekendParisMockup() {
 
         <div className="relative flex min-h-[470px] items-center justify-center md:min-h-[540px] md:justify-end lg:min-h-[620px]">
           <Image
-            src="/assets/mockups/weekend-paris.webp"
-            alt="Sterna mobile app showing the Weekend Paris map"
-            width={1024}
-            height={1536}
+            src="/assets/screenshots/current/discovery-detail.png"
+            alt="Sterna discovery detail for Paris from the river"
+            width={390}
+            height={844}
             loading="eager"
             decoding="async"
             draggable="false"
-            className="block h-auto w-full max-w-[400px] select-none object-contain drop-shadow-[0_26px_40px_rgba(0,0,0,0.16)] sm:max-w-[440px] md:max-w-[540px]"
+            className="block h-auto w-full max-w-[390px] select-none rounded-[30px] object-contain drop-shadow-[0_26px_40px_rgba(0,0,0,0.16)] sm:max-w-[390px] md:max-w-[430px]"
           />
         </div>
       </div>

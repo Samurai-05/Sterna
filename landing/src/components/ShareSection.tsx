@@ -7,13 +7,13 @@ export default function ShareSection() {
         <div className="relative order-2 flex justify-center md:order-1 md:justify-start">
           <div className="absolute inset-x-[18%] bottom-[8%] top-[8%] rounded-[32px] bg-primary/[0.07]" />
           <Image
-            src="/assets/mockups/groups.webp"
-            alt="Sterna groups screen with shared trip maps"
-            width={1024}
-            height={1536}
+            src="/assets/screenshots/current/groups.png"
+            alt="Sterna groups screen with shared maps"
+            width={390}
+            height={844}
             loading="lazy"
             decoding="async"
-            className="relative h-auto w-full max-w-[430px] select-none drop-shadow-[0_24px_46px_rgba(0,0,0,0.15)]"
+            className="relative h-auto w-full max-w-[390px] select-none rounded-[30px] drop-shadow-[0_24px_46px_rgba(0,0,0,0.15)]"
           />
         </div>
 

@@ -43,7 +43,7 @@ export default function Hero() {
               </a>
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-black/[0.08] bg-white/80 px-3 py-2.5 text-left shadow-[0_8px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm sm:gap-4 sm:px-4 sm:py-3">
+            <div className="hidden items-center gap-3 rounded-2xl border border-black/[0.08] bg-white/80 px-3 py-2.5 text-left shadow-[0_8px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm sm:flex sm:gap-4 sm:px-4 sm:py-3">
               <a
                 href={androidDownloadUrl}
                 aria-label="Open the Sterna Android download"

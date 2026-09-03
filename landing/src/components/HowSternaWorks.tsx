@@ -3,24 +3,24 @@ import NextImage from 'next/image';
 const steps = [
   {
     number: '01',
-    title: 'Capture',
-    description: 'Take a photo or choose one from your gallery when you find a place worth remembering.',
-    image: '/assets/mockups/new-discovery.webp',
-    alt: 'Sterna screen for creating a new discovery',
+    title: 'Explore',
+    description: 'Start from an interactive map with your discoveries and points of interest.',
+    image: '/assets/screenshots/current/map-exploration.png',
+    alt: 'Sterna interactive exploration map with discoveries and points of interest',
   },
   {
     number: '02',
-    title: 'Locate',
-    description: 'Confirm where it happened, then adjust the place when the photo needs a little help.',
-    image: '/assets/mockups/location.webp',
-    alt: 'Sterna location screen for a saved discovery',
+    title: 'Revisit',
+    description: 'Open a discovery to see its photo and the place where it happened.',
+    image: '/assets/screenshots/current/discovery-detail.png',
+    alt: 'Sterna discovery detail showing a photo from Paris',
   },
   {
     number: '03',
-    title: 'Reveal',
-    description: 'Save the discovery to your trip and see it become part of your personal map.',
-    image: '/assets/mockups/map.webp',
-    alt: 'Sterna map showing saved discoveries',
+    title: 'Track',
+    description: 'Follow countries, discoveries and points of interest in your exploration profile.',
+    image: '/assets/screenshots/current/profile-statistics.png',
+    alt: 'Sterna profile showing exploration statistics and countries visited',
   },
 ];
 
@@ -59,11 +59,11 @@ export default function HowSternaWorks() {
                 <NextImage
                   src={step.image}
                   alt={step.alt}
-                  width={1024}
-                  height={1536}
+                  width={390}
+                  height={844}
                   loading="lazy"
                   decoding="async"
-                  className="mt-6 h-auto w-full max-w-[300px] select-none drop-shadow-[0_24px_46px_rgba(0,0,0,0.14)]"
+                  className="mt-6 h-auto w-full max-w-[270px] select-none rounded-[28px] drop-shadow-[0_24px_46px_rgba(0,0,0,0.14)]"
                 />
               </article>
             ))}

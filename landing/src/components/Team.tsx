@@ -68,6 +68,9 @@ export default function Team() {
           <h2 className="font-display max-w-xl text-4xl font-semibold tracking-[-0.055em] text-black md:text-5xl">
             The team behind Sterna.
           </h2>
+          <p className="mt-3 max-w-xl text-base leading-7 text-black/55">
+            A multidisciplinary team bringing together data science and network engineering.
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
