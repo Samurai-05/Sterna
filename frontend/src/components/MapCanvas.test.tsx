@@ -871,6 +871,33 @@ describe('MapCanvas', () => {
     expect(individualButton.parentElement?.style.display).toBe('none')
   })
 
+  it('renders a normal cluster as an outer ring with a neutral count center', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(<MapCanvas />)
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [clusterFeature(10)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const button = markerInstances
+      .find((marker) =>
+        marker.element?.querySelector('[aria-label="3 discoveries nearby"]'),
+      )
+      ?.element?.querySelector('button') as HTMLButtonElement
+    const normalVisual = button.firstElementChild
+    const centerVisual = normalVisual?.firstElementChild
+
+    expect(normalVisual?.tagName).toBe('SPAN')
+    expect(centerVisual).toHaveClass('rounded-full', 'bg-[#F7F5F0]')
+    expect(centerVisual?.textContent).toBe('3')
+  })
+
   it('deduplicates cluster features returned at tile boundaries', async () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,

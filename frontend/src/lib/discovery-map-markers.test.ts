@@ -6,10 +6,64 @@ import {
   DISCOVERY_MARKER_FULL_ZOOM,
   DISCOVERY_PHOTO_FULL_ZOOM,
   DISCOVERY_PHOTO_MORPH_START_ZOOM,
+  getDiscoveryClusterGradient,
   getDiscoveryMapColor,
   getDiscoveryMarkerVisual,
   toDiscoveryFeatureCollection,
 } from './discovery-map-markers'
+
+describe('getDiscoveryClusterGradient', () => {
+  it('uses only the homogeneous category color for a homogeneous cluster', () => {
+    const gradient = getDiscoveryClusterGradient({ monumentCount: 4 }, 4)
+
+    expect(gradient).toBe(
+      `conic-gradient(from -90deg, ${getDiscoveryMapColor('monument')} 0% 100%)`,
+    )
+  })
+
+  it('keeps mixed category segments proportional and in fixed order', () => {
+    const gradient = getDiscoveryClusterGradient(
+      {
+        landscapeCount: 3,
+        monumentCount: 5,
+        foodCount: 2,
+      },
+      10,
+    )
+
+    expect(gradient).toBe(
+      [
+        'conic-gradient(from -90deg,',
+        `${getDiscoveryMapColor('landscape')} 0% 30%,`,
+        `${getDiscoveryMapColor('monument')} 30% 80%,`,
+        `${getDiscoveryMapColor('food')} 80% 100%)`,
+      ].join(' '),
+    )
+  })
+
+  it('assigns an unexplained remainder to the other category', () => {
+    const gradient = getDiscoveryClusterGradient(
+      {
+        landscapeCount: 2,
+        foodCount: 1,
+      },
+      4,
+    )
+
+    expect(gradient).toContain(`${getDiscoveryMapColor('other')} 75% 100%`)
+    expect(gradient).toContain(`${getDiscoveryMapColor('landscape')} 0% 50%`)
+    expect(gradient).toContain(`${getDiscoveryMapColor('food')} 50% 75%`)
+  })
+
+  it('returns a safe empty gradient for an invalid total', () => {
+    for (const pointCount of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const gradient = getDiscoveryClusterGradient({}, pointCount)
+
+      expect(gradient).toBe('none')
+      expect(gradient).not.toMatch(/NaN|Infinity/)
+    }
+  })
+})
 
 describe('getDiscoveryMarkerVisual', () => {
   it('keeps the HTML marker hidden at world zoom', () => {

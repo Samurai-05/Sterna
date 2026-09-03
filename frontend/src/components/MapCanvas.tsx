@@ -26,6 +26,7 @@ import {
   DISCOVERY_SOURCE_MAX_ZOOM,
   DISCOVERY_STACK_EXPANSION_ZOOM,
   DISCOVERY_STACK_MIN_ZOOM,
+  getDiscoveryClusterGradient,
   getDiscoveryMapColor,
   getDiscoveryMarkerVisual,
   toDiscoveryFeatureCollection,
@@ -809,6 +810,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           entry.feature,
           entry.pointCount,
         )
+        entry.normalVisual.style.backgroundImage = getDiscoveryClusterGradient(
+          entry.feature.properties,
+          entry.pointCount,
+        )
         entry.countLabel.textContent = String(entry.pointCount)
         entry.stackVisual.style.display = 'none'
         entry.isStack = false
@@ -1043,9 +1048,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
         const normalVisual = document.createElement('span')
         normalVisual.className =
-          'absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[1.5px] border-[#F7F5F0] text-sm font-bold text-white shadow-[0_2px_7px_rgba(28,25,23,0.2)]'
+          'absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#F7F5F0] p-[3px] shadow-[0_2px_7px_rgba(28,25,23,0.2)]'
+        const centerVisual = document.createElement('span')
+        centerVisual.className =
+          'flex size-full items-center justify-center rounded-full bg-[#F7F5F0] text-sm font-bold text-[#292524]'
         const countLabel = document.createElement('span')
-        normalVisual.appendChild(countLabel)
+        centerVisual.appendChild(countLabel)
+        normalVisual.appendChild(centerVisual)
 
         const stackVisual = document.createElement('span')
         stackVisual.className =
