@@ -32,6 +32,7 @@ import {
   getGroupDiscoveries,
 } from '@/lib/api'
 import { useDiscoveryPhotoSources } from '@/hooks/useDiscoveryPhotoSource'
+import { useSetActiveMap } from '@/hooks/useActiveMap'
 import { discoveryPath } from '@/lib/discovery-path'
 import {
   handleDiscoveryDrawerOpenChange,
@@ -39,6 +40,7 @@ import {
 } from '@/lib/discovery-drawer'
 import { resolveDiscoveryGroupId } from '@/lib/discovery-group'
 import { getDiscoveryRouteState } from '@/lib/route-state'
+import type { MapTarget } from '@/lib/map-target'
 import { imageUrl, type Discovery } from '@/lib/mock-data'
 import { loadSession } from '@/lib/session'
 import { useMeasuredDrawerPeekSnapPoint } from '@/hooks/useMeasuredDrawerPeekSnapPoint'
@@ -68,6 +70,7 @@ export function DiscoveryDetailPage({
   const location = useLocation()
   const session = loadSession()
   const queryClient = useQueryClient()
+  const setActiveMap = useSetActiveMap()
   const [searchParams] = useSearchParams()
   const groupId = searchParams.get('group')
   const routeState = getDiscoveryRouteState(location.state)
@@ -386,6 +389,22 @@ export function DiscoveryDetailPage({
   )
   const isAuthor =
     discovery.userId === undefined || discovery.userId === session?.user.id
+  const handleShowOnMap = async () => {
+    try {
+      await setActiveMap.mutateAsync(discoveryGroupId)
+      navigate('/', {
+        state: {
+          mapTarget: {
+            coordinates: discovery.coordinates,
+            zoom: 16,
+            label: discovery.name,
+          } satisfies MapTarget,
+        },
+      })
+    } catch {
+      // The mutation exposes its error state beside the action below.
+    }
+  }
 
   return (
     <main
@@ -428,15 +447,6 @@ export function DiscoveryDetailPage({
           className="pointer-events-none absolute inset-x-0 top-0 z-[60] flex justify-between px-[max(1rem,var(--sterna-safe-area-left))] pr-[max(1rem,var(--sterna-safe-area-right))] pt-[max(1rem,var(--sterna-safe-area-top))]"
         >
           <FloatingBackButton onClick={handleBack} />
-          {galleryDiscoveries.length > 1 && (
-            <output
-              aria-live="polite"
-              aria-label={`Photo ${activeDiscoveryIndex + 1} of ${galleryDiscoveries.length}`}
-              className="pointer-events-auto absolute left-1/2 top-[max(1rem,var(--sterna-safe-area-top))] -translate-x-1/2 rounded-full border border-border bg-white px-3 py-1.5 font-sans text-xs font-semibold tabular-nums text-black shadow-lg"
-            >
-              {activeDiscoveryIndex + 1} / {galleryDiscoveries.length}
-            </output>
-          )}
           {isAuthor && (
             <div ref={actionMenuRef} className="pointer-events-auto relative">
               <Button
@@ -582,7 +592,14 @@ export function DiscoveryDetailPage({
                 discovery={discovery}
                 groupId={discoveryGroupId}
                 isAuthor={isAuthor}
+                onShowOnMap={() => void handleShowOnMap()}
+                isShowingOnMap={setActiveMap.isPending}
               />
+              {setActiveMap.isError && (
+                <p role="status" className="mt-3 text-sm text-destructive">
+                  Unable to open this discovery on the map.
+                </p>
+              )}
             </div>
           </DrawerContent>
         </Drawer>

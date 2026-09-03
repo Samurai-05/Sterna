@@ -15,6 +15,7 @@ import {
   getDiscoveries,
   getGroups,
   getPhoto,
+  setActiveMap,
 } from '@/lib/api'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -31,6 +32,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     getGroups: vi.fn(),
     getPhoto: vi.fn(),
     deleteDiscovery: vi.fn(),
+    setActiveMap: vi.fn(),
   }
 })
 
@@ -166,6 +168,7 @@ const getAllGroupDiscoveriesMock = vi.mocked(getAllGroupDiscoveries)
 const getGroupsMock = vi.mocked(getGroups)
 const getPhotoMock = vi.mocked(getPhoto)
 const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
+const setActiveMapMock = vi.mocked(setActiveMap)
 
 const discovery = {
   id: 7,
@@ -203,6 +206,7 @@ beforeEach(() => {
   getGroupsMock.mockResolvedValue([])
   getPhotoMock.mockResolvedValue(new Blob(['photo']))
   deleteDiscoveryMock.mockResolvedValue(undefined)
+  setActiveMapMock.mockResolvedValue({ groupId: null, name: null })
 })
 
 afterEach(() => {
@@ -253,6 +257,7 @@ function LocationProbe() {
       <output data-testid="location-probe">
         {location.pathname}
         {location.search}
+        {JSON.stringify(location.state)}
       </output>
       <button type="button" onClick={() => navigate(-1)}>
         Browser back
@@ -589,7 +594,7 @@ describe('DiscoveryDetailPage', () => {
     expect(viewer).toHaveAttribute('data-controller-close-on-escape', 'false')
   })
 
-  it('shows the current photo position in the fullscreen controls', async () => {
+  it('keeps gallery navigation without showing a photo counter', async () => {
     const secondDiscovery = {
       ...discovery,
       id: 8,
@@ -604,9 +609,8 @@ describe('DiscoveryDetailPage', () => {
       gallerySource: 'personal',
     })
 
-    const counter = await screen.findByLabelText('Photo 1 of 2')
-    expect(counter).toBeVisible()
-    expect(counter).toHaveClass('bg-white', 'text-black')
+    await screen.findByTestId('inline-photo-viewer')
+    expect(screen.queryByLabelText('Photo 1 of 2')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Go back' })).toHaveClass(
       'bg-white',
       'text-black',
@@ -614,7 +618,10 @@ describe('DiscoveryDetailPage', () => {
 
     fireEvent.click(screen.getByTestId('lightbox-next'))
 
-    expect(await screen.findByLabelText('Photo 2 of 2')).toBeVisible()
+    expect(
+      await screen.findByRole('button', { name: 'Lac de Bretaye' }),
+    ).toBeVisible()
+    expect(screen.queryByLabelText('Photo 2 of 2')).not.toBeInTheDocument()
   })
 
   it('keeps the carousel mounted and shows a local unavailable slide when one photo fails', async () => {
@@ -1064,6 +1071,25 @@ describe('DiscoveryDetailPage', () => {
       await screen.findByText('A quiet meadow above the lake.'),
     ).toBeVisible()
     expect(screen.getByText('Personal map')).toBeVisible()
+  })
+
+  it('opens the discovery on its map from the expanded details', async () => {
+    renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Alpine meadow' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Show on map' }))
+
+    await waitFor(() =>
+      expect(setActiveMapMock).toHaveBeenCalledWith({
+        accessToken: 'test-token',
+        groupId: null,
+      }),
+    )
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '"coordinates":[6.6,46.7],"zoom":16,"label":"Alpine meadow"',
+    )
   })
 
   it('shows and automatically hides the post-creation confirmation', async () => {
