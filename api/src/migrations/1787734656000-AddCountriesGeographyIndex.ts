@@ -11,9 +11,7 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
  * untenable (50+ seconds for GET /api/pois) once ExpandMvpPois grew the
  * catalogue to ~920 rows.
  */
-export class AddCountriesGeographyIndex1787734656000
-  implements MigrationInterface
-{
+export class AddCountriesGeographyIndex1787734656000 implements MigrationInterface {
   name = 'AddCountriesGeographyIndex1787734656000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

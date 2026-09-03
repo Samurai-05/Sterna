@@ -14,9 +14,7 @@ export class ReplaceMvpPois1787734648000 implements MigrationInterface {
     // for catching a broken/incomplete generation without hard-failing a
     // fresh install on that later growth.
     if (POI_CATALOG.length < 195) {
-      throw new Error(
-        `The MVP POI catalogue must contain at least 195 rows.`,
-      );
+      throw new Error(`The MVP POI catalogue must contain at least 195 rows.`);
     }
 
     await queryRunner.query(`DELETE FROM pois`);
