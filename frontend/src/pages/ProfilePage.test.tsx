@@ -241,6 +241,23 @@ describe('ProfilePage', () => {
     expect(
       within(profilePage).getByRole('group', { name: 'POIs: 1 of 1' }),
     ).toBeInTheDocument()
+
+    const visitedPois = within(
+      screen.getByRole('region', { name: 'POIs visited' }),
+    )
+    const poiThumbnail = visitedPois.getByRole('button', {
+      name: 'Eiffel Tower',
+    })
+    expect(poiThumbnail.querySelector('img')).toHaveAttribute(
+      'src',
+      expect.stringContaining('w=128'),
+    )
+    expect(poiThumbnail).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(poiThumbnail)
+    expect(poiThumbnail).toHaveAttribute('aria-expanded', 'true')
+    expect(within(poiThumbnail).getByRole('tooltip')).toHaveTextContent(
+      'Eiffel Tower',
+    )
   })
 
   it('keeps section-level recovery messages when profile queries fail', async () => {

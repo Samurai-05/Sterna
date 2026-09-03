@@ -11,6 +11,7 @@ import { ProfileExplorationOverTime } from '@/components/ProfileExplorationOverT
 import { ProfileExplorationStats } from '@/components/ProfileExplorationStats'
 import { ProfileWorldMap } from '@/components/ProfileWorldMap'
 import { UserAvatarImage } from '@/components/UserAvatarImage'
+import { VisitedPoiThumbnail } from '@/components/VisitedPoiThumbnail'
 import {
   Drawer,
   DrawerContent,
@@ -288,15 +289,10 @@ export function ProfilePage() {
                 </button>
               </div>
             ) : (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-3">
                 {discoveredLandmarks.length ? (
                   discoveredLandmarks.map((landmark) => (
-                    <span
-                      key={landmark.id}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium leading-4"
-                    >
-                      {landmark.name}
-                    </span>
+                    <VisitedPoiThumbnail key={landmark.id} poi={landmark} />
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground">
