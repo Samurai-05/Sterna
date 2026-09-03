@@ -353,7 +353,7 @@ describe('MapCanvas', () => {
     render(<MapCanvas />)
 
     expect(mapInstances[0].options.minZoom).toBeUndefined()
-    expect(mapInstances[0].setMinZoomCalls).toEqual([1.3])
+    expect(mapInstances[0].setMinZoomCalls).toEqual([3.3])
   })
 
   it('clamps an initial viewport below the responsive minimum without fitting the map', () => {
@@ -366,7 +366,7 @@ describe('MapCanvas', () => {
       <MapCanvas initialViewport={{ center: [0, 20], zoom: 1 }} />,
     )
 
-    expect(mapInstances[0].setZoomCalls).toEqual([1.3])
+    expect(mapInstances[0].setZoomCalls).toEqual([3.3])
     expect(mapInstances[0].flyToCalls).toEqual([])
     unmount()
     window.sessionStorage.clear()
@@ -385,7 +385,7 @@ describe('MapCanvas', () => {
     mapInstances[0].cameraZoom = 1.1
     act(() => resizeObserverInstances[0].trigger())
 
-    expect(mapInstances[0].setMinZoomCalls).toEqual([1.3, 1.1])
+    expect(mapInstances[0].setMinZoomCalls).toEqual([3.3, 3.1])
     expect(mapInstances[0].flyToCalls).toEqual([])
   })
 
@@ -814,7 +814,7 @@ describe('MapCanvas', () => {
     // sit at scale(1) until the next zoom change.
     render(
       <MapCanvas
-        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 3.3 }}
         discoveries={[
           {
             id: 1,
@@ -831,7 +831,7 @@ describe('MapCanvas', () => {
     const button = marker.element?.firstElementChild as HTMLElement
     const scaledElement = button.firstElementChild as HTMLElement
 
-    expect(scaledElement.style.transform).toBe('scale(0.35)')
+    expect(scaledElement.style.transform).toBe('scale(0.61)')
   })
 
   it('applies the correct scale to a discovery that arrives after the map is already zoomed out', () => {
@@ -844,14 +844,14 @@ describe('MapCanvas', () => {
     // and the user has already zoomed out, with no further zoom event.
     const { rerender } = render(
       <MapCanvas
-        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 3.3 }}
         discoveries={[]}
       />,
     )
 
     rerender(
       <MapCanvas
-        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 3.3 }}
         discoveries={[
           {
             id: 1,
@@ -868,7 +868,7 @@ describe('MapCanvas', () => {
     const button = marker.element?.firstElementChild as HTMLElement
     const scaledElement = button.firstElementChild as HTMLElement
 
-    expect(scaledElement.style.transform).toBe('scale(0.35)')
+    expect(scaledElement.style.transform).toBe('scale(0.61)')
   })
 
   it('applies the correct scale to a POI marker created after a viewport move, with no zoom event', () => {

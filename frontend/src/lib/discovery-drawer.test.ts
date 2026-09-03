@@ -97,4 +97,23 @@ describe('handleDiscoveryDrawerOpenChange', () => {
 
     expect(handleBack).toHaveBeenCalledOnce()
   })
+
+  it('collapses an expanded drawer before leaving the viewer', () => {
+    const closeDrawer = vi.fn()
+    const handleBack = vi.fn()
+
+    handleViewerBackRequest({
+      isDeleteDialogOpen: false,
+      isActionMenuOpen: false,
+      isDrawerExpanded: true,
+      closeDeleteDialog: vi.fn(),
+      closeActionMenu: vi.fn(),
+      restoreActionMenuFocus: vi.fn(),
+      closeDrawer,
+      handleBack,
+    })
+
+    expect(closeDrawer).toHaveBeenCalledOnce()
+    expect(handleBack).not.toHaveBeenCalled()
+  })
 })

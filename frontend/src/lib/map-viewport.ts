@@ -21,6 +21,7 @@ const worldBounds: [[number, number], [number, number]] = [
   [-180, -85.051129],
   [180, 85.051129],
 ]
+const globeMinimumZoomOffset = 2
 
 export function getGlobeFitPadding({
   width,
@@ -49,7 +50,7 @@ export function getResponsiveGlobeMinimumZoom(map: GlobeMap): number | null {
     padding: getGlobeFitPadding({ width, height }),
   })
   return typeof camera?.zoom === 'number' && Number.isFinite(camera.zoom)
-    ? camera.zoom
+    ? camera.zoom + globeMinimumZoomOffset
     : null
 }
 

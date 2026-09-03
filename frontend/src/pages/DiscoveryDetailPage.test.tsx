@@ -2,6 +2,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   StrictMode,
+  useEffect,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -60,6 +61,7 @@ vi.mock('yet-another-react-lightbox', () => ({
     carousel?: { preload?: number }
     animation?: { fade?: number; swipe?: number }
     zoom?: {
+      ref?: (value: { zoom: number } | null) => void
       maxZoomPixelRatio?: number
       doubleTapDelay?: number
       scrollToZoom?: boolean
@@ -107,6 +109,7 @@ function InlineLightboxTestDouble({
   carousel?: { preload?: number }
   animation?: { fade?: number; swipe?: number }
   zoom?: {
+    ref?: (value: { zoom: number } | null) => void
     maxZoomPixelRatio?: number
     doubleTapDelay?: number
     scrollToZoom?: boolean
@@ -119,6 +122,11 @@ function InlineLightboxTestDouble({
 }) {
   const [activeIndex, setActiveIndex] = useState(index)
   const activeSlide = slides[activeIndex]
+
+  useEffect(() => {
+    zoom?.ref?.({ zoom: lightboxZoomLevel })
+    return () => zoom?.ref?.(null)
+  }, [zoom])
 
   return (
     <div
@@ -164,6 +172,7 @@ const getAllGroupDiscoveriesMock = vi.mocked(getAllGroupDiscoveries)
 const getGroupsMock = vi.mocked(getGroups)
 const getPhotoMock = vi.mocked(getPhoto)
 const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
+let lightboxZoomLevel = 1
 
 const discovery = {
   id: 7,
@@ -185,6 +194,7 @@ const discovery = {
 }
 
 beforeEach(() => {
+  lightboxZoomLevel = 1
   saveSession({
     accessToken: 'test-token',
     user: {
@@ -278,6 +288,265 @@ describe('DiscoveryDetailPage', () => {
     expect(screen.getByRole('button', { name: 'Alpine meadow' })).toHaveClass(
       'text-foreground',
     )
+  })
+
+  it('expands the peek drawer after an upward swipe started on the photo', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 240,
+    })
+    fireEvent.pointerMove(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+  })
+
+  it('returns the expanded drawer to peek after a downward photo swipe', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerMove(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 240,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 240,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+  })
+
+  it('lets an expanded drawer close from a photo tap without hiding controls', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+    const main = document.querySelector('main')
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+    expect(main).toHaveAttribute('data-controls-visible', 'true')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+    expect(main).toHaveAttribute('data-controls-visible', 'true')
+  })
+
+  it('toggles controls from a simple photo tap while the drawer is in peek', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const main = document.querySelector('main')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    expect(main).toHaveAttribute('data-controls-visible', 'false')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    expect(main).toHaveAttribute('data-controls-visible', 'true')
+  })
+
+  it('does not close the drawer when the tap starts inside its content', async () => {
+    renderPage()
+
+    const drawer = await screen.findByTestId('discovery-detail-drawer')
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+    fireEvent.click(await screen.findByText('A quiet meadow above the lake.'))
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+  })
+
+  it('leaves the drawer unchanged for a horizontal photo swipe', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 200,
+    })
+    fireEvent.pointerMove(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 220,
+      clientY: 200,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 220,
+      clientY: 200,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+  })
+
+  it('does not treat a vertical drag as a subsequent photo tap', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+    const main = document.querySelector('main')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 200,
+    })
+    fireEvent.pointerMove(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 140,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 140,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+    expect(main).toHaveAttribute('data-controls-visible', 'true')
+  })
+
+  it('leaves vertical pans to YARL when the photo is zoomed', async () => {
+    lightboxZoomLevel = 2
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 200,
+    })
+    fireEvent.pointerMove(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 120,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 120,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+  })
+
+  it('leaves the drawer unchanged for a pinch gesture', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 140,
+      clientY: 200,
+    })
+    fireEvent.pointerDown(photo, {
+      pointerId: 2,
+      pointerType: 'touch',
+      clientX: 180,
+      clientY: 200,
+    })
+    fireEvent.pointerMove(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 120,
+      clientY: 200,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 120,
+      clientY: 200,
+    })
+    fireEvent.pointerUp(photo, {
+      pointerId: 2,
+      pointerType: 'touch',
+      clientX: 200,
+      clientY: 200,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
   })
 
   it('uses the stable viewer background for loading and missing discovery states', async () => {

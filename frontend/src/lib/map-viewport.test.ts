@@ -19,7 +19,7 @@ describe('responsive globe minimum zoom', () => {
       cameraForBounds,
     }
 
-    expect(getResponsiveGlobeMinimumZoom(map)).toBe(1.3)
+    expect(getResponsiveGlobeMinimumZoom(map)).toBe(3.3)
     expect(cameraForBounds).toHaveBeenCalledWith(
       [
         [-180, -85.051129],
