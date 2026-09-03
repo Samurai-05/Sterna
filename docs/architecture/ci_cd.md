@@ -20,6 +20,47 @@ described in `docs/process/work_process.md`: a commit pushed to the repository i
 automatically built, verified and deployed without manual intervention.
 Version-tagged Android releases use the separate workflow described below.
 
+## Deploying a new feature
+
+The following procedure takes a feature from the current `main` branch to the
+running application:
+
+1. Update the local `main` branch and create a feature branch associated with
+   an issue:
+
+   ```bash
+   git switch main
+   git pull
+   git switch -c <issue-number>-<short-description>
+   ```
+
+2. Implement the feature and run the relevant local lint, test, and build
+   commands documented in the component README files.
+3. Commit and push the branch:
+
+   ```bash
+   git add <changed-files>
+   git commit -m "<type>: <short description>"
+   git push -u origin <branch-name>
+   ```
+
+4. Open a pull request targeting `main`, link the issue, and describe the
+   change and its verification steps.
+5. Wait for the `frontend`, `api`, and `android` CI jobs to pass. Obtain the
+   required review approval and resolve all review comments before merging.
+6. Merge the pull request into `main` and delete the feature branch. The merge
+   automatically starts the deployment workflow; no SSH or manual copy to the
+   VM is required.
+7. In GitHub Actions, confirm that both images were published and that the
+   deployment job completed its migration, container-health, and public-route
+   checks. Finally, verify the deployed application at
+   <https://labo-iot1.iict-heig-vd.ch/> and its health endpoint at
+   <https://labo-iot1.iict-heig-vd.ch/api/health>.
+
+If any CI or deployment job fails, inspect that job's logs, correct the issue
+on a branch, and submit the correction through the same pull-request process.
+Do not bypass the pipeline by changing files or containers directly on the VM.
+
 ## CI — Continuous Integration
 
 Runs on pull requests targeting `main` and on pushes to `main`, as three parallel jobs
