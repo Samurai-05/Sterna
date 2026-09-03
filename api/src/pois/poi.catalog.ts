@@ -24,6 +24,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Margineda.jpg?width=1600',
   },
   {
+    countryCode: 'AD',
+    title: 'Església de Sant Joan de Caselles',
+    description:
+      "Church in Canillo, Andorra. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. The site stands approximately 1,552 metres above sea level. Its architecture is associated with Romanesque architecture. It holds the heritage designation “bé d'interès cultural”.",
+    longitude: 1.60778,
+    latitude: 42.57083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Saint%20John%20church%20in%20Caselles%20%288%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'AD',
+    title: 'Our Lady of Meritxell',
+    description:
+      'Andorran Roman Catholic statue of a Virgin Mary apparition. Its form and symbolism make it a memorable expression of local history and identity.',
+    longitude: 1.59028,
+    latitude: 42.55389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mare%20de%20D%C3%A9u%20de%20Meritxell.jpg?width=1600',
+  },
+  {
+    countryCode: 'AD',
+    title: "Casa d'Areny-Plandolit",
+    description:
+      "Historical mansion located in Ordino, Andorra. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1613. Its architecture is associated with vernacular architecture. It holds the heritage designation “bé d'interès cultural”.",
+    longitude: 1.53389,
+    latitude: 42.55667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Areny-Plandolit%20casa%20Ordino%20%28Andorra%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'AD',
+    title: 'Casa Cristo',
+    description:
+      'House in Encamp, Andorra. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. It holds the heritage designation “Andorra heritage designed building”.',
+    longitude: 1.58242,
+    latitude: 42.53515,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Casa%20Cristo%20%282%29.JPG?width=1600',
+  },
+  {
     countryCode: 'AE',
     title: 'The Dubai Fountain',
     description:
@@ -32,6 +72,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 25.19519,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dubai%20Fountain%207.JPG?width=1600',
+  },
+  {
+    countryCode: 'AE',
+    title: 'Ferrari World Abu Dhabi',
+    description:
+      'Theme park in Abu Dhabi. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments. Its documented history dates to approximately 2010. Its design is credited to Benoy.',
+    longitude: 54.60704,
+    latitude: 24.48366,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Il%20museo%20Ferrari%20-%20Abu%20Dhabi%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'AE',
+    title: 'Dubai Creek Tower',
+    description:
+      'Obeservation tower under construction in Dubai. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its design is credited to Santiago Calatrava.',
+    longitude: 55.35519,
+    latitude: 25.19762,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Creek%20Tower.webp?width=1600',
+  },
+  {
+    countryCode: 'AE',
+    title: 'Dubailand',
+    description:
+      'Entertainment complex in Dubai. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments.',
+    longitude: 55.36389,
+    latitude: 25.075,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Inside%20the%20Global%20Village%20in%20Dubai%20February%202019.jpg?width=1600',
+  },
+  {
+    countryCode: 'AE',
+    title: 'Ain Dubai',
+    description:
+      'Observation wheel in Dubai, UAE. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments. The structure reaches approximately 250 metres in height.',
+    longitude: 55.12406,
+    latitude: 25.08011,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ferris%20Wheel%20Ain%20Dubai%20in%20Dubai%2002.jpg?width=1600',
   },
   {
     countryCode: 'AF',
@@ -44,6 +124,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Buddha%20of%20Bamiyan.jpg?width=1600',
   },
   {
+    countryCode: 'AF',
+    title: 'Minaret of Jam',
+    description:
+      'Minaret in Afghanistan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 1194. The structure reaches approximately 65 metres in height. A notable construction material is brick. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 64.51589,
+    latitude: 34.39639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Minaret%20of%20jam%202009%20ghor.jpg?width=1600',
+  },
+  {
+    countryCode: 'AF',
+    title: 'Blue Mosque',
+    description:
+      'Mosque and mausoleum in Mazar-i-Sharif, Afghanistan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1481. Its architecture is associated with Islamic architecture.',
+    longitude: 67.11083,
+    latitude: 36.70889,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Blue%20Mosque%20%28general%20view%29%2C%20Mazar-i%20Sharif%2C%20Afghanistan.jpg?width=1600',
+  },
+  {
+    countryCode: 'AF',
+    title: 'Ai-Khanoum',
+    description:
+      'Ruined Hellenistic city in Afghanistan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The place takes its name from Alexander the Great.',
+    longitude: 69.41083,
+    latitude: 37.16639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/AiKhanumCapitals.jpg?width=1600',
+  },
+  {
+    countryCode: 'AF',
+    title: 'National Museum of Afghanistan',
+    description:
+      'Museum. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1922.',
+    longitude: 69.12,
+    latitude: 34.4675,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/National%20museum%20of%20Afghanistan.jpg?width=1600',
+  },
+  {
     countryCode: 'AG',
     title: 'Holy Family Cathedral',
     description:
@@ -52,6 +172,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 17.1165,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Holy%20Family%20Catholic%20Church.jpg?width=1600',
+  },
+  {
+    countryCode: 'AG',
+    title: "St. John's Cathedral",
+    description:
+      "Anglican cathedral in St. John's, Antigua. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1845. Its architecture is associated with baroque architecture. The place takes its name from John the Apostle.",
+    longitude: -61.8419,
+    latitude: 17.1227,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Exploring%20st-%20john%27s%20antigua%20-%205.jpg?width=1600',
+  },
+  {
+    countryCode: 'AG',
+    title: 'Museum of Antigua and Barbuda',
+    description:
+      "Historic building in St John's, Antigua and Barbuda. Its collections bring together objects and stories that make the country’s history and creativity easier to understand.",
+    longitude: -61.8439,
+    latitude: 17.1222,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ANTIGUA%20MUSEUM.jpg?width=1600',
+  },
+  {
+    countryCode: 'AG',
+    title: 'Fort James',
+    description:
+      "Fort in St. John's, Antigua and Barbuda. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1706.",
+    longitude: -61.86377,
+    latitude: 17.13025,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/FORT%20JAMES%2C%20ST.%20JOHN%27S%2C%20ANTIGUA.jpg?width=1600',
+  },
+  {
+    countryCode: 'AG',
+    title: 'Dockyard Museum',
+    description:
+      'Museum in Antigua and Barbuda. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1855.',
+    longitude: -61.76529,
+    latitude: 17.00799,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dockyard%20Museum.jpg?width=1600',
   },
   {
     countryCode: 'AL',
@@ -64,6 +224,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Butrint%2C%20Albania.jpg?width=1600',
   },
   {
+    countryCode: 'AL',
+    title: 'Apollonia',
+    description:
+      'Ancient city in modern Albania. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 587 BCE. The place takes its name from Apollo. It holds the heritage designation “Cultural Monument of Albania”.',
+    longitude: 19.47266,
+    latitude: 40.72167,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Appolonia%20Albania.jpg?width=1600',
+  },
+  {
+    countryCode: 'AL',
+    title: 'Roman amphitheatre of Durrës',
+    description:
+      'Roman amphitheatre in Durrës, Albania. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Cultural Monument of Albania”.',
+    longitude: 19.44526,
+    latitude: 41.31219,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Amfiteatr%20rzymski%20w%20Durr%C3%ABs%201.jpg?width=1600',
+  },
+  {
+    countryCode: 'AL',
+    title: "Et'hem Bey Mosque",
+    description:
+      'Mosque in Albania. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1789. Its architecture is associated with Ottoman architecture. The place takes its name from Etëhem Bey Mollaj. It holds the heritage designation “Cultural Monument of Albania”.',
+    longitude: 19.81936,
+    latitude: 41.32781,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ethem%20Bey%20mosque%2C%20Tirana%20%28by%20Pudelek%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'AL',
+    title: 'Mother Albania',
+    description:
+      'Statue located at the National Martyrs Cemetery of Albania. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1971. Its creation is associated with Kristaq Rama. The structure reaches approximately 12 metres in height. A notable construction material is concrete.',
+    longitude: 19.84017,
+    latitude: 41.30849,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tirana%20%E2%80%93%20Mother%20Albania%202.jpg?width=1600',
+  },
+  {
     countryCode: 'AM',
     title: 'Geghard',
     description:
@@ -72,6 +272,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 40.14047,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monasterio%20de%20Geghard%2C%20Armenia%2C%202016-10-02%2C%20DD%2063.jpg?width=1600',
+  },
+  {
+    countryCode: 'AM',
+    title: 'Etchmiadzin Cathedral',
+    description:
+      'Cultural heritage monument of Armenia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 303. The structure reaches approximately 27 metres in height. It extends for approximately 29 metres. Its architecture is associated with Armenian architecture.',
+    longitude: 44.291,
+    latitude: 40.16186,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/-%202026%20%D0%AD%D1%87%D0%BC%D0%B8%D0%B0%D0%B4%D0%B7%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BA%D0%B0%D1%84%D0%B5%D0%B4%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9%20%D1%81%D0%BE%D0%B1%D0%BE%D1%80%201-1.jpg?width=1600',
+  },
+  {
+    countryCode: 'AM',
+    title: 'Blue Mosque',
+    description:
+      'Mosque in Yerevan, Armenia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1768. One of its documented purposes is Yerevan History Museum. The structure reaches approximately 24 metres in height. Its architecture is associated with Afsharid architecture.',
+    longitude: 44.5056,
+    latitude: 40.1781,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D5%84%D5%A6%D5%AF%D5%AB%D5%A9%20%C2%AB%D4%BF%D5%A1%D5%BA%D5%B8%D6%82%D5%B5%D5%BF%C2%BB%20%28%D4%B3%D5%B5%D5%B8%D5%B5%20%D5%B4%D5%A6%D5%AF%D5%AB%D5%A9%29%2C%20ArmAg.jpg?width=1600',
+  },
+  {
+    countryCode: 'AM',
+    title: 'Khor Virap',
+    description:
+      'Cultural heritage monument of Armenia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 601. Its design is credited to Nerses III the Builder. Its architecture is associated with Armenian architecture. It holds the heritage designation “cultural heritage monument in Armenia”.',
+    longitude: 44.57611,
+    latitude: 39.87833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monasterio%20Khor%20Virap%2C%20Armenia%2C%202016-10-01%2C%20DD%2025.jpg?width=1600',
+  },
+  {
+    countryCode: 'AM',
+    title: 'Erebuni Fortress',
+    description:
+      'Fortress. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 781 BCE. Its design is credited to Argishti I of Urartu. The site stands approximately 1,017 metres above sea level. It holds the heritage designation “cultural heritage monument in Armenia”.',
+    longitude: 44.53795,
+    latitude: 40.14065,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Erebuni.jpg?width=1600',
   },
   {
     countryCode: 'AO',
@@ -84,6 +324,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kalandula%20Falls%20C.jpg?width=1600',
   },
   {
+    countryCode: 'AO',
+    title: 'Capanda Dam',
+    description:
+      'Hydroelectric dam on the Kwanza River in Malanje Province, Angola. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1989. The structure reaches approximately 110 metres in height. It extends for approximately 1,470 metres.',
+    longitude: 15.46689,
+    latitude: -9.79475,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Capanda%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'AO',
+    title: 'Fortress of São Miguel',
+    description:
+      'Fortress. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 13.22322,
+    latitude: -8.80786,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Luanda-SMiguelFort2.jpg?width=1600',
+  },
+  {
+    countryCode: 'AO',
+    title: 'Church of Our Lady of Remedies',
+    description:
+      'Cathedral in Luanda, Angola. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1665. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 13.22972,
+    latitude: -8.81361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Luanda%20Seu-Retouch.jpg?width=1600',
+  },
+  {
+    countryCode: 'AO',
+    title: 'Laúca Dam',
+    description:
+      'Power station in Angola. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2012. The site stands approximately 850 metres above sea level. It extends for approximately 1,100 metres.',
+    longitude: 15.12561,
+    latitude: -9.74303,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Barragem-La%C3%BAca-em-Malange-01.jpg?width=1600',
+  },
+  {
     countryCode: 'AR',
     title: 'Iguaçu Falls',
     description:
@@ -92,6 +372,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -25.69528,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20Foz%20de%20Igua%C3%A7u%2026%20Nov%202005.jpg?width=1600',
+  },
+  {
+    countryCode: 'AR',
+    title: 'Llullaillaco',
+    description:
+      'Stratovolcano in Chile and Argentina. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 6,723 metres above sea level.',
+    longitude: -68.53667,
+    latitude: -24.71972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Habitat%20du%20Chinchilla%20brevicaudata%20-%20Lllullaillaco.jpg?width=1600',
+  },
+  {
+    countryCode: 'AR',
+    title: 'Cueva de las Manos',
+    description:
+      'Cave with cave paintings in Santa Cruz, Argentina. Its underground formations and atmosphere reveal a landscape hidden from the surface world. A notable construction material is ignimbrite. It holds the heritage designation “National Historical Monument of Argentina”.',
+    longitude: -70.66667,
+    latitude: -47.15,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SantaCruz-CuevaManos-P2210651b.jpg?width=1600',
+  },
+  {
+    countryCode: 'AR',
+    title: 'Copahue',
+    description:
+      'Stratovolcano nestled on the border between Argentina and Chile. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,997 metres above sea level.',
+    longitude: -71.1675,
+    latitude: -37.85222,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Copahue%20Volcano.jpg?width=1600',
+  },
+  {
+    countryCode: 'AR',
+    title: 'Ischigualasto Provincial Park',
+    description:
+      'Provincial park in San Juan province, Argentina. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 2004. The site stands approximately 1,291 metres above sea level. It holds the heritage designation “Place or National Historic Site”.',
+    longitude: -67.91181,
+    latitude: -30.11678,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/A%20-%20Valle%20de%20la%20Luna%2C%20el%20hongo%2C%20San%20Juan%2C%20Argentina.jpg?width=1600',
   },
   {
     countryCode: 'AT',
@@ -104,6 +424,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Schloss%20Sch%C3%B6nbrunn%20Wien%202014%20%28Zuschnitt%202%29.jpg?width=1600',
   },
   {
+    countryCode: 'AT',
+    title: 'Venus of Willendorf',
+    description:
+      'Prehistoric figurine from Austria. Its form and symbolism make it a memorable expression of local history and identity. The structure reaches approximately 11.1 centimetres in height. A notable construction material is oolitic limestone. The place takes its name from Willendorf in der Wachau.',
+    longitude: 15.38333,
+    latitude: 48.31667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Venus%20von%20Willendorf%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'AT',
+    title: "St. Stephen's Cathedral",
+    description:
+      'Church in Vienna, Austria. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1137. The structure reaches approximately 136.4 metres in height. It extends for approximately 107.2 metres. Its architecture is associated with Romanesque architecture.',
+    longitude: 16.37326,
+    latitude: 48.20843,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wien%20-%20Stephansdom%20%281%29.JPG?width=1600',
+  },
+  {
+    countryCode: 'AT',
+    title: 'Belvedere',
+    description:
+      'Building complex that includes two Baroque palaces in Vienna, Austria. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1714. Its design is credited to Johann Lukas von Hildebrandt. One of its documented purposes is art museum. Its architecture is associated with baroque architecture.',
+    longitude: 16.38052,
+    latitude: 48.1934,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wien%20-%20Schloss%20Belvedere%2C%20oberes%20%282%29.JPG?width=1600',
+  },
+  {
+    countryCode: 'AT',
+    title: 'Hofburg Palace',
+    description:
+      'Palace located in Vienna, Austria. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1279. Its design is credited to Filiberto Lucchese. One of its documented purposes is official residence. Its architecture is associated with Renaissance architecture.',
+    longitude: 16.36528,
+    latitude: 48.20639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wien%20-%20Neue%20Hofburg.JPG?width=1600',
+  },
+  {
     countryCode: 'AU',
     title: 'Sydney Harbour Bridge',
     description:
@@ -112,6 +472,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -33.85223,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sydney%20harbour%20bridge%20new%20south%20wales.jpg?width=1600',
+  },
+  {
+    countryCode: 'AU',
+    title: 'National Library of Australia',
+    description:
+      'National reference library in Canberra, Australia. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1961.',
+    longitude: 149.12944,
+    latitude: -35.29639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/National%20Library%20of%20Australia-East%20side%20entrance.jpg?width=1600',
+  },
+  {
+    countryCode: 'AU',
+    title: "Ball's Pyramid",
+    description:
+      'An island and an erosional remnant of a shield volcano southeast of Lord Howe Island in the Pacific. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 572 metres above sea level. It extends for approximately 1.1 kilometres. The place takes its name from Henry Lidgbird Ball.',
+    longitude: 159.25167,
+    latitude: -31.75417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Balls%20Pyramid%2C%20Lord%20Howe%20Marine%20Park%201008.jpg?width=1600',
+  },
+  {
+    countryCode: 'AU',
+    title: 'Carlton Gardens',
+    description:
+      'Garden in Melbourne, Victoria, Australia. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 1856. It holds the heritage designation “National Trust of Australia (Victoria) listing”.',
+    longitude: 144.97,
+    latitude: -37.8061,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20Photo%20of%20Royal%20Exhibition%20Building%2C%20Melbourne.jpg?width=1600',
+  },
+  {
+    countryCode: 'AU',
+    title: 'Naracoorte Caves National Park',
+    description:
+      'National park in Australia. Its underground formations and atmosphere reveal a landscape hidden from the surface world. Its documented history dates to approximately 2011. The site stands approximately 70 metres above sea level. It holds the heritage designation “listed on the Australian National Heritage List”.',
+    longitude: 140.79667,
+    latitude: -37.03611,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Naracoorte%20Caves%20National%20Park%201.jpg?width=1600',
   },
   {
     countryCode: 'AZ',
@@ -124,6 +524,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palace_of_Shirvanshahs_common.JPG?width=1600',
   },
   {
+    countryCode: 'AZ',
+    title: 'Maiden Tower',
+    description:
+      '12th-century monument in the Old City, Baku, Azerbaijan. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1200. The structure reaches approximately 29.5 metres in height. Its architecture is associated with Shirvan-Absheron architectural school. A notable construction material is stone.',
+    longitude: 49.83725,
+    latitude: 40.36617,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baku%20Maiden%20Tower%20004%207736.jpg?width=1600',
+  },
+  {
+    countryCode: 'AZ',
+    title: 'National Art Museum of Azerbaijan',
+    description:
+      'Аrt museum in Baku. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1936. Its design is credited to Nikolaus von der Nonne. The place takes its name from Rustam Mustafayev. It holds the heritage designation “cultural heritage monument in Azerbaijan”.',
+    longitude: 49.83174,
+    latitude: 40.36317,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palace%20of%20De%20Bur.JPG?width=1600',
+  },
+  {
+    countryCode: 'AZ',
+    title: 'Baku TV Tower',
+    description:
+      'A free standing concrete telecommunications tower in Baku, Azerbaijan. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1996. The structure reaches approximately 310 metres in height.',
+    longitude: 49.82333,
+    latitude: 40.35139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baku%20Botanical%20Garden%2060%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'AZ',
+    title: 'National Museum of History of Azerbaijan',
+    description:
+      'Museum in Baku, Azerbaijan. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1920.',
+    longitude: 49.84012,
+    latitude: 40.36948,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ta%C4%9F%C4%B1yevin%20saray%C4%B1%202020.jpg?width=1600',
+  },
+  {
     countryCode: 'BA',
     title: 'Stari Most',
     description:
@@ -132,6 +572,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 43.33728,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mostar%20Old%20Town%20Panorama%202007.jpg?width=1600',
+  },
+  {
+    countryCode: 'BA',
+    title: 'Mehmed Paša Sokolović Bridge',
+    description:
+      'Bridge in Bosnia and Herzegovina. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1577. Its design is credited to Mimar Sinan. It extends for approximately 179.5 metres. Its architecture is associated with Ottoman architecture.',
+    longitude: 19.28794,
+    latitude: 43.78248,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Visegrad%20Drina%20Bridge%201.jpg?width=1600',
+  },
+  {
+    countryCode: 'BA',
+    title: 'Bosnian pyramid claims',
+    description:
+      'A pseudoarchaeological notion in Bosnia and Herzegovina. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 18.17611,
+    latitude: 43.97694,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bosnian%20Pyramid.jpg?width=1600',
+  },
+  {
+    countryCode: 'BA',
+    title: 'Gazi Husrev-beg Mosque',
+    description:
+      'Mosque in Sarajevo. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1531. Its design is credited to Mimar Sinan. Its architecture is associated with Ottoman architecture. The place takes its name from Gazi Husrev-beg.',
+    longitude: 18.42903,
+    latitude: 43.85917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gazi%20Husrev-beg%27s%20Mosque%20IMG%209523%20sarajevo.jpg?width=1600',
+  },
+  {
+    countryCode: 'BA',
+    title: 'Ferhat Pasha Mosque',
+    description:
+      'Mosque in Bosnia and Herzegovina. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1579. Its architecture is associated with Ottoman architecture. The place takes its name from Ferhad Pasha Sokolović. It holds the heritage designation “National Monuments of Bosnia and Herzegovina”.',
+    longitude: 17.18734,
+    latitude: 44.76741,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ferhat%20Pasha%20Mosque%2C%20Banja%20Luka%202016-2.jpg?width=1600',
   },
   {
     countryCode: 'BB',
@@ -144,6 +624,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/161115_Nidhe_Israel_Synagogue.jpg?width=1600',
   },
   {
+    countryCode: 'BB',
+    title: 'Jama Mosque',
+    description:
+      'Mosque in Bridgetown, Barbados. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -59.62256,
+    latitude: 13.10203,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jama%20Mosque%20%28Barbados%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'BB',
+    title: 'Ragged Point Lighthouse',
+    description:
+      'Lighthouse in Barbados. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1875.',
+    longitude: -59.43278,
+    latitude: 13.16361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/RAGGED%20POINT%20LIGHTHOUSE%20-%20BARBADOS.jpg?width=1600',
+  },
+  {
+    countryCode: 'BB',
+    title: 'South Point Lighthouse',
+    description:
+      'Lighthouse in Barbados. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its design is credited to Alexander Gordon. The structure reaches approximately 27 metres in height. A notable construction material is cast iron.',
+    longitude: -59.52941,
+    latitude: 13.04713,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cast%20iron%20lighthouse%20%28375211909%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'BB',
+    title: "Needham's Point Lighthouse",
+    description:
+      'Lighthouse in Barbados. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1855.',
+    longitude: -59.61094,
+    latitude: 13.07861,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/NEEDHAM%27S%20POINT%20LIGHTHOUSE%20-%20BARBADOS.jpg?width=1600',
+  },
+  {
     countryCode: 'BD',
     title: 'Somapura Mahavihara',
     description:
@@ -152,6 +672,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 25.03111,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%E0%A6%AA%E0%A6%BE%E0%A6%B9%E0%A6%BE%E0%A6%A1%E0%A6%BC%E0%A6%AA%E0%A7%81%E0%A6%B0%20%E0%A6%AC%E0%A7%8C%E0%A6%A6%E0%A7%8D%E0%A6%A7%20%E0%A6%AC%E0%A6%BF%E0%A6%B9%E0%A6%BE%E0%A6%B0%2022.jpg?width=1600',
+  },
+  {
+    countryCode: 'BD',
+    title: 'Baitul Mukarram National Mosque',
+    description:
+      'National Mosque of Bangladesh. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1968. Its design is credited to Abdulhusein M. Thariani. Its architecture is associated with Islamic architecture.',
+    longitude: 90.41222,
+    latitude: 23.72944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baitul%20Mukarram%20%28Arabic%2C%20%D8%A8%D9%8A%D8%AA%20%D8%A7%D9%84%D9%85%D9%83%D8%B1%D9%91%D9%85%3B%20Bengali%2C%20%E0%A6%AC%E0%A6%BE%E0%A6%AF%E0%A6%BC%E0%A6%A4%E0%A7%81%E0%A6%B2%20%E0%A6%AE%E0%A7%81%E0%A6%95%E0%A6%BE%E0%A6%B0%E0%A6%B0%E0%A6%AE%3B%20The%20Holy%20House%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'BD',
+    title: 'Lalbagh Fort',
+    description:
+      'Mughal Architecture. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 90.38806,
+    latitude: 23.71903,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dhaka%20Lalbagh%20Fort%205.JPG?width=1600',
+  },
+  {
+    countryCode: 'BD',
+    title: 'Shaheed Minar',
+    description:
+      'Monument to the deaths incurred in the Bangladesh for Language Movement in 1952. Its form and symbolism make it a memorable expression of local history and identity. Its design is credited to Hamidur Rahman. The structure reaches approximately 14 metres in height. Its architecture is associated with modern architecture. It holds the heritage designation “completed”.',
+    longitude: 90.39499,
+    latitude: 23.72217,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Shaheed%20Minar.JPG?width=1600',
+  },
+  {
+    countryCode: 'BD',
+    title: 'Gauḍa',
+    description:
+      'Ancient city in India and Bangladesh. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 88.12803,
+    latitude: 24.88288,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Entry%20gate%20at%20Gaur%2C%20Malda..jpg?width=1600',
   },
   {
     countryCode: 'BE',
@@ -164,6 +724,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tournai%20pan.jpg?width=1600',
   },
   {
+    countryCode: 'BE',
+    title: 'Onze-Lieve-Vrouwekathedraal',
+    description:
+      'Roman-Catholic cathedral in Antwerp, Belgium. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1352. Its design is credited to Rombout II Keldermans. The structure reaches approximately 123 metres in height. It extends for approximately 118 metres.',
+    longitude: 4.40025,
+    latitude: 51.22027,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20of%20Antwerp%20Cathedral%20from%20the%20Groenplaats.jpg?width=1600',
+  },
+  {
+    countryCode: 'BE',
+    title: 'Plantin–Moretus Museum',
+    description:
+      'Museum in Antwerp. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1877. The place takes its name from Christophe Plantin. It holds the heritage designation “World Heritage Site”.',
+    longitude: 4.39816,
+    latitude: 51.21829,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Library%20of%20Plantin-Moretus%20Museum%20in%20Antwerp.jpg?width=1600',
+  },
+  {
+    countryCode: 'BE',
+    title: 'Cathedral of St. Michael and St. Gudula',
+    description:
+      'Cathedral in Brussels, Belgium. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1226. The structure reaches approximately 64 metres in height. It extends for approximately 114 metres. Its architecture is associated with Brabantine Gothic.',
+    longitude: 4.36028,
+    latitude: 50.84778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%28Belgium%29%20St.%20Michael%20%26%20St.%20Gudula%20Cathedral%20Tower%2C%20Brussels.jpg?width=1600',
+  },
+  {
+    countryCode: 'BE',
+    title: 'Madonna of Bruges',
+    description:
+      'Sculpture by Michelangelo. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1503. Its creation is associated with Michelangelo. The structure reaches approximately 135 centimetres in height. A notable construction material is marble.',
+    longitude: 3.22444,
+    latitude: 51.20472,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Madonna%20Michelangelo%20Bruges%20-%20JPG2%20%28cropped%29.jpg?width=1600',
+  },
+  {
     countryCode: 'BF',
     title: 'Ruins of Loropéni',
     description:
@@ -172,6 +772,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 10.31028,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/2016.05-441-131ap%20wall%20Lorop%C3%A9ni%20Ruins%20nr.Lorop%C3%A9ni%28Poni%20Prv.%29%2CBF%20sun15may2016-1106h.jpg?width=1600',
+  },
+  {
+    countryCode: 'BF',
+    title: 'Ouagadougou Cathedral',
+    description:
+      'Catholic cathedral in Burkina Faso. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1936. Its architecture is associated with Romanesque Revival architecture.',
+    longitude: -1.52699,
+    latitude: 12.36198,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ouagacathedrale.png?width=1600',
+  },
+  {
+    countryCode: 'BF',
+    title: 'Karfiguéla waterfalls',
+    description:
+      'Waterfalls in Bukina Faso. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site.',
+    longitude: -4.821,
+    latitude: 10.72228,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cascades%20de%20Karfiguela%20%2812567794645%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'BF',
+    title: 'Bobo Dioulasso Grand Mosque',
+    description:
+      'Mosque in Sudano-Sahelian style. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1850. Its architecture is associated with Sudano-Sahelian architecture. A notable construction material is mud.',
+    longitude: -4.2959,
+    latitude: 11.1778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ASC%20Leiden%20-%20van%20Achterberg%20Collection%20-%205%20-%20021%20-%20Un%20coin%20de%20la%20Grande%20Mosqu%C3%A9e%20avec%20vingt%20niveaux%20de%20b%C3%A2tons%20-%20Bobo-Dioulasso%2C%20Burkina%20Faso%2C%2019-26%20ao%C3%BBt%202001.tif?width=1600',
+  },
+  {
+    countryCode: 'BF',
+    title: 'Symposium de sculpture sur granit de Laongo',
+    description:
+      'Sculpture park in Burkina Faso. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1989.',
+    longitude: -1.28444,
+    latitude: 12.53667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Entr%C3%A9e%20sculpture%20sur%20granite%20de%20Laongo.jpg?width=1600',
   },
   {
     countryCode: 'BG',
@@ -184,6 +824,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/AlexanderNevskyCathedral-Sofia-6.jpg?width=1600',
   },
   {
+    countryCode: 'BG',
+    title: 'Monastery of Saint John of Rila',
+    description:
+      'Eastern Orthodox monastery in Bulgaria. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 946. The site stands approximately 1,147 metres above sea level. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 23.34028,
+    latitude: 42.13333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rila%20Monastery%2C%20August%202013.jpg?width=1600',
+  },
+  {
+    countryCode: 'BG',
+    title: 'Boyana Church',
+    description:
+      'Church in Sofia, Bulgaria. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 980. The place takes its name from Saint Nicholas. It holds the heritage designation “World Heritage Site”.',
+    longitude: 23.26617,
+    latitude: 42.64467,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Boyana%20Church%202%20TB.JPG?width=1600',
+  },
+  {
+    countryCode: 'BG',
+    title: 'Rock-hewn Churches of Ivanovo',
+    description:
+      'UNESCO World Heritage Site in Ruse Province, Bulgaria. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 13. It holds the heritage designation “World Heritage Site”.',
+    longitude: 25.98806,
+    latitude: 43.69556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ivanovski%20skalni%20tsarkvi%2020110714-05.JPG?width=1600',
+  },
+  {
+    countryCode: 'BG',
+    title: 'Thracian Tomb of Sveshtari',
+    description:
+      'Tomb in Bulgaria. Its form and symbolism make it a memorable expression of local history and identity. It holds the heritage designation “World Heritage Site”.',
+    longitude: 26.7663,
+    latitude: 43.74496,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sveshtari%20Thracian%20tomb%20Bulgaria%20IFB.JPG?width=1600',
+  },
+  {
     countryCode: 'BH',
     title: 'Qal’at al Bahrain',
     description:
@@ -192,6 +872,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 26.23361,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bahrain%20Fort%207.jpg?width=1600',
+  },
+  {
+    countryCode: 'BH',
+    title: 'Al Fateh Grand Mosque',
+    description:
+      'Mosque in Bahrain (Juffair). Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1988. Its architecture is associated with Islamic architecture. A notable construction material is concrete.',
+    longitude: 50.59806,
+    latitude: 26.21889,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Al%20Fateh%20outside.jpg?width=1600',
+  },
+  {
+    countryCode: 'BH',
+    title: 'Dilmun Burial Mounds',
+    description:
+      'Archaeological sites in Bahrain. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 50.51278,
+    latitude: 26.14972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burial%20Mounds%20in%20Bahrain%201918.jpg?width=1600',
+  },
+  {
+    countryCode: 'BH',
+    title: 'Beit Al Quran',
+    description:
+      'Library. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1990.',
+    longitude: 50.59154,
+    latitude: 26.23976,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Museum-Beit-Al-Quran%20%28318%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'BH',
+    title: 'Khamis Mosque',
+    description:
+      'Mosque in Bahrain. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 50.5483,
+    latitude: 26.2082,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kaaba%20in%20macca.jpg?width=1600',
   },
   {
     countryCode: 'BI',
@@ -204,6 +924,36 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/La%20chute%20de%20karera%20nyakayi%201%20%C3%A0%20Rutana.jpg?width=1600',
   },
   {
+    countryCode: 'BI',
+    title: 'Livingstone–Stanley Monument',
+    description:
+      'Construction. Its form and symbolism make it a memorable expression of local history and identity. The place takes its name from David Livingstone.',
+    longitude: 29.35278,
+    latitude: -3.48111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Livingstone%20monument%20burundi.jpg?width=1600',
+  },
+  {
+    countryCode: 'BI',
+    title: 'Christ the King Cathedral',
+    description:
+      'Church in Gitega, Burundi. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 29.93306,
+    latitude: -3.43992,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gitega%20Church.JPG?width=1600',
+  },
+  {
+    countryCode: 'BI',
+    title: 'Regina Mundi Cathedral, Bujumbura',
+    description:
+      'Building in Burundi. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1958.',
+    longitude: 29.3637,
+    latitude: -3.39194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale%20Regina%20Mundi%20de%20Bujumbura%2C%202024-3.jpg?width=1600',
+  },
+  {
     countryCode: 'BJ',
     title: 'Royal Palaces of Abomey',
     description:
@@ -212,6 +962,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 7.18556,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Abomey%202006%201.jpg?width=1600',
+  },
+  {
+    countryCode: 'BJ',
+    title: 'Koutammakou',
+    description:
+      'Landscape. Its form and symbolism make it a memorable expression of local history and identity. It holds the heritage designation “World Heritage Site”.',
+    longitude: 1.06667,
+    latitude: 10.1,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Togo%20Taberma%20house%2002.jpg?width=1600',
+  },
+  {
+    countryCode: 'BJ',
+    title: 'São João Baptista d’Ajudá',
+    description:
+      'Restored fort in Benin. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1680. Its architecture is associated with Renaissance. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 2.09,
+    latitude: 6.35889,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fort%20of%20S%C3%A3o%20Jo%C3%A3o%20Baptista%20de%20Ajud%C3%A1%20%281890%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'BJ',
+    title: 'Cotonou Cathedral',
+    description:
+      'Building in Africa. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 2.43916,
+    latitude: 6.35634,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cotonoucathedral.jpg?width=1600',
+  },
+  {
+    countryCode: 'BJ',
+    title: 'Door of No Return',
+    description:
+      'Slavery memorial in Ouidah, Benin. Its form and symbolism make it a memorable expression of local history and identity. Its creation is associated with Fortuné Bandeira.',
+    longitude: 2.0894,
+    latitude: 6.324,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Porte%20du%20non-retour%20au%20Benin.jpg?width=1600',
   },
   {
     countryCode: 'BN',
@@ -224,6 +1014,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sultan%20Omar%20Ali%20Saifuddien%20Mosque%3B%202002.jpg?width=1600',
   },
   {
+    countryCode: 'BN',
+    title: 'Istana Nurul Iman',
+    description:
+      'Palace of Sultan of Brunei. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1984. Its design is credited to Leandro Locsin. One of its documented purposes is official residence.',
+    longitude: 114.92076,
+    latitude: 4.87203,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Istana-nurul-iman.jpg?width=1600',
+  },
+  {
+    countryCode: 'BN',
+    title: "Jame 'Asr Hassanil Bolkiah Mosque",
+    description:
+      'Mosque in Bandar Seri Begawan, Brunei. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1994. The structure reaches approximately 58 metres in height.',
+    longitude: 114.92178,
+    latitude: 4.89794,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/BN-bsb-jame-asr-hassanil-m-2.jpg?width=1600',
+  },
+  {
+    countryCode: 'BN',
+    title: 'Sultan Haji Omar Ali Saifuddien Bridge',
+    description:
+      'Bridge in Brunei. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2020. It extends for approximately 30 kilometres.',
+    longitude: 115.08351,
+    latitude: 4.88634,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kan0424.jpg?width=1600',
+  },
+  {
+    countryCode: 'BN',
+    title: 'Royal Regalia Museum',
+    description:
+      'Museum in Brunei. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1992.',
+    longitude: 114.94156,
+    latitude: 4.89288,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Royal%20Regalie%20%281%29.JPG?width=1600',
+  },
+  {
     countryCode: 'BO',
     title: 'Tiwanaku',
     description:
@@ -232,6 +1062,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -16.55472,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zonnepoort%20tiwanaku.jpg?width=1600',
+  },
+  {
+    countryCode: 'BO',
+    title: 'Parinacota',
+    description:
+      'Volcano on the border of Chile and Bolivia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 6,348 metres above sea level.',
+    longitude: -69.14161,
+    latitude: -18.16575,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Parinacota.jpg?width=1600',
+  },
+  {
+    countryCode: 'BO',
+    title: 'Licancabur',
+    description:
+      'Stratovolcano on the border between Bolivia and Chile. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,920 metres above sea level.',
+    longitude: -67.88278,
+    latitude: -22.83361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volcan%20Licancabur%20Bolivia.jpg?width=1600',
+  },
+  {
+    countryCode: 'BO',
+    title: 'Acotango',
+    description:
+      'Mountain shared by Bolivia and Chile. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 6,052 metres above sea level.',
+    longitude: -69.04694,
+    latitude: -18.38333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Acotango.jpg?width=1600',
+  },
+  {
+    countryCode: 'BO',
+    title: 'El Fuerte de Samaipata',
+    description:
+      'Archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 1,904 metres above sea level. It holds the heritage designation “World Heritage Site”.',
+    longitude: -63.81899,
+    latitude: -18.17836,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fuerte03.jpg?width=1600',
   },
   {
     countryCode: 'BR',
@@ -244,6 +1114,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Christ%20the%20Redeemer%20-%20Cristo%20Redentor.jpg?width=1600',
   },
   {
+    countryCode: 'BR',
+    title: 'São Paulo Museum of Art',
+    description:
+      'Art museum in São Paulo, Brazil. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1947.',
+    longitude: -46.65583,
+    latitude: -23.56111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Vista%20a%C3%A9rea%20de%20la%20Avenida%20Paulista%20de%20S%C3%A3o%20Paulo%2005.jpg?width=1600',
+  },
+  {
+    countryCode: 'BR',
+    title: 'Mineirão',
+    description:
+      'Football stadium in the state of Minas Gerais, Brazil. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1965. It holds the heritage designation “cultural heritage recognized by the Municipal Government of Belo Horizonte”.',
+    longitude: -43.97083,
+    latitude: -19.86583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mineir%C3%A3o%20A%C3%A9rea.jpg?width=1600',
+  },
+  {
+    countryCode: 'BR',
+    title: 'Ibirapuera Park',
+    description:
+      'Park in São Paulo. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 1954. Its design is credited to Oscar Niemeyer. The site stands approximately 757 metres above sea level. It holds the heritage designation “heritage asset listed by IPHAN”.',
+    longitude: -46.65889,
+    latitude: -23.58833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Parque%20do%20ibirapuera%20visto%20do%20c%C3%A9u.jpg?width=1600',
+  },
+  {
+    countryCode: 'BR',
+    title: 'Cathedral of Brasília',
+    description:
+      'Catholic church in Brasília, Brazil. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1970. Its design is credited to Oscar Niemeyer. Its architecture is associated with modern architecture. A notable construction material is concrete.',
+    longitude: -47.87556,
+    latitude: -15.79833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Brasilia%20Catedral%2008%202005%2003.jpg?width=1600',
+  },
+  {
     countryCode: 'BS',
     title: "Dean's Blue Hole",
     description:
@@ -252,6 +1162,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 23.10639,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dean%20Blue%20Hole%20Long%20Island%20Bahamas%2020110210.JPG?width=1600',
+  },
+  {
+    countryCode: 'BS',
+    title: 'St. Francis Xavier Cathedral, Nassau',
+    description:
+      'Church in Nassau, The Bahamas. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1886. The place takes its name from Francis Xavier.',
+    longitude: -77.34814,
+    latitude: 25.07589,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/St.%20Francis%20Xavier%20Cathedral%2C%20Nassau.jpg?width=1600',
+  },
+  {
+    countryCode: 'BS',
+    title: 'Fort Montagu',
+    description:
+      '18th century fortification located in Nassau, Bahamas. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1741.',
+    longitude: -77.30658,
+    latitude: 25.07366,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fort%20Montagu%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'BS',
+    title: 'Nassau Public Library',
+    description:
+      'Library and museum in the Bahamas. Its collections bring together objects and stories that make the country’s history and creativity easier to understand.',
+    longitude: -77.34053,
+    latitude: 25.07648,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Downtown%20Nassau%20-%202025%20-%20Nassau%20Public%20Library%20%282%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'BS',
+    title: 'Great Isaac Lighthouse',
+    description:
+      'Lighthouse in The Bahamas. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1851. A notable construction material is cast iron.',
+    longitude: -79.08944,
+    latitude: 26.02833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Isaac%20Cay%2C%20Bahamas.jpg?width=1600',
   },
   {
     countryCode: 'BT',
@@ -264,6 +1214,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Paro%20Taktsang%2C%20Bhutan%20%28edited%29.jpg?width=1600',
   },
   {
+    countryCode: 'BT',
+    title: 'Punakha Dzong',
+    description:
+      'Administrative centre in Punakha, Bhutan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1638.',
+    longitude: 89.86306,
+    latitude: 27.58194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/PunakhaDzongInSpring.jpg?width=1600',
+  },
+  {
+    countryCode: 'BT',
+    title: 'Tashichho Dzong',
+    description:
+      'Buddhist monastery and fortress in Bhutan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 89.635,
+    latitude: 27.48944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tashichoedzong-Bhutan-2001.JPG?width=1600',
+  },
+  {
+    countryCode: 'BT',
+    title: 'Simtokha Dzong',
+    description:
+      'Dzong in Bhutan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1629.',
+    longitude: 89.66944,
+    latitude: 27.43806,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Simtokha%20Dzong%2C%20Bhutan%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'BT',
+    title: 'Rinpung Dzong',
+    description:
+      'Buddhist monastery in Bhutan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1645.',
+    longitude: 89.42333,
+    latitude: 27.42667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rinpung%20Dzong%20Paro%202007-11-11%20CJF.JPG?width=1600',
+  },
+  {
     countryCode: 'BW',
     title: 'Tsodilo',
     description:
@@ -272,6 +1262,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -18.77167,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tsodilo%20rock%20paintings%201.jpg?width=1600',
+  },
+  {
+    countryCode: 'BW',
+    title: 'Kazungula Bridge',
+    description:
+      'Bridge connecting Botswana and Zambia. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2020. It extends for approximately 923 metres. A notable construction material is concrete.',
+    longitude: 25.2625,
+    latitude: -17.79111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20new%20bridge%20at%20Kazangula.jpg?width=1600',
+  },
+  {
+    countryCode: 'BW',
+    title: 'Gaborone Dam',
+    description:
+      'Dam in South-East District. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. The site stands approximately 1,000 metres above sea level.',
+    longitude: 25.92638,
+    latitude: -24.70016,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/GaberoneAerial.jpg?width=1600',
+  },
+  {
+    countryCode: 'BW',
+    title: 'Kgale Hill',
+    description:
+      'Hill located in Gaborone, Botswana. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. The site stands approximately 1,287 metres above sea level. A notable construction material is granite.',
+    longitude: 25.8678,
+    latitude: -24.6957,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kgale%20Hill%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'BW',
+    title: 'Kubu Island',
+    description:
+      'Granite rock hill and archaeological site in Botswana. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 25.819,
+    latitude: -20.893,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/KubuIsland%2002.jpg?width=1600',
   },
   {
     countryCode: 'BY',
@@ -284,6 +1314,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mir%20Castle%202018.jpg?width=1600',
   },
   {
+    countryCode: 'BY',
+    title: 'Nesvizh Castle',
+    description:
+      'Castle in Niasviž, Belarus. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1583. Its design is credited to Giovanni Maria Bernardoni. The site stands approximately 188 metres above sea level. Its architecture is associated with baroque architecture.',
+    longitude: 26.69174,
+    latitude: 53.22288,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%97%D0%B0%D0%BC%D0%B0%D0%BA-%D0%BF%D0%B0%D0%BB%D0%B0%D1%86%20%D1%83%20%D0%9D%D1%8F%D1%81%D1%8C%D0%B2%D1%96%D0%B6%D1%8B%20%D0%B7%D0%BD%D1%83%D1%82%D1%80%D1%8B.jpg?width=1600',
+  },
+  {
+    countryCode: 'BY',
+    title: 'Brest Fortress',
+    description:
+      '19th century Belarusian fortress. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1836. A notable construction material is brick. It holds the heritage designation “Cultural heritage of Belarus”.',
+    longitude: 23.65278,
+    latitude: 52.08333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/BrestFortress7.JPG?width=1600',
+  },
+  {
+    countryCode: 'BY',
+    title: 'Church of Saints Simon and Helena',
+    description:
+      'Church building in Minsk, Belarus. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1905. Its design is credited to Tomasz Pajzderski. Its architecture is associated with Romanesque Revival architecture. A notable construction material is brick.',
+    longitude: 27.54748,
+    latitude: 53.89652,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Belarus-Minsk-Church%20of%20Simon%20and%20Helena-3.jpg?width=1600',
+  },
+  {
+    countryCode: 'BY',
+    title: 'Belarusian National Arts Museum',
+    description:
+      'State art museum in Minsk. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1939. It holds the heritage designation “Cultural heritage of Belarus”.',
+    longitude: 27.56056,
+    latitude: 53.89833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%9D%D0%B0%D1%86%D1%8B%D1%8F%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%20%D0%BC%D0%B0%D1%81%D1%82%D0%B0%D1%86%D0%BA%D1%96%20%D0%BC%D1%83%D0%B7%D1%8D%D0%B9%20%D0%A0%D1%8D%D1%81%D0%BF%D1%83%D0%B1%D0%BB%D1%96%D0%BA%D1%96%20%D0%91%D0%B5%D0%BB%D0%B0%D1%80%D1%83%D1%81%D1%8C.jpg?width=1600',
+  },
+  {
     countryCode: 'BZ',
     title: 'Great Blue Hole',
     description:
@@ -292,6 +1362,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 17.31556,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Blue%20Hole.jpg?width=1600',
+  },
+  {
+    countryCode: 'BZ',
+    title: 'Caracol',
+    description:
+      'Maya city in Belize. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: -89.11759,
+    latitude: 16.76393,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Caracol-Temple.jpg?width=1600',
+  },
+  {
+    countryCode: 'BZ',
+    title: 'Xunantunich',
+    description:
+      'Ancient Maya archaeological site in western Belize. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 152 metres above sea level.',
+    longitude: -89.14221,
+    latitude: 17.09019,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Xunantunich%20Belize%201%2019.jpg?width=1600',
+  },
+  {
+    countryCode: 'BZ',
+    title: 'Lamanai',
+    description:
+      'Archaeological site in Belize. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 28 metres above sea level.',
+    longitude: -88.65246,
+    latitude: 17.76432,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Templeofthejaguar.jpg?width=1600',
+  },
+  {
+    countryCode: 'BZ',
+    title: 'Altun Ha',
+    description:
+      'Archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 11 metres above sea level.',
+    longitude: -88.3475,
+    latitude: 17.76464,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Altun%20Ha%20Belize.jpg?width=1600',
   },
   {
     countryCode: 'CA',
@@ -304,6 +1414,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/CN%20Tower%20from%20Puente%20de%20Luz%2C%20Toronto%2C%20Ontario%2C%202025-08-25%2001.jpg?width=1600',
   },
   {
+    countryCode: 'CA',
+    title: "L'Anse aux Meadows",
+    description:
+      'Archaeological site on the island of Newfoundland, Canada. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “national historic site of Canada”.',
+    longitude: -55.53122,
+    latitude: 51.59527,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Authentic%20Viking%20recreation.jpg?width=1600',
+  },
+  {
+    countryCode: 'CA',
+    title: 'Head-Smashed-In Buffalo Jump',
+    description:
+      'Buffalo jump located at the foothills of the Rocky Mountains in Canada. Its underground formations and atmosphere reveal a landscape hidden from the surface world. It holds the heritage designation “provincial historic resource”.',
+    longitude: -113.625,
+    latitude: 49.7494,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Head-Smashed-In%20Buffalo%20Jump-27527-2.jpg?width=1600',
+  },
+  {
+    countryCode: 'CA',
+    title: 'Tin Can Cathedral',
+    description:
+      'First independent Ukrainian church in North America. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -97.1341,
+    latitude: 49.9123,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tin%20Can%20Cathedral.jpg?width=1600',
+  },
+  {
+    countryCode: 'CA',
+    title: 'Stanley Park',
+    description:
+      'Park in Vancouver, British Columbia, Canada. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 1888. The place takes its name from Frederick Stanley, 16th Earl of Derby. It holds the heritage designation “national historic site of Canada”.',
+    longitude: -123.14,
+    latitude: 49.3,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stanley%20Park%20SqueakyMarmot%20December%2017%2C%202006.jpg?width=1600',
+  },
+  {
     countryCode: 'CD',
     title: 'Mount Nyiragongo',
     description:
@@ -312,6 +1462,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -1.51667,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lava%20Lake%20Nyiragongo%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'CD',
+    title: 'Nyamuragira',
+    description:
+      'Shield volcano in Africa. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,058 metres above sea level.',
+    longitude: 29.2,
+    latitude: -1.40833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nyamulagira%20volcano%20%2820439939664%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'CD',
+    title: 'Boyoma Falls',
+    description:
+      'Series of waterfalls on the Congo River in Orientale Province, Democratic Republic of the Congo. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site.',
+    longitude: 25.20639,
+    latitude: 0.49111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zaire%20kisangani%20stroom%2011%20copy.jpg?width=1600',
+  },
+  {
+    countryCode: 'CD',
+    title: 'Mount Bisoke',
+    description:
+      'A volcano located on the border between the Democratic Republic of Congo and Rwanda. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,711 metres above sea level.',
+    longitude: 29.44833,
+    latitude: -1.51111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Visoke.jpg?width=1600',
+  },
+  {
+    countryCode: 'CD',
+    title: 'Inga Falls',
+    description:
+      'Waterfall on the Congo River in the Democratic Republic of the Congo. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site.',
+    longitude: 13.60639,
+    latitude: -5.53306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Inga03.jpg?width=1600',
   },
   {
     countryCode: 'CF',
@@ -324,6 +1514,16 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Une%20foule%20devant%20la%20Cath%C3%A9drale%20de%20Bangui%2C%20le%207%20mai%202018.jpg?width=1600',
   },
   {
+    countryCode: 'CF',
+    title: 'St. Peter Claver Cathedral, Bangassou',
+    description:
+      'Building in Central African Republic. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 22.8097,
+    latitude: 4.7464,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale%20Saint%20Pierre%20Claver%20Bangassou.JPG?width=1600',
+  },
+  {
     countryCode: 'CG',
     title: 'Livingstone Falls',
     description:
@@ -332,6 +1532,36 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -4.83333,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chutes%20Livingstone.jpg?width=1600',
+  },
+  {
+    countryCode: 'CG',
+    title: 'Sacred Heart Cathedral, Brazzaville',
+    description:
+      'Building in Republic of the Congo. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1892. Its design is credited to Prosper Philippe Augouard. Its architecture is associated with modern architecture.',
+    longitude: 15.27396,
+    latitude: -4.27023,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale%20de%20Brazzaville%20avant%201926.jpg?width=1600',
+  },
+  {
+    countryCode: 'CG',
+    title: 'basilique Sainte-Anne-du-Congo de Brazzaville',
+    description:
+      'Building in Republic of the Congo. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2010. Its design is credited to Roger Erell.',
+    longitude: 15.28451,
+    latitude: -4.26846,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/WPWPCG%2008.jpg?width=1600',
+  },
+  {
+    countryCode: 'CG',
+    title: 'Brazzaville Zoo',
+    description:
+      'Zoo located in Brazzaville, Republic of the Congo. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments.',
+    longitude: 15.261,
+    latitude: -4.2717,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/De%20Brazza%27s%20Monkey%20%2814398780995%29.jpg?width=1600',
   },
   {
     countryCode: 'CH',
@@ -344,6 +1574,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cervino%20cloud.jpg?width=1600',
   },
   {
+    countryCode: 'CH',
+    title: 'Rhine Falls',
+    description:
+      'Waterfall on the Rhein River in Switzerland. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 23 metres in height. Its recorded width is approximately 1,500 metres.',
+    longitude: 8.61583,
+    latitude: 47.67722,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chutes%20du%20Rhin%20-%20Octobre%202021.jpg?width=1600',
+  },
+  {
+    countryCode: 'CH',
+    title: 'Chillon Castle',
+    description:
+      'Moated castle in Veytaux in the canton of Vaud, Switzerland. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1160. Its design is credited to James of Saint George. The structure reaches approximately 25 metres in height. It extends for approximately 100 metres.',
+    longitude: 6.9275,
+    latitude: 46.41417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/001%20Chateau%20de%20Chillon%20and%20Dents%20du%20Midi%20Photo%20by%20Giles%20Laurent.jpg?width=1600',
+  },
+  {
+    countryCode: 'CH',
+    title: 'Abbey of Saint Gall',
+    description:
+      "Abolished monastery and collegiate district with cathedral in the city of St. Gallen, Switzerland. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 719. One of its documented purposes is pilgrims' hostel. Its architecture is associated with baroque architecture. It holds the heritage designation “class A Swiss cultural property of national significance”.",
+    longitude: 9.37722,
+    latitude: 47.42306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/StGallen%20asv2022-10%20F%C3%BCrstabtei%20img1.jpg?width=1600',
+  },
+  {
+    countryCode: 'CH',
+    title: 'Reichenbach Falls',
+    description:
+      'Waterfall in Switzerland that is famous for featuring in the fictitious life of Sherlock Holmes. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site.',
+    longitude: 8.18306,
+    latitude: 46.71361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Schattenhalb%20Reichenbachfall%207-05-2024%2010-56-28.jpg?width=1600',
+  },
+  {
     countryCode: 'CI',
     title: 'Basilica of Our Lady of Peace of Yamoussoukro',
     description:
@@ -352,6 +1622,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 6.81111,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basilique%20notre%20Dame%20de%20la%20Paix%20de%20Yamoussoukro%2016.jpg?width=1600',
+  },
+  {
+    countryCode: 'CI',
+    title: 'Kossou Dam',
+    description:
+      'Embankment dam. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. The site stands approximately 206 metres above sea level.',
+    longitude: -5.47333,
+    latitude: 7.03111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kossou%20dam%20view%20from%20the%20lake.JPG?width=1600',
+  },
+  {
+    countryCode: 'CI',
+    title: "St. Paul's Cathedral",
+    description:
+      'Religious building of Abidjan (Ivory Coast). Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1985. Its design is credited to Aldo Spirito. The place takes its name from Paul the Apostle.',
+    longitude: -4.02008,
+    latitude: 5.33291,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/StPaulusAbidjanOverview.jpg?width=1600',
+  },
+  {
+    countryCode: 'CI',
+    title: 'Taabo Dam',
+    description:
+      "Dam in Côte d'Ivoire. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1975. The site stands approximately 120 metres above sea level. It extends for approximately 8,100 metres.",
+    longitude: -5.084,
+    latitude: 6.21044,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ISS034-E-34701%20-%20View%20of%20C%C3%B4te%20d%27Ivoire.jpg?width=1600',
+  },
+  {
+    countryCode: 'CI',
+    title: 'St. Ann Cathedral, Gagnoa',
+    description:
+      'Building in Ivory Coast. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -5.94312,
+    latitude: 6.1251,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathgagnoa.jpg?width=1600',
   },
   {
     countryCode: 'CL',
@@ -364,6 +1674,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ahu%20Tongariki.jpg?width=1600',
   },
   {
+    countryCode: 'CL',
+    title: 'Osorno',
+    description:
+      'Stratovolcano in Chile. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,652 metres above sea level.',
+    longitude: -72.49306,
+    latitude: -41.1,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Petrohu%C3%A9%2C%202019%20%2810%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'CL',
+    title: 'Villarrica Volcano',
+    description:
+      'Chilean volcano. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,850 metres above sea level. A notable construction material is basalt.',
+    longitude: -71.93917,
+    latitude: -39.42,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pucon-y-su-Volcan.jpg?width=1600',
+  },
+  {
+    countryCode: 'CL',
+    title: 'Cathedral of the Most Holy Conception',
+    description:
+      'Cathedral. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1940. Its architecture is associated with modern architecture.',
+    longitude: -73.05131,
+    latitude: -36.82753,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Catedral%20de%20la%20Sant%C3%ADsima%20Concepci%C3%B3n%2C%20Concepci%C3%B3n%2C%202016-10-15.jpg?width=1600',
+  },
+  {
+    countryCode: 'CL',
+    title: 'Chaitén',
+    description:
+      'Mountain in Palena Province, Chile. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,122 metres above sea level. A notable construction material is rhyolite.',
+    longitude: -72.64583,
+    latitude: -42.83278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chaiten%20Volcano%20NASA.jpg?width=1600',
+  },
+  {
     countryCode: 'CM',
     title: 'Mount Cameroon',
     description:
@@ -372,6 +1722,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 4.21667,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Le%20Char%20des%20Dieux%20-%20Fako%20Mountain%20-%20Mount%20Cameroon%20National%20Park%20-%20R%C3%A9gion%20du%20Sud-ouest.jpg?width=1600',
+  },
+  {
+    countryCode: 'CM',
+    title: 'Lake Monoun',
+    description:
+      'Lake in West Province, Cameroon. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,080 metres above sea level. It extends for approximately 1.5 kilometres.',
+    longitude: 10.58667,
+    latitude: 5.58,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake%20Monoun.jpg?width=1600',
+  },
+  {
+    countryCode: 'CM',
+    title: 'Mount Manengouba',
+    description:
+      'Mountain in Cameroon. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,411 metres above sea level.',
+    longitude: 9.83,
+    latitude: 5.03,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Manengouba%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'CM',
+    title: 'Mount Kupe',
+    description:
+      'Mountain in Cameroun. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,064 metres above sea level. A notable construction material is granite.',
+    longitude: 9.707,
+    latitude: 4.801,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mungo%20valley%2C%20Cameroon.svg?width=1600',
+  },
+  {
+    countryCode: 'CM',
+    title: 'Mount Oku',
+    description:
+      'Mountain in Cameroon. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,011 metres above sea level.',
+    longitude: 10.51889,
+    latitude: 6.19972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake%20Oku%20Cameroon.jpg?width=1600',
   },
   {
     countryCode: 'CN',
@@ -384,6 +1774,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/ThreeGorgesDam-China2009.jpg?width=1600',
   },
   {
+    countryCode: 'CN',
+    title: 'Forbidden City',
+    description:
+      'Chinese imperial palace in Beijing. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1420. Its design is credited to Kuai Xiang. It holds the heritage designation “Major Historical and Cultural Site Protected at the National Level”.',
+    longitude: 116.39083,
+    latitude: 39.91583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hall%20of%20Supreme%20Harmony%20%2820241127120000%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'CN',
+    title: 'Terracotta Army',
+    description:
+      'Collection of ancient Chinese military statues. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 247 BCE.',
+    longitude: 109.27306,
+    latitude: 34.385,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/51714-Terracota-Army.jpg?width=1600',
+  },
+  {
+    countryCode: 'CN',
+    title: 'Potala Palace',
+    description:
+      '7th-century Tibetan fortress and palace in Lhasa, rebuilt in the 17th century as the winter seat of the Dalai Lamas. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 637. One of its documented purposes is official residence. The structure reaches approximately 117 metres in height. It extends for approximately 400 metres.',
+    longitude: 91.11694,
+    latitude: 29.65778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Potala.jpg?width=1600',
+  },
+  {
+    countryCode: 'CN',
+    title: 'Temple of Heaven',
+    description:
+      'Imperial complex of religious buildings in Beijing, China. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Chinese architecture. It holds the heritage designation “Major Historical and Cultural Site Protected at the National Level”.',
+    longitude: 116.4066,
+    latitude: 39.8822,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple%20of%20Heaven%2020160323%2001.jpg?width=1600',
+  },
+  {
     countryCode: 'CO',
     title: 'Nevado del Ruiz',
     description:
@@ -392,6 +1822,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 4.89528,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nevado%20del%20Ruiz%201985.jpg?width=1600',
+  },
+  {
+    countryCode: 'CO',
+    title: 'Galeras',
+    description:
+      'Volcanic mountain in Colombia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 4,276 metres above sea level. A notable construction material is andesite.',
+    longitude: -77.36667,
+    latitude: 1.21667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volc%C3%A1n%20Galeras%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'CO',
+    title: 'Las Lajas Sanctuary',
+    description:
+      'National monument of Colombia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1949. Its design is credited to Lucindo Espinosa. Its architecture is associated with Gothic Revival. The place takes its name from Our Lady of the Rosary.',
+    longitude: -77.586,
+    latitude: 0.8055,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Santuario%20de%20Las%20Lajas%2C%20Ipiales%2C%20Colombia%2C%202015-07-21%2C%20DD%2021-23%20HDR.jpg?width=1600',
+  },
+  {
+    countryCode: 'CO',
+    title: 'Mosque of Omar Ibn Al-Khattab',
+    description:
+      'Mosque in Colombia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1997. The structure reaches approximately 31 metres in height. Its architecture is associated with Islamic architecture. The place takes its name from Umar ibn Al-Khattāb.',
+    longitude: -72.23444,
+    latitude: 11.37806,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mezquita%20Maicao%20Colombia%20Yuri%20Romero%20Picon.JPG?width=1600',
+  },
+  {
+    countryCode: 'CO',
+    title: 'San Agustin archeological park',
+    description:
+      'In San Agustin, Huila, Colombia. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. It holds the heritage designation “World Heritage Site”.',
+    longitude: -76.29611,
+    latitude: 1.88444,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Parque%20Arqueol%C3%B3gico%20de%20San%20Agust%C3%ADn-Mesita%20A%2012.jpg?width=1600',
   },
   {
     countryCode: 'CR',
@@ -404,6 +1874,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Parque%20de%20las%20Esferas%20de%20Costa%20Rica.JPG?width=1600',
   },
   {
+    countryCode: 'CR',
+    title: 'Irazú Volcano',
+    description:
+      'Mountain in Costa Rica. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,432 metres above sea level.',
+    longitude: -83.8525,
+    latitude: 9.97917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Irazu%20Volcano.JPG?width=1600',
+  },
+  {
+    countryCode: 'CR',
+    title: 'Poás Volcano',
+    description:
+      'Mountain in Costa Rica. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,708 metres above sea level. It holds the heritage designation “IUGS Geological Heritage Site”.',
+    longitude: -84.2303,
+    latitude: 10.19782,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Poas%20crater.jpg?width=1600',
+  },
+  {
+    countryCode: 'CR',
+    title: 'Turrialba',
+    description:
+      'Active volcano in Costa Rica. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,325 metres above sea level. A notable construction material is andesite.',
+    longitude: -83.76667,
+    latitude: 10.03333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Turrialba%20Volcano%20cone%20Sept%202005%20.jpg?width=1600',
+  },
+  {
+    countryCode: 'CR',
+    title: 'Rincón de la Vieja Volcano',
+    description:
+      'Volcano in Liberia, Guanacaste, Costa Rica. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,916 metres above sea level. A notable construction material is andesite.',
+    longitude: -85.32389,
+    latitude: 10.83,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Guanacaste%20National%20Park.jpg?width=1600',
+  },
+  {
     countryCode: 'CU',
     title: 'Castillo de San Pedro de la Roca',
     description:
@@ -412,6 +1922,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 19.96871,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castillo%20del%20Morro%20by%20Glogg%204.jpg?width=1600',
+  },
+  {
+    countryCode: 'CU',
+    title: 'Che Guevara Mausoleum',
+    description:
+      'Memorial in Santa Clara, Cuba. Its form and symbolism make it a memorable expression of local history and identity. The place takes its name from Che Guevara.',
+    longitude: -79.97938,
+    latitude: 22.40264,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Che%20Guevara%20-%20Grab%20in%20Santa%20Clara%2C%20Kuba.jpg?width=1600',
+  },
+  {
+    countryCode: 'CU',
+    title: 'Havana Cathedral',
+    description:
+      'Roman Catholic cathedral in Havana, Cuba. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1777. It extends for approximately 34 metres. Its architecture is associated with baroque architecture. The place takes its name from Immaculate Conception of Mary.',
+    longitude: -82.35192,
+    latitude: 23.14138,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/La%20Havane%20cathedrale%20face.JPG?width=1600',
+  },
+  {
+    countryCode: 'CU',
+    title: 'Museum of the Revolution',
+    description:
+      'Museum dedicated to history of the revolution on Cuba, located in Havana. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1959.',
+    longitude: -82.35667,
+    latitude: 23.14167,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Museum%20of%20Revolution%20Cuba.jpg?width=1600',
+  },
+  {
+    countryCode: 'CU',
+    title: 'San Carlos de la Cabaña Fortress',
+    description:
+      'Spanish colonial fort in Havana, Cuba. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1762. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: -82.35,
+    latitude: 23.14722,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cabanaramparts.jpg?width=1600',
   },
   {
     countryCode: 'CV',
@@ -424,6 +1974,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pico-94-117-13.jpg?width=1600',
   },
   {
+    countryCode: 'CV',
+    title: 'Fort Real de São Filipe',
+    description:
+      'UNESCO World Heritage Site. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1593. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: -23.60194,
+    latitude: 14.91722,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/CidadeVelha-SaoFelipe2.jpg?width=1600',
+  },
+  {
+    countryCode: 'CV',
+    title: 'Farol de D. Maria Pia',
+    description:
+      'Lighthouse in Cape Verde. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1881. The structure reaches approximately 21 metres in height. The place takes its name from Maria Pia of Savoy. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: -23.50914,
+    latitude: 14.90043,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Farol%20D.%20Maria%20Pia-2.jpg?width=1600',
+  },
+  {
+    countryCode: 'CV',
+    title: 'Pro-Cathedral of Our Lady of Grace, Praia',
+    description:
+      'Church building in Cape Verde. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1902. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: -23.5086,
+    latitude: 14.9173,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Praia-Igreja%20Nossa%20Senhora%20da%20Gra%C3%A7a%20%284%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'CV',
+    title: 'Farol de D. Amélia',
+    description:
+      'Lighthouse at Ponta Machado on São Vicente, Cape Verde. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1894. The structure reaches approximately 14 metres in height.',
+    longitude: -25.08569,
+    latitude: 16.8266,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Farol%20Dona%20Am%C3%A9lia.jpg?width=1600',
+  },
+  {
     countryCode: 'CY',
     title: 'Khirokitia',
     description:
@@ -432,6 +2022,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 34.79673,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khirokitia2.jpg?width=1600',
+  },
+  {
+    countryCode: 'CY',
+    title: 'Lala Mustafa Pasha Mosque',
+    description:
+      'Mosque in Northern Cyprus, former catholic cathedral. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Gothic architecture. The place takes its name from Saint Nicholas.',
+    longitude: 33.94273,
+    latitude: 35.12489,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Famagusta%2001-2017%20img14%20Lala%20Mustafa%20Pasha%20Mosque.jpg?width=1600',
+  },
+  {
+    countryCode: 'CY',
+    title: 'Salamis',
+    description:
+      'Historical state on Cyprus and archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 1100 BCE.',
+    longitude: 33.9,
+    latitude: 35.18333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Salamis.jpg?width=1600',
+  },
+  {
+    countryCode: 'CY',
+    title: 'Saint Sophia Cathedral',
+    description:
+      'Gothic-style mosque in Northern Cyprus. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Gothic architecture. The place takes its name from Selim II.',
+    longitude: 33.36444,
+    latitude: 35.17639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nicosia%2001-2017%20img20%20View%20from%20Shacolas%20Tower.jpg?width=1600',
+  },
+  {
+    countryCode: 'CY',
+    title: 'Kition',
+    description:
+      'Ancient Phoenician city and kingdom in Cyprus. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 449 BCE.',
+    longitude: 33.62947,
+    latitude: 34.9296,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ANCIENT%20KITION%2C%20LARNACA%2C%20CYPRUS.jpg?width=1600',
   },
   {
     countryCode: 'CZ',
@@ -444,6 +2074,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castillo%20de%20Praga%2C%20Praga%2C%20Rep%C3%BAblica%20Checa%2C%202022-07-02%2C%20DD%20209.jpg?width=1600',
   },
   {
+    countryCode: 'CZ',
+    title: 'Charles Bridge',
+    description:
+      'Bridge in Prague, Czech Republic. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1357. Its design is credited to Peter Parler. The structure reaches approximately 13 metres in height. It extends for approximately 515.8 metres.',
+    longitude: 14.41194,
+    latitude: 50.08639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Prague%2007-2016%20View%20from%20Petrinska%20Tower%20img2.jpg?width=1600',
+  },
+  {
+    countryCode: 'CZ',
+    title: 'St. Vitus Cathedral',
+    description:
+      'Roman Catholic cathedral in Prague. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1344. Its design is credited to Matthias of Arras. Its architecture is associated with Gothic architecture. The place takes its name from Vitus.',
+    longitude: 14.40056,
+    latitude: 50.09083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Praha%2C%20Katedr%C3%A1la%2C%20JV%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'CZ',
+    title: 'Karlštejn Castle',
+    description:
+      'Gothic castle in the Czech Republic founded by Charles IV. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1348. Its design is credited to Matthias of Arras. The site stands approximately 298 metres above sea level. Its architecture is associated with Gothic architecture.',
+    longitude: 14.18793,
+    latitude: 49.93955,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burg%20Karlstein%20-%20Karl%C5%A1tejn%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'CZ',
+    title: 'Prague Astronomical Clock',
+    description:
+      'Astronomical Clock in Prague, Czech Republic. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1410. Its creation is associated with Mikuláš of Kadaň. It holds the heritage designation “part of cultural heritage site in the Czech Republic”.',
+    longitude: 14.4207,
+    latitude: 50.08699,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Astronomical%20Clock%20%288341899828%29.jpg?width=1600',
+  },
+  {
     countryCode: 'DE',
     title: 'Brandenburg Gate',
     description:
@@ -452,6 +2122,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 52.51627,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Brandenburger%20Tor%20morgens.jpg?width=1600',
+  },
+  {
+    countryCode: 'DE',
+    title: 'Laacher See',
+    description:
+      'Volcanic crater lake in Germany. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 275 metres above sea level. It extends for approximately 2 kilometres.',
+    longitude: 7.27,
+    latitude: 50.4125,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Laacher%20See%20-%20Luftaufnahme.jpg?width=1600',
+  },
+  {
+    countryCode: 'DE',
+    title: 'Neuschwanstein Castle',
+    description:
+      'Castle in Bavaria, Germany, Europe. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1869. Its design is credited to Christian Jank. The structure reaches approximately 65 metres in height. Its architecture is associated with Romanesque Revival architecture.',
+    longitude: 10.74944,
+    latitude: 47.55749,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Schloss%20Neuschwanstein%202013.jpg?width=1600',
+  },
+  {
+    countryCode: 'DE',
+    title: 'Cologne Cathedral',
+    description:
+      'Roman-Catholic cathedral in Cologne, Germany. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1248. Its design is credited to Andreas von Everdingen. The structure reaches approximately 157 metres in height. It extends for approximately 144.5 metres.',
+    longitude: 6.95833,
+    latitude: 50.94139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/K%C3%B6lner%20Dom%20von%20Osten.jpg?width=1600',
+  },
+  {
+    countryCode: 'DE',
+    title: 'Aachen Cathedral',
+    description:
+      'Roman-Catholic cathedral in Aachen, Germany. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 801. Its design is credited to Odo of Metz. Its architecture is associated with Gothic architecture. The place takes its name from Mary.',
+    longitude: 6.08392,
+    latitude: 50.77475,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aachen%20Germany%20Imperial-Cathedral-01.jpg?width=1600',
   },
   {
     countryCode: 'DJ',
@@ -464,6 +2174,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ardoukoba.jpg?width=1600',
   },
   {
+    countryCode: 'DJ',
+    title: 'Hamoudi Mosque',
+    description:
+      'Mosque in Djibouti City, Djibouti. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1906.',
+    longitude: 43.14608,
+    latitude: 11.59236,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Djibouti%20mosque.JPG?width=1600',
+  },
+  {
+    countryCode: 'DJ',
+    title: 'Abdülhamid II Mosque',
+    description:
+      'Mosque in Djibouti. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2019. Its architecture is associated with Ottoman architecture.',
+    longitude: 43.1419,
+    latitude: 11.59327,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Photo%20of%20Abd%C3%BClhamid%20II%20Mosque.jpg?width=1600',
+  },
+  {
+    countryCode: 'DJ',
+    title: 'Salman Mosque',
+    description:
+      'Mosque in Djibouti City, Djibouti. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 43.15322,
+    latitude: 11.56911,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Salman%20Mosque.jpg?width=1600',
+  },
+  {
+    countryCode: 'DJ',
+    title: 'Our Lady of the Good Shepherd Cathedral, Djibouti',
+    description:
+      'Building in Djibouti. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1964. Its architecture is associated with Neues Bauen. The place takes its name from Mary.',
+    longitude: 43.1502,
+    latitude: 11.5998,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale%20de%20Djibouti.jpg?width=1600',
+  },
+  {
     countryCode: 'DK',
     title: 'Øresund Bridge',
     description:
@@ -472,6 +2222,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 55.57644,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%C3%98resund%20Bridge%20from%20the%20air%20in%20September%202015.jpg?width=1600',
+  },
+  {
+    countryCode: 'DK',
+    title: 'Kronborg Castle',
+    description:
+      'Castle in Helsingør, Denmark. Its architecture and setting preserve stories of power, defence and daily life across generations. The site stands approximately 16 metres above sea level. It holds the heritage designation “World Heritage Site”.',
+    longitude: 12.62194,
+    latitude: 56.03861,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/KronborgCastle%20HCS.jpg?width=1600',
+  },
+  {
+    countryCode: 'DK',
+    title: 'Roskilde Cathedral',
+    description:
+      'Cathedral in Denmark (Church of Denmark). Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1201. Its design is credited to Absalon. Its architecture is associated with Brick Gothic. A notable construction material is brick.',
+    longitude: 12.08031,
+    latitude: 55.64267,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Roskilde%20Cathedral%20aerial%20crop.jpg?width=1600',
+  },
+  {
+    countryCode: 'DK',
+    title: 'Great Belt Fixed Link',
+    description:
+      'Bridge–tunnel road and railway crossing of the Great Belt in Denmark. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1997. It extends for approximately 18 kilometres.',
+    longitude: 10.96667,
+    latitude: 55.33333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Storeb%C3%A6ltsbroen%20from%20Sj%C3%A6lland.jpg?width=1600',
+  },
+  {
+    countryCode: 'DK',
+    title: 'Christiansborg Palace',
+    description:
+      'Palace in Copenhagen, seat of the Danish Parliament. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1740. Its design is credited to Elias David Häusser. The site stands approximately 11 metres above sea level. Its architecture is associated with baroque architecture.',
+    longitude: 12.57889,
+    latitude: 55.67583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Christiansborg%20Slot.jpg?width=1600',
   },
   {
     countryCode: 'DM',
@@ -484,6 +2274,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Morne%20Diablotins.jpg?width=1600',
   },
   {
+    countryCode: 'DM',
+    title: 'Morne Watt',
+    description:
+      'Mountain. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,224 metres above sea level. A notable construction material is andesite.',
+    longitude: -61.305,
+    latitude: 15.307,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Morne%20Watt.jpg?width=1600',
+  },
+  {
+    countryCode: 'DM',
+    title: 'Morne Plat Pays',
+    description:
+      'Mountain in Dominica. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 960 metres above sea level. A notable construction material is dacite.',
+    longitude: -61.3465,
+    latitude: 15.2495,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Morne%20Plat%20Pays.jpg?width=1600',
+  },
+  {
+    countryCode: 'DM',
+    title: 'Morne aux Diables',
+    description:
+      'Mountain in Dominica. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 861 metres above sea level. A notable construction material is andesite.',
+    longitude: -61.436,
+    latitude: 15.6125,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Morne%20aux%20Diables.jpg?width=1600',
+  },
+  {
+    countryCode: 'DM',
+    title: 'Dominica Botanical Gardens',
+    description:
+      ' Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 1890.',
+    longitude: -61.38191,
+    latitude: 15.30125,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Anolis%20oculatus%20at%20Roseau-a01.jpg?width=1600',
+  },
+  {
     countryCode: 'DO',
     title: 'Fortaleza Ozama',
     description:
@@ -492,6 +2322,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 18.4732,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortaleza%20Ozama%20RD%2011%202017%206493.jpg?width=1600',
+  },
+  {
+    countryCode: 'DO',
+    title: 'Alcázar de Colón',
+    description:
+      'First fortified Spanish castle in the Dominican Republic. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1511. It extends for approximately 47 metres. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: -69.88275,
+    latitude: 18.4775,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Santo%20Domingo%20-%20Alcazar%20de%20Colon%2002.JPG?width=1600',
+  },
+  {
+    countryCode: 'DO',
+    title: 'Basílica Catedral Metropolitana Santa María de la Encarnación',
+    description:
+      'Catholic cathedral of Santo Domingo, Dominica Republic. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1514. The structure reaches approximately 16 metres in height. Its architecture is associated with Gothic architecture.',
+    longitude: -69.88394,
+    latitude: 18.47303,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dominikanische%20Republik%20Santo%20Domingo%20Basilica%20Catedral%20Menor%20de%20Santa%20Maria%2002.jpg?width=1600',
+  },
+  {
+    countryCode: 'DO',
+    title: 'Columbus Lighthouse',
+    description:
+      'Mausoleum, museum in Santo Domingo Este, Dominican Republic. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1992.',
+    longitude: -69.86816,
+    latitude: 18.4786,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Faro%20colon.jpg?width=1600',
+  },
+  {
+    countryCode: 'DO',
+    title: 'Basílica Catedral Nuestra Señora de la Altagracia',
+    description:
+      'Basilica in the Dominican Republic. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1970. Its design is credited to André Jacques Dunoyer de Segonzac. Its architecture is associated with modern architecture.',
+    longitude: -68.71694,
+    latitude: 18.61611,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bas%C3%ADlicaHig%C3%BCey.jpg?width=1600',
   },
   {
     countryCode: 'DZ',
@@ -504,6 +2374,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tassili%20Desert%20Algeria.jpg?width=1600',
   },
   {
+    countryCode: 'DZ',
+    title: 'Timgad',
+    description:
+      'Roman ruins in Algeria. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 6.46867,
+    latitude: 35.48424,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Timgad%20Ruins%20Panorama.jpg?width=1600',
+  },
+  {
+    countryCode: 'DZ',
+    title: 'Djemila',
+    description:
+      'Archaeological site of ancient Cuicul in Algeria. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 5.73667,
+    latitude: 36.32056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Roman%20Ruins%20of%20Djemila%20in%20S%C3%A9tif%2C%20Algeria.jpg?width=1600',
+  },
+  {
+    countryCode: 'DZ',
+    title: "Qal'at Bani Hammad",
+    description:
+      'Fortified palatine city in Algeria. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1007. The place takes its name from Hammadid dynasty. It holds the heritage designation “World Heritage Site”.',
+    longitude: 4.79333,
+    latitude: 35.81389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/28-2%20Kal%C3%A2a%20de%20Beni%20Hammad%20%283%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'DZ',
+    title: "M'zab",
+    description:
+      'Valley in the north of Algerian Sahara, in the Ghardaïa province. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 3.68139,
+    latitude: 32.48722,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ksar%20Beni%20Isguen%202.jpg?width=1600',
+  },
+  {
     countryCode: 'EC',
     title: 'Chimborazo',
     description:
@@ -512,6 +2422,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -1.46917,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volc%C3%A1n%20Chimborazo%20desde%20Riobamba.jpg?width=1600',
+  },
+  {
+    countryCode: 'EC',
+    title: 'Cotopaxi volcano',
+    description:
+      'Highest active volcano in the world. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,897 metres above sea level. A notable construction material is tuff.',
+    longitude: -78.43778,
+    latitude: -0.68056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/V%C3%B3lcan%20Cotopaxi.jpg?width=1600',
+  },
+  {
+    countryCode: 'EC',
+    title: 'Tungurahua volcano',
+    description:
+      'Volcano in Ecuador. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,016 metres above sea level. A notable construction material is andesite.',
+    longitude: -78.44167,
+    latitude: -1.46694,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volc%C3%A1n%20Tungurahua%20Riobamba%20-%20Ecuador.jpg?width=1600',
+  },
+  {
+    countryCode: 'EC',
+    title: 'Sangay volcano',
+    description:
+      'Active stratovolcano in central Ecuador. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,230 metres above sea level.',
+    longitude: -78.34083,
+    latitude: -2.0025,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volcan-Sangay-Ecuador.jpg?width=1600',
+  },
+  {
+    countryCode: 'EC',
+    title: 'Cayambe',
+    description:
+      'Volcano in Ecuador. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,790 metres above sea level.',
+    longitude: -77.9888,
+    latitude: 0.0239,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volcan%20Cayambe.JPG?width=1600',
   },
   {
     countryCode: 'EE',
@@ -524,6 +2474,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Toompea%20linnus.jpg?width=1600',
   },
   {
+    countryCode: 'EE',
+    title: 'Alexander Nevsky Cathedral',
+    description:
+      'Orthodox church in Tallinn, Estonia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1895. Its design is credited to Mikhail Preobrazhensky. The structure reaches approximately 58 metres in height. Its architecture is associated with Russian Revival architecture.',
+    longitude: 24.73944,
+    latitude: 59.43583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Alexander-Newski-Kathedrale%20full%20pc.jpg?width=1600',
+  },
+  {
+    countryCode: 'EE',
+    title: 'Hermann Castle',
+    description:
+      'Castle in Narva, Estonia. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “architectural monument”.',
+    longitude: 28.20083,
+    latitude: 59.37556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Narva%20asv2022-04%20img09%20Castle.jpg?width=1600',
+  },
+  {
+    countryCode: 'EE',
+    title: 'Kuressaare Castle',
+    description:
+      'Castle in Kuressaare, Estonia. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “architectural monument”.',
+    longitude: 22.47929,
+    latitude: 58.24689,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuressaare%20linnus%20%C3%B5hust.jpg?width=1600',
+  },
+  {
+    countryCode: 'EE',
+    title: "St. Nicholas' Church",
+    description:
+      'Church in Tallinn, Estonia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1201. The structure reaches approximately 105 metres in height. Its architecture is associated with Gothic architecture. The place takes its name from Saint Nicholas.',
+    longitude: 24.74276,
+    latitude: 59.43592,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tallinna%20Niguliste%20kirik%2022-03-2013.jpg?width=1600',
+  },
+  {
     countryCode: 'EG',
     title: 'Great Pyramid of Giza',
     description:
@@ -532,6 +2522,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 29.97915,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kheops-Pyramid.jpg?width=1600',
+  },
+  {
+    countryCode: 'EG',
+    title: 'Aswan Dam',
+    description:
+      'Dam in Aswan, Egypt. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1960. The site stands approximately 171 metres above sea level. Its recorded depth is approximately 180 metres.',
+    longitude: 32.88019,
+    latitude: 23.97143,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aswan%20High%20Dam-1.jpg?width=1600',
+  },
+  {
+    countryCode: 'EG',
+    title: 'Lighthouse of Alexandria',
+    description:
+      'Lighthouse in Egypt, built in the 3rd century BC and destroyed in the Middle Ages. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history reaches back to approximately 278 BCE. Its design is credited to Sostratus of Cnidus. The structure reaches approximately 137 metres in height. Its architecture is associated with Hellenistic architecture.',
+    longitude: 29.885,
+    latitude: 31.21417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lighthouse%20-%20Thiersch.png?width=1600',
+  },
+  {
+    countryCode: 'EG',
+    title: 'Abu Simbel',
+    description:
+      'UNESCO World Heritage Site in southern Egypt. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 1273 BCE. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 31.62556,
+    latitude: 22.33694,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gro%C3%9Fer%20Tempel%20%28Abu%20Simbel%29%2031.jpg?width=1600',
+  },
+  {
+    countryCode: 'EG',
+    title: 'Giza pyramid complex',
+    description:
+      'Archaeological site on the Giza Plateau, Egypt. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 27 metres above sea level. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 31.13278,
+    latitude: 29.97611,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pyramids%20of%20the%20Giza%20Necropolis.jpg?width=1600',
   },
   {
     countryCode: 'ER',
@@ -544,6 +2574,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Adulis%20(8529061940).jpg?width=1600',
   },
   {
+    countryCode: 'ER',
+    title: 'Great Mosque of Asmara',
+    description:
+      'Islamic place of worship in Eritrea. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1938. Its design is credited to Guido Ferrazza. Its architecture is associated with rationalism. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 38.94167,
+    latitude: 15.33889,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Mosque%20%288351473351%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'ER',
+    title: 'Mosque of the Companions, Massawa',
+    description:
+      'Mosque in Massawa, Northern Red Sea, Eritrea. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 39.48062,
+    latitude: 15.612,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Al%20Sahaba%20Mosque%2C%20Massawa.jpg?width=1600',
+  },
+  {
+    countryCode: 'ER',
+    title: 'Enda Mariam Coptic Cathedral',
+    description:
+      'Building in Asmara, Eritrea. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1938. Its architecture is associated with modern architecture. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 38.94417,
+    latitude: 15.33981,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Enda%20Mariam%20Orthodox%20Cathedral%20%288351473067%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'ER',
+    title: 'Asmara Synagogue',
+    description:
+      'Synagogue. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1906. Its architecture is associated with Neoclassicism.',
+    longitude: 38.94073,
+    latitude: 15.33731,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Friedhof%20Asmara%203.JPG?width=1600',
+  },
+  {
     countryCode: 'ES',
     title: 'Basilica and Expiatory Church of the Holy Family',
     description:
@@ -552,6 +2622,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 41.40369,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/SF%20maig%202026.jpg?width=1600',
+  },
+  {
+    countryCode: 'ES',
+    title: 'Teide',
+    description:
+      'Volcano on Tenerife in the Canary Islands. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,715 metres above sea level. A notable construction material is basalt.',
+    longitude: -16.64361,
+    latitude: 28.27264,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Teide%20von%20Nordosten%20%28Zuschnitt%202%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'ES',
+    title: 'Alhambra',
+    description:
+      'Palace and fortress complex in Granada, Andalusia, Spain. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1239. Its architecture is associated with Art of Al-Andalus. It holds the heritage designation “Historic Garden (Spain)”.',
+    longitude: -3.58821,
+    latitude: 37.17634,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Alhambra%20detail.jpg?width=1600',
+  },
+  {
+    countryCode: 'ES',
+    title: 'Royal Monastery of San Lorenzo de El Escorial',
+    description:
+      'Monastery and historical residence of the King of Spain. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1563. One of its documented purposes is hospital. It extends for approximately 192.5 metres. Its architecture is associated with Renaissance architecture.',
+    longitude: -4.14778,
+    latitude: 40.58917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monasterio%20de%20El%20Escorial%20en%20Madrid.jpg?width=1600',
+  },
+  {
+    countryCode: 'ES',
+    title: 'Museo del Prado',
+    description:
+      'Spanish national art museum in Madrid, Spain. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1819. Its design is credited to Juan de Villanueva. It holds the heritage designation “bien de interés cultural”.',
+    longitude: -3.69222,
+    latitude: 40.41389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Museo%20del%20Prado%202016%20%2825185969599%29.jpg?width=1600',
   },
   {
     countryCode: 'ET',
@@ -564,6 +2674,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/ET%20Gondar%20asv2018-02%20img02%20Fasil%20Ghebbi.jpg?width=1600',
   },
   {
+    countryCode: 'ET',
+    title: 'Erta Ale',
+    description:
+      'Volcano in Ethiopia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 613 metres above sea level. A notable construction material is basalt.',
+    longitude: 40.6634,
+    latitude: 13.603,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ET%20Afar%20asv2018-01%20img98%20way%20to%20Ertale.jpg?width=1600',
+  },
+  {
+    countryCode: 'ET',
+    title: 'Grand Ethiopian Renaissance Dam',
+    description:
+      'Gravity dam on the Blue Nile River in Ethiopia. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2022. One of its documented purposes is hydroelectricity. The structure reaches approximately 155 metres in height. It extends for approximately 1,780 metres.',
+    longitude: 35.09306,
+    latitude: 11.21417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/GERD%203.jpg?width=1600',
+  },
+  {
+    countryCode: 'ET',
+    title: 'Church of Saint George',
+    description:
+      'One of eleven monolithic churches in Lalibela, Ethiopia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1200. The place takes its name from Saint George.',
+    longitude: 39.04115,
+    latitude: 12.03163,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lalibela%2C%20san%20giorgio%2C%20esterno%2024.jpg?width=1600',
+  },
+  {
+    countryCode: 'ET',
+    title: 'Blue Nile Falls',
+    description:
+      'Waterfall in Ethiopia. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 42 metres in height.',
+    longitude: 37.5878,
+    latitude: 11.4905,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Blue%20Nile%20Falls-03%2C%20by%20CT%20Snow.jpg?width=1600',
+  },
+  {
     countryCode: 'FI',
     title: 'Suomenlinna',
     description:
@@ -572,6 +2722,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 60.14361,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Suomenlinna.jpg?width=1600',
+  },
+  {
+    countryCode: 'FI',
+    title: 'Helsinki Cathedral',
+    description:
+      'Cathedral in Helsinki, Church of Finland. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1818. Its design is credited to Carl Ludvig Engel. One of its documented purposes is structure of worship. The site stands approximately 12 metres above sea level.',
+    longitude: 24.95212,
+    latitude: 60.17039,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lutheran%20Cathedral%20Helsinki.jpg?width=1600',
+  },
+  {
+    countryCode: 'FI',
+    title: 'Petäjävesi Old Church',
+    description:
+      'Church building in Petäjävesi, Finland. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1763. Its design is credited to Jacob Clementsson Leppänen. The site stands approximately 117 metres above sea level. Its architecture is associated with Gothic architecture.',
+    longitude: 25.18394,
+    latitude: 62.25014,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pet%C3%A4j%C3%A4vesi%20Old%20Church%202018.jpg?width=1600',
+  },
+  {
+    countryCode: 'FI',
+    title: 'Verla',
+    description:
+      'Finnish UNESCO world heritage site. Its form and symbolism make it a memorable expression of local history and identity. It holds the heritage designation “World Heritage Site”.',
+    longitude: 26.64002,
+    latitude: 61.06199,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Verla.JPG?width=1600',
+  },
+  {
+    countryCode: 'FI',
+    title: 'Turku Cathedral',
+    description:
+      'Cathedral in Turku, Finland. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1300. The structure reaches approximately 101.9 metres in height. It extends for approximately 89 metres. Its architecture is associated with Brick Gothic.',
+    longitude: 22.27839,
+    latitude: 60.45243,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Turun%20tuomiokirkko%2020091011.jpg?width=1600',
   },
   {
     countryCode: 'FJ',
@@ -584,6 +2774,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fiji%20Museum%20in%20Suva.jpg?width=1600',
   },
   {
+    countryCode: 'FJ',
+    title: 'Sacred Heart Cathedral, Suva',
+    description:
+      'Church in Suva, Fiji. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1902.',
+    longitude: 178.442,
+    latitude: -18.1416,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sacred%20Heart%20Cathedral%2C%20Suva%20Fiji%20July%202014.jpg?width=1600',
+  },
+  {
+    countryCode: 'FJ',
+    title: 'Sacred Heart Church',
+    description:
+      'Church building in Levuka, Fiji. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Gothic Revival. The place takes its name from Sacred Heart.',
+    longitude: 178.83421,
+    latitude: -17.68269,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ChurchLevuka.jpg?width=1600',
+  },
+  {
+    countryCode: 'FJ',
+    title: 'Nabukelevu',
+    description:
+      ' Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 805 metres above sea level. A notable construction material is andesite.',
+    longitude: 177.98,
+    latitude: -19.12,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nabukelevu.jpg?width=1600',
+  },
+  {
+    countryCode: 'FJ',
+    title: 'Sri Siva Subramaniya temple',
+    description:
+      'Hindu temple in Fiji. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Dravidian architecture.',
+    longitude: 177.41498,
+    latitude: -17.80731,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Srisivasubramaniya%20temple%20nadi%20fiji.jpg?width=1600',
+  },
+  {
     countryCode: 'FM',
     title: 'Nan Madol',
     description:
@@ -594,6 +2824,26 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nan%20madol.jpg?width=1600',
   },
   {
+    countryCode: 'FM',
+    title: 'Leluh',
+    description:
+      'Ruined city in Kosrae, Federated States of Micronesia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “National Register of Historic Places listed place”.',
+    longitude: 163.025,
+    latitude: 5.3325,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lelu%20Ruins%2C%20Kosrae%2C%20Micronesia.jpg?width=1600',
+  },
+  {
+    countryCode: 'FM',
+    title: 'Catholic Belltower',
+    description:
+      ' Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. It holds the heritage designation “National Register of Historic Places listed place”.',
+    longitude: 158.21147,
+    latitude: 6.96842,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pohnpei%27s%20Bell%20Tower.jpg?width=1600',
+  },
+  {
     countryCode: 'FR',
     title: 'Eiffel Tower',
     description:
@@ -602,6 +2852,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 48.8583,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tour%20Eiffel%20Wikimedia%20Commons.jpg?width=1600',
+  },
+  {
+    countryCode: 'FR',
+    title: 'Louvre Museum',
+    description:
+      'Art and archeology museum in Paris, France. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1793. Its design is credited to Pierre Lescot. The site stands approximately 44 metres above sea level. The place takes its name from Louvre Palace.',
+    longitude: 2.33583,
+    latitude: 48.86111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cour%20Napol%C3%A9on%20at%20night%20-%20Louvre.jpg?width=1600',
+  },
+  {
+    countryCode: 'FR',
+    title: 'Notre-Dame de Paris',
+    description:
+      'Cathedral in Paris. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1163. Its design is credited to Jean de Chelles. One of its documented purposes is warehouse. The structure reaches approximately 69 metres in height.',
+    longitude: 2.3498,
+    latitude: 48.853,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Notre-Dame%20de%20Paris%202013-07-24.jpg?width=1600',
+  },
+  {
+    countryCode: 'FR',
+    title: "Musée d'Orsay",
+    description:
+      "Art museum in Paris, France. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1986. Its design is credited to Victor Laloux. The place takes its name from Gare d'Orsay.",
+    longitude: 2.32653,
+    latitude: 48.85997,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gare%20d%27Orsay%20%2849570190081%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'FR',
+    title: 'Palace of Versailles',
+    description:
+      'Palace in Versailles, France and location of the Museum of the History of France. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1661. Its design is credited to Louis Le Vau. One of its documented purposes is palace. Its recorded width is approximately 600 metres.',
+    longitude: 2.12028,
+    latitude: 48.80472,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Vue%20a%C3%A9rienne%20du%20domaine%20de%20Versailles%20par%20ToucanWings%20-%20Creative%20Commons%20By%20Sa%203.0%20-%20083.jpg?width=1600',
   },
   {
     countryCode: 'GA',
@@ -624,6 +2914,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stonehenge%20Total.jpg?width=1600',
   },
   {
+    countryCode: 'GB',
+    title: 'British Museum',
+    description:
+      'National museum in London, United Kingdom. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1753. Its design is credited to Robert Smirke. It holds the heritage designation “Grade I listed building”.',
+    longitude: -0.12694,
+    latitude: 51.51944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/British%20Museum%20from%20NE%202%20%28cropped%29.JPG?width=1600',
+  },
+  {
+    countryCode: 'GB',
+    title: 'Buckingham Palace',
+    description:
+      'Official London residence and principal workplace of the British monarch. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1703. Its design is credited to William Winde. One of its documented purposes is official residence. The site stands approximately 20 foots above sea level.',
+    longitude: -0.142,
+    latitude: 51.501,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Buckingham%20Palace%2C%20London%20-%20April%202009.jpg?width=1600',
+  },
+  {
+    countryCode: 'GB',
+    title: 'Westminster Abbey',
+    description:
+      'Gothic abbey church in London, England, UK. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 901. Its architecture is associated with Gothic architecture. The place takes its name from Saint Peter. It holds the heritage designation “Grade I listed building”.',
+    longitude: -0.12737,
+    latitude: 51.4994,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Westminster-Abbey.JPG?width=1600',
+  },
+  {
+    countryCode: 'GB',
+    title: 'Tower of London',
+    description:
+      'Castle in central London, United Kingdom. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1066. Its architecture is associated with Norman architecture. A notable construction material is Reigate stone. It holds the heritage designation “World Heritage Site”.',
+    longitude: -0.0762,
+    latitude: 51.5082,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tower%20of%20London%20viewed%20from%20the%20River%20Thames.jpg?width=1600',
+  },
+  {
     countryCode: 'GD',
     title: 'Mount Saint Catherine',
     description:
@@ -632,6 +2962,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 12.16222,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Saint%20Catherine%20Summit.jpg?width=1600',
+  },
+  {
+    countryCode: 'GD',
+    title: "Kick-'em-Jenny",
+    description:
+      'Active submarine volcano on the Caribbean Sea floor. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately -185 metres above sea level.',
+    longitude: -61.64,
+    latitude: 12.3,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kick-%27em-JennySONAR.jpg?width=1600',
+  },
+  {
+    countryCode: 'GD',
+    title: 'Immaculate Conception Cathedral',
+    description:
+      "Church in St. George's, Grenada. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1650. The place takes its name from Mary.",
+    longitude: -61.75212,
+    latitude: 12.05342,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20the%20Immaculate%20Conception%20C%20IM0109.JPG?width=1600',
+  },
+  {
+    countryCode: 'GD',
+    title: 'Tufton Hall Waterfall',
+    description:
+      'Waterfalls in St Mark parish, Grenada. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site.',
+    longitude: -61.69275,
+    latitude: 12.17133,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/TuftonFalls%20Grenada.JPG?width=1600',
+  },
+  {
+    countryCode: 'GD',
+    title: 'Mt. Rich Petroglyphs',
+    description:
+      'Rock art in Grenada, Eastern Caribbean. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: -61.64291,
+    latitude: 12.19341,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Main%20Mt.%20Rich%20Petroglyph.jpg?width=1600',
   },
   {
     countryCode: 'GE',
@@ -644,6 +3014,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gelati%20Monastery%201.jpg?width=1600',
   },
   {
+    countryCode: 'GE',
+    title: 'Bagrati Cathedral',
+    description:
+      'Cathedral in Georgia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1100. The place takes its name from Intercession of the Theotokos. It holds the heritage designation “World Heritage Site”.',
+    longitude: 42.7043,
+    latitude: 42.2773,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2014%20Kutaisi%2C%20Katedra%20Bagrati%20%2804%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'GE',
+    title: 'Krubera Cave',
+    description:
+      'Cave in Georgia. Its underground formations and atmosphere reveal a landscape hidden from the surface world. The site stands approximately 2,320 metres above sea level. It extends for approximately 13.4 metres. The place takes its name from Alexander Kruber.',
+    longitude: 40.36222,
+    latitude: 43.40972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%9F%D0%B5%D1%89%D0%B5%D1%80%D0%B0%20%D0%9A%D1%80%D1%83%D0%B1%D0%B5%D1%80%D0%B0-%D0%92%D0%BE%D1%80%D0%BE%D0%BD%D1%8C%D1%8F.%20%D0%9A%D0%BE%D0%BB%D0%BE%D0%B4%D0%B5%D1%86%20%D0%A4%D0%B0%D1%80%D1%82%D1%83%D0%BA.jpg?width=1600',
+  },
+  {
+    countryCode: 'GE',
+    title: 'Vardzia',
+    description:
+      'Cave dwellings. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1200. The site stands approximately 1,300 metres above sea level. It holds the heritage designation “Cultural Monuments of National Importance of Georgia”.',
+    longitude: 43.28376,
+    latitude: 41.38084,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Vardzia.jpg?width=1600',
+  },
+  {
+    countryCode: 'GE',
+    title: 'Jvari',
+    description:
+      'Monastery in Georgia (country). Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 501. It holds the heritage designation “Cultural Monuments of National Importance of Georgia”.',
+    longitude: 44.73332,
+    latitude: 41.83839,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Georgia%20Jvari%20monastery%20IMG%209345%202070.jpg?width=1600',
+  },
+  {
     countryCode: 'GH',
     title: 'Akosombo Dam',
     description:
@@ -652,6 +3062,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 6.29972,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Akosombo%20Dam.jpg?width=1600',
+  },
+  {
+    countryCode: 'GH',
+    title: 'Elmina Castle',
+    description:
+      'Fortified colonial trading post in Ghana. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1482. One of its documented purposes is factory. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: -1.34821,
+    latitude: 5.08274,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Elmina%20Castle%20-%20Ghana.jpg?width=1600',
+  },
+  {
+    countryCode: 'GH',
+    title: 'Larabanga Mosque',
+    description:
+      'Is a mosque built in the Sudanese architectural style in Ghana. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1421. Its architecture is associated with Sudano-Sahelian architecture. A notable construction material is adobe. It holds the heritage designation “Ghana’s material cultural heritage”.',
+    longitude: -1.8666,
+    latitude: 9.2166,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Larabanga%20Mosque%20Ghana.jpg?width=1600',
+  },
+  {
+    countryCode: 'GH',
+    title: 'Osu Castle',
+    description:
+      'Coastal castle in Osu, Accra, Ghana, built by Denmark-Norway in the 1660s as a slave-trading fort; served as capital of the Danish Gold Coast and later as Brit…. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1659. One of its documented purposes is official residence. It holds the heritage designation “Ghana’s material cultural heritage”.',
+    longitude: -0.18353,
+    latitude: 5.54689,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Twee%20gezichten%20op%20Fort%20Christiansborg%2C%20te%20Ghana%2C%20RP-P-2018-1174.jpg?width=1600',
+  },
+  {
+    countryCode: 'GH',
+    title: 'Cape Coast Castle',
+    description:
+      'Former fortified colonial trading post in Ghana. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1652. A notable construction material is brick. It holds the heritage designation “Ghana’s material cultural heritage”.',
+    longitude: -1.24125,
+    latitude: 5.10358,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cape%20coast%20castle%20II.JPG?width=1600',
   },
   {
     countryCode: 'GM',
@@ -664,6 +3114,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kanifing%20Pipeline%20mosque%202025%201A.jpg?width=1600',
   },
   {
+    countryCode: 'GM',
+    title: 'Senegambia bridge',
+    description:
+      'Bridge in Gambia. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2019. It extends for approximately 1,842 metres.',
+    longitude: -15.5725,
+    latitude: 13.51639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SenegambiaBridge%20NorthApproach%2023January2019.jpg?width=1600',
+  },
+  {
+    countryCode: 'GM',
+    title: 'Arch 22',
+    description:
+      'Triumphal arch in Banjul, the Gambia. Its form and symbolism make it a memorable expression of local history and identity. The structure reaches approximately 35 metres in height. Its architecture is associated with Neoclassical architecture.',
+    longitude: -16.58227,
+    latitude: 13.46029,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gambia%20banjul%20arch22.JPG?width=1600',
+  },
+  {
+    countryCode: 'GM',
+    title: 'Kachikally Museum and Crocodile Pool',
+    description:
+      'Museum & Crocodile Pool. Its collections bring together objects and stories that make the country’s history and creativity easier to understand.',
+    longitude: -16.67242,
+    latitude: 13.47653,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gambia%20Kachikally%200002.jpg?width=1600',
+  },
+  {
+    countryCode: 'GM',
+    title: 'Our Lady of the Assumption Cathedral, Banjul',
+    description:
+      'Building in Africa. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -16.57444,
+    latitude: 13.45111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/1913328-Banjul-The%20Gambia.jpg?width=1600',
+  },
+  {
     countryCode: 'GN',
     title: 'Tinkisso Falls',
     description:
@@ -672,6 +3162,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 10.7291,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chutes%20du%20Tinkisso%20%28Guin%C3%A9e%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'GN',
+    title: 'Cathedrale Sainte-Marie',
+    description:
+      'Building in Guinea. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -13.71558,
+    latitude: 9.51022,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale%20Sainte-Marie%20de%20Conakry.jpg?width=1600',
+  },
+  {
+    countryCode: 'GN',
+    title: 'Monument du 22 Novembre 1970',
+    description:
+      'Memorial in Conakry, Guinea. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1971.',
+    longitude: -13.69051,
+    latitude: 9.52147,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monument%20du%2022%20Novembre%20%28Conakry%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'GN',
+    title: 'Musée de Boké',
+    description:
+      'Museum in Boké, Guinea. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1982.',
+    longitude: -14.29567,
+    latitude: 10.93318,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Canon%20mus%C3%A9e%20de%20Bok%C3%A9.jpg?width=1600',
+  },
+  {
+    countryCode: 'GN',
+    title: 'Conakry Botanical Garden',
+    description:
+      'Botanical garden in Conakry, Guinea. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture.',
+    longitude: -13.68592,
+    latitude: 9.5307,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Camayenne%2C%20jardin%20botanique%20-%20btv1b53207132p.jpg?width=1600',
   },
   {
     countryCode: 'GQ',
@@ -684,6 +3214,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pico%20Basil%C3%A9.jpg?width=1600',
   },
   {
+    countryCode: 'GQ',
+    title: 'St. Elisabeth Cathedral',
+    description:
+      'Roman Catholic cathedral in Malabo, Equatorial Guinea. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Gothic Revival.',
+    longitude: 8.78276,
+    latitude: 3.75698,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Santa%20Isabel%20Malabo%2020131224%20140204.jpg?width=1600',
+  },
+  {
+    countryCode: 'GQ',
+    title: 'San Carlos',
+    description:
+      'Mountain in Equatorial Guinea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,261 metres above sea level.',
+    longitude: 8.53917,
+    latitude: 3.36083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/San%20Carlos%20volcado.jpg?width=1600',
+  },
+  {
+    countryCode: 'GQ',
+    title: 'Basilica of the Immaculate Conception, Mongomo',
+    description:
+      'Building in Africa. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 11.2989,
+    latitude: 1.62224,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basilica%20of%20the%20Immaculate%20Conception%2C%20Mongomo.jpg?width=1600',
+  },
+  {
+    countryCode: 'GQ',
+    title: 'St. James and Our Lady of the Pillar Cathedral, Bata',
+    description:
+      'Building in Equatorial Guinea. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 9.76956,
+    latitude: 1.86692,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bata%2C%202015-02%20-i---i-%20%2815890592774%29.jpg?width=1600',
+  },
+  {
     countryCode: 'GR',
     title: 'Parthenon',
     description:
@@ -692,6 +3262,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 37.97153,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Parthenon%20in%20Athens.jpg?width=1600',
+  },
+  {
+    countryCode: 'GR',
+    title: 'Sparta',
+    description:
+      'City and city-state in ancient Greece. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 900 BCE.',
+    longitude: 22.43094,
+    latitude: 37.07368,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sparta.jpg?width=1600',
+  },
+  {
+    countryCode: 'GR',
+    title: 'Acropolis of Athens',
+    description:
+      'Ancient citadel above the city of Athens. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 500 BCE. It holds the heritage designation “World Heritage Site”.',
+    longitude: 23.72611,
+    latitude: 37.97167,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Attica%2006-13%20Athens%2050%20View%20from%20Philopappos%20-%20Acropolis%20Hill.jpg?width=1600',
+  },
+  {
+    countryCode: 'GR',
+    title: 'Statue of Zeus at Olympia',
+    description:
+      'One of The Seven Wonders of the World. Its form and symbolism make it a memorable expression of local history and identity. Its documented history reaches back to approximately 430 BCE. Its creation is associated with Phidias. The structure reaches approximately 12 metres in height. A notable construction material is ivory.',
+    longitude: 21.63,
+    latitude: 37.63786,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Le%20Jupiter%20Olympien%20ou%20l%27art%20de%20la%20sculpture%20antique.jpg?width=1600',
+  },
+  {
+    countryCode: 'GR',
+    title: 'Colossus of Rhodes',
+    description:
+      'Statue of the Greek Titan Helios; one of the seven wonders of the ancient world. Its form and symbolism make it a memorable expression of local history and identity. Its documented history reaches back to approximately 283 BCE. Its design is credited to Chares of Lindos. The structure reaches approximately 33 metres in height. A notable construction material is bronze.',
+    longitude: 28.22778,
+    latitude: 36.45111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Colosse%20de%20Rhodes%20%28Barclay%29.jpg?width=1600',
   },
   {
     countryCode: 'GT',
@@ -704,6 +3314,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tikal%203.jpg?width=1600',
   },
   {
+    countryCode: 'GT',
+    title: 'Volcán de Fuego',
+    description:
+      'Volcano in Guatemala. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,765 metres above sea level.',
+    longitude: -90.88083,
+    latitude: 14.47472,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volc%C3%A1n%20de%20Fuego%20and%20Acatenango.jpg?width=1600',
+  },
+  {
+    countryCode: 'GT',
+    title: 'Quiriguá',
+    description:
+      'Ancient Maya archaeological site in south-eastern Guatemala. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: -89.04028,
+    latitude: 15.26944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Escultura%20de%20Quirigu%C3%A1.jpg?width=1600',
+  },
+  {
+    countryCode: 'GT',
+    title: 'Lago de Atitlán',
+    description:
+      'Crater lake in the Western Highlands of Guatemala. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,562 metres above sea level. It extends for approximately 18 kilometres. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: -91.2,
+    latitude: 14.7,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lago%20de%20Atitlan%20seen%20from%20orbit.jpg?width=1600',
+  },
+  {
+    countryCode: 'GT',
+    title: 'Volcán Tajumulco',
+    description:
+      'Stratovolcano in Guatemala. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 4,203 metres above sea level. A notable construction material is dacite.',
+    longitude: -91.9,
+    latitude: 15.03333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tajumulco%20volcano%2001.jpg?width=1600',
+  },
+  {
     countryCode: 'GW',
     title: 'The Cathedral of Bissau',
     description:
@@ -712,6 +3362,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 11.86008,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kathedrale%20von%20Bissau.png?width=1600',
+  },
+  {
+    countryCode: 'GW',
+    title: 'Cacheu Mangroves Natural Park',
+    description:
+      'Protected area in Guinea-Bissau. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture.',
+    longitude: -16.17944,
+    latitude: 12.3,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Parque%20Natural%20dos%20Tarrafes%20do%20Rio%20Cacheu%2002.jpg?width=1600',
+  },
+  {
+    countryCode: 'GW',
+    title: 'Orango Islands National Park',
+    description:
+      'Protected area in Guinea-Bissau. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 2000.',
+    longitude: -16.05,
+    latitude: 11.12,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lagoa%20com%20hipop%C3%B3tamos%2003%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'GW',
+    title: 'Our Lady of Grace Cathedral, Bafatá',
+    description:
+      'Church in Bafatá, Guinea-Bissau. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: -14.66125,
+    latitude: 12.16792,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bafat%C3%A1%20cathedral%2C%20Bafat%C3%A1%2C%20Guinea-Bissau%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'GW',
+    title: 'Fortaleza de São José da Amura',
+    description:
+      'Fort in Bissau, Guinea-Bissau. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: -15.57861,
+    latitude: 11.86027,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Interior%20da%20Fortaleza%20de%20S%C3%A3o%20Jos%C3%A9%20de%20Amura%2C%20Bissau.jpg?width=1600',
   },
   {
     countryCode: 'GY',
@@ -724,6 +3414,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/GuyanaKaieteurFalls2004.jpg?width=1600',
   },
   {
+    countryCode: 'GY',
+    title: 'Guyana Zoo',
+    description:
+      'Zoo. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments. Its documented history dates to approximately 1952.',
+    longitude: -58.14631,
+    latitude: 6.80605,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Guyana%20Zoo%20-%20Georgetown%20%2823569254421%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'GY',
+    title: 'Fort Zeelandia',
+    description:
+      '18th century Dutch fort in Guyana. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: -58.51667,
+    latitude: 6.78333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/20191123%20Guyana%200200%20Fort%20Island%20sRGB%20%2849295237188%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'GY',
+    title: 'Brickdam Cathedral',
+    description:
+      'Cathedral in Georgetown, Guyana. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -58.16204,
+    latitude: 6.80746,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grey%20churh.jpg?width=1600',
+  },
+  {
+    countryCode: 'GY',
+    title: 'Takutu River Bridge',
+    description:
+      'Bridge between Guyana and Brazil. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2009. It extends for approximately 230 metres.',
+    longitude: -59.81139,
+    latitude: 3.38056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/LethemBridge.jpg?width=1600',
+  },
+  {
     countryCode: 'HN',
     title: 'Copán',
     description:
@@ -732,6 +3462,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 14.83796,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cop%C3%A1n%20Stela%20B.jpg?width=1600',
+  },
+  {
+    countryCode: 'HN',
+    title: 'Tiger Island',
+    description:
+      'Mountain. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 783 metres above sea level. It extends for approximately 5.9 kilometres.',
+    longitude: -87.63778,
+    latitude: 13.26556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Isla%20del%20Tigre%20vista%20desde%20Coyolito.jpg?width=1600',
+  },
+  {
+    countryCode: 'HN',
+    title: 'Isla Zacate Grande',
+    description:
+      'Island in Honduras. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 640 metres above sea level. It extends for approximately 7 kilometres.',
+    longitude: -87.62778,
+    latitude: 13.33583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Isla%20Zacate%20Grande.jpg?width=1600',
+  },
+  {
+    countryCode: 'HN',
+    title: 'El Cajón Dam',
+    description:
+      'Honduras hydroelectric power plant and dam. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1980. It extends for approximately 382 metres.',
+    longitude: -87.75,
+    latitude: 15.03333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/El%20Cajon%20Dam%20Honduras.jpg?width=1600',
+  },
+  {
+    countryCode: 'HN',
+    title: 'Immaculate Conception Cathedral, Comayagua',
+    description:
+      'Cathedral in Comayagua, Honduras. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1715. Its architecture is associated with Baroque.',
+    longitude: -87.6407,
+    latitude: 14.46019,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/CATEDRAL%20DE%20COMAYAGUA%20circa%202008.JPG?width=1600',
   },
   {
     countryCode: 'HR',
@@ -744,6 +3514,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Diocletian%27s%20Palace%20%28original%20appearance%29.jpg?width=1600',
   },
   {
+    countryCode: 'HR',
+    title: 'Vis (island)',
+    description:
+      'Island of Croatia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 587 metres above sea level.',
+    longitude: 16.1525,
+    latitude: 43.0425,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20image%20of%20Vis%20%28view%20from%20the%20southwest%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'HR',
+    title: 'Zagreb Cathedral',
+    description:
+      'Cathedral in the town of Zagreb. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1093. Its design is credited to Hermann Bollé. The structure reaches approximately 108 metres in height. Its architecture is associated with Gothic architecture.',
+    longitude: 15.97972,
+    latitude: 45.81444,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Z%C3%A1h%C5%99eb%2C%20katedr%C3%A1la%201.jpg?width=1600',
+  },
+  {
+    countryCode: 'HR',
+    title: 'Šibenik Cathedral',
+    description:
+      'Cathedral in Croatia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1431. Its design is credited to Giorgio da Sebenico. Its architecture is associated with Renaissance architecture. The place takes its name from St. James the Elder.',
+    longitude: 15.88917,
+    latitude: 43.73556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/HR-Sibenik-Kathedrale-01.jpg?width=1600',
+  },
+  {
+    countryCode: 'HR',
+    title: 'Euphrasian Basilica',
+    description:
+      'Church. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 553. Its architecture is associated with Byzantine architecture. The place takes its name from Euphrasius of Poreč. It holds the heritage designation “World Heritage Site”.',
+    longitude: 13.59361,
+    latitude: 45.22861,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pore%C4%8D%20Basilica%203.jpg?width=1600',
+  },
+  {
     countryCode: 'HT',
     title: 'Sans-Souci Palace',
     description:
@@ -752,6 +3562,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 19.60469,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sans-Souci%20Palace%20front.jpg?width=1600',
+  },
+  {
+    countryCode: 'HT',
+    title: 'National Palace',
+    description:
+      'Former official residence of the President of Haiti. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1920. Its design is credited to Georges Baussan. One of its documented purposes is official residence. Its architecture is associated with classical architecture.',
+    longitude: -72.33886,
+    latitude: 18.54311,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palacio%20presidencial%20de%20Haiti.jpg?width=1600',
+  },
+  {
+    countryCode: 'HT',
+    title: 'Cathedral of Our Lady of the Assumption',
+    description:
+      'Roman Catholic cathedral in Port-au-Prince. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1884. Its architecture is associated with Romanesque Revival architecture.',
+    longitude: -72.33861,
+    latitude: 18.54891,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale-Port-au-Prince%20%28before%201924%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'HT',
+    title: 'La Navidad',
+    description:
+      'Fort on the northeast coast of Haiti. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1492. The place takes its name from Christmas.',
+    longitude: -72.01583,
+    latitude: 19.69056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Vida%20y%20viajes%20de%20Cristobal%20Col%C3%B3n%2C%201851%20Construcci%C3%B3n%20de%20la%20fortaleza%20de%20La%20Navidad%20%283819531625%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'HT',
+    title: 'Péligre Dam',
+    description:
+      'Gravity dam. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. It extends for approximately 328 metres.',
+    longitude: -72.03944,
+    latitude: 18.9,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lac%20Peligre%20Haiti.jpg?width=1600',
   },
   {
     countryCode: 'HU',
@@ -764,6 +3614,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/20190502%20Zamek%20w%20Budapeszcie%200647%201862%20DxO.jpg?width=1600',
   },
   {
+    countryCode: 'HU',
+    title: 'Széchenyi Chain Bridge',
+    description:
+      'The oldest bridge in Budapest. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1840. Its design is credited to William Tierney Clark. It extends for approximately 375 metres. Its architecture is associated with Renaissance Revival architecture.',
+    longitude: 19.04353,
+    latitude: 47.49891,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Budapest%20-%20Chain%20Bridge%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'HU',
+    title: 'Aquincum',
+    description:
+      'Historical settlement in the Roman Empire. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 19.04947,
+    latitude: 47.56414,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Polg%C3%A1rv%C3%A1ros1.jpg?width=1600',
+  },
+  {
+    countryCode: 'HU',
+    title: "St. Stephen's Basilica",
+    description:
+      'Roman Catholic basilica in Budapest, Hungary. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1905. Its design is credited to József Hild. The structure reaches approximately 96 metres in height. Its architecture is associated with Neoclassical architecture.',
+    longitude: 19.05389,
+    latitude: 47.50083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/HUN-2015-Budapest-St.%20Stephen%27s%20Basilica.jpg?width=1600',
+  },
+  {
+    countryCode: 'HU',
+    title: 'Pannonhalma Archabbey',
+    description:
+      'Hungarian archabbey built in 996. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 901. Its architecture is associated with Gothic architecture. It holds the heritage designation “World Heritage Site”.',
+    longitude: 17.76111,
+    latitude: 47.55278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pannonhalma%20-%20Benc%C3%A9s%20ap%C3%A1ts%C3%A1g.jpg?width=1600',
+  },
+  {
     countryCode: 'ID',
     title: 'Borobudur Temple',
     description:
@@ -772,6 +3662,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -7.60793,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Borobudur-Nothwest-view.jpg?width=1600',
+  },
+  {
+    countryCode: 'ID',
+    title: 'Krakatoa',
+    description:
+      'Sunda Strait volcanic island caldera. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 813 metres above sea level.',
+    longitude: 105.423,
+    latitude: -6.102,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Krakatoa%20NasaWorldWind%202000.jpg?width=1600',
+  },
+  {
+    countryCode: 'ID',
+    title: 'Merapi',
+    description:
+      'Active volcano in Central Java and Yogyakarta, Indonesia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,910 metres above sea level. A notable construction material is andesite.',
+    longitude: 110.44611,
+    latitude: -7.54139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Merapi%20Not%20Just%20a%20Legend%20and%20Mythology.jpg?width=1600',
+  },
+  {
+    countryCode: 'ID',
+    title: 'Lake Toba',
+    description:
+      'Volcanic crater lake located in North Sumatra, Indonesia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 905 metres above sea level. It extends for approximately 87 kilometres.',
+    longitude: 98.8875,
+    latitude: 2.67,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Toba%20zoom.jpg?width=1600',
+  },
+  {
+    countryCode: 'ID',
+    title: 'Tambora',
+    description:
+      'Stratovolcano on the island of Sumbawa in Indonesia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,850 metres above sea level.',
+    longitude: 117.99278,
+    latitude: -8.24528,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Caldera%20Mt%20Tambora%20Sumbawa%20Indonesia.jpg?width=1600',
   },
   {
     countryCode: 'IE',
@@ -784,6 +3714,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Irelands%20history.jpg?width=1600',
   },
   {
+    countryCode: 'IE',
+    title: 'Brú na Bóinne',
+    description:
+      'Archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 3499 BCE. It holds the heritage designation “World Heritage Site”.',
+    longitude: -6.44932,
+    latitude: 53.69284,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bru%20na%20Boinne%20-%20Newgrange.jpg?width=1600',
+  },
+  {
+    countryCode: 'IE',
+    title: 'Hill of Tara',
+    description:
+      'Archaeological complex between Navan and Dunshaughlin in County Meath, Leinster, Ireland. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 197 metres above sea level. It holds the heritage designation “national monument of Ireland”.',
+    longitude: -6.61194,
+    latitude: 53.5775,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Collinaditara.jpg?width=1600',
+  },
+  {
+    countryCode: 'IE',
+    title: 'Dublin Castle',
+    description:
+      'Castle. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1204.',
+    longitude: -6.26739,
+    latitude: 53.34311,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dublin%20castle.JPG?width=1600',
+  },
+  {
+    countryCode: 'IE',
+    title: 'Glendalough',
+    description:
+      'Monastery and glacial valley, Wicklow, Ireland. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. It holds the heritage designation “national monument of Ireland”.',
+    longitude: -6.3275,
+    latitude: 53.01028,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Glendalough%20monastery.jpg?width=1600',
+  },
+  {
     countryCode: 'IL',
     title: 'Israel Museum',
     description:
@@ -792,6 +3762,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 31.7725,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Israel%20museum.JPG?width=1600',
+  },
+  {
+    countryCode: 'IL',
+    title: 'Masada',
+    description:
+      'Archaeological site in southeastern Israel. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 35.35389,
+    latitude: 31.31556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Israel-2013-Aerial%2021-Masada.jpg?width=1600',
+  },
+  {
+    countryCode: 'IL',
+    title: 'Capernaum',
+    description:
+      'Village at Lake Tiberias in the north of historical Judea, associated with Jesus. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 200 BCE.',
+    longitude: 35.575,
+    latitude: 32.88111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kafarnaum%20BW%207.JPG?width=1600',
+  },
+  {
+    countryCode: 'IL',
+    title: 'Yad Vashem',
+    description:
+      "Israel's official memorial to the Jewish victims of the Holocaust. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1953. Its design is credited to Moshe Safdie. The site stands approximately 930 metres above sea level.",
+    longitude: 35.17725,
+    latitude: 31.77442,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/YadVashemMar042023%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'IL',
+    title: 'Gethsemane',
+    description:
+      'Garden at the foot of the Mount of Olives in Jerusalem. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture.',
+    longitude: 35.23942,
+    latitude: 31.77942,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Getsemane2.JPG?width=1600',
   },
   {
     countryCode: 'IN',
@@ -804,6 +3814,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Taj%20Mahal%2C%20Agra%2C%20India%20edit3.jpg?width=1600',
   },
   {
+    countryCode: 'IN',
+    title: 'Ajanta Caves',
+    description:
+      '2nd century BCE to 1st century CE Buddhist cave monuments located in Maharashtra, India. Its underground formations and atmosphere reveal a landscape hidden from the surface world. Its documented history reaches back to approximately 200 BCE. It holds the heritage designation “World Heritage Site”.',
+    longitude: 75.70047,
+    latitude: 20.55342,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ajanta%20%2863%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'IN',
+    title: 'Red Fort',
+    description:
+      'Historic fortress in Delhi, India. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1648. The structure reaches approximately 33 metres in height. A notable construction material is sandstone. It holds the heritage designation “World Heritage Site”.',
+    longitude: 77.24028,
+    latitude: 28.65583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Red%20Fort%20in%20Delhi%2003-2016%20img3.jpg?width=1600',
+  },
+  {
+    countryCode: 'IN',
+    title: 'Ellora Caves',
+    description:
+      'Ancient cave temples of Hinduism, Buddhism and Jainism in Maharashtra, India. Its underground formations and atmosphere reveal a landscape hidden from the surface world. It holds the heritage designation “World Heritage Site”.',
+    longitude: 75.17917,
+    latitude: 20.02639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ellora%20Caves%2C%20India%2C%20Kailasanatha%20Temple%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'IN',
+    title: 'Nalanda Mahavihara',
+    description:
+      'Ancient Hindu-Buddhist monastery in present-day Bihar, India. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Monument of National Importance”.',
+    longitude: 85.44383,
+    latitude: 25.1368,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nalanda%20The%20Great%20Stupa.jpg?width=1600',
+  },
+  {
     countryCode: 'IQ',
     title: 'Nineveh',
     description:
@@ -812,6 +3862,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 36.35944,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nineveh%20mashki%20gate%20from%20west.JPG?width=1600',
+  },
+  {
+    countryCode: 'IQ',
+    title: 'Ur',
+    description:
+      'Ancient Mesopotamian city-state. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 3799 BCE. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 46.10444,
+    latitude: 30.96222,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ur-Nassiriyah.jpg?width=1600',
+  },
+  {
+    countryCode: 'IQ',
+    title: 'Assur',
+    description:
+      'Archaeological site in Iraq. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 2499 BCE. It holds the heritage designation “World Heritage Site”.',
+    longitude: 43.2625,
+    latitude: 35.45667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ashur%20%28Qal%27at%20Sherqat%29-115188.jpg?width=1600',
+  },
+  {
+    countryCode: 'IQ',
+    title: 'Ctesiphon',
+    description:
+      'Capital of the Iranian empire in the Parthian and Sasanian eras in present Iraq. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 120 BCE.',
+    longitude: 44.58083,
+    latitude: 33.09361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ctesiphon.jpg?width=1600',
+  },
+  {
+    countryCode: 'IQ',
+    title: 'Uruk',
+    description:
+      'Ancient city of Sumer and Babylonia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 3199 BCE. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 45.6374,
+    latitude: 31.3259,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Uruk%20Archaeological%20site%20at%20Warka.jpg?width=1600',
   },
   {
     countryCode: 'IR',
@@ -824,6 +3914,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D8%AA%D8%AE%D8%AA%20%D8%AC%D9%85%D8%B4%D9%8A%D8%AF%20%D8%AF%D8%B1%D9%88%D8%A7%D8%B2%D9%87%20%D9%85%D9%84%D9%84%20Persepolice%20Fars%20Marvdasht%20Shiraz%20-%20panoramio.jpg?width=1600',
   },
   {
+    countryCode: 'IR',
+    title: 'Damavand',
+    description:
+      'Potentially active stratovolcano and the highest peak in Iran. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,610 metres above sea level. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 52.10917,
+    latitude: 35.95528,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/981012-Damavand-South-IMG%209861-2.jpg?width=1600',
+  },
+  {
+    countryCode: 'IR',
+    title: 'Susa',
+    description:
+      'Ancient city in Iran, World Heritage site in Iran. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 4394 BCE. It holds the heritage designation “Iranian National Heritage”.',
+    longitude: 48.25611,
+    latitude: 32.18944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Apadana%2C%20a%20large%20hypostyle%20room%20of%2036%20columns%20in%20the%20Palace%20of%20Darius%2C%20Susa%2C%20capital%20of%20Elam%20and%20of%20the%20Achaemenid%20Empire%2C%20Iran%20%2846950284624%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'IR',
+    title: 'Chogha Zanbil',
+    description:
+      'Elamite complex in the Khuzestan province of Iran. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 48.52083,
+    latitude: 32.00833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Choghazanbil2.jpg?width=1600',
+  },
+  {
+    countryCode: 'IR',
+    title: 'Golestan Palace',
+    description:
+      'Palace in Tehran, Iranian national heritage site. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “World Heritage Site”.',
+    longitude: 51.42028,
+    latitude: 35.67972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Milad-poorali.jpg?width=1600',
+  },
+  {
     countryCode: 'IS',
     title: 'Hekla',
     description:
@@ -832,6 +3962,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 63.99222,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/2006-05-21-153901%20Iceland%20St%C3%B3rin%C3%BApur.jpg?width=1600',
+  },
+  {
+    countryCode: 'IS',
+    title: 'Laki',
+    description:
+      'Volcanic fissure in the south of Iceland. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 812 metres above sea level. It extends for approximately 27 kilometres. The place takes its name from Laki.',
+    longitude: -18.23,
+    latitude: 64.0675,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Laki%20fissure%20%282%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'IS',
+    title: 'Grímsvötn',
+    description:
+      'Volcano in Iceland. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,725 metres above sea level. A notable construction material is basalt.',
+    longitude: -17.33,
+    latitude: 64.42,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Iceland%20Grimsvoetn%201972-B.jpg?width=1600',
+  },
+  {
+    countryCode: 'IS',
+    title: 'Katla',
+    description:
+      'Volcano in Iceland. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,450 metres above sea level. A notable construction material is basalt.',
+    longitude: -19.05,
+    latitude: 63.63333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Katla%20Volcano%20from%20the%20South.jpg?width=1600',
+  },
+  {
+    countryCode: 'IS',
+    title: 'Dettifoss',
+    description:
+      'Waterfall. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 44 metres in height. Its recorded width is approximately 100 metres.',
+    longitude: -16.38461,
+    latitude: 65.8143,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dettifoss%20Panorama%2003.jpg?width=1600',
   },
   {
     countryCode: 'IT',
@@ -844,6 +4014,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Colosseo%202020.jpg?width=1600',
   },
   {
+    countryCode: 'IT',
+    title: 'Mount Vesuvius',
+    description:
+      'Active stratovolcano in the Gulf of Naples, Italy. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,281 metres above sea level. A notable construction material is tephrite.',
+    longitude: 14.42919,
+    latitude: 40.82261,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Il%20cratere%20del%20Vulcano%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'IT',
+    title: 'Mount Etna',
+    description:
+      'Active stratovolcano on the east coast of Sicily, Italy. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. Its documented history reaches back to approximately 300000 BCE. The site stands approximately 3,357 metres above sea level. A notable construction material is trachybasalt.',
+    longitude: 14.99322,
+    latitude: 37.75083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20of%20Mount%20Etna%20from%20Reggio%20Calabria%20-%20Italy%20-%2010%20Feb.%202017%20-%20%281%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'IT',
+    title: 'Pompeii',
+    description:
+      'Ancient Roman city near modern Naples, Italy. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 600 BCE.',
+    longitude: 14.48972,
+    latitude: 40.75056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pompeii%20%284873744179%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'IT',
+    title: 'Leaning Tower of Pisa',
+    description:
+      'Cathedral bell tower in Pisa, Italy. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1173. Its design is credited to Bonanno Pisano. The structure reaches approximately 58.4 metres in height. Its architecture is associated with Romanesque architecture.',
+    longitude: 10.39662,
+    latitude: 43.72301,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Campanile%20D%C3%B4me%20-%20Pise%20%28IT52%29%20-%202022-08-31%20-%2020.jpg?width=1600',
+  },
+  {
     countryCode: 'JM',
     title: "Dunn's River Falls",
     description:
@@ -852,6 +4062,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 18.41583,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dunns%20River%20Falls%20climb.JPG?width=1600',
+  },
+  {
+    countryCode: 'JM',
+    title: 'White Witch of Rose Hall',
+    description:
+      'Jamaican legend. Its collections bring together objects and stories that make the country’s history and creativity easier to understand.',
+    longitude: -77.13389,
+    latitude: 18.08389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Annie%20Palmer%20-%20Tomb%20at%20Rose%20Hall.jpg?width=1600',
+  },
+  {
+    countryCode: 'JM',
+    title: 'Green Grotto Caves',
+    description:
+      'Caves in Jamaica. Its underground formations and atmosphere reveal a landscape hidden from the surface world.',
+    longitude: -77.37413,
+    latitude: 18.4604,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jamaica%20Discovery%20Bay%20Green%20Grotto%20Caves%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'JM',
+    title: 'Firefly Estate',
+    description:
+      'House in Port Maria, Jamaica. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 1956.',
+    longitude: -76.89724,
+    latitude: 18.39314,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/NoelCowardFirefly.jpg?width=1600',
+  },
+  {
+    countryCode: 'JM',
+    title: 'Mahdi Mosque',
+    description:
+      'Mosque in Old Harbour, Saint Catherine, Jamaica. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -77.07667,
+    latitude: 17.94597,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Masjid%20Mahdi%2C%20Jamaica.jpg?width=1600',
   },
   {
     countryCode: 'JO',
@@ -864,6 +4114,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Treasury%2C%20Petra%2C%20Jordan5.jpg?width=1600',
   },
   {
+    countryCode: 'JO',
+    title: 'Qasr Amra',
+    description:
+      'Château. Its architecture and setting preserve stories of power, defence and daily life across generations. Its architecture is associated with Islamic architecture. It holds the heritage designation “World Heritage Site”.',
+    longitude: 36.58731,
+    latitude: 31.80175,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Qasr%20Amra.jpg?width=1600',
+  },
+  {
+    countryCode: 'JO',
+    title: 'Ajloun',
+    description:
+      'City. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 719 metres above sea level.',
+    longitude: 35.75167,
+    latitude: 32.3325,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ajlun%20from%20Ajlun%20Castle.jpg?width=1600',
+  },
+  {
+    countryCode: 'JO',
+    title: 'Umm ar-Rasas',
+    description:
+      'Jordanian archeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 35.91972,
+    latitude: 31.49972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Umm%20Rasas%20House%20ruins.JPG?width=1600',
+  },
+  {
+    countryCode: 'JO',
+    title: 'Al Maghtas',
+    description:
+      'Archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The place takes its name from Baptism of Jesus. It holds the heritage designation “World Heritage Site”.',
+    longitude: 35.55028,
+    latitude: 31.83722,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bethany%20%285%29.JPG?width=1600',
+  },
+  {
     countryCode: 'JP',
     title: 'Mount Fuji',
     description:
@@ -872,6 +4162,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 35.36056,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kodaki%20fuji%20frm%20shojinko%20refurb.jpg?width=1600',
+  },
+  {
+    countryCode: 'JP',
+    title: 'Mode Gakuen Cocoon Tower',
+    description:
+      'Building in Tokyo, Japan. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 2008. Its design is credited to Tange Associates. The structure reaches approximately 204 metres in height. Its architecture is associated with high-tech architecture.',
+    longitude: 139.69694,
+    latitude: 35.69167,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2024%20Cocoon%20Tower%2002.jpg?width=1600',
+  },
+  {
+    countryCode: 'JP',
+    title: 'Kiyomizu-dera Temple',
+    description:
+      'Buddhist temple in Higashiyama, Kyoto. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 778. Its architecture is associated with kakezukuri. It holds the heritage designation “National Treasure of Japan”.',
+    longitude: 135.785,
+    latitude: 34.99483,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kiyomizu-dera%2C%20Kyoto%2C%20November%202016%20-02.jpg?width=1600',
+  },
+  {
+    countryCode: 'JP',
+    title: 'Himeji Castle',
+    description:
+      'Japanese castle complex. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1346. One of its documented purposes is domain office. Its architecture is associated with Japanese castle architecture. It holds the heritage designation “National Treasure of Japan”.',
+    longitude: 134.69361,
+    latitude: 34.83944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Himeji%20castle%20in%20may%202015.jpg?width=1600',
+  },
+  {
+    countryCode: 'JP',
+    title: 'Tokyo Skytree',
+    description:
+      'Tower in Tokyo, Japan. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 2012. Its design is credited to Nikken Sekkei. One of its documented purposes is restaurant. The structure reaches approximately 634 metres in height.',
+    longitude: 139.81072,
+    latitude: 35.71006,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tokyo%20Skytree%202023.jpg?width=1600',
   },
   {
     countryCode: 'KE',
@@ -884,6 +4214,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Longonot%20in%20Kenya%2001.jpg?width=1600',
   },
   {
+    countryCode: 'KE',
+    title: 'Thimlich Ohinga',
+    description:
+      'National Monument of Kenya. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “National Monument of Kenya”.',
+    longitude: 34.32611,
+    latitude: -0.89134,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Thimlich%20Ohinga%20Cultural%20Landscape-%20Kenya.JPG?width=1600',
+  },
+  {
+    countryCode: 'KE',
+    title: 'Central Island',
+    description:
+      'Island in Lake Turkana, Kenya. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. It extends for approximately 3.2 kilometres. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 36.05,
+    latitude: 3.5,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kenya%20Aerial%202009-08-27%2014-27-32.JPG?width=1600',
+  },
+  {
+    countryCode: 'KE',
+    title: 'Ruins of Gedi',
+    description:
+      'Archaeological site in Kenya. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “National Monument of Kenya”.',
+    longitude: 40.01667,
+    latitude: -3.30917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Mosque%20of%20Gede.jpg?width=1600',
+  },
+  {
+    countryCode: 'KE',
+    title: 'Menengai',
+    description:
+      'Shield volcano in Kenya. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,278 metres above sea level.',
+    longitude: 36.06667,
+    latitude: -0.2,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Menengai%20crater%2CNakuru%20kenya.jpg?width=1600',
+  },
+  {
     countryCode: 'KG',
     title: 'Burana Tower',
     description:
@@ -892,6 +4262,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 42.74648,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burana%20Tower%2C%20Kyrgyzstan.jpg?width=1600',
+  },
+  {
+    countryCode: 'KG',
+    title: 'Balasagun',
+    description:
+      'Ancient Sogdian city in modern-day Kyrgyzstan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 75.24843,
+    latitude: 42.74759,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Balasagun%20ruins.jpg?width=1600',
+  },
+  {
+    countryCode: 'KG',
+    title: 'Suyab',
+    description:
+      'Ancient Silk Road city. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 75.2667,
+    latitude: 42.8,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/BezeklikSogdianMerchants.jpg?width=1600',
+  },
+  {
+    countryCode: 'KG',
+    title: 'Saymaluu-Tash State Nature Park',
+    description:
+      'Rock engravings site in Kyrgyzstan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 3,200 metres above sea level. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 73.814,
+    latitude: 41.18067,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Saimaluu%20Tash.jpg?width=1600',
+  },
+  {
+    countryCode: 'KG',
+    title: 'Toktogul Dam',
+    description:
+      'Dam. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1956. It extends for approximately 292.5 metres.',
+    longitude: 72.63625,
+    latitude: 41.65697,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%9F%D0%BB%D0%BE%D1%82%D0%B8%D0%BD%D0%B0%20%D0%A2%D0%BE%D0%BA%D1%82%D0%BE%D0%B3%D1%83%D0%BB%D1%8C%D1%81%D0%BA%D0%BE%D0%B9%20%D0%93%D0%AD%D0%A1%20-%20Toktogul%20dam.jpg?width=1600',
   },
   {
     countryCode: 'KH',
@@ -904,6 +4314,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Angkor%20Wat%20with%20its%20reflection%20(cropped).jpg?width=1600',
   },
   {
+    countryCode: 'KH',
+    title: 'Angkor',
+    description:
+      'Former capital city; region of Cambodia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 103.83333,
+    latitude: 13.43333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Angkor%20Wat%20W-Seite.jpg?width=1600',
+  },
+  {
+    countryCode: 'KH',
+    title: 'Angkor Thom',
+    description:
+      'Archaeological site and Hindu empire in Cambodia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 103.85968,
+    latitude: 13.4433,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bayon-temple.JPG?width=1600',
+  },
+  {
+    countryCode: 'KH',
+    title: 'Preah Vihear Temple',
+    description:
+      'Khmer Temple that has territorial conflict between Cambodia and Thailand. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 893. It holds the heritage designation “World Heritage Site”.',
+    longitude: 104.68028,
+    latitude: 14.39056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/03%20Prasat%20Preah%20Vihear-nX-06478.jpg?width=1600',
+  },
+  {
+    countryCode: 'KH',
+    title: 'Bayon',
+    description:
+      'Khmer temple in Cambodia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 103.85874,
+    latitude: 13.44125,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Trusty%20Tuk%20Tuk%20.jpg?width=1600',
+  },
+  {
     countryCode: 'KI',
     title: 'Te Umanibong',
     description:
@@ -912,6 +4362,16 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 1.3665,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Te%20Umanibong.jpg?width=1600',
+  },
+  {
+    countryCode: 'KI',
+    title: 'Sacred Heart Cathedral',
+    description:
+      'Cathedral in South Tarawa, Kiribati. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 173.007,
+    latitude: 1.33266,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sacred%20Heart%20Cathedral%20%28Tarawa%29.jpg?width=1600',
   },
   {
     countryCode: 'KM',
@@ -934,6 +4394,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/ISS022-E-39042%20-%20View%20of%20the%20Lesser%20Antilles.jpg?width=1600',
   },
   {
+    countryCode: 'KN',
+    title: 'Co-Cathedral of Immaculate Conception, Basseterre',
+    description:
+      'Church building in Basseterre, Saint Kitts and Nevis. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1927. The place takes its name from Mary.',
+    longitude: -62.72142,
+    latitude: 17.29639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basseterre%20Co-Cathedral%20of%20Immaculate%20Conception%202.JPG?width=1600',
+  },
+  {
+    countryCode: 'KN',
+    title: 'Berkeley Memorial',
+    description:
+      'Monument in Basseterre, Saint Kitts and Nevis. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1883. A notable construction material is iron. The place takes its name from Thomas Berkeley Hartman-Berkeley.',
+    longitude: -62.72374,
+    latitude: 17.29525,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Clock%20tower%20The%20Circus%20from%20Ballahoo.JPG?width=1600',
+  },
+  {
+    countryCode: 'KN',
+    title: 'Château de la Montagne',
+    description:
+      'Fortified palace in a plantation on Saint Kitts. Its architecture and setting preserve stories of power, defence and daily life across generations.',
+    longitude: -62.73333,
+    latitude: 17.33333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ch%C3%A2teau%20de%20la%20Montagne%20%C3%A0%20St%20Christophe.png?width=1600',
+  },
+  {
+    countryCode: 'KN',
+    title: 'National Museum of Saint Kitts',
+    description:
+      'Museum in Saint George Basseterre, Saint Kitts and Nevis. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 2002.',
+    longitude: -62.72372,
+    latitude: 17.29458,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Karibik%2C%20St.%20Kitts%20-%20The%20National%20Museum%20of%20St.%20Kitts%20-%20panoramio.jpg?width=1600',
+  },
+  {
     countryCode: 'KP',
     title: 'Baekdu Mountain',
     description:
@@ -942,6 +4442,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 41.99278,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baitou%20Mountain%20Tianchi.jpg?width=1600',
+  },
+  {
+    countryCode: 'KP',
+    title: 'Juche Tower',
+    description:
+      'Tower in Pyongyang, North Korea. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1982. The structure reaches approximately 170 metres in height. A notable construction material is granite.',
+    longitude: 125.76361,
+    latitude: 39.01759,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Juche-Tower-2014.jpg?width=1600',
+  },
+  {
+    countryCode: 'KP',
+    title: 'Heaven Lake',
+    description:
+      'Crater lake in China/North Korea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,189 metres above sea level. It extends for approximately 4.9 kilometres.',
+    longitude: 128.057,
+    latitude: 42.006,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baitou%20Mountain%20Tianchi.jpg?width=1600',
+  },
+  {
+    countryCode: 'KP',
+    title: 'Goguryeo tombs',
+    description:
+      'Building complex in North Korea. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 125.415,
+    latitude: 38.86306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Goguryeo%20tomb%20mural.jpg?width=1600',
+  },
+  {
+    countryCode: 'KP',
+    title: 'Kumsusan Palace of the Sun',
+    description:
+      'Mausoleum in Pyongyang, North Korea, containing the enbalmed bodies of Kim Il-sung and Kim Jong-il. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1976. Its architecture is associated with brutalist architecture. The place takes its name from Kŭmsu-san.',
+    longitude: 125.78905,
+    latitude: 39.06327,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/0995%20-%20Nordkorea%202015%20-%20Pj%C3%B6ngjang%20-%20Mausoleum%20%2822355259173%29.jpg?width=1600',
   },
   {
     countryCode: 'KR',
@@ -954,6 +4494,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%EC%B0%BD%EB%8D%95%EA%B6%81%20%EC%A0%84%EA%B2%BD%20%282012%29.jpg?width=1600',
   },
   {
+    countryCode: 'KR',
+    title: 'Hallasan',
+    description:
+      'Mountain in Jeju, South Korea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,947.1 metres above sea level. A notable construction material is basalt. It holds the heritage designation “Natural Monument of South Korea”.',
+    longitude: 126.51667,
+    latitude: 33.35,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%ED%95%9C%EB%9D%BC%EC%82%B01.jpg?width=1600',
+  },
+  {
+    countryCode: 'KR',
+    title: 'Gyeongbokgung',
+    description:
+      'Palace in Seoul, South Korea. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1395. It holds the heritage designation “Historic sites of South Korea”.',
+    longitude: 126.9768,
+    latitude: 37.57988,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%EA%B4%91%ED%99%94%EB%AC%B8%20%EC%9B%94%EB%8C%80.jpg?width=1600',
+  },
+  {
+    countryCode: 'KR',
+    title: 'Seokguram',
+    description:
+      'Cave/grotto in South Korea. Its underground formations and atmosphere reveal a landscape hidden from the surface world. It holds the heritage designation “National Treasures of South Korea”.',
+    longitude: 129.34917,
+    latitude: 35.795,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Front%20view%20of%20Buddha%20at%20Seokguram.jpg?width=1600',
+  },
+  {
+    countryCode: 'KR',
+    title: 'Bulguksa',
+    description:
+      'Temple. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. It holds the heritage designation “Historic sites of South Korea”.',
+    longitude: 129.33222,
+    latitude: 35.79,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Geungnakjeon%2C%20Bulguksa%2001.jpg?width=1600',
+  },
+  {
     countryCode: 'KW',
     title: 'Grand Mosque',
     description:
@@ -962,6 +4542,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 29.36972,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuwait%20City%20Grand%20Mosque%20Exterior%20South%20Facade%205.jpg?width=1600',
+  },
+  {
+    countryCode: 'KW',
+    title: 'Sheikh Jaber al-Ahmad al-Sabah Causeway',
+    description:
+      'Bridge in Kuwait. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2019. The place takes its name from Jaber al-Ahmad al-Sabah.',
+    longitude: 47.91015,
+    latitude: 29.37119,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/26th%20December%202019%20solar%20eclipse%20as%20viewed%20in%20Kuwait.jpg?width=1600',
+  },
+  {
+    countryCode: 'KW',
+    title: 'Imam Hussein Mosque',
+    description:
+      'Mosque in Kuwait. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1986.',
+    longitude: 47.97833,
+    latitude: 29.36972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Imam%20Hussein%20Mosque%2C%20Kuwait%20City%201980%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'KW',
+    title: 'Holy Family Cathedral, Kuwait',
+    description:
+      'Cathedral in Kuwait City. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1956. The place takes its name from Holy Family.',
+    longitude: 47.95998,
+    latitude: 29.36363,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuwait%20City%20Holy%20Family%20Cathedral%20Exterior%20Facade.jpg?width=1600',
+  },
+  {
+    countryCode: 'KW',
+    title: 'Kuwait Entertainment City',
+    description:
+      'Amusement park in Kuwait. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments.',
+    longitude: 47.8166,
+    latitude: 29.348,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tele%20003.jpg?width=1600',
   },
   {
     countryCode: 'KZ',
@@ -974,6 +4594,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%A5%D0%B0%D0%BD%D0%B0%D0%BA%D0%B0%20%D0%90%D1%85%D0%BC%D0%B5%D0%B4%D0%B0%20%D0%AF%D1%81%D0%B0%D0%B2%D0%B8%202010%20003.jpg?width=1600',
   },
   {
+    countryCode: 'KZ',
+    title: 'Tamgaly',
+    description:
+      'Archaeological site in Kazakhstan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 75.535,
+    latitude: 43.80333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tanbaly.jpg?width=1600',
+  },
+  {
+    countryCode: 'KZ',
+    title: 'Otrar',
+    description:
+      'Archaeological site in South Kazakhstan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 506 metres above sea level. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 68.30297,
+    latitude: 42.85148,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ovidio%20Guaita%2016.jpg?width=1600',
+  },
+  {
+    countryCode: 'KZ',
+    title: 'Bayterek',
+    description:
+      'Monument in Astana, Kazachstan. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its design is credited to Norman Foster. The structure reaches approximately 105 metres in height.',
+    longitude: 71.43056,
+    latitude: 51.12833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Night%20at%20Esil%20District%2C%20Astana%20%28P1190721%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'KZ',
+    title: 'Khazret Sultan Mosque',
+    description:
+      'Mosque in Astana, Kazakhstan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2012. The structure reaches approximately 77 metres in height. Its architecture is associated with Islamic architecture. The place takes its name from Khoja Akhmet Yassawi.',
+    longitude: 71.47222,
+    latitude: 51.125,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rustam%20Minnikhanov%20on%20Expo%202017%2072.jpg?width=1600',
+  },
+  {
     countryCode: 'LA',
     title: 'Plain of Jars',
     description:
@@ -982,6 +4642,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 19.43111,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/20171115%20Plain%20of%20Jars%20Laos%202540%20DxO.jpg?width=1600',
+  },
+  {
+    countryCode: 'LA',
+    title: 'Vat Phou',
+    description:
+      'Hindu temples complex and ruins in Laos (UNESCO site). Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 105.81572,
+    latitude: 14.84892,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Main%20path%20lined%20with%20stone%20pillars%20to%20the%20ruined%20Khmer%20Hindu%20temple%20of%20Wat%20Phou%2C%20Champasak%2C%20Laos.jpg?width=1600',
+  },
+  {
+    countryCode: 'LA',
+    title: 'Khone Phapheng Falls',
+    description:
+      'Waterfall on the Mekong River in Laos. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 21 metres in height.',
+    longitude: 105.98667,
+    latitude: 13.95972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khone%20Phapheng%20Falls%20-%201.jpg?width=1600',
+  },
+  {
+    countryCode: 'LA',
+    title: 'Pha That Luang',
+    description:
+      'Laotian Buddhist stupa. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1566. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 102.63425,
+    latitude: 17.97617,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Pha%20That%20Luang%20Vientiane%20Laos.jpg?width=1600',
+  },
+  {
+    countryCode: 'LA',
+    title: 'Kuang Si Falls',
+    description:
+      'Laos falls. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site.',
+    longitude: 101.99167,
+    latitude: 19.74917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuang%20Si%20Falls%20and%20a%20turquoise%20water%20pool%20in%20Luang%20Prabang%20province%20Laos.jpg?width=1600',
   },
   {
     countryCode: 'LB',
@@ -994,6 +4694,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Byblos%20Libanon%202003.JPG?width=1600',
   },
   {
+    countryCode: 'LB',
+    title: 'Jeita Grotto',
+    description:
+      'System of two separate, but interconnected, karstic limestone caves 18 km north of Beirut. Its underground formations and atmosphere reveal a landscape hidden from the surface world.',
+    longitude: 35.64061,
+    latitude: 33.94392,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Upper%20Jeita%20Grotto.jpg?width=1600',
+  },
+  {
+    countryCode: 'LB',
+    title: 'Mohammad Al-Amin Mosque',
+    description:
+      'Muslim mosque. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2005.',
+    longitude: 35.50637,
+    latitude: 33.89497,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mohammad%20Al-Amin%20Mosque%20during%202019%20Lebanese%20revolution.jpg?width=1600',
+  },
+  {
+    countryCode: 'LB',
+    title: 'Sarepta',
+    description:
+      'Phoenician city known biblically as Zarephath. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 35.29583,
+    latitude: 33.4575,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sarepta%20April%2027th%201839%20-%20David%20Roberts%2C%20R.A.%20LCCN2002717517%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'LB',
+    title: 'Temple of Eshmun',
+    description:
+      'Temple in Lebanon. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The structure reaches approximately 22 metres in height. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 35.39806,
+    latitude: 33.58556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Throne%20of%20Ashtart.jpg?width=1600',
+  },
+  {
     countryCode: 'LC',
     title: 'Qualibou',
     description:
@@ -1002,6 +4742,26 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 13.838,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20north%20from%20Gros%20Piton.jpg?width=1600',
+  },
+  {
+    countryCode: 'LC',
+    title: 'Cathedral Basilica of the Immaculate Conception in Castries',
+    description:
+      'Roman Catholic cathedral in Castries, Saint Lucia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1894. Its design is credited to Ignatius Scoles. The place takes its name from Mary.',
+    longitude: -60.99008,
+    latitude: 14.00913,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castries%20-%20Cathedral%20Basilica%20of%20the%20Immaculate%20Conception%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'LC',
+    title: 'St. Lucia Botanical Gardens',
+    description:
+      'Botanical gardens in St. Lucia. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture.',
+    longitude: -61.0483,
+    latitude: 13.8525,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Diamond%20Falls%2C%20Diamond%20Botanical%20Gardens%2C%20Soufriere%2C%20Saint%20Lucia.jpg?width=1600',
   },
   {
     countryCode: 'LI',
@@ -1014,6 +4774,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Liechtenstein%20asv2022-10%20img22%20Vaduz%20Schloss.jpg?width=1600',
   },
   {
+    countryCode: 'LI',
+    title: 'Vaduz Cathedral',
+    description:
+      'Cathedral in Vaduz, Liechtenstein. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1873. Its design is credited to Friedrich von Schmidt. Its architecture is associated with Gothic Revival. A notable construction material is brick.',
+    longitude: 9.5227,
+    latitude: 47.1362,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Liechtenstein%20asv2022-10%20img21%20Vaduz%20Kathedrale%20StFlorin.jpg?width=1600',
+  },
+  {
+    countryCode: 'LI',
+    title: 'Gutenberg Castle',
+    description:
+      'Castle. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1101. It holds the heritage designation “cultural heritage monument in Liechtenstein”.',
+    longitude: 9.50028,
+    latitude: 47.06525,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Liechtenstein%20asv2022-10%20img25%20Balzers%20Burg%20Gutenberg.jpg?width=1600',
+  },
+  {
+    countryCode: 'LI',
+    title: 'Schalun Castle',
+    description:
+      'Castle ruin located in the municipality of Vaduz, Liechtenstein. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “cultural heritage monument in Liechtenstein”.',
+    longitude: 9.5336,
+    latitude: 47.1509,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Schalun%20Castle.jpg?width=1600',
+  },
+  {
+    countryCode: 'LI',
+    title: 'Obere Burg',
+    description:
+      'Castle in Liechtenstein. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “cultural heritage monument in Liechtenstein”.',
+    longitude: 9.5542,
+    latitude: 47.2329,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Obere%20Burg%20Schellenberg1.JPG?width=1600',
+  },
+  {
     countryCode: 'LK',
     title: 'Dambulla cave temple',
     description:
@@ -1022,6 +4822,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 7.85667,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dambulla-temple%20daurat1.jpg?width=1600',
+  },
+  {
+    countryCode: 'LK',
+    title: 'Temple of the Tooth',
+    description:
+      'Buddhist temple housing the relic of the tooth of Buddha. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1595. The place takes its name from relic of the tooth of the Buddha.',
+    longitude: 80.64139,
+    latitude: 7.29361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SL%20Kandy%20asv2020-01%20img33%20Sacred%20Tooth%20Temple.jpg?width=1600',
+  },
+  {
+    countryCode: 'LK',
+    title: 'Avukana Buddha statue',
+    description:
+      'Standing statue of the Buddha. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 400. A notable construction material is granite.',
+    longitude: 80.52028,
+    latitude: 8.02278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Avukana%20Buddha%20Statue%2015.JPG?width=1600',
+  },
+  {
+    countryCode: 'LK',
+    title: 'Abhayagiri vihāra',
+    description:
+      'Historical Buddhist monastery site in Anuradhapura, Sri Lanka. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 80.39525,
+    latitude: 8.37094,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SL%20Anuradhapura%20asv2020-01%20img31%20Abhayagiriya%20Stupa.jpg?width=1600',
+  },
+  {
+    countryCode: 'LK',
+    title: 'Lotus Tower',
+    description:
+      'Telecommunications tower in Colombo, Sri Lanka. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 2018.',
+    longitude: 79.85833,
+    latitude: 6.92694,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Blue%20lotus%20tower.jpg?width=1600',
   },
   {
     countryCode: 'LR',
@@ -1044,6 +4884,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Maletsunyanefalls.JPG?width=1600',
   },
   {
+    countryCode: 'LS',
+    title: 'Katse Dam',
+    description:
+      'Dam. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. The structure reaches approximately 185 metres in height.',
+    longitude: 28.50603,
+    latitude: -29.33708,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Katse%20Dam.jpg?width=1600',
+  },
+  {
+    countryCode: 'LS',
+    title: 'Afri-Ski',
+    description:
+      'Ski resort. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments. The site stands approximately 3,000 metres above sea level.',
+    longitude: 28.72806,
+    latitude: -28.82278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/AfriSki.jpg?width=1600',
+  },
+  {
+    countryCode: 'LS',
+    title: 'Our Lady of Victories Cathedral, Maseru',
+    description:
+      'Building in Lesotho. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1950.',
+    longitude: 27.49484,
+    latitude: -29.31689,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Roman%20Catholic%20Archdiocese%20of%20Maseru.jpg?width=1600',
+  },
+  {
+    countryCode: 'LS',
+    title: 'Mohale Dam',
+    description:
+      'Dam. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. The structure reaches approximately 144 metres in height.',
+    longitude: 28.09583,
+    latitude: -29.45667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mohaledam.jpg?width=1600',
+  },
+  {
     countryCode: 'LT',
     title: 'Hill of Crosses',
     description:
@@ -1052,6 +4932,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 56.01528,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Berg%20der%20kreuze%2001.JPG?width=1600',
+  },
+  {
+    countryCode: 'LT',
+    title: 'Trakai Island Castle',
+    description:
+      'Island castle in Trakai, Lithuania. Its architecture and setting preserve stories of power, defence and daily life across generations. Its architecture is associated with Gothic architecture. A notable construction material is brick.',
+    longitude: 24.93306,
+    latitude: 54.6525,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Trakai%20Island%20Castle%2C%202007.jpg?width=1600',
+  },
+  {
+    countryCode: 'LT',
+    title: 'Vilnius Cathedral',
+    description:
+      'Cathedral in Lithuania. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1387. Its design is credited to Laurynas Gucevičius. Its architecture is associated with Neoclassical architecture. A notable construction material is brick.',
+    longitude: 25.28788,
+    latitude: 54.68589,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Vilnius%20-%20Cathedral%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'LT',
+    title: "Gediminas' Tower",
+    description:
+      'Castle in Vilnius, Lithuania. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1301. Its architecture is associated with Gothic art. A notable construction material is brick.',
+    longitude: 25.29069,
+    latitude: 54.68676,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gedimino%20pilis%20by%20Augustas%20Didzgalvis.jpg?width=1600',
+  },
+  {
+    countryCode: 'LT',
+    title: 'Gate of Dawn',
+    description:
+      'City gate. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created.',
+    longitude: 25.28944,
+    latitude: 54.67444,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ausros%20vartai.jpg?width=1600',
   },
   {
     countryCode: 'LU',
@@ -1064,6 +4984,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Luxembourg%20City%20Eurotrip%20%28133169443%29.jpeg?width=1600',
   },
   {
+    countryCode: 'LU',
+    title: 'Berg Castle',
+    description:
+      'Principal residence of the Grand Duke of Luxembourg. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1911. Its design is credited to Max Ostenrieder. One of its documented purposes is official residence. The site stands approximately 230 metres above sea level.',
+    longitude: 6.08694,
+    latitude: 49.81417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Residenz%20der%20Grossherzoeglichen%20Familie.jpg?width=1600',
+  },
+  {
+    countryCode: 'LU',
+    title: 'Grand Ducal Palace',
+    description:
+      'Official residence of the Grand Duke of Luxembourg. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1574. One of its documented purposes is official residence. Its architecture is associated with Renaissance architecture.',
+    longitude: 6.13283,
+    latitude: 49.61089,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palacio%20Gran%20Ducal%20de%20Luxemburgo.jpg?width=1600',
+  },
+  {
+    countryCode: 'LU',
+    title: 'Vianden Castle',
+    description:
+      'Castle in Luxembourg. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1100. Its architecture is associated with Romanesque architecture.',
+    longitude: 6.20278,
+    latitude: 49.935,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burg%20Vianden%202009.jpg?width=1600',
+  },
+  {
+    countryCode: 'LU',
+    title: 'Adolphe Bridge',
+    description:
+      'Tram and road stone arch bridge in Luxembourg City, with pedestrian and cycle steel bridge suspended beneath the upper deck. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1903. The structure reaches approximately 42 metres in height. It extends for approximately 153 metres. A notable construction material is concrete.',
+    longitude: 6.12707,
+    latitude: 49.60831,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Puente%20Adolfo%2C%20ciudad%20de%20Luxemburgo%2C%20Luxemburgo%2C%202023-12-16%2C%20DD%2082.jpg?width=1600',
+  },
+  {
     countryCode: 'LV',
     title: 'Riga Cathedral',
     description:
@@ -1072,6 +5032,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 56.94917,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/2025%20Riga%20Cathedral%20%2802%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'LV',
+    title: 'Freedom Monument',
+    description:
+      'Memorial located in Riga, Latvia. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1935. Its design is credited to Ernests Štālbergs. The structure reaches approximately 42 metres in height. A notable construction material is granite.',
+    longitude: 24.11322,
+    latitude: 56.95156,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Freedom%20Monument%2C%20Riga%20%2809.09.2022%29.01.jpg?width=1600',
+  },
+  {
+    countryCode: 'LV',
+    title: 'Riga Castle',
+    description:
+      'Castle in Riga, Latvia. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1330. One of its documented purposes is official residence. The site stands approximately 9 metres above sea level. It holds the heritage designation “National architectural monument of Latvia”.',
+    longitude: 24.10064,
+    latitude: 56.95095,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Riga%20Pils%20Latvia%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'LV',
+    title: "St. Peter's Church",
+    description:
+      'Church in Riga. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1201. The structure reaches approximately 123.3 metres in height. It extends for approximately 78.8 metres. Its architecture is associated with Brick Gothic.',
+    longitude: 24.10944,
+    latitude: 56.9475,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Iglesia%20de%20San%20Pedro%2C%20Riga%2C%20Letonia%2C%202012-08-07%2C%20DD%2032.JPG?width=1600',
+  },
+  {
+    countryCode: 'LV',
+    title: 'Riga Radio and TV Tower',
+    description:
+      'Television tower in Riga, Latvia. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1989. Its design is credited to Gunārs Asaris. The structure reaches approximately 368.5 metres in height. It holds the heritage designation “local architectural monument”.',
+    longitude: 24.13694,
+    latitude: 56.92389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Skylines%20of%20Riga%20by%20Nasta%20Faley.jpg?width=1600',
   },
   {
     countryCode: 'LY',
@@ -1084,6 +5084,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Archaeological%20Site%20of%20Cyrene-109025.jpg?width=1600',
   },
   {
+    countryCode: 'LY',
+    title: 'Leptis Magna',
+    description:
+      'Ancient city in modern Libya. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 700 BCE. It holds the heritage designation “World Heritage Site”.',
+    longitude: 14.2905,
+    latitude: 32.63833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Leptis%20Magna%20%2829%29%20%288288918733%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'LY',
+    title: 'Tadrart Acacus',
+    description:
+      'Mountain range in the desert of the Ghat District in western Libya. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 10.33332,
+    latitude: 24.83343,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Libya%205076%20Tadrart%20Acacus%20Luca%20Galuzzi%202007.jpg?width=1600',
+  },
+  {
+    countryCode: 'LY',
+    title: 'Great Manmade River',
+    description:
+      'Underground network of pipes that supplies water to the Sahara Desert in Libya. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created.',
+    longitude: 21.60083,
+    latitude: 25.45556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/MMR%2013.jpg?width=1600',
+  },
+  {
+    countryCode: 'LY',
+    title: 'Ptolemais',
+    description:
+      'One of the ancient capitals of Cyrenaica. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 20.95076,
+    latitude: 32.70881,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ptolemais%20Byzantine%20Cistern.JPG?width=1600',
+  },
+  {
     countryCode: 'MA',
     title: 'Volubilis',
     description:
@@ -1092,6 +5132,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 34.0725,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volubilis%201990.jpg?width=1600',
+  },
+  {
+    countryCode: 'MA',
+    title: 'Hassan II Mosque',
+    description:
+      'Mosque in Casablanca, Morocco. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1993. Its design is credited to Michel Pinseau. Its architecture is associated with Moorish architecture. The place takes its name from Hassan II.',
+    longitude: -7.63256,
+    latitude: 33.60734,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sunshine%20on%20mosque%20Hassan%20II%20in%20Casablanca%2C%20Morocco%20-%20Flickr%20-%20Milamber%27s%20portfolio.jpg?width=1600',
+  },
+  {
+    countryCode: 'MA',
+    title: 'Koutoubia Mosque',
+    description:
+      'Mosque in Marrakesh, Morocco. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1147. The structure reaches approximately 68 metres in height. Its architecture is associated with Moorish architecture. It holds the heritage designation “Moroccan cultural heritage”.',
+    longitude: -7.99354,
+    latitude: 31.62412,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mosqu%C3%A9e%20de%20la%20Koutoubia%20-%20marakesh.jpg?width=1600',
+  },
+  {
+    countryCode: 'MA',
+    title: 'Hassan Tower',
+    description:
+      'Mosque in Rabat, Morocco. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1196. One of its documented purposes is minaret. Its architecture is associated with art of Almoravides and Almohades. It holds the heritage designation “Moroccan cultural heritage”.',
+    longitude: -6.82272,
+    latitude: 34.0241,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hassan%20Tower%2C%20Rabat%2C%20Marocco%20%28%D8%B5%D9%88%D9%85%D8%B9%D8%A9%20%D8%AD%D8%B3%D8%A7%D9%86%20%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MA',
+    title: 'Ouzoud Falls',
+    description:
+      'Moroccan cultural heritage site. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 110 metres in height. Its recorded width is approximately 90 metres. It holds the heritage designation “Moroccan cultural heritage”.',
+    longitude: -6.71889,
+    latitude: 32.01528,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cascades%20d%27ouzoud%20maroc%2001.jpg?width=1600',
   },
   {
     countryCode: 'MC',
@@ -1104,6 +5184,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palais%20Princier%20de%20Monaco.jpg?width=1600',
   },
   {
+    countryCode: 'MC',
+    title: 'Musée océanographique de Monaco',
+    description:
+      'Museum of marine sciences. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1889. Its design is credited to Paul Delefortrie.',
+    longitude: 7.42528,
+    latitude: 43.73083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monaco%20BW%202011-06-07%2017-50-43.jpg?width=1600',
+  },
+  {
+    countryCode: 'MC',
+    title: 'Cathedral of Our Lady Immaculate',
+    description:
+      'Monaco. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1911. Its design is credited to Montferrand-du-Périgord. Its architecture is associated with Romanesque Revival architecture. A notable construction material is brick.',
+    longitude: 7.42266,
+    latitude: 43.73021,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monaco%20BW%202011-06-07%2016-07-20.jpg?width=1600',
+  },
+  {
+    countryCode: 'MC',
+    title: 'Jardin Exotique de Monaco',
+    description:
+      'Botanical garden in Monaco. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 1931. Its design is credited to Louis Notari.',
+    longitude: 7.41378,
+    latitude: 43.73151,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chorisia%20Monaco.jpg?width=1600',
+  },
+  {
+    countryCode: 'MC',
+    title: 'Sainte-Dévote Chapel',
+    description:
+      'Church building in Monaco. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1871.',
+    longitude: 7.42098,
+    latitude: 43.73751,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%C3%89glise%20de%20Saint-D%C3%A9vote%20Monaco%20IMG%201204.jpg?width=1600',
+  },
+  {
     countryCode: 'MD',
     title: 'Soroca Fort',
     description:
@@ -1112,6 +5232,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 48.16122,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%A1%D0%BE%D1%80%D0%BE%D0%BA%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BA%D1%80%D0%B5%D0%BF%D0%BE%D1%81%D1%82%D1%8C%20Cetatea%20Soroca%20Soroca%20Fortress%20%2844738809521%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MD',
+    title: 'Nativity of Christ Cathedral',
+    description:
+      'Cathedral in Chișinău, Moldova. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1836. Its design is credited to Avraam Melnikov. Its architecture is associated with Neoclassical architecture. A notable construction material is brick.',
+    longitude: 28.83453,
+    latitude: 47.02606,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ansamblul%20Catedralei%20%E2%80%9ENa%C8%99terea%20Domnului%E2%80%9D%208.jpg?width=1600',
+  },
+  {
+    countryCode: 'MD',
+    title: 'Căpriana monastery',
+    description:
+      'Architectural monument of national importance in Moldova. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1401. It holds the heritage designation “architectural monument of Moldova”.',
+    longitude: 28.51064,
+    latitude: 47.11662,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Monasterio%20de%20C%C4%83priana%2C%20C%C4%83priana%2C%20Moldavia%2C%202023-11-02%2C%20DD%2038.jpg?width=1600',
+  },
+  {
+    countryCode: 'MD',
+    title: 'Triumphal Arch, Chișinău',
+    description:
+      'Triumphal arch in Chișinău, Moldova. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1841. The structure reaches approximately 13 metres in height. Its recorded width is approximately 10 metres. Its architecture is associated with Neoclassical architecture.',
+    longitude: 28.8325,
+    latitude: 47.02472,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Arc%20de%20Triomphe%2C%20Chi%C5%9Fin%C4%83u%20%284867173990%29%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MD',
+    title: 'Cathedral of Divine Providence, Chișinău',
+    description:
+      'Architectural monument of national importance in Moldova. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1836. Its design is credited to Avraam Melnikov. Its architecture is associated with Neoclassical architecture. A notable construction material is brick.',
+    longitude: 28.82909,
+    latitude: 47.02912,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20Divine%20Providence%2C%20Chi%C5%9Fin%C4%83u.jpg?width=1600',
   },
   {
     countryCode: 'ME',
@@ -1124,6 +5284,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jeden%20ze%20stecku%20na%20Radimlji.jpg?width=1600',
   },
   {
+    countryCode: 'ME',
+    title: 'Ostrog monastery',
+    description:
+      'Monastery of the Serbian Orthodox Church. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Renaissance architecture.',
+    longitude: 19.02917,
+    latitude: 42.675,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ostrog%20monastery%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'ME',
+    title: 'Kotor Cathedral',
+    description:
+      'Seat of the Catholic Bishopric of Kotor. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1101. Its architecture is associated with Romanesque architecture. A notable construction material is brick. The place takes its name from Tryphon of Campsada.',
+    longitude: 18.77142,
+    latitude: 42.42431,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kotor%20-%20Cath%C3%A9drale%20St%20Tryphon.JPG?width=1600',
+  },
+  {
+    countryCode: 'ME',
+    title: 'Cathedral of the Resurrection of Christ',
+    description:
+      "Podgorica's Serbian Orthodox cathedral. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2013. Its design is credited to Predrag Ristić. The structure reaches approximately 41.5 metres in height. Its architecture is associated with Byzantine architecture.",
+    longitude: 19.24824,
+    latitude: 42.4457,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Blok%205%2C%20Podgorica%2C%20Montenegro%20-%20panoramio%20%282%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'ME',
+    title: 'Millennium Bridge',
+    description:
+      'Cable-stayed bridge. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2005. The structure reaches approximately 57 metres in height. It extends for approximately 140 metres. A notable construction material is steel.',
+    longitude: 19.25901,
+    latitude: 42.44491,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moj%20grad%20-%20panoramio.jpg?width=1600',
+  },
+  {
     countryCode: 'MG',
     title: 'Amber Mountain National Park',
     description:
@@ -1132,6 +5332,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -12.595,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Entr%C3%A9e%20du%20parc%20national%20Montagne%20d%27Ambre.jpg?width=1600',
+  },
+  {
+    countryCode: 'MG',
+    title: 'Rova of Antananarivo',
+    description:
+      'Royal complex in Madagascar. Its architecture and setting preserve stories of power, defence and daily life across generations. Its design is credited to James Cameron. Its architecture is associated with eclectic architecture.',
+    longitude: 47.53222,
+    latitude: -18.92361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palais%20royal%20Rova%20Manjakamiadana%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'MG',
+    title: 'Ankaratra',
+    description:
+      'Mountains in Madagascar. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,642 metres above sea level. A notable construction material is trachyte.',
+    longitude: 47.24334,
+    latitude: -19.34978,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ankaratra.jpg?width=1600',
+  },
+  {
+    countryCode: 'MG',
+    title: 'Lake Tritriva',
+    description:
+      'Lake. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape.',
+    longitude: 46.9247,
+    latitude: -19.929,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake%20Tritriva%2002.jpg?width=1600',
+  },
+  {
+    countryCode: 'MG',
+    title: 'Nosy Alañaña Light',
+    description:
+      'Lighthouse in Madagascar. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1933. A notable construction material is concrete.',
+    longitude: 49.46004,
+    latitude: -18.04874,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Phare%20de%20l%27Ile%20aux%20Prunes.jpg?width=1600',
   },
   {
     countryCode: 'MH',
@@ -1144,6 +5384,16 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20the%20Assumption%2C%20Majuro.jpg?width=1600',
   },
   {
+    countryCode: 'MH',
+    title: 'National Archives of the Marshall Islands',
+    description:
+      'National museum and archive of the Marshall Islands. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1981.',
+    longitude: 171.37383,
+    latitude: 7.10767,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Alele%20Museum%20Aussenansicht.JPG?width=1600',
+  },
+  {
     countryCode: 'MK',
     title: 'Šarena Mosque',
     description:
@@ -1152,6 +5402,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 42.00583,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tetovo%20Bunte%20Moschee.jpg?width=1600',
+  },
+  {
+    countryCode: 'MK',
+    title: 'Monastery of Saint Naum',
+    description:
+      'Monastery. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 901. Its architecture is associated with Byzantine architecture. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 20.7405,
+    latitude: 40.91389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Svetinaum.jpg?width=1600',
+  },
+  {
+    countryCode: 'MK',
+    title: 'Skopje Fortress',
+    description:
+      'Fortress and archaeological site in Macedonia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. A notable construction material is limestone. It holds the heritage designation “Heritage Site in North Macedonia”.',
+    longitude: 21.43444,
+    latitude: 42,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/KaleFortress-Skopje1.JPG?width=1600',
+  },
+  {
+    countryCode: 'MK',
+    title: 'Church of St. Sophia',
+    description:
+      'Church in Ohrid, North Macedonia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1035. Its architecture is associated with Giannina. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 20.79389,
+    latitude: 41.11194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%A1%D0%B2%20%D0%A1%D0%BE%D1%84%D0%B8%D1%98%D0%B0%20%D0%9E%D1%85%D1%80%D0%B8%D0%B4.JPG?width=1600',
+  },
+  {
+    countryCode: 'MK',
+    title: 'Stone Bridge in Skopje',
+    description:
+      'Bridge in Skopje, North Macedonia. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. It extends for approximately 213.9 metres. Its architecture is associated with Ottoman architecture. It holds the heritage designation “Heritage Site in North Macedonia”.',
+    longitude: 21.43307,
+    latitude: 41.99699,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stone%20Bridge%20so%20Arheolo%C5%A1kiot.jpg?width=1600',
   },
   {
     countryCode: 'ML',
@@ -1164,6 +5454,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Mosque%20of%20Djenn%C3%A9%201.jpg?width=1600',
   },
   {
+    countryCode: 'ML',
+    title: 'Tomb of Askia',
+    description:
+      'Tomb in Gao, Mali. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 1495. The structure reaches approximately 17 metres in height. It holds the heritage designation “World Heritage Site”.',
+    longitude: -0.04444,
+    latitude: 16.28972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Askia.jpg?width=1600',
+  },
+  {
+    countryCode: 'ML',
+    title: 'Sankore Madrasah',
+    description:
+      'Ancient center of learning in Timbuktu, Mali. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 988. Its architecture is associated with Sudano-Sahelian architecture. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: -3.00556,
+    latitude: 16.77583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sankore%20Moske%20Timboektoe.JPG?width=1600',
+  },
+  {
+    countryCode: 'ML',
+    title: 'Djinguereber Mosque',
+    description:
+      'Mosque in Timbuktu, Mali. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1327. Its design is credited to Abu Ishap Es-Saheli Altouwaidjin. Its architecture is associated with Sudano-Sahelian architecture. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: -3.01,
+    latitude: 16.77139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Djingareiber%20cour.jpg?width=1600',
+  },
+  {
+    countryCode: 'ML',
+    title: 'Manantali Dam',
+    description:
+      'Dam in Kayes Region, Mali. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1982. It extends for approximately 1,460 metres. The place takes its name from Manantali.',
+    longitude: -10.42994,
+    latitude: 13.19517,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Manantali%20dam.jpg?width=1600',
+  },
+  {
     countryCode: 'MM',
     title: 'Bagan',
     description:
@@ -1172,6 +5502,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 21.1725,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bagan%2C%20Myanmar%2C%20Htilominlo%20Temple%20and%20other%20Buddhist%20stupas%20in%20Bagan%20plain.jpg?width=1600',
+  },
+  {
+    countryCode: 'MM',
+    title: 'Shwedagon Pagoda',
+    description:
+      'Religious building in Yangon, Myanmar. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its design is credited to Hsinbyushin. The structure reaches approximately 112 metres in height. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 96.14944,
+    latitude: 16.79833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Yangon%20-%20Shwedagon%20Pagoda%2003.jpg?width=1600',
+  },
+  {
+    countryCode: 'MM',
+    title: 'Kyaiktiyo Pagoda',
+    description:
+      'Small pagoda (7.3 metres (24 ft)) in Myanmar, built on the top of a granite boulder covered with gold leaves, and legend has it that it is precariously perched…. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 97.09843,
+    latitude: 17.48358,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Golden%20Rock.JPG?width=1600',
+  },
+  {
+    countryCode: 'MM',
+    title: 'Laykyun Sekkya',
+    description:
+      'Colossal statue of the Buddha in Myanmar. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 2008. The structure reaches approximately 115.8 metres in height.',
+    longitude: 95.28936,
+    latitude: 22.08021,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Laykyun%20Setkyar%2001%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MM',
+    title: 'Ananda Temple',
+    description:
+      'Buddhist temple in Bagan, Myanmar. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1091.',
+    longitude: 94.86771,
+    latitude: 21.1709,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bagan%2C%20Myanmar%2C%20Ananda%20Temple.jpg?width=1600',
   },
   {
     countryCode: 'MN',
@@ -1184,6 +5554,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Niebo%20nad%20budynkami%20klasztoru%20Erdene%20Dzuu%2002.jpg?width=1600',
   },
   {
+    countryCode: 'MN',
+    title: 'Genghis Khan Equestrian Statue',
+    description:
+      'Monument in Ulaanbaatar, Mongolia. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 2008. The structure reaches approximately 40 metres in height. A notable construction material is stainless steel.',
+    longitude: 107.52981,
+    latitude: 47.80808,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chinggis%20Khaan%20statue%20Complex.jpg?width=1600',
+  },
+  {
+    countryCode: 'MN',
+    title: 'Ordu-Baliq',
+    description:
+      'Archaeological site in Mongolia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 102.65944,
+    latitude: 47.43111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ordu-baliq.jpg?width=1600',
+  },
+  {
+    countryCode: 'MN',
+    title: 'Gandantegchinlen Monastery',
+    description:
+      'Monastery in Bayangol, Ulaanbaatar, Mongolia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1838.',
+    longitude: 106.895,
+    latitude: 47.92306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gandantegchinlen%20Monastery%20%282024%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MN',
+    title: 'tomb of Genghis Khan',
+    description:
+      'Unmarked secret burial place in Mongolia. Its form and symbolism make it a memorable expression of local history and identity.',
+    longitude: 109.01111,
+    latitude: 48.76194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burkhan%20Khaldun%20mount3.jpg?width=1600',
+  },
+  {
     countryCode: 'MR',
     title: 'Aoudaghost',
     description:
@@ -1192,6 +5602,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 17.42436,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aoudaghost.png..jpg?width=1600',
+  },
+  {
+    countryCode: 'MR',
+    title: 'Chinguetti Mosque',
+    description:
+      'Building in Mauritania. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Moorish architecture.',
+    longitude: -12.36667,
+    latitude: 20.46333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D9%85%D8%B3%D8%AC%D8%AF%20%D8%B4%D9%86%D9%82%D9%8A%D8%B7%20%D8%A7%D9%84%D8%AA%D8%A7%D8%B1%D9%8A%D8%AE%D9%8A.jpg?width=1600',
+  },
+  {
+    countryCode: 'MR',
+    title: 'Ibn Abbas Mosque',
+    description:
+      'Mosque in Nouakchott, Mauritania. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -15.97889,
+    latitude: 18.08417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mosqu%C3%A9e%20Ibn%20Abbas.jpg?width=1600',
+  },
+  {
+    countryCode: 'MR',
+    title: 'Mosque Marocaine',
+    description:
+      'Building in Mauritania. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Moorish architecture.',
+    longitude: -15.98139,
+    latitude: 18.07722,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nouakchott%20scene2.jpg?width=1600',
+  },
+  {
+    countryCode: 'MR',
+    title: 'Saudi Mosque',
+    description:
+      'Mosque in Nouakchott, Mauritania. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -15.97822,
+    latitude: 18.09042,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Saudi%20mosque%20in%20Nouakchott.jpg?width=1600',
   },
   {
     countryCode: 'MT',
@@ -1204,6 +5654,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ggantija%20Temple%20on%20Gozo%20%28cropped%29.jpg?width=1600',
   },
   {
+    countryCode: 'MT',
+    title: 'Hypogeum of Ħal Saflieni',
+    description:
+      'Neolithic subterranean structure in Malta. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 14.50688,
+    latitude: 35.86956,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Malta%20Hypogeum%20Modell.jpg?width=1600',
+  },
+  {
+    countryCode: 'MT',
+    title: 'Megalithic Temples of Malta',
+    description:
+      'Several prehistoric temples on the Maltese Islands. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 3599 BCE. It holds the heritage designation “World Heritage Site”.',
+    longitude: 14.26944,
+    latitude: 36.04917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Central%20Temple%2C%20Tarxien%20ta17.png?width=1600',
+  },
+  {
+    countryCode: 'MT',
+    title: "St. John's Co-Cathedral",
+    description:
+      'Cathedral in Valletta, Malta. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1577. Its design is credited to Girolamo Cassar. Its architecture is associated with Baroque. The place takes its name from John the Baptist.',
+    longitude: 14.51278,
+    latitude: 35.89778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Concatedral%20de%20San%20Juan%2C%20La%20Valeta%2C%20isla%20de%20Malta%2C%20Malta%2C%202021-08-25%2C%20DD%20246-248%20HDR.jpg?width=1600',
+  },
+  {
+    countryCode: 'MT',
+    title: 'Mnajdra',
+    description:
+      'Megalithic temple complex in Malta. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The site stands approximately 84 metres above sea level. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 14.43639,
+    latitude: 35.82667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/02005%20Mnajdra%20Temples%2C%20copper%20age%2C%202800%20BC.jpg?width=1600',
+  },
+  {
     countryCode: 'MU',
     title: 'Sir Seewoosagur Ramgoolam Botanical Garden',
     description:
@@ -1212,6 +5702,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -20.10815,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mon%20Plaisir%20im%20Sir%20Seewoosagur%20Ramgoolam%20Botanical%20Garden.jpg?width=1600',
+  },
+  {
+    countryCode: 'MU',
+    title: 'Tamarind Falls',
+    description:
+      'Series of waterfalls in Mauritius. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 250 metres in height.',
+    longitude: 57.46639,
+    latitude: -20.34444,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tamarind%20falls.jpg?width=1600',
+  },
+  {
+    countryCode: 'MU',
+    title: 'St. Louis Cathedral, Port-Louis',
+    description:
+      'Building in Mauritius. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1782. The place takes its name from Louis IX of France.',
+    longitude: 57.5065,
+    latitude: -20.1645,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Port%20Louis%2C%20Saint%20Louis%20Cathedral.jpg?width=1600',
+  },
+  {
+    countryCode: 'MU',
+    title: 'Blue Penny Museum',
+    description:
+      'Stamp museum in Port Louis, capital of Mauritius. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 2001.',
+    longitude: 57.4975,
+    latitude: -20.1609,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Blue%20Penny%20Museum%20%28Port%20Louis%2C%20Mauritius%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MU',
+    title: 'St. Gabriel Cathedral, Rodrigues',
+    description:
+      'Cathedral in Rodruigues, Mauritius. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1936.',
+    longitude: 63.4385,
+    latitude: -19.7179,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rodrigues%20SaintGabrielCathedral%2001.jpg?width=1600',
   },
   {
     countryCode: 'MV',
@@ -1224,6 +5754,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Male%27%20Hukuru%20Miskiy%201.jpg?width=1600',
   },
   {
+    countryCode: 'MV',
+    title: 'Sinamalé Bridge',
+    description:
+      'Bridge connecting Malé and Hulhumalé in the Maldives. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2018. One of its documented purposes is motor vehicle. It extends for approximately 2.1 kilometres.',
+    longitude: 73.52447,
+    latitude: 4.17328,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wikimania%20by%20Rehman%20-%202018-07-26%20-%20J004%20-%20Post%20Conference.jpg?width=1600',
+  },
+  {
+    countryCode: 'MV',
+    title: 'Islamic Centre (Maldives)',
+    description:
+      'Architectural landmark in Malé in Maldives. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 73.5106,
+    latitude: 4.17833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Masjid-al%20Sultan%20Muhammad%20Thakurufaanu%20Al%20Auzam.jpg?width=1600',
+  },
+  {
+    countryCode: 'MV',
+    title: 'King Salman Mosque',
+    description:
+      'Mosque in Malé, Maldives. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2018. The place takes its name from Salman bin Abdulaziz Al Saud.',
+    longitude: 73.5185,
+    latitude: 4.17567,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/King%20Salman%20Mosque%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'MV',
+    title: 'Gemmiskiy',
+    description:
+      'Oldest mosque in the Maldives. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 73.42697,
+    latitude: -0.29836,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gen-miskit1984.jpg?width=1600',
+  },
+  {
     countryCode: 'MW',
     title: 'Chongoni Rock Art Area',
     description:
@@ -1232,6 +5802,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -14.29333,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chongoni%20rock%20art.jpg?width=1600',
+  },
+  {
+    countryCode: 'MW',
+    title: 'Kapichira Falls',
+    description:
+      'Waterfalls in Malawi. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The site stands approximately 100 metres above sea level.',
+    longitude: 34.7509,
+    latitude: -15.9006,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kapachira%20Falls.jpg?width=1600',
+  },
+  {
+    countryCode: 'MW',
+    title: 'Cultural & Museum Centre Karonga',
+    description:
+      'Local museum in Malawi. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 2004.',
+    longitude: 33.92228,
+    latitude: -9.94199,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Karonga%20Museum%2C%20Karonga%2C%20northern%20Malawi.jpg?width=1600',
+  },
+  {
+    countryCode: 'MW',
+    title: 'Our Lady of Wisdom Cathedral, Blantyre',
+    description:
+      'Building in Malawi. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 35.07214,
+    latitude: -15.80242,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Blantyre%20Cathedral.jpg?width=1600',
+  },
+  {
+    countryCode: 'MW',
+    title: "St Peter's Cathedral, Likoma",
+    description:
+      'Historic Anglican cathedral in Malawi. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1903.',
+    longitude: 34.73778,
+    latitude: -12.06417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Likoma%20Island%20Cathedral%20-%20Malawi.jpg?width=1600',
   },
   {
     countryCode: 'MX',
@@ -1244,6 +5854,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chichen%20Itza%203.jpg?width=1600',
   },
   {
+    countryCode: 'MX',
+    title: 'Teotihuacan',
+    description:
+      'Ancient Mesoamerican city. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its architecture is associated with Talud-tablero. It holds the heritage designation “World Heritage Site”.',
+    longitude: -98.84389,
+    latitude: 19.6925,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2020-02-11%20Teotihuacan%20la%20Avenida%20de%20los%20Muertos%20y%20la%20Pir%C3%A1mide%20del%20Sol.jpg?width=1600',
+  },
+  {
+    countryCode: 'MX',
+    title: 'Popocatépetl',
+    description:
+      'North America volcano. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,452 metres above sea level. A notable construction material is andesite.',
+    longitude: -98.62343,
+    latitude: 19.02339,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mexico-Popocatepetl.jpg?width=1600',
+  },
+  {
+    countryCode: 'MX',
+    title: 'Palenque',
+    description:
+      'Former Maya city state in southern Mexico. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: -92.04639,
+    latitude: 17.48417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/055%20Palenque%20Pakal%20Maji%20%2829%29.JPG?width=1600',
+  },
+  {
+    countryCode: 'MX',
+    title: 'Uxmal',
+    description:
+      'Pre-Columbian Maya city in Yucatan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Cultural property under special protection”.',
+    longitude: -89.77139,
+    latitude: 20.35944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Panoramica%20Uxmal.jpg?width=1600',
+  },
+  {
     countryCode: 'MY',
     title: 'Batu Caves',
     description:
@@ -1252,6 +5902,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 3.2374,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Batu%20Caves%20stairs%202022-05.jpg?width=1600',
+  },
+  {
+    countryCode: 'MY',
+    title: 'National Mosque of Malaysia',
+    description:
+      'Mosque in Kuala Lumpur, Malaysia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1965. Its architecture is associated with modern architecture. It holds the heritage designation “national historic building of Malaysia”.',
+    longitude: 101.69167,
+    latitude: 3.14194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2024%20masjid%20nasional%20%287%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MY',
+    title: 'Sultan Abdul Samad Jamek Mosque',
+    description:
+      'Mosque in Kuala Lumpur, Malaysia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1909. Its architecture is associated with Islamic architecture. It holds the heritage designation “national historic building of Malaysia”.',
+    longitude: 101.69596,
+    latitude: 3.14891,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2024%20PANORAMA%20MASJID%20JAMEK.jpg?width=1600',
+  },
+  {
+    countryCode: 'MY',
+    title: 'Putra Mosque',
+    description:
+      'Mosque of Malaysia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1999. Its architecture is associated with Islamic architecture.',
+    longitude: 101.68905,
+    latitude: 2.93607,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Putra%20Mosque%20being%20reflected%20in%20the%20lake%20%28crop%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MY',
+    title: 'Niah National Park',
+    description:
+      'National park in Malaysia. Its underground formations and atmosphere reveal a landscape hidden from the surface world. Its documented history dates to approximately 1974. It holds the heritage designation “World Heritage Site”.',
+    longitude: 113.78139,
+    latitude: 3.81389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20main%20entrance%20to%20the%20Niah%20Caves%20at%20sunset..jpg?width=1600',
   },
   {
     countryCode: 'MZ',
@@ -1264,6 +5954,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Les%20ruines%20du%20Fort%20de%20Sofala%20en%202018.jpg?width=1600',
   },
   {
+    countryCode: 'MZ',
+    title: 'Dona Ana Bridge',
+    description:
+      'Bridge. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1935. It extends for approximately 3,670 metres. A notable construction material is iron. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 35.05194,
+    latitude: -17.44194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dona%20Ana%20railway%20bridge%20over%20the%20Zambezi%20river%2C%20Mozambique.jpg?width=1600',
+  },
+  {
+    countryCode: 'MZ',
+    title: 'Cahora Bassa Dam',
+    description:
+      'Dam in Mozambique. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1969. One of its documented purposes is hydroelectricity. The structure reaches approximately 171 metres in height. It extends for approximately 303 metres.',
+    longitude: 32.70472,
+    latitude: -15.58583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cahora%20Bassa%20em%20Tete%20-%20panoramio%20-%20Nelson%20Deolinda%20Amin%E2%80%A6%20%2810%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'MZ',
+    title: 'Chapel of Nossa Senhora de Baluarte',
+    description:
+      'Chapel on Ilha de Moçambique, Mozambique. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1522. Its architecture is associated with Manueline. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 40.74458,
+    latitude: -15.0289,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nossa%20Senhora%20do%20Baluarte.jpg?width=1600',
+  },
+  {
+    countryCode: 'MZ',
+    title: 'Maputo–Catembe Bridge',
+    description:
+      'Bridge in Mozambique. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2018. The structure reaches approximately 141 metres in height. It extends for approximately 3,041 metres.',
+    longitude: 32.55708,
+    latitude: -25.97301,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Maputo-Katembe%20Bridge%20%2834275941386%29.jpg?width=1600',
+  },
+  {
     countryCode: 'NA',
     title: 'Twyfelfontein',
     description:
@@ -1272,6 +6002,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -20.59558,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rock%20Paintig%20Twyfelfontein%20Namibia.jpg?width=1600',
+  },
+  {
+    countryCode: 'NA',
+    title: 'Epupa Falls',
+    description:
+      'Waterfall on the Cunene River in Angola and Namibia. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 20 metres in height.',
+    longitude: 13.25,
+    latitude: -17,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Epupa%20Falls%20%28detail%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'NA',
+    title: 'Ruacana Falls',
+    description:
+      'Waterfall. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 120 metres in height. Its recorded width is approximately 700 metres.',
+    longitude: 14.21694,
+    latitude: -17.39361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ruacana%20Falls%20at%20High%20Water%20from%20close%20distance%20in%2003-2011.%20Author%20Tom%20Jakobi.JPG?width=1600',
+  },
+  {
+    countryCode: 'NA',
+    title: 'Christ Church, Windhoek',
+    description:
+      'Architectural structure. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1896. Its architecture is associated with Romanesque Revival architecture. The place takes its name from Jesus Christ. It holds the heritage designation “national monument of Namibia”.',
+    longitude: 17.08722,
+    latitude: -22.56778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Iglesia%20de%20Cristo%2C%20Windhoek%2C%20Namibia%2C%202018-08-04%2C%20DD%2005.jpg?width=1600',
+  },
+  {
+    countryCode: 'NA',
+    title: 'The White Lady',
+    description:
+      'Cave with prehistoric art. Its underground formations and atmosphere reveal a landscape hidden from the surface world.',
+    longitude: 14.66272,
+    latitude: -21.11056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wei%C3%9Fe%20Dame%20Brandberg.JPG?width=1600',
   },
   {
     countryCode: 'NE',
@@ -1284,6 +6054,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/1997%20277-9A%20Agadez%20mosque%20cropped.jpg?width=1600',
   },
   {
+    countryCode: 'NE',
+    title: 'Boubou Hama National Museum',
+    description:
+      'Museum in Niamey, Niger. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1959.',
+    longitude: 2.10722,
+    latitude: 13.51111,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zoo%20du%20Mus%C3%A9e%20national%20de%20Niamey.jpg?width=1600',
+  },
+  {
+    countryCode: 'NE',
+    title: 'Dabous Giraffes',
+    description:
+      'Neolithic petroglyphs. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 5000 BCE.',
+    longitude: 7.58056,
+    latitude: 18.03028,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Giraffen%20von%20Dabous.jpg?width=1600',
+  },
+  {
+    countryCode: 'NE',
+    title: 'Kennedy Bridge',
+    description:
+      'Road bridge in Niamey. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1970. It extends for approximately 710 metres. The place takes its name from John F. Kennedy.',
+    longitude: 2.104,
+    latitude: 13.50472,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Niamey%20river%20bridge%20roof%20sunset%202006.jpg?width=1600',
+  },
+  {
+    countryCode: 'NE',
+    title: 'Gobero',
+    description:
+      'Archaeological site in Niger. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 9.49611,
+    latitude: 16.91502,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gobero.jpg?width=1600',
+  },
+  {
     countryCode: 'NG',
     title: 'Osun-Osogbo Grove',
     description:
@@ -1294,6 +6104,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Osun%20Osogbo%20forest%2C%20river%20and%20sacred%20groove%2012.jpg?width=1600',
   },
   {
+    countryCode: 'NG',
+    title: 'Abuja National Mosque',
+    description:
+      'Mosque in Nigeria. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1984. Its architecture is associated with Islamic architecture.',
+    longitude: 7.4925,
+    latitude: 9.06083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/AbujaNationalMosque.jpg?width=1600',
+  },
+  {
+    countryCode: 'NG',
+    title: 'Kainji Dam',
+    description:
+      'Dam in Kainji, Niger State, Nigeria. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1968.',
+    longitude: 4.61333,
+    latitude: 9.8625,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kainji%20Dam.jpg?width=1600',
+  },
+  {
+    countryCode: 'NG',
+    title: 'Great Mosque of Kano',
+    description:
+      'Mosque in NIgeria. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 8.51764,
+    latitude: 11.99486,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kano%20Mosque%20in%201960.jpg?width=1600',
+  },
+  {
+    countryCode: 'NG',
+    title: 'Third Mainland Bridge',
+    description:
+      'Road bridge. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1990. It extends for approximately 10,500 metres.',
+    longitude: 3.40139,
+    latitude: 6.5,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Third-mainland-bridge--lagos%202.jpg?width=1600',
+  },
+  {
     countryCode: 'NI',
     title: 'Volcán Momotombo',
     description:
@@ -1302,6 +6152,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 12.4247,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Momotombo.jpg?width=1600',
+  },
+  {
+    countryCode: 'NI',
+    title: 'León Cathedral',
+    description:
+      'Cathedral in Nicaragua. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1860. Its architecture is associated with baroque architecture. It holds the heritage designation “World Heritage Site”.',
+    longitude: -86.8781,
+    latitude: 12.435,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nicaragua%202017-03-13%20%2832976253324%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'NI',
+    title: 'Concepción',
+    description:
+      'Volcano in Nicaragua, Ometepe Island. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,700 metres above sea level.',
+    longitude: -85.62258,
+    latitude: 11.53901,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moyogalpa%20Puerto.jpg?width=1600',
+  },
+  {
+    countryCode: 'NI',
+    title: 'Maderas',
+    description:
+      'Extinct vulcano in Nicaragua on the Isla de Ometepe. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,394 metres above sea level.',
+    longitude: -85.515,
+    latitude: 11.44583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Maderas%20seen%20from%20the%20South%20by%20ET.JPG?width=1600',
+  },
+  {
+    countryCode: 'NI',
+    title: 'Volcán San Cristóbal',
+    description:
+      'Highest volcano in Nicaragua at 1,745 m (5,725 ft). Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,745 metres above sea level. A notable construction material is andesite.',
+    longitude: -87.00622,
+    latitude: 12.70352,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/VolcanSanCristobal1.jpg?width=1600',
   },
   {
     countryCode: 'NL',
@@ -1324,6 +6214,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/2023-07-04-Stabkirche%20Urnes-6781.jpg?width=1600',
   },
   {
+    countryCode: 'NO',
+    title: 'Beerenberg',
+    description:
+      'Mountain on Jan Mayen island. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,277 metres above sea level.',
+    longitude: -8.15588,
+    latitude: 71.07967,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Beerenberg%20Jan%20Mayen.JPG?width=1600',
+  },
+  {
+    countryCode: 'NO',
+    title: 'Nidaros Cathedral',
+    description:
+      'Cathedral in Trondheim, Norway. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1201. Its design is credited to Heinrich Ernst Schirmer. One of its documented purposes is Catholic cathedral. Its architecture is associated with Romanesque architecture.',
+    longitude: 10.3971,
+    latitude: 63.42687,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Die%20Nidaros%20Kathedrale%20in%20Trondheim.%2005.jpg?width=1600',
+  },
+  {
+    countryCode: 'NO',
+    title: 'Munch Museum',
+    description:
+      'Art museum in Oslo, Norway. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1963. The place takes its name from Edvard Munch.',
+    longitude: 10.75531,
+    latitude: 59.90575,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/MUNCH%20Museum%20front%20%282020%29%204.jpg?width=1600',
+  },
+  {
+    countryCode: 'NO',
+    title: 'Rock carvings at Alta',
+    description:
+      'Cave paintings located in and around the municipality of Alta in the county of Finnmark in northern Norway. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 23.18778,
+    latitude: 69.94694,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Alta-Carvings-2012-07-17-12-15-018.jpg?width=1600',
+  },
+  {
     countryCode: 'NP',
     title: 'Boudhanath',
     description:
@@ -1332,6 +6262,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 27.72139,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bouddhanath%2C%202009.jpg?width=1600',
+  },
+  {
+    countryCode: 'NP',
+    title: 'Pashupatinath Temple',
+    description:
+      'Hindu temple in Kathmandu. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 85.34865,
+    latitude: 27.7105,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2023%20January%20night%20aarti%20at%20Pashupatinath%20Temple%2C%20Kathmandu%2002.jpg?width=1600',
+  },
+  {
+    countryCode: 'NP',
+    title: 'Dharahara',
+    description:
+      'Nine storey tower built in 1832. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1936. Its design is credited to Bhimsen Thapa. The structure reaches approximately 61.9 metres in height.',
+    longitude: 85.3117,
+    latitude: 27.7006,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/DHARAHARA%20TOWER.jpg?width=1600',
+  },
+  {
+    countryCode: 'NP',
+    title: 'Swayambhunath',
+    description:
+      'Hindus and Buddhist holy place and tourist center in Kathmandu, Nepal. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 85.29,
+    latitude: 27.715,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Swayambhu%2C%20Kathmandu%2C%20Nepal.jpg?width=1600',
+  },
+  {
+    countryCode: 'NP',
+    title: 'Janaki Mandir',
+    description:
+      'Hindu temple dedicated to Goddess Sita, located in Janakpur, Nepal. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 85.9257,
+    latitude: 26.7304,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Janaki%20Temple%20Janakpurdham%20%2CNepal.jpg?width=1600',
   },
   {
     countryCode: 'NR',
@@ -1354,6 +6324,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/00%201371%20New%20Zealand%20-%20Milford%20Sound.jpg?width=1600',
   },
   {
+    countryCode: 'NZ',
+    title: 'Lake Taupō',
+    description:
+      "New Zealand's largest lake. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 356 metres above sea level. It extends for approximately 46 kilometres.",
+    longitude: 175.91667,
+    latitude: -38.81667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake%20taupo%20landsat.jpg?width=1600',
+  },
+  {
+    countryCode: 'NZ',
+    title: 'Mount Ruapehu',
+    description:
+      'Active stratovolcano in central North Island, New Zealand. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,797 metres above sea level.',
+    longitude: 175.56861,
+    latitude: -39.28167,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/00%201100%20Ruapehu%20volcano.jpg?width=1600',
+  },
+  {
+    countryCode: 'NZ',
+    title: 'Taranaki Maunga',
+    description:
+      'Stratovolcano in New Zealand. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,518 metres above sea level. The place takes its name from John Perceval, 2nd Earl of Egmont.',
+    longitude: 174.06472,
+    latitude: -39.29639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Taranaki%20or%20Mount%20Egmont%2C%20New%20Zealand.jpg?width=1600',
+  },
+  {
+    countryCode: 'NZ',
+    title: 'Sky Tower',
+    description:
+      'Observation and communication tower in Auckland, New Zealand. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1997. The structure reaches approximately 328 metres in height.',
+    longitude: 174.76231,
+    latitude: -36.84847,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Auckland%20Sky%20Tower%20closeup.jpg?width=1600',
+  },
+  {
     countryCode: 'OM',
     title: 'Bahla Fort',
     description:
@@ -1362,6 +6372,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 22.9644,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bahla%20Fort.jpg?width=1600',
+  },
+  {
+    countryCode: 'OM',
+    title: 'Sultan Qaboos Grand Mosque',
+    description:
+      'Mosque in Muscat, Sultanate of Oman. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1992. Its architecture is associated with Islamic architecture.',
+    longitude: 58.38917,
+    latitude: 23.58389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sultan%20Qaboos%20Grand%20Mosque%20%281%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'OM',
+    title: 'Bat, Al-Khutm and Al-Ayn archaeological sites',
+    description:
+      'Archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 56.745,
+    latitude: 23.27,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/World%20Heritage%20Grave%20Al%20Ayn%20Oman.JPG?width=1600',
+  },
+  {
+    countryCode: 'OM',
+    title: 'Majlis al Jinn',
+    description:
+      'Cave. Its underground formations and atmosphere reveal a landscape hidden from the surface world.',
+    longitude: 59.10778,
+    latitude: 22.88583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Majlis%20al%20Jinn%20-%20Descending%20into%20cave.jpg?width=1600',
+  },
+  {
+    countryCode: 'OM',
+    title: 'Nakhal Fort',
+    description:
+      'Fort in Oman. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1834. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 57.8285,
+    latitude: 23.3947,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nakhal%20Fort%20%282%29.jpg?width=1600',
   },
   {
     countryCode: 'PA',
@@ -1374,6 +6424,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Volcan%20baru.jpg?width=1600',
   },
   {
+    countryCode: 'PA',
+    title: 'Bridge of the Americas',
+    description:
+      'Road bridge in Panama, spanning the Pacific entrance to the Panama Canal. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1962. The structure reaches approximately 106 metres in height. It extends for approximately 1,654 metres. A notable construction material is concrete.',
+    longitude: -79.565,
+    latitude: 8.94306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bridge%20of%20the%20Americas.jpg?width=1600',
+  },
+  {
+    countryCode: 'PA',
+    title: 'Panamá Viejo',
+    description:
+      'Archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: -79.48515,
+    latitude: 9.00683,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Torre%20de%20Panama%20Viejo.jpg?width=1600',
+  },
+  {
+    countryCode: 'PA',
+    title: 'Centennial Bridge, Panama',
+    description:
+      'Bridge in Panama. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2004. The structure reaches approximately 184 metres in height. It extends for approximately 1,052 metres. A notable construction material is concrete.',
+    longitude: -79.63569,
+    latitude: 9.03005,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Centennial%20Bridge%20in%20Panama.JPG?width=1600',
+  },
+  {
+    countryCode: 'PA',
+    title: 'Chagres and Fort San Lorenzo',
+    description:
+      'Fort in Panama. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1590. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: -80.00242,
+    latitude: 9.32259,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Toma%20a%C3%A9rea%20del%20Fuerte%20San%20Lorenzo.jpg?width=1600',
+  },
+  {
     countryCode: 'PE',
     title: 'Machu Picchu',
     description:
@@ -1382,6 +6472,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -13.16333,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Machu%20Picchu%2C%202023%20%28012%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'PE',
+    title: 'Nazca Lines',
+    description:
+      'Large geoglyphs made in the soil of the Nazca Desert in Peru. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 199 BCE. Its creation is associated with Nazca culture. The place takes its name from Nazca. It holds the heritage designation “World Heritage Site”.',
+    longitude: -75.135,
+    latitude: -14.6975,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/L%C3%ADneas%20de%20Nazca%2C%20Nazca%2C%20Per%C3%BA%2C%202015-07-29%2C%20DD%2044.JPG?width=1600',
+  },
+  {
+    countryCode: 'PE',
+    title: 'Chan Chan',
+    description:
+      'Archaeological site in Peru. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 850. It holds the heritage designation “World Heritage Site”.',
+    longitude: -79.075,
+    latitude: -8.11056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chan%20Chan%2C%202023%20%2832%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'PE',
+    title: 'Caral',
+    description:
+      'Archaeological site in Peru. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: -77.52028,
+    latitude: -10.89361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/PeruCaral01.jpg?width=1600',
+  },
+  {
+    countryCode: 'PE',
+    title: 'Chavin de Huantar',
+    description:
+      'Archaeological site in Peru. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The place takes its name from Chavín culture. It holds the heritage designation “World Heritage Site”.',
+    longitude: -77.17845,
+    latitude: -9.59277,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chavin%20-%20Ao%C3%BBt%202007.jpg?width=1600',
   },
   {
     countryCode: 'PG',
@@ -1394,6 +6524,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kuk%20New%20Guinea%202002.jpg?width=1600',
   },
   {
+    countryCode: 'PG',
+    title: 'Ulawun',
+    description:
+      'Stratovolcano situated on the island of New Britain, Papua New Guinea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,334 metres above sea level. A notable construction material is andesite.',
+    longitude: 151.33333,
+    latitude: -5.05,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ulawun.jpg?width=1600',
+  },
+  {
+    countryCode: 'PG',
+    title: 'Mount Balbi',
+    description:
+      'Mountain on Bougainville Island, Papua New Guinea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,715 metres above sea level. A notable construction material is andesite.',
+    longitude: 154.9825,
+    latitude: -5.91667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/MtBalbiToreNASA.jpg?width=1600',
+  },
+  {
+    countryCode: 'PG',
+    title: 'Baluan Island',
+    description:
+      'Island in Papua New Guinea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. It extends for approximately 5.5 kilometres.',
+    longitude: 147.28333,
+    latitude: -2.55,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Baluan%20Island.jpg?width=1600',
+  },
+  {
+    countryCode: 'PG',
+    title: 'Mount Bosavi',
+    description:
+      'Mountain. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,507 metres above sea level.',
+    longitude: 142.82667,
+    latitude: -6.61417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Bosavi%20pad%20pan.jpg?width=1600',
+  },
+  {
     countryCode: 'PH',
     title: 'Pinatubo',
     description:
@@ -1402,6 +6572,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 15.13,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Crater%20Lake%20at%20the%20Mount%20Pinatubo%20Caldera%20in%20the%20Philippines.jpg?width=1600',
+  },
+  {
+    countryCode: 'PH',
+    title: 'Mayon Volcano',
+    description:
+      'Volcano in the Philippines. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,462 metres above sea level. A notable construction material is andesite.',
+    longitude: 123.685,
+    latitude: 13.25667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mayon%20Volcano%20as%20of%20March%202020.jpg?width=1600',
+  },
+  {
+    countryCode: 'PH',
+    title: 'Mount Apo',
+    description:
+      'Highest mountain in the Philippines. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,954 metres above sea level. It holds the heritage designation “ASEAN Heritage Park”.',
+    longitude: 125.27083,
+    latitude: 6.9875,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Ring%20of%20Mt.%20Apo.jpg?width=1600',
+  },
+  {
+    countryCode: 'PH',
+    title: 'Taal Volcano',
+    description:
+      'Active volcano in the Philippines. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 311 metres above sea level. Its recorded depth is approximately 474 metres. The place takes its name from Taal Lake.',
+    longitude: 120.9975,
+    latitude: 14.01,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Taal%20Volcano%20aerial%202013.jpg?width=1600',
+  },
+  {
+    countryCode: 'PH',
+    title: 'Kanlaon Volcano',
+    description:
+      'Active stratovolcano on the island of Negros, Philippines. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,435 metres above sea level. A notable construction material is andesite.',
+    longitude: 123.13194,
+    latitude: 10.41194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kanlaon%20Volcano%20Negros%20Occidental%2C%20Philippines.jpg?width=1600',
   },
   {
     countryCode: 'PK',
@@ -1414,6 +6624,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mohenjodaro%20Sindh.jpeg?width=1600',
   },
   {
+    countryCode: 'PK',
+    title: 'Harappa',
+    description:
+      'Archaeological site in Punjab, Pakistan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 72.86667,
+    latitude: 30.63333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/WellAndBathingPlatforms-Harappa.jpg?width=1600',
+  },
+  {
+    countryCode: 'PK',
+    title: 'Taxila',
+    description:
+      'Archaeological site of the ancient Indian subcontinent, at Taxila, Punjab, Pakistan. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 72.7875,
+    latitude: 33.74583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Double-Headed%20Eagle%20Stupa%20at%20Sirkap%2008.jpg?width=1600',
+  },
+  {
+    countryCode: 'PK',
+    title: 'Badshahi Mosque',
+    description:
+      'Mosque in Lahore, Pakistan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1671. Its architecture is associated with Mughal architecture. A notable construction material is sandstone. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 74.30944,
+    latitude: 31.58806,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Badshahi%20Mosque%20July%201%202005%20pic32%20by%20Ali%20Imran%20%281%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'PK',
+    title: 'Faisal Mosque',
+    description:
+      'Mosque in Islamabad (Pakistan). Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1986. Its design is credited to Vedat Dalokay. The structure reaches approximately 90 metres in height. Its architecture is associated with Islamic architecture.',
+    longitude: 73.03722,
+    latitude: 33.72972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ali%20Mujtaba%20WLM2015%20FAISAL%20MOSQUE%20m%2010.jpg?width=1600',
+  },
+  {
     countryCode: 'PL',
     title: 'Wawel Castle',
     description:
@@ -1422,6 +6672,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 50.0544,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wawel%20on%20Wisla.JPG?width=1600',
+  },
+  {
+    countryCode: 'PL',
+    title: 'Auschwitz concentration camp',
+    description:
+      'German network of concentration and extermination camps in occupied Poland during World War II. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1940. The place takes its name from Oświęcim. It holds the heritage designation “World Heritage Site”.',
+    longitude: 19.17833,
+    latitude: 50.03583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Birkenau%20m%C3%BAzeum%20-%20panoramio%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'PL',
+    title: 'Wikipedia Monument',
+    description:
+      'Sculpture in Poland. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 2014. Its creation is associated with Mihran Hakobjan. The structure reaches approximately 250 centimetres in height. It extends for approximately 170 centimetres.',
+    longitude: 14.56036,
+    latitude: 52.34931,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wikipedia%20Monument%202.JPG?width=1600',
+  },
+  {
+    countryCode: 'PL',
+    title: 'Malbork Castle',
+    description:
+      'Castle built in Prussia (now Poland) by the Teutonic Knights. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1270. One of its documented purposes is official residence. Its architecture is associated with Gothic architecture. A notable construction material is brick.',
+    longitude: 19.02778,
+    latitude: 54.03972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Panorama%20of%20Malbork%20Castle%2C%20part%204.jpg?width=1600',
+  },
+  {
+    countryCode: 'PL',
+    title: 'Wawel Cathedral',
+    description:
+      'Cathedral in Kraków, Poland. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1020. Its design is credited to Giovanni Battista Trevano. Its architecture is associated with Gothic architecture. The place takes its name from Stanislaus of Szczepanów.',
+    longitude: 19.93542,
+    latitude: 50.05464,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/292%20Krakow%20Katedra%20na%20Wawelu%2020070805.jpg?width=1600',
   },
   {
     countryCode: 'PS',
@@ -1434,6 +6724,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jerusalem-2013-Temple%20Mount-Al-Aqsa%20Mosque%20%28NE%20exposure%29.jpg?width=1600',
   },
   {
+    countryCode: 'PS',
+    title: 'Dome of the Rock',
+    description:
+      'Islamic building in Al-Aqsa, Jerusalem. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 691. Its architecture is associated with Umayyad art. A notable construction material is marble. It holds the heritage designation “World Heritage Site”.',
+    longitude: 35.23528,
+    latitude: 31.77806,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D8%AE%D8%B1%D9%8A%D9%81..%D9%82%D8%A8%D8%A9%20%D8%A7%D9%84%D8%B5%D8%AE%D8%B1%D8%A9.jpg?width=1600',
+  },
+  {
+    countryCode: 'PS',
+    title: 'Western Wall',
+    description:
+      'Holy site of Judaism in Jerusalem. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 18 BCE. The structure reaches approximately 19 metres in height. It extends for approximately 488 metres. Its architecture is associated with ancient Roman architecture.',
+    longitude: 35.23425,
+    latitude: 31.77695,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/16-03-30-Klagemauer%20Jerusalem%20RalfR-DSCF7673.jpg?width=1600',
+  },
+  {
+    countryCode: 'PS',
+    title: 'Temple in Jerusalem',
+    description:
+      'Structures on the Temple Mount in Jerusalem serving as Israelite religious centers. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 35.23556,
+    latitude: 31.77778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Israel%20Museum%2017311%20%2814262124886%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'PS',
+    title: 'Church of the Holy Sepulchre',
+    description:
+      'Church in Jerusalem, containing the two holiest sites in Christianity. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 335. It extends for approximately 120 metres. Its architecture is associated with Early Christian architecture. A notable construction material is rock.',
+    longitude: 35.22975,
+    latitude: 31.77844,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20Church%20of%20the%20Holy%20Sepulchre-Jerusalem.JPG?width=1600',
+  },
+  {
     countryCode: 'PT',
     title: 'Belém Tower',
     description:
@@ -1442,6 +6772,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 38.69139,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Belem%20Tower%20-%20April%202019%20%282%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'PT',
+    title: 'Jerónimos Monastery',
+    description:
+      'Building in Santa Maria de Belém, Lisbon District, Portugal. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1502. Its design is credited to Diogo de Boitaca. Its architecture is associated with Renaissance architecture. It holds the heritage designation “National Monument of Portugal”.',
+    longitude: -9.2056,
+    latitude: 38.69785,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/1502%20legte%20K%C3%B6nig%20Manuel%20I.%20den%20Grundstein%20f%C3%BCr%20das%20Hieronymus%20Kloster%20in%20Lissabon.%2006.jpg?width=1600',
+  },
+  {
+    countryCode: 'PT',
+    title: 'Vasco da Gama Bridge',
+    description:
+      'Bridge in Portugal. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1995. Its design is credited to Michel Virlogeux. The structure reaches approximately 155 metres in height. It extends for approximately 12,345 metres.',
+    longitude: -9.04331,
+    latitude: 38.76219,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Vasco%20da%20Gama%20Bridge%2003.JPG?width=1600',
+  },
+  {
+    countryCode: 'PT',
+    title: 'Mount Pico',
+    description:
+      'Stratovolcano in the Azores and the highest mountain of Portugal. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,351 metres above sea level.',
+    longitude: -28.39917,
+    latitude: 38.46861,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ilha%20do%20Pico%20vista%20da%20Faj%C3%A3%20Grande%2C%20Calheta%2C%20ilha%20de%20S%C3%A3o%20Jorge%2C%20A%C3%A7ores%2C%20Portugal.JPG?width=1600',
+  },
+  {
+    countryCode: 'PT',
+    title: 'Batalha Monastery',
+    description:
+      'Building in Batalha, Leiria District, Portugal. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1386. Its design is credited to Afonso Domingues. Its architecture is associated with Manueline. It holds the heritage designation “World Heritage Site”.',
+    longitude: -8.82611,
+    latitude: 39.65917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Batalha%20September%202021-53.jpg?width=1600',
   },
   {
     countryCode: 'PW',
@@ -1454,6 +6824,36 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Japan%20Palau%20Friendship%20Bridge.jpg?width=1600',
   },
   {
+    countryCode: 'PW',
+    title: 'Belau National Museum',
+    description:
+      'National museum in Koror, Palau. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1955.',
+    longitude: 134.47611,
+    latitude: 7.33639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/BNM%20Bai%201.JPG?width=1600',
+  },
+  {
+    countryCode: 'PW',
+    title: 'Tet el Bad Stone Coffin',
+    description:
+      'Tentative World Heritage Site in Palau. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 134.61331,
+    latitude: 7.71931,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tet%20el%20Bad%20Stone%20Coffin.JPG?width=1600',
+  },
+  {
+    countryCode: 'PW',
+    title: 'Etpison Museum',
+    description:
+      'Museum in Koror City, Palau. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1999.',
+    longitude: 134.48317,
+    latitude: 7.34533,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Etpison%20Museum.JPG?width=1600',
+  },
+  {
     countryCode: 'PY',
     title: 'Itaipu Dam',
     description:
@@ -1462,6 +6862,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -25.40778,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/ItaipuAerea2AAL.jpg?width=1600',
+  },
+  {
+    countryCode: 'PY',
+    title: 'Guaíra Falls',
+    description:
+      'Submerged waterfall on the Paraná River in Paraguay and Brazil. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 40 metres in height. Its recorded width is approximately 4,828 metres.',
+    longitude: -54.284,
+    latitude: -24.073,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Salto%20das%20Sete%20Quedas.jpg?width=1600',
+  },
+  {
+    countryCode: 'PY',
+    title: 'La Santísima Trinidad del Paraná',
+    description:
+      'Historic Jesuit mission in Itapúa Department, Paraguay. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The place takes its name from Holy Trinity. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: -55.702,
+    latitude: -27.132,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jesuit%20Missions%20of%20La%20Sant%C3%ADsima%20Trinidad%20-%20panoramio%20%284%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'PY',
+    title: 'Jesús de Tavarangüé',
+    description:
+      'Historic Jesuit mission in Itapúa Department, Paraguay. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. The place takes its name from Jesus Christ. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: -55.753,
+    latitude: -27.056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/J37%20730%20Jes%C3%BAs%20de%20Tavarang%C3%BCe%2C%20colegio.jpg?width=1600',
+  },
+  {
+    countryCode: 'PY',
+    title: 'Friendship Bridge',
+    description:
+      'Deck arch bridge between Brazil and Paraguay in South America. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1965. It extends for approximately 552.4 metres. A notable construction material is concrete. The place takes its name from friendship.',
+    longitude: -54.60111,
+    latitude: -25.50958,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20view%20of%20Friendship%20Bridge%20between%20Brazil%20and%20Paraguay.jpg?width=1600',
   },
   {
     countryCode: 'QA',
@@ -1474,6 +6914,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ruins%20in%20Zubarah%20on%20a%20cloudy%20day.jpg?width=1600',
   },
   {
+    countryCode: 'QA',
+    title: 'Museum of Islamic Art',
+    description:
+      'Art museum in Doha, Qatar. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 2008. Its design is credited to I. M. Pei. Its architecture is associated with Islamic architecture.',
+    longitude: 51.53927,
+    latitude: 25.29502,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/IslamicArtMuseumDohaSkyline.jpg?width=1600',
+  },
+  {
+    countryCode: 'QA',
+    title: 'National Museum of Qatar',
+    description:
+      'Museum in Doha, Qatar. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 2019. Its design is credited to Jean Nouvel. A notable construction material is steel.',
+    longitude: 51.54926,
+    latitude: 25.28847,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/National%20Museum%20of%20Qatar%2011.jpg?width=1600',
+  },
+  {
+    countryCode: 'QA',
+    title: 'Imam Muhammad ibn Abd al-Wahhab Mosque',
+    description:
+      'Mosque in Doha, Qatar. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2011. Its architecture is associated with Islamic architecture. A notable construction material is sandstone.',
+    longitude: 51.50506,
+    latitude: 25.31714,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20of%20Lejbailat%20and%20State%20Mosque.jpg?width=1600',
+  },
+  {
+    countryCode: 'QA',
+    title: 'Catholic Church of Our Lady of the Rosary',
+    description:
+      'Roman Catholic church at the Religious Complex in Abu Hamour, Doha, Qatar. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2008. The place takes its name from Our Lady of the Rosary.',
+    longitude: 51.5219,
+    latitude: 25.2126,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Church%20of%20Our%20Lady%20of%20the%20Rosary%2C%20Doha%2C%20Qatar.jpg?width=1600',
+  },
+  {
     countryCode: 'RO',
     title: 'Bran Castle',
     description:
@@ -1482,6 +6962,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 45.515,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bran%20Castle%20TB1.jpg?width=1600',
+  },
+  {
+    countryCode: 'RO',
+    title: 'Horezu monastery',
+    description:
+      'Monastery in Romania. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1687. The structure reaches approximately 14 metres in height. Its architecture is associated with Brâncovenesc art. It holds the heritage designation “World Heritage Site”.',
+    longitude: 24.0069,
+    latitude: 45.1686,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Horezu%20church.jpg?width=1600',
+  },
+  {
+    countryCode: 'RO',
+    title: 'Corvin Castle',
+    description:
+      'Castle in Hunedoara, Romania. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1440. Its architecture is associated with Gothic architecture. It holds the heritage designation “Historic Monument”.',
+    longitude: 22.8883,
+    latitude: 45.7491,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Castelul%20Corvinilor%20HD.jpg?width=1600',
+  },
+  {
+    countryCode: 'RO',
+    title: 'Peleș Castle',
+    description:
+      'Neo-Renaissance royal castle in Sinaia, Romania. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1873. Its design is credited to Carol Benesch. One of its documented purposes is museum. Its architecture is associated with Renaissance Revival architecture.',
+    longitude: 25.54278,
+    latitude: 45.35972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/01%20Chateau%20Peles.jpg?width=1600',
+  },
+  {
+    countryCode: 'RO',
+    title: 'Sarmizegetusa Regia',
+    description:
+      'Ancient Dacian settlement. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Historic Monument”.',
+    longitude: 23.31028,
+    latitude: 45.62278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sarmizegetusa%20temples.jpg?width=1600',
   },
   {
     countryCode: 'RS',
@@ -1494,6 +7014,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hram%20Beograd.JPG?width=1600',
   },
   {
+    countryCode: 'RS',
+    title: 'Sirmium',
+    description:
+      'Roman and Byzantine city in Serbia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Archaeological Site of Exceptional Importance”.',
+    longitude: 19.61056,
+    latitude: 44.96611,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sirmium%2C%20Imperial%20Palace.jpg?width=1600',
+  },
+  {
+    countryCode: 'RS',
+    title: 'Studenica monastery',
+    description:
+      'Serbian Church historic UNESCO site in Kraljevo, Serbia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1101. Its architecture is associated with Rascian architecture. It holds the heritage designation “World Heritage Site”.',
+    longitude: 20.53164,
+    latitude: 43.48672,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Studenica%20monastery%20%28Manastir%20Studenica%29%20-%20by%20Pudelek.jpg?width=1600',
+  },
+  {
+    countryCode: 'RS',
+    title: 'Stari Ras',
+    description:
+      'Archaeological site in Serbia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 20.42278,
+    latitude: 43.11889,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stari%20Ras.jpg?width=1600',
+  },
+  {
+    countryCode: 'RS',
+    title: 'Visoki Dečani',
+    description:
+      'Cultural heritage monument of Kosovo. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 1335. Its architecture is associated with Serbo-Byzantine architecture. It holds the heritage designation “Immovable Cultural Heritage of Exceptional Importance”.',
+    longitude: 20.26639,
+    latitude: 42.54694,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Visoki%20De%C4%8Dani%2C%20exterior%20view%20%28Julian%20Ny%C4%8Da%29.jpg?width=1600',
+  },
+  {
     countryCode: 'RU',
     title: 'Kremlin',
     description:
@@ -1502,6 +7062,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 55.75167,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moscow%2005-2012%20Kremlin%2022.jpg?width=1600',
+  },
+  {
+    countryCode: 'RU',
+    title: 'Hermitage Museum',
+    description:
+      'Museum in Saint Petersburg, Russia. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1764. It holds the heritage designation “federal cultural heritage site in Russia”.',
+    longitude: 30.31361,
+    latitude: 59.94056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Winter%20Palace%20Panorama%204.jpg?width=1600',
+  },
+  {
+    countryCode: 'RU',
+    title: 'Winter Palace',
+    description:
+      'Former imperial palace in Saint Petersburg, Russia. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1754. Its design is credited to Francesco Bartolomeo Rastrelli. One of its documented purposes is official residence. Its architecture is associated with Elizabethan Baroque.',
+    longitude: 30.31389,
+    latitude: 59.94028,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Winter%20Palace%20Panorama%203.jpg?width=1600',
+  },
+  {
+    countryCode: 'RU',
+    title: 'Mount Kazbek',
+    description:
+      'Dormant volcano in Georgia and Russia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,033 metres above sea level. A notable construction material is trachyte.',
+    longitude: 44.51889,
+    latitude: 42.69694,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mkinvarcveri.jpg?width=1600',
+  },
+  {
+    countryCode: 'RU',
+    title: 'Klyuchevskaya Sopka',
+    description:
+      'Active volcano located on the peninsula of Kamchatka in Russia. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 4,800 metres above sea level. A notable construction material is andesite.',
+    longitude: 160.63333,
+    latitude: 56.06667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Klju%C4%8Devskaja%20za%20v%C3%BDchodu%20slunce.jpg?width=1600',
   },
   {
     countryCode: 'RW',
@@ -1514,6 +7114,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Karisimbi2.jpg?width=1600',
   },
   {
+    countryCode: 'RW',
+    title: 'Rusumo Falls',
+    description:
+      'Waterfall in Kagera river. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 15 metres in height. Its recorded width is approximately 40 metres.',
+    longitude: 30.7925,
+    latitude: -2.37528,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/RusumoFalls2.jpg?width=1600',
+  },
+  {
+    countryCode: 'RW',
+    title: 'Murambi Genocide Memorial',
+    description:
+      'Memorial of the 1994 Genocide against the Tutsi in Rwanda. Its form and symbolism make it a memorable expression of local history and identity. One of its documented purposes is Ibuka. It holds the heritage designation “World Heritage Site”.',
+    longitude: 29.5684,
+    latitude: -2.4544,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rwandan%20Genocide%20Murambi%20skulls.jpg?width=1600',
+  },
+  {
+    countryCode: 'RW',
+    title: 'Nyamata Genocide Memorial Centre',
+    description:
+      'Memorial of the 1994 Genocide against the Tutsi in Rwanda. Its form and symbolism make it a memorable expression of local history and identity. One of its documented purposes is Ibuka.',
+    longitude: 30.09369,
+    latitude: -2.14899,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nyamata%20Genocide%20Memorial%20Church%20-%20Flickr%20-%20Dave%20Proffer%20%2811%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'RW',
+    title: 'Kigali Genocide Memorial',
+    description:
+      'Memorial of the 1994 Genocide against the Tutsi in Rwanda. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1999. One of its documented purposes is Ibuka. It holds the heritage designation “World Heritage Site”.',
+    longitude: 30.06071,
+    latitude: -1.93089,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D7%90%D7%AA%D7%A8%20%D7%94%D7%94%D7%A0%D7%A6%D7%97%D7%94%20%D7%9C%D7%A8%D7%A6%D7%97%20%D7%94%D7%A2%D7%9D%20%D7%91%D7%A8%D7%95%D7%90%D7%A0%D7%93%D7%94%20%D7%91%D7%A7%D7%99%D7%92%D7%90%D7%9C%D7%99%2012.jpg?width=1600',
+  },
+  {
     countryCode: 'SA',
     title: 'Al-Masjid Al-Haram',
     description:
@@ -1522,6 +7162,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 21.4225,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khalili%20Collection%20Hajj%20and%20Arts%20of%20Pilgrimage%20arc.pp%200211.04%20CROP.jpg?width=1600',
+  },
+  {
+    countryCode: 'SA',
+    title: 'Quba Mosque',
+    description:
+      'Mosque in Medina, Saudi Arabia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 622. Its design is credited to Abdel-Wahed El-Wakil. Its architecture is associated with Islamic architecture.',
+    longitude: 39.61722,
+    latitude: 24.43917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Quba%20Mosque%20from%20Afar%20%282024%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SA',
+    title: 'Abraj Al Bait',
+    description:
+      'Building complex in Mecca, Saudi Arabia. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 2012. Its design is credited to Dar Al-Handasah. One of its documented purposes is hotel. The structure reaches approximately 601 metres in height.',
+    longitude: 39.82639,
+    latitude: 21.41889,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%E0%B4%85%E0%B4%AC%E0%B5%8D%E0%B4%B0%E0%B4%BE%E0%B4%9C%E0%B5%8D%20%E0%B4%85%E0%B5%BD-%E0%B4%AC%E0%B5%88%E0%B4%A4%E0%B5%8D%E0%B4%A4%E0%B5%8D%20%E0%B4%9F%E0%B4%B5%E0%B5%BC.jpg?width=1600',
+  },
+  {
+    countryCode: 'SA',
+    title: 'Hegra',
+    description:
+      'Ancient settlement in Saudi Arabia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 37.9475,
+    latitude: 26.81417,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:Redirect/file/27%2C%20Hegra%20(Mada'in%20Salih)%2C%20Saudi%20Arabia.jpg?width=1600",
+  },
+  {
+    countryCode: 'SA',
+    title: 'Hira',
+    description:
+      'Cave. Its underground formations and atmosphere reveal a landscape hidden from the surface world.',
+    longitude: 39.85942,
+    latitude: 21.45756,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cave%20Hira.jpg?width=1600',
   },
   {
     countryCode: 'SB',
@@ -1534,6 +7214,16 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/May%2014%20Kavachi%20eruption.jpg?width=1600',
   },
   {
+    countryCode: 'SB',
+    title: 'Holy Cross Cathedral',
+    description:
+      'Church in Honiara, Solomon Islands. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1957. The place takes its name from True Cross.',
+    longitude: 159.96347,
+    latitude: -9.43625,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Holy%20Cross%20Cathedral%2C%20St%20Mary%20Catholic.%20Front%20view.jpg?width=1600',
+  },
+  {
     countryCode: 'SC',
     title: 'Immaculate Conception Cathedral, Seychelles',
     description:
@@ -1542,6 +7232,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -4.61977,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20of%20the%20Immaculate%20Conception%2C%20Seychelles%201.jpg?width=1600',
+  },
+  {
+    countryCode: 'SC',
+    title: 'Victoria Botanical Gardens',
+    description:
+      'Botanical garden. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture.',
+    longitude: 55.4512,
+    latitude: -4.631,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Victoria%20Mont%20Fleuri%20Botanical%20Garden%20asv2024-09%20img2.jpg?width=1600',
+  },
+  {
+    countryCode: 'SC',
+    title: 'Sheikh Mohamed bin Khalifa Mosque',
+    description:
+      'Mosque in Bel Air, Victoria, Seychelles. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1982.',
+    longitude: 55.45239,
+    latitude: -4.62564,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sheikh%20Mohamed%20bin%20Khalifa%20Mosque%20Seychelles%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'SC',
+    title: 'Seychelles Natural History Museum',
+    description:
+      ' Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1964.',
+    longitude: 55.453,
+    latitude: -4.623,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Natural%20History%20Museum%20Seychelles.jpg?width=1600',
+  },
+  {
+    countryCode: 'SC',
+    title: 'Liberty Monument (Seychelles)',
+    description:
+      'Monument in Seychelles. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 2014. Its creation is associated with Tom Bowers.',
+    longitude: 55.4548,
+    latitude: -4.62457,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Liberty%20Monument%20%28Seychelles%29.jpg?width=1600',
   },
   {
     countryCode: 'SD',
@@ -1554,6 +7284,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gebel%20Barkal.jpg?width=1600',
   },
   {
+    countryCode: 'SD',
+    title: 'Napata',
+    description:
+      'City. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 31.81667,
+    latitude: 18.53333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Amun%20in%20Barkal.jpg?width=1600',
+  },
+  {
+    countryCode: 'SD',
+    title: 'Buhen',
+    description:
+      'Fortress. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: 31.28333,
+    latitude: 21.91667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Buhen3.jpg?width=1600',
+  },
+  {
+    countryCode: 'SD',
+    title: 'Kerma',
+    description:
+      'Capital city of the Kerma culture and archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 30.40973,
+    latitude: 19.6008,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kerma%20city.JPG?width=1600',
+  },
+  {
+    countryCode: 'SD',
+    title: 'Old Dongola',
+    description:
+      'Human settlement. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 30.74389,
+    latitude: 18.22306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Church%20of%20the%20Granite%20Columns%202007-10-03%2002.jpg?width=1600',
+  },
+  {
     countryCode: 'SE',
     title: 'Drottningholm Palace',
     description:
@@ -1562,6 +7332,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 59.32169,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Drottningholm%20Palace%20%28by%20Pudelek%29%203.jpg?width=1600',
+  },
+  {
+    countryCode: 'SE',
+    title: 'Birka',
+    description:
+      'Archaeological site on the island of Björkö in Sweden. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 17.545,
+    latitude: 59.33667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/BirkaExcavation1.png?width=1600',
+  },
+  {
+    countryCode: 'SE',
+    title: 'Stockholm Palace',
+    description:
+      'Official residence of the Swedish monarch. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1760. Its design is credited to Nicodemus Tessin the Younger. One of its documented purposes is royal palace. Its architecture is associated with baroque architecture.',
+    longitude: 18.07167,
+    latitude: 59.32667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stockholms%20slott%20%28Stockholm%20Palace%29%20%2824831039126%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SE',
+    title: 'Uppsala Cathedral',
+    description:
+      'Swedish cathedral. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1287. One of its documented purposes is church with churchyard. The structure reaches approximately 118.7 metres in height. It extends for approximately 118.7 metres.',
+    longitude: 17.63333,
+    latitude: 59.85806,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Uppsala%20domkyrka%2C%20flygbild%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SE',
+    title: 'Skansen',
+    description:
+      'Open-air museum and zoo, showing Swedish folk culture and way of life in the pre-industrial era. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments. Its documented history dates to approximately 1891.',
+    longitude: 18.101,
+    latitude: 59.32445,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Skansen%20Entr%C3%A9%202015a.jpg?width=1600',
   },
   {
     countryCode: 'SG',
@@ -1574,6 +7384,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Singapore%20Botanic%20Gardens%20Palm%20Valley.jpg?width=1600',
   },
   {
+    countryCode: 'SG',
+    title: 'Gardens by the Bay',
+    description:
+      'Urban park in Singapore. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 2012.',
+    longitude: 103.86527,
+    latitude: 1.28332,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Supertree%20Grove%2C%20Gardens%20by%20the%20Bay%2C%20Singapore%20-%2020120712-02.jpg?width=1600',
+  },
+  {
+    countryCode: 'SG',
+    title: 'Singapore Flyer',
+    description:
+      'Ferris wheel in Singapore. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments. Its documented history dates to approximately 2008. Its design is credited to Kisho Kurokawa. The structure reaches approximately 541 foots in height.',
+    longitude: 103.86322,
+    latitude: 1.28939,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dikaiosp%20210819%206963.jpg?width=1600',
+  },
+  {
+    countryCode: 'SG',
+    title: 'Singapore Zoo',
+    description:
+      'Zoological gardens in Singapore. Its atmosphere and activities make it a lively place to experience the destination beyond its monuments. Its documented history dates to approximately 1973.',
+    longitude: 103.79105,
+    latitude: 1.40471,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Singapore%20Zoo.JPG?width=1600',
+  },
+  {
+    countryCode: 'SG',
+    title: 'The Helix Bridge',
+    description:
+      'Bridge in Singapore. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2010. It extends for approximately 280 metres. A notable construction material is stainless steel.',
+    longitude: 103.861,
+    latitude: 1.28762,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Puente%20Helix%2C%20Marina%20Bay%2C%20Singapur%2C%202023-08-16%2C%20DD%20144-146%20HDR.jpg?width=1600',
+  },
+  {
     countryCode: 'SI',
     title: 'Lake Bled',
     description:
@@ -1582,6 +7432,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 46.36444,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Aerial%20image%20of%20Lake%20Bled%20%28view%20from%20the%20southwest%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SI',
+    title: 'Postojna Cave',
+    description:
+      'Karst cave system in Slovenia. Its underground formations and atmosphere reveal a landscape hidden from the surface world. It holds the heritage designation “registered immobile cultural heritage of Slovenia”.',
+    longitude: 14.20366,
+    latitude: 45.78276,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Burger%20PostojnskaJama.jpg?width=1600',
+  },
+  {
+    countryCode: 'SI',
+    title: 'Škocjan Caves',
+    description:
+      'Cave system in Slovenia. Its underground formations and atmosphere reveal a landscape hidden from the surface world. The site stands approximately 378 metres above sea level. It extends for approximately 6,200 metres. It holds the heritage designation “World Heritage Site”.',
+    longitude: 13.99472,
+    latitude: 45.665,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SkocjanskeJame%202013jpg.jpg?width=1600',
+  },
+  {
+    countryCode: 'SI',
+    title: 'Ljubljana Castle',
+    description:
+      'Castle in Slovenia. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 900. A notable construction material is stone. It holds the heritage designation “monument of local significance”.',
+    longitude: 14.50863,
+    latitude: 46.04871,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ljubljanski%20grad%20in%20Grajski%20gri%C4%8D.jpg?width=1600',
+  },
+  {
+    countryCode: 'SI',
+    title: 'Ljubljana Cathedral',
+    description:
+      'Cathedral. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1706. Its design is credited to Andrea Pozzo. Its architecture is associated with baroque architecture. The place takes its name from Saint Nicholas.',
+    longitude: 14.50824,
+    latitude: 46.05071,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/StNicholas-Ljubljana.JPG?width=1600',
   },
   {
     countryCode: 'SK',
@@ -1594,6 +7484,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/SK%20SN%20Spis%20castle%202024%201.jpg?width=1600',
   },
   {
+    countryCode: 'SK',
+    title: 'Bratislava Castle',
+    description:
+      'Castle in Europe. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1431. Its architecture is associated with Gothic architecture. The place takes its name from Bratislava. It holds the heritage designation “Cultural Heritage Monuments of Slovakia”.',
+    longitude: 17.1,
+    latitude: 48.14222,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bratislava%20-%20Burg%20%28a%29.JPG?width=1600',
+  },
+  {
+    countryCode: 'SK',
+    title: 'Bojnice Castle',
+    description:
+      'Medieval castle in Bojnice, Slovakia. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1200. Its architecture is associated with Gothic Revival. It holds the heritage designation “Cultural Heritage Monuments of Slovakia”.',
+    longitude: 18.57769,
+    latitude: 48.77996,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bojnice%20Castle%20Slovakia.jpg?width=1600',
+  },
+  {
+    countryCode: 'SK',
+    title: 'Bridge of the Slovak National Uprising',
+    description:
+      'Bridge over Danube in Bratislava, Slovakia. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1972. The structure reaches approximately 85 metres in height. It extends for approximately 431.8 metres. A notable construction material is steel.',
+    longitude: 17.10444,
+    latitude: 48.13833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bratislava%20New%20Bridge%20from%20castle%20hill.JPG?width=1600',
+  },
+  {
+    countryCode: 'SK',
+    title: 'Devín Castle',
+    description:
+      'Castle ruins in Bratislava, suburb Devín, Slovakia. Its architecture and setting preserve stories of power, defence and daily life across generations. Its architecture is associated with Gothic architecture. It holds the heritage designation “Cultural Heritage Monuments of Slovakia”.',
+    longitude: 16.97806,
+    latitude: 48.17389,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Devin02.jpg?width=1600',
+  },
+  {
     countryCode: 'SL',
     title: "St. George's Cathedral, Freetown",
     description:
@@ -1602,6 +7532,36 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 8.49003,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/St.%20George%27s%20Cathedral%20Freetown.jpg?width=1600',
+  },
+  {
+    countryCode: 'SL',
+    title: 'Sierra Leone National Museum',
+    description:
+      'National museum of Sierra Leone. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1957.',
+    longitude: -13.23584,
+    latitude: 8.48669,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/National%20Museum%20of%20Sierra%20Leone%20at%20Cotton%20tree%20in%20Freetown%20-%20Mapillary%20%28Yp2BPDsT7TyNtrN6lZ4z9Q%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SL',
+    title: 'Sacred Heart Cathedral, Freetown',
+    description:
+      'Catholic cathedral in Sierra Leone. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -13.23317,
+    latitude: 8.4894,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sacred%20Heart%20Cathedral%2C%20Freetown%2C%20Sierra%20Leone%20-%20Mapillary%20%28gPahUHmYFk3EUBsmvbUKNw%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SL',
+    title: 'Sierra Leone National Railway Museum',
+    description:
+      'Rail museum in Freetown, Sierra Leone. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 2005.',
+    longitude: -13.2058,
+    latitude: 8.48944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Freetown%20Railway%20Museum.jpg?width=1600',
   },
   {
     countryCode: 'SM',
@@ -1614,6 +7574,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20San%20Marino%20-%20Exterior.jpg?width=1600',
   },
   {
+    countryCode: 'SM',
+    title: 'Palazzo Pubblico',
+    description:
+      'City hall and parliament seat of San Marino. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1894. Its architecture is associated with Renaissance Revival architecture.',
+    longitude: 12.44644,
+    latitude: 43.93679,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palazzo%20Pubblico%20-%20esterno.jpg?width=1600',
+  },
+  {
+    countryCode: 'SM',
+    title: 'De La Fratta',
+    description:
+      'Tower in San Marino. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1253.',
+    longitude: 12.4515,
+    latitude: 43.9328,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Second%20Tower%20in%20San%20Marino%20and%20Paragliding.jpg?width=1600',
+  },
+  {
+    countryCode: 'SM',
+    title: 'Statua della Libertà',
+    description:
+      'Statue located in San Marino (City). Its form and symbolism make it a memorable expression of local history and identity. Its creation is associated with Stefano Galletti. A notable construction material is marble.',
+    longitude: 12.44693,
+    latitude: 43.93661,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Liberty%20statue.jpg?width=1600',
+  },
+  {
+    countryCode: 'SM',
+    title: 'Chiesa di San Francesco',
+    description:
+      'Church building in San Marino. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1400. Its architecture is associated with Romanesque architecture. The place takes its name from Francis of Assisi.',
+    longitude: 12.44707,
+    latitude: 43.93531,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/San%20Francesco%20-%20Exterior.jpg?width=1600',
+  },
+  {
     countryCode: 'SN',
     title: 'African Renaissance Monument',
     description:
@@ -1622,6 +7622,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 14.72222,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/The%20African%20Renaissance%20Monument.jpg?width=1600',
+  },
+  {
+    countryCode: 'SN',
+    title: 'Diama Dam',
+    description:
+      'Dam between Senegal and Mauritania. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. The site stands approximately 1 metre above sea level.',
+    longitude: -16.41495,
+    latitude: 16.21582,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Barrage%20de%20Diama.jpg?width=1600',
+  },
+  {
+    countryCode: 'SN',
+    title: 'IFAN Museum of African Arts',
+    description:
+      'Art museum in Dakar, Senegal. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1938. The place takes its name from Théodore Monod.',
+    longitude: -17.43807,
+    latitude: 14.66331,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/DakarMus%C3%A9e.jpg?width=1600',
+  },
+  {
+    countryCode: 'SN',
+    title: 'Great Mosque of Touba',
+    description:
+      'Mosque in Touba, Diourbel, Senegal. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1963. The structure reaches approximately 86.8 metres in height. Its architecture is associated with Islamic architecture. It holds the heritage designation “monument historique in Senegal”.',
+    longitude: -15.87475,
+    latitude: 14.86347,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Touba%20034%20%2845718877585%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SN',
+    title: 'Dakar Grand Mosque',
+    description:
+      'Mosque in Dakar, Senegal. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1964. It holds the heritage designation “monument historique in Senegal”.',
+    longitude: -17.44219,
+    latitude: 14.67822,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grande%20Mosqu%C3%A9%20de%20dakar.jpg?width=1600',
   },
   {
     countryCode: 'SO',
@@ -1634,6 +7674,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cattedrale%20di%20Mogadiscio.jpg?width=1600',
   },
   {
+    countryCode: 'SO',
+    title: 'Mosque of Islamic Solidarity',
+    description:
+      'Mosque in Mogadishu, Somalia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1987. Its architecture is associated with Islamic architecture.',
+    longitude: 45.3308,
+    latitude: 2.03583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mosque%20of%20Islamic%20Solidarity.jpeg?width=1600',
+  },
+  {
+    countryCode: 'SO',
+    title: 'Fakr ad-Din Mosque',
+    description:
+      'Mosque in Somalia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its architecture is associated with Islamic architecture.',
+    longitude: 45.34295,
+    latitude: 2.03347,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fakr-ad-din-mosque.jpg?width=1600',
+  },
+  {
+    countryCode: 'SO',
+    title: "Arba'a Rukun Mosque",
+    description:
+      'Mosque in Mogadishu, Somalia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1260.',
+    longitude: 45.3425,
+    latitude: 2.0351,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mogadishu1936.jpg?width=1600',
+  },
+  {
+    countryCode: 'SO',
+    title: 'Ali Jimale Mosque',
+    description:
+      'Mosque in Mogadishu, Somalia. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2022.',
+    longitude: 45.33083,
+    latitude: 2.03583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D9%85%D8%B3%D8%AC%D8%AF%20%D8%B9%D9%84%D9%8A%20%D8%AC%D9%85%D8%B9%D8%A7%D9%84%D9%8A%205%20%28cropped%29.jpg?width=1600',
+  },
+  {
     countryCode: 'SR',
     title: 'Mosque Keizerstraat',
     description:
@@ -1642,6 +7722,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 5.82856,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Moschee-Keizerstraat-Suriname.jpg?width=1600',
+  },
+  {
+    countryCode: 'SR',
+    title: 'Fort Zeelandia',
+    description:
+      '17th century Dutch fortress in Paramaribo, Suriname. Its architecture and setting preserve stories of power, defence and daily life across generations. It holds the heritage designation “cultural heritage monument in Suriname”.',
+    longitude: -55.15,
+    latitude: 5.82528,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zicht%20op%20buitenmuur%20aan%20de%20rivierzijde%20met%20zicht%20op%20bastion%20-%20Paramaribo%20-%2020377866%20-%20RCE.jpg?width=1600',
+  },
+  {
+    countryCode: 'SR',
+    title: 'Saint Peter and Paul Cathedral',
+    description:
+      'Roman Catholic cathedral in Paramaribo, Suriname. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1883. Its architecture is associated with Gothic Revival. The place takes its name from Paul the Apostle. It holds the heritage designation “cultural heritage monument in Suriname”.',
+    longitude: -55.15409,
+    latitude: 5.82868,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Saints%20Peter%20and%20Paul%20Cathedral%20Paramaribo.jpg?width=1600',
+  },
+  {
+    countryCode: 'SR',
+    title: 'Neveh Shalom Synagogue',
+    description:
+      'Synagoge in Paramaribo, Suriname. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1665. Its design is credited to Jean Francois Halfhide. It holds the heritage designation “cultural heritage monument in Suriname”.',
+    longitude: -55.15922,
+    latitude: 5.82839,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Synagoge%2C%20Paramaribo%20Suriname.jpg?width=1600',
+  },
+  {
+    countryCode: 'SR',
+    title: 'Arya Diwaker',
+    description:
+      'Hindu temple in Paramaribo, Suriname. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -55.17489,
+    latitude: 5.81963,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Arya%20Dewaker2.jpg?width=1600',
   },
   {
     countryCode: 'SS',
@@ -1654,6 +7774,16 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kator%20church.jpg?width=1600',
   },
   {
+    countryCode: 'SS',
+    title: 'Holy Family Cathedral, Rumbek',
+    description:
+      'Building in South Sudan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1955.',
+    longitude: 29.6649,
+    latitude: 6.8158,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rumbek%20Cathedral.JPG?width=1600',
+  },
+  {
     countryCode: 'ST',
     title: 'Pico de São Tomé',
     description:
@@ -1662,6 +7792,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 0.26667,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Otok%20sv.%20Tome%20-E-8383.JPG?width=1600',
+  },
+  {
+    countryCode: 'ST',
+    title: 'São Sebastião Museum',
+    description:
+      'National museum in São Tomé Island, São Tomé and Príncipe. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1575. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 6.73944,
+    latitude: 0.34583,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sao%20tome%20fort.jpg?width=1600',
+  },
+  {
+    countryCode: 'ST',
+    title: 'Our Lady of Grace Cathedral',
+    description:
+      'Building in São Tomé and Príncipe. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. The place takes its name from Mary. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 6.7325,
+    latitude: 0.33833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Catedral%20de%20Nossa%20Senhora%20da%20Gra%C3%A7a%20%2820234213142%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'ST',
+    title: 'Lagoa Azul Lighthouse',
+    description:
+      'Lighthouse in the district of Lobata, São Tomé and Príncipe. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1997. The structure reaches approximately 5 metres in height. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 6.61014,
+    latitude: 0.40727,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lagoa%20Azul%20Lighthouse%2C%20S%C3%A3o%20Tom%C3%A9%20and%20Pr%C3%ADncipe%20-%2020070804%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'ST',
+    title: 'São Sebastião Lighthouse',
+    description:
+      'Lighthouse in the fortress on the point of Ana Chaves Bay in São Tomé, São Tomé and Príncipe. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1928. The structure reaches approximately 6 metres in height. It holds the heritage designation “Heritage of Portuguese Influence”.',
+    longitude: 6.7396,
+    latitude: 0.34599,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/S%C3%A3o%20Sebasti%C3%A3o%20Lighthouse.jpg?width=1600',
   },
   {
     countryCode: 'SV',
@@ -1674,6 +7844,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/ES%20Joya%20Ceren%2005%202012%20Estructura%209%20Area%202%20Tamazcal%20wide%20angle%201479.JPG?width=1600',
   },
   {
+    countryCode: 'SV',
+    title: 'Izalco',
+    description:
+      'Volcano in El Salvador. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,952 metres above sea level.',
+    longitude: -89.63333,
+    latitude: 13.81306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Green%20Izalco%20Volcano.JPG?width=1600',
+  },
+  {
+    countryCode: 'SV',
+    title: 'Santa Ana Volcano',
+    description:
+      'Volcano in the Department of Santa Ana, El Salvador. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,381 metres above sea level.',
+    longitude: -89.63,
+    latitude: 13.85278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Santa%20Ana%20Volcano.USAF.C-130.1.jpg?width=1600',
+  },
+  {
+    countryCode: 'SV',
+    title: 'Tazumal',
+    description:
+      'Archeological site in Chalchuapa, El Salvador. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its architecture is associated with Maya architecture.',
+    longitude: -89.67442,
+    latitude: 13.97956,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/El%20Tazumal%2C%20Chalchuapa.jpg?width=1600',
+  },
+  {
+    countryCode: 'SV',
+    title: 'San Andrés, El Salvador',
+    description:
+      'Archaeological site in southwestern El Salvador. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: -89.38914,
+    latitude: 13.80062,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ES%20San%20Andres%2005%202012%20Estructura%201%20La%20Acropolis%201562.JPG?width=1600',
+  },
+  {
     countryCode: 'SY',
     title: 'Palmyra',
     description:
@@ -1682,6 +7892,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 34.55038,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Palmira%20al%20capvespre%20%282495033007%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'SY',
+    title: 'Umayyad Mosque',
+    description:
+      'Mosque in Syria. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 706. One of its documented purposes is mosque. It extends for approximately 125 metres. Its architecture is associated with Umayyad architecture.',
+    longitude: 36.30667,
+    latitude: 33.51139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ommayyad%20masjed.jpg?width=1600',
+  },
+  {
+    countryCode: 'SY',
+    title: 'Mari',
+    description:
+      'Ancient Sumerian and Amorite city. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 2900 BCE. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 40.89,
+    latitude: 34.54944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mari-Zimri%20Lim%20Palace.jpg?width=1600',
+  },
+  {
+    countryCode: 'SY',
+    title: 'Ebla',
+    description:
+      'Ancient city. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 2999 BCE. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 36.79861,
+    latitude: 35.79806,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ebla.jpg?width=1600',
+  },
+  {
+    countryCode: 'SY',
+    title: 'Great Mosque of Aleppo',
+    description:
+      'Mosque in Syria. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 37.15691,
+    latitude: 36.19949,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Mosque%20of%20Aleppo%2C%20Panoramic%20view%202%2C%20Aleppo%2C%20Syria.jpg?width=1600',
   },
   {
     countryCode: 'SZ',
@@ -1704,6 +7954,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Emi%20Koussi%20inner%20crater.jpg?width=1600',
   },
   {
+    countryCode: 'TD',
+    title: 'Tarso Toussidé',
+    description:
+      'Mountain in Chad. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,315 metres above sea level. A notable construction material is trachyte.',
+    longitude: 16.47361,
+    latitude: 21.04083,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chad%20Tousside.jpg?width=1600',
+  },
+  {
+    countryCode: 'TD',
+    title: 'Trou au Natron',
+    description:
+      'Caldera in Tibesti mountains, Chad. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,450 metres above sea level. Its recorded depth is approximately 768 metres. A notable construction material is trachyte.',
+    longitude: 16.5675,
+    latitude: 20.975,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chad%20Trou%20au%20Natron%202301-2.jpg?width=1600',
+  },
+  {
+    countryCode: 'TD',
+    title: 'Tarso Yega',
+    description:
+      'Mountain in Chad. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,972 metres above sea level. Its recorded depth is approximately 300 metres.',
+    longitude: 17.42,
+    latitude: 20.66,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tarso%20Y%C3%A9ga%20ASTER.jpg?width=1600',
+  },
+  {
+    countryCode: 'TD',
+    title: "Cathedral of Our Lady, N'Djamena",
+    description:
+      "Cathedral in N'Djamena, Chad. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1965. Its architecture is associated with modern architecture.",
+    longitude: 15.03728,
+    latitude: 12.11144,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Church%20in%20Fort%20Lamy%2C%20Chad.jpg?width=1600',
+  },
+  {
     countryCode: 'TG',
     title: 'Nangbeto Dam',
     description:
@@ -1712,6 +8002,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 7.42364,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Barrage%20-de%20Nangb%C3%A9to%2007.jpg?width=1600',
+  },
+  {
+    countryCode: 'TG',
+    title: 'Sacred Heart Cathedral',
+    description:
+      'Cathedral. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1902. Its architecture is associated with Gothic Revival.',
+    longitude: 1.22626,
+    latitude: 6.12504,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lom%C3%A9%20Grand%20March%C3%A9%20with%20the%20Cath%C3%A9drale%20du%20Sacr%C3%A9%20Coeur%20%2833592985581%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'TG',
+    title: 'Holy Spirit Cathedral, Kpalimé',
+    description:
+      'Building in Togo. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 0.63073,
+    latitude: 6.90858,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale%20de%20Kpalim%C3%A9%20vue%20de%20Cot%C3%A9.JPG?width=1600',
+  },
+  {
+    countryCode: 'TG',
+    title: 'Cathedral of St. Peter and St. Paul of Kara',
+    description:
+      'Church in Kara, Togo. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 1.18883,
+    latitude: 9.55276,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cath%C3%A9drale%20de%20Kara.jpg?width=1600',
+  },
+  {
+    countryCode: 'TG',
+    title: 'Château Vial',
+    description:
+      'Chateau in Togo. Its architecture and setting preserve stories of power, defence and daily life across generations.',
+    longitude: 0.58214,
+    latitude: 6.95173,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ch%C3%A2teau%20Viale.jpg?width=1600',
   },
   {
     countryCode: 'TH',
@@ -1724,6 +8054,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grand%20Palace%20Bangkok%2C%20Thailand.jpg?width=1600',
   },
   {
+    countryCode: 'TH',
+    title: 'Wat Phra Kaew',
+    description:
+      'Royal temple complex in Bangkok, Thailand. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1785. Its architecture is associated with Ayutthaya Kingdom.',
+    longitude: 100.49278,
+    latitude: 13.75139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%A3%E0%B8%B1%E0%B8%95%E0%B8%99%E0%B8%A8%E0%B8%B2%E0%B8%AA%E0%B8%94%E0%B8%B2%E0%B8%A3%E0%B8%B2%E0%B8%A1%20%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B9%81%E0%B8%81%E0%B9%89%E0%B8%A7%20%E0%B8%81%E0%B8%A3%E0%B8%B8%E0%B8%87%E0%B9%80%E0%B8%97%E0%B8%9E%E0%B8%A1%E0%B8%AB%E0%B8%B2%E0%B8%99%E0%B8%84%E0%B8%A3%20-%20Wat%20Phra%20Kaew%2C%20Temple%20of%20Emerald%20Buddha%2C%20Bangkok%2C%20Thailand.jpg?width=1600',
+  },
+  {
+    countryCode: 'TH',
+    title: 'Wat Arun',
+    description:
+      'Buddhist temple in central Bangkok, Thailand. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1656. It holds the heritage designation “registered Thai historic site”.',
+    longitude: 100.48892,
+    latitude: 13.74369,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wat%20Arun%20from%20Chao%20Phraya%20River.jpg?width=1600',
+  },
+  {
+    countryCode: 'TH',
+    title: 'Ban Chiang',
+    description:
+      'Archaeological site in north-east Thailand. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 103.35833,
+    latitude: 17.54861,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Wat%20Pho%20Si%20Nai%20-%20UNESCO%20World%20Heritage%20Site%20plaque.JPG?width=1600',
+  },
+  {
+    countryCode: 'TH',
+    title: 'First Thai–Lao Friendship Bridge',
+    description:
+      'Bridge over Mekong River. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1994. It extends for approximately 1,170 metres.',
+    longitude: 102.71556,
+    latitude: 17.87833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Thai-Lao-Freundschaftsbruecke.jpg?width=1600',
+  },
+  {
     countryCode: 'TJ',
     title: 'Karakul',
     description:
@@ -1732,6 +8102,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 39.04,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%92%D0%B5%D1%80%D1%88%D0%B8%D0%BD%D0%B0%20%D0%A3%D1%80%D1%82%D0%B0%D0%B1%D1%83%D0%B7.%20%D0%92%D0%B4%D0%B0%D0%BB%D0%B8%20-%20%D0%9F%D0%B8%D0%BA%20%D0%9B%D0%B5%D0%BD%D0%B8%D0%BD%D0%B0.%20%D0%92%D0%BD%D0%B8%D0%B7%D1%83%20-%20%D0%BE%D0%B7%D0%B5%D1%80%D0%BE%20%D0%9A%D0%B0%D1%80%D0%B0%D0%BA%D1%83%D0%BB%D1%8C.JPG?width=1600',
+  },
+  {
+    countryCode: 'TJ',
+    title: 'Norak Dam',
+    description:
+      'Earth-fill embankment dam on the Vakhsh River in Tajikistan, near Norak. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1961. The structure reaches approximately 300 metres in height.',
+    longitude: 69.34823,
+    latitude: 38.37121,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nurek%20Dam.JPG?width=1600',
+  },
+  {
+    countryCode: 'TJ',
+    title: 'Sarazm',
+    description:
+      'Archaeological site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 67.56667,
+    latitude: 39.51667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sarazm%2Carea12-W.jpg?width=1600',
+  },
+  {
+    countryCode: 'TJ',
+    title: 'Rogun Dam',
+    description:
+      'Dam under construction in Tajikistan. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1976. The structure reaches approximately 335 metres in height.',
+    longitude: 69.7725,
+    latitude: 38.6825,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rogun%20Dam.jpg?width=1600',
+  },
+  {
+    countryCode: 'TJ',
+    title: 'Buddhistic cloister of Ajina-Tepa',
+    description:
+      'UNESCO World Heritage Site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 68.85436,
+    latitude: 37.79803,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ajina-Tepa.jpg?width=1600',
   },
   {
     countryCode: 'TL',
@@ -1744,6 +8154,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Christ%20Dili.jpg?width=1600',
   },
   {
+    countryCode: 'TL',
+    title: 'Immaculate Conception Cathedral',
+    description:
+      'Church in Díli, East Timor. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 125.56762,
+    latitude: -8.55838,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Immaculate%20Conception%20Cathedral%20%28Dili%29%2C%202023%20%2801%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'TL',
+    title: 'An-Nur Mosque',
+    description:
+      'Mosque in Dili, East Timor. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 125.56022,
+    latitude: -8.54979,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/DSCI2698%20Moschee%20Dili.JPG?width=1600',
+  },
+  {
+    countryCode: 'TL',
+    title: 'Hindu temple in Dili',
+    description:
+      'Indonesian Balinese Hindu temple in East Timor. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: 125.59599,
+    latitude: -8.56515,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/01%20Hindutempel%202016-07-05.jpg?width=1600',
+  },
+  {
+    countryCode: 'TL',
+    title: 'Timorese Resistance Archive and Museum',
+    description:
+      'Museum in Dili, East Timor. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 2005.',
+    longitude: 125.5775,
+    latitude: -8.55556,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rampa%20entrada%20AMRT1.jpg?width=1600',
+  },
+  {
     countryCode: 'TM',
     title: 'Merv',
     description:
@@ -1752,6 +8202,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 37.66278,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Merv%20City%20Walls%20%2810%29%20%2844747325714%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'TM',
+    title: 'Nisa',
+    description:
+      'Capital of Parthian Empire. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 58.21241,
+    latitude: 37.95115,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Nisa.jpg?width=1600',
+  },
+  {
+    countryCode: 'TM',
+    title: 'Türkmenbaşy Mosque',
+    description:
+      'Mosque and mausoleum in Ashgabat, Turkmenistan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 2004. The structure reaches approximately 91 metres in height. Its architecture is associated with Islamic architecture. A notable construction material is marble.',
+    longitude: 58.25278,
+    latitude: 38.01778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Rustam%20Minnikhanov%27s%20trip%20to%20Turkmenistan%202008%2011.jpg?width=1600',
+  },
+  {
+    countryCode: 'TM',
+    title: 'Arch of Neutrality',
+    description:
+      'Monument originally located in Ashgabat. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1998. Its design is credited to Polimeks. The structure reaches approximately 75 metres in height.',
+    longitude: 58.3333,
+    latitude: 37.88218,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ashgabat%20monument%20of%20neutrality%20IMG%205906%20%2826044793751%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'TM',
+    title: 'Ertuğrul Gazi Mosque',
+    description:
+      'Mosque in Ashgabat, Turkmenistan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1998. Its design is credited to Hilmi Şenalp. Its architecture is associated with Ottoman architecture. A notable construction material is marble.',
+    longitude: 58.39889,
+    latitude: 37.93306,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ertugrul%20Gazi%20Mosque%20%2812%29%20%2845999846362%29.jpg?width=1600',
   },
   {
     countryCode: 'TN',
@@ -1764,6 +8254,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tunisie%20Carthage%20Ruines%2008.JPG?width=1600',
   },
   {
+    countryCode: 'TN',
+    title: 'Dougga',
+    description:
+      'Archaeological site in Tunisia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 9.22028,
+    latitude: 36.42333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Dougga%2C%20Beja.jpg?width=1600',
+  },
+  {
+    countryCode: 'TN',
+    title: 'Kerkouane',
+    description:
+      'Archaeological site in Tunisia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 11.09917,
+    latitude: 36.94639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kerkouane1.JPG?width=1600',
+  },
+  {
+    countryCode: 'TN',
+    title: 'Great Mosque of Kairouan',
+    description:
+      'Tunisian religious building and site of Islamic worship. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. One of its documented purposes is structure of worship. It holds the heritage designation “listed monument of Tunisia”.',
+    longitude: 10.10389,
+    latitude: 35.68139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grande%20Mosqu%C3%A9e%20de%20Kairouan%2C%20vue%20d%27ensemble.jpg?width=1600',
+  },
+  {
+    countryCode: 'TN',
+    title: 'Roman amphitheatre of El Jem',
+    description:
+      'Carthagian amphitheatre in Tunisia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 238. It holds the heritage designation “World Heritage Site”.',
+    longitude: 10.70694,
+    latitude: 35.29639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Amphi%20El%20Jem.jpg?width=1600',
+  },
+  {
     countryCode: 'TO',
     title: 'Hunga Tonga–Hunga Haʻapai',
     description:
@@ -1772,6 +8302,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -20.545,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hunga%20Tonga%20Hunga%20Ha%E2%80%99apai%20%28NGA%2C%202017%29%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'TO',
+    title: 'Kao',
+    description:
+      'Island in Tonga. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,030 metres above sea level. It extends for approximately 5.2 kilometres.',
+    longitude: -175.01667,
+    latitude: -19.66667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tofua%20and%20Kao%20islands%2C%20Tonga%201994-10-09.jpg?width=1600',
+  },
+  {
+    countryCode: 'TO',
+    title: 'Fonualei',
+    description:
+      'Island in Tonga. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 180 metres above sea level. It extends for approximately 2.6 kilometres.',
+    longitude: -174.325,
+    latitude: -18.024,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fonualei.jpg?width=1600',
+  },
+  {
+    countryCode: 'TO',
+    title: 'Late',
+    description:
+      'Island of Tonga. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 540 metres above sea level. It extends for approximately 5.3 kilometres.',
+    longitude: -174.65,
+    latitude: -18.8,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Late%20Island.JPG?width=1600',
+  },
+  {
+    countryCode: 'TO',
+    title: "Ha'amonga 'a Maui",
+    description:
+      'A stone trilithon located in Tonga. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history dates to approximately 1300. The structure reaches approximately 5.2 metres in height. It extends for approximately 5.8 metres.',
+    longitude: -175.04806,
+    latitude: -21.13667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ha%CA%BBamonga.jpg?width=1600',
   },
   {
     countryCode: 'TR',
@@ -1784,6 +8354,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hagia%20Sophia%20Mars%202013.jpg?width=1600',
   },
   {
+    countryCode: 'TR',
+    title: 'Troy',
+    description:
+      'Ancient Homeric-era city in northwest Asia Minor; it is known as the setting for the Greek myth of the Trojan war. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 2999 BCE. It holds the heritage designation “World Heritage Site”.',
+    longitude: 26.23889,
+    latitude: 39.9575,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Walls%20of%20Troy%20%282%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'TR',
+    title: 'Mount Ararat',
+    description:
+      'Highest peak in Turkey. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 5,137 metres above sea level. It holds the heritage designation “Important Bird Area”.',
+    longitude: 44.29833,
+    latitude: 39.70194,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/NEO%20ararat%20big.jpg?width=1600',
+  },
+  {
+    countryCode: 'TR',
+    title: 'Ephesus',
+    description:
+      'Ancient Greek city in Anatolia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 1000 BCE. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 27.34083,
+    latitude: 37.93972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ephesus%20Celsus%20Library%20Fa%C3%A7ade.jpg?width=1600',
+  },
+  {
+    countryCode: 'TR',
+    title: 'Temple of Ephesian Artemis',
+    description:
+      'Temple in Ephesus, one of the Seven Wonders of the Ancient World. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 322 BCE. Its design is credited to Chersiphron. Its architecture is associated with ancient Greek architecture. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 27.36389,
+    latitude: 37.94972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ephesos.jpg?width=1600',
+  },
+  {
     countryCode: 'TT',
     title: 'Cathedral of the Immaculate Conception, Port of Spain',
     description:
@@ -1792,6 +8402,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 10.6619,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cathedral%20Basilica%20of%20the%20Immaculate%20Conception%20%28Port%20of%20Spain%29.JPG?width=1600',
+  },
+  {
+    countryCode: 'TT',
+    title: 'National Museum and Art Gallery',
+    description:
+      ' Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1892.',
+    longitude: -61.5103,
+    latitude: 10.6629,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Trinidad%20national%20museum%202006-23-02.JPG?width=1600',
+  },
+  {
+    countryCode: 'TT',
+    title: 'Holy Trinity Cathedral, Port of Spain',
+    description:
+      'Church in Trinidad and Tobago. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1816. Its architecture is associated with Gothic Revival.',
+    longitude: -61.533,
+    latitude: 10.6615,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/TnT%20PoS%20Cathedral%20of%20the%20Holy%20Trinity%20%28back%20view%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'TT',
+    title: 'Pro-Cathedral of Our Lady of Perpetual Help',
+    description:
+      'Church in San Fernando, Trinidad and Tobago. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region.',
+    longitude: -61.46471,
+    latitude: 10.28049,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/San%20Fernando%2C%20Trinidad%20%26%20Tobago%202.jpg?width=1600',
+  },
+  {
+    countryCode: 'TT',
+    title: "Queen's Park Savannah, Port of Spain",
+    description:
+      'Park in Port of Spain, Trinidad and Tobago. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture.',
+    longitude: -61.51408,
+    latitude: 10.6693,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Stage%20Crossing%20at%20Trinidad%20Carnival.jpg?width=1600',
   },
   {
     countryCode: 'TV',
@@ -1814,6 +8464,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mt.%20Kilimanjaro%2012.2006.jpg?width=1600',
   },
   {
+    countryCode: 'TZ',
+    title: 'Kondoa Rock Art Sites',
+    description:
+      'Cave in Tanzania. Its underground formations and atmosphere reveal a landscape hidden from the surface world. It holds the heritage designation “World Heritage Site”.',
+    longitude: 35.83389,
+    latitude: -4.72444,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kondoa%20mchoro%20mwambani%202012%20Tamino.jpg?width=1600',
+  },
+  {
+    countryCode: 'TZ',
+    title: 'Laetoli',
+    description:
+      'Footprints site. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “protected monument in Tanzania”.',
+    longitude: 35.3524,
+    latitude: -2.99622,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Laetoli%20Footprints%20Site%20A%20(2).jpg?width=1600',
+  },
+  {
+    countryCode: 'TZ',
+    title: 'Lake Chala',
+    description:
+      'Crater lake in Tanzania. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. It extends for approximately 3 kilometres.',
+    longitude: 37.7,
+    latitude: -3.31667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lake%20Chala.jpg?width=1600',
+  },
+  {
+    countryCode: 'TZ',
+    title: 'Lake Ngozi',
+    description:
+      'Lake in Tanzania. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 2,622 metres above sea level. Its recorded depth is approximately 74 metres.',
+    longitude: 33.53333,
+    latitude: -9.03333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ngozi.jpg?width=1600',
+  },
+  {
     countryCode: 'UA',
     title: 'Saint Sophia Cathedral',
     description:
@@ -1822,6 +8512,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 50.45278,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/80-391-0151%20Kyiv%20St.Sophia%27s%20Cathedral%20RB%2018%202%20%28cropped%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'UA',
+    title: 'Crimean Bridge',
+    description:
+      "Bridge connecting Russia's Krasnodar Krai with Crimea. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2015. The structure reaches approximately 80 metres in height. It extends for approximately 16,857.3 metres. The place takes its name from Crimea.",
+    longitude: 36.5061,
+    latitude: 45.3086,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%9A%D1%80%D1%8B%D0%BC%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BC%D0%BE%D1%81%D1%82%2013%20%D1%81%D0%B5%D0%BD%D1%82%D1%8F%D0%B1%D1%80%D1%8F%202019%20%D0%B3%D0%BE%D0%B4%D0%B0%20%281%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'UA',
+    title: 'Kyiv Pechersk Lavra',
+    description:
+      'Historic Orthodox Christian monastery in Kyiv. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1051. Its architecture is associated with Ukrainian Baroque. It holds the heritage designation “part of UNESCO World Heritage Site”.',
+    longitude: 30.56222,
+    latitude: 50.43222,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Lavra%20panorama-kijev.jpg?width=1600',
+  },
+  {
+    countryCode: 'UA',
+    title: 'Chersonesus',
+    description:
+      "Ancient city in today's Sevastopol, Crimea. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “part of UNESCO World Heritage Site”.",
+    longitude: 33.4933,
+    latitude: 44.61163,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chersonesos%20ruins.jpg?width=1600',
+  },
+  {
+    countryCode: 'UA',
+    title: 'Mariinskyi Palace',
+    description:
+      'Palace in Ukraine. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1752. Its design is credited to Francesco Bartolomeo Rastrelli. One of its documented purposes is official residence. Its architecture is associated with Baroque.',
+    longitude: 30.5375,
+    latitude: 50.44833,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%9C%D0%B0%D1%80%D1%96%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D0%B8%D0%B9%20%D0%BF%D0%B0%D0%BB%D0%B0%D1%86%20%D0%B2%20%D0%9A%D0%B8%D1%94%D0%B2%D1%96%20%28cropped%29.jpg?width=1600',
   },
   {
     countryCode: 'UG',
@@ -1834,6 +8564,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kasubi%20Tombs%2020250815%201.jpg?width=1600',
   },
   {
+    countryCode: 'UG',
+    title: 'Mount Elgon',
+    description:
+      'Shield volcano on the border of Uganda and Kenya. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 4,321 metres above sea level. It holds the heritage designation “Tentative World Heritage Site”.',
+    longitude: 34.5265,
+    latitude: 1.1185,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Elgon-Wagagai.jpg?width=1600',
+  },
+  {
+    countryCode: 'UG',
+    title: 'Murchison Falls',
+    description:
+      'Waterfall on the Nile in Uganda. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 43 metres in height. Its recorded width is approximately 7 metres. The place takes its name from Roderick Murchison, 1st Baronet.',
+    longitude: 31.68335,
+    latitude: 2.27731,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Murchison%20Falls%20573x430.jpg?width=1600',
+  },
+  {
+    countryCode: 'UG',
+    title: 'Mount Sabyinyo',
+    description:
+      'Mountain in eastern Africa. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 3,645 metres above sea level.',
+    longitude: 29.6,
+    latitude: -1.4,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Musanze%27s%20Volcano%20%2846355800961%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'UG',
+    title: 'Kampala Mosque',
+    description:
+      'Mosque in Uganda. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1978. A notable construction material is reinforced concrete. It holds the heritage designation “National Cultural Site of Uganda”.',
+    longitude: 32.63333,
+    latitude: 0.3,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gaddafi%20Mosque%20uganda.jpg?width=1600',
+  },
+  {
     countryCode: 'US',
     title: 'Statue of Liberty',
     description:
@@ -1842,6 +8612,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 40.68921,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Statue%20of%20Liberty%20and%20a%20sightseeing%20boat%2C%20Liberty%20Island%2C%20New%20York.jpg?width=1600',
+  },
+  {
+    countryCode: 'US',
+    title: 'Niagara Falls',
+    description:
+      'Three waterfalls that straddle the international border between Canada and the United States. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 51 metres in height. Its recorded width is approximately 790 metres.',
+    longitude: -79.071,
+    latitude: 43.08,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Horseshoe%20Falls%20(Niagara%20Falls).jpg?width=1600',
+  },
+  {
+    countryCode: 'US',
+    title: 'Golden Gate Bridge',
+    description:
+      'Suspension bridge on the San Francisco Bay. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1937. Its design is credited to Joseph Strauss. The structure reaches approximately 746 foots in height. It extends for approximately 8,981 foots.',
+    longitude: -122.47861,
+    latitude: 37.81972,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/GoldenGateBridge-001.jpg?width=1600',
+  },
+  {
+    countryCode: 'US',
+    title: 'Mauna Kea',
+    description:
+      'Hawaiian volcano. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The structure reaches approximately 32,000 foots in height. A notable construction material is basalt. It holds the heritage designation “National Natural Landmark”.',
+    longitude: -155.46806,
+    latitude: 19.82056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mauna%20Kea%20from%20the%20sky.jpg?width=1600',
+  },
+  {
+    countryCode: 'US',
+    title: 'Metropolitan Museum of Art',
+    description:
+      'Art museum in New York City, United States. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1870. Its design is credited to Richard Morris Hunt.',
+    longitude: -73.96333,
+    latitude: 40.77944,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Metropolitan%20Museum%20of%20Art%20%28The%20Met%29%20-%20Central%20Park%2C%20NYC.jpg?width=1600',
   },
   {
     countryCode: 'UY',
@@ -1854,6 +8664,47 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Iglesia%20Atl%C3%A1ntida%20Dieste%207.jpg?width=1600',
   },
   {
+    countryCode: 'UY',
+    title: 'Laguna Garzón Bridge',
+    description:
+      'Bridge in Uruguay. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 2015. It extends for approximately 202 metres. A notable construction material is steel.',
+    longitude: -54.5721,
+    latitude: -34.8024,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bridge%20Laguna%20Garz%C3%B3n%C2%A1.jpg?width=1600',
+  },
+  {
+    countryCode: 'UY',
+    title:
+      'Metropolitan Basilica Cathedral of the Immaculate Conception and San Felipe and Santiago',
+    description:
+      'Roman Catholic cathedral in Montevideo, Uruguay. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1790. Its architecture is associated with Neoclassicism. The place takes its name from Immaculate Conception of Mary. It holds the heritage designation “Cultural Heritage Monument”.',
+    longitude: -56.20411,
+    latitude: -34.907,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Catedral%20de%20Montevideo%2002.jpg?width=1600',
+  },
+  {
+    countryCode: 'UY',
+    title: 'Cathedral of Florida',
+    description:
+      'Church in Uruguay. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1887. Its architecture is associated with Renaissance Revival architecture. The place takes its name from Our Lady of Luján.',
+    longitude: -56.2141,
+    latitude: -34.1005,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Catedral%20de%20Florida.jpg?width=1600',
+  },
+  {
+    countryCode: 'UY',
+    title: 'Cathedral of Salto',
+    description:
+      'Cultural heritage monument of Uruguay. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1926. Its design is credited to Ernesto Vespignani. Its architecture is associated with eclectic architecture. The place takes its name from John the Baptist.',
+    longitude: -57.9595,
+    latitude: -31.3888,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Catedral%20de%20Salto%2C%20Uruguay.jpg?width=1600',
+  },
+  {
     countryCode: 'UZ',
     title: 'Gur-e Amir',
     description:
@@ -1862,6 +8713,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 39.64833,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/%D0%92%D0%B5%D1%87%D0%B5%D1%80%D0%BD%D0%B8%D0%B9%20%D0%93%D1%83%D1%80-%D0%AD%D0%BC%D0%B8%D1%80.jpg?width=1600',
+  },
+  {
+    countryCode: 'UZ',
+    title: 'Bibi-Khanym Mosque',
+    description:
+      'Historical mosque in Samarkand, Uzbekistan. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1404. Its architecture is associated with Azari style. It holds the heritage designation “object of tangible cultural heritage of Uzbekistan”.',
+    longitude: 66.97972,
+    latitude: 39.66056,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Bibi-Khanym%20Mosque%20%288145400614%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'UZ',
+    title: 'Kalyan Minaret',
+    description:
+      'Minaret in Bukhara, Uzbekistan; the last surviving fragment of the Kara-khanid era mosque built by Mohammad Arslan Khan in 1127. Its distinctive silhouette and views have made it an enduring landmark of the surrounding area. Its documented history dates to approximately 1127. It holds the heritage designation “object of tangible cultural heritage of Uzbekistan”.',
+    longitude: 64.41501,
+    latitude: 39.77568,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kalyan%20Minaret%2C%20Bukhara%20%28%D0%9C%D0%B8%D0%BD%D0%B0%D1%80%D0%B5%D1%82%20%D0%9A%D0%B0%D0%BB%D1%8F%D0%BD%20%D0%B2%20%D0%91%D1%83%D1%85%D0%B0%D1%80%D0%B5%2C%20Minorai%20Kalon%29.jpg?width=1600',
+  },
+  {
+    countryCode: 'UZ',
+    title: 'Samanid Mausoleum',
+    description:
+      'Mausoleum. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 892. The place takes its name from Ismail Samani. It holds the heritage designation “object of tangible cultural heritage of Uzbekistan”.',
+    longitude: 64.40058,
+    latitude: 39.77701,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Samanid%20mausoleum%20bukhara.jpg?width=1600',
+  },
+  {
+    countryCode: 'UZ',
+    title: 'Ark of Bukhara',
+    description:
+      'Fortress located in the city of Bukhara, Uzbekistan. Its architecture and setting preserve stories of power, defence and daily life across generations. The structure reaches approximately 20 metres in height. It holds the heritage designation “object of tangible cultural heritage of Uzbekistan”.',
+    longitude: 64.41028,
+    latitude: 39.77778,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ark%20Citadel.jpg?width=1600',
   },
   {
     countryCode: 'VA',
@@ -1874,6 +8765,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Basilica%20di%20San%20Pietro%20in%20Vaticano%20September%202015-1a.jpg?width=1600',
   },
   {
+    countryCode: 'VA',
+    title: 'Sistine Chapel',
+    description:
+      'Chapel in the Apostolic Palace, Vatican City. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1473. Its design is credited to Baccio Pontelli. One of its documented purposes is chapel. The structure reaches approximately 21 metres in height.',
+    longitude: 12.45443,
+    latitude: 41.90296,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sistina-interno.jpg?width=1600',
+  },
+  {
+    countryCode: 'VA',
+    title: 'Vatican Museums',
+    description:
+      'Museums of the Vatican City. Its collections bring together objects and stories that make the country’s history and creativity easier to understand. Its documented history dates to approximately 1506.',
+    longitude: 12.45444,
+    latitude: 41.90639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mura%20vaticane%20-%20ingresso%20ai%20Musei%2000410.JPG?width=1600',
+  },
+  {
+    countryCode: 'VA',
+    title: 'Apostolic Palace',
+    description:
+      'Official residence of the Pope in Vatican City. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1589. Its design is credited to Donato Bramante. One of its documented purposes is official residence. Its architecture is associated with Renaissance architecture.',
+    longitude: 12.45639,
+    latitude: 41.90361,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2018-03-18%20Apostolischer%20Palast.jpg?width=1600',
+  },
+  {
+    countryCode: 'VA',
+    title: 'Apollo Belvedere',
+    description:
+      'Roman statue copy after a Greek bronze original attributed to Leochares. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 120. The structure reaches approximately 224 centimetres in height. A notable construction material is marble. The place takes its name from Apollo.',
+    longitude: 12.45444,
+    latitude: 41.90639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Apollo%20of%20the%20Belvedere.jpg?width=1600',
+  },
+  {
     countryCode: 'VC',
     title: 'La Soufrière',
     description:
@@ -1882,6 +8813,36 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 13.33333,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Soufriere.jpg?width=1600',
+  },
+  {
+    countryCode: 'VC',
+    title: 'Assumption Cathedral, Kingstown',
+    description:
+      'Church in Kingstown, Saint Vincent and the Grenadines. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1823. The place takes its name from Mary.',
+    longitude: -61.22774,
+    latitude: 13.15881,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/St.%20Vincent%2C%20Karibik%20-%20St.%20Mary%27s%20R.C.%20School%20%5E%20St.%20Mary%27s%20R.C.%20Cathedral%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'VC',
+    title: 'Botanic Gardens St. Vincent',
+    description:
+      'Botanic Gardens of Kingstown, St. Vincent. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 1765.',
+    longitude: -61.23333,
+    latitude: 13.16667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/St.%20Vincent%2C%20Karibik%20-%20Botanical%20Garden%20of%20Kingstown%20-%20panoramio.jpg?width=1600',
+  },
+  {
+    countryCode: 'VC',
+    title: 'Fort Charlotte',
+    description:
+      'Fort in Saint Vincent. Its architecture and setting preserve stories of power, defence and daily life across generations. Its documented history dates to approximately 1763.',
+    longitude: -61.24211,
+    latitude: 13.15789,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Entrance%20to%20Fort%20Charlotte%2C%20Kingstown%2C%20St.%20Vincent.jpg?width=1600',
   },
   {
     countryCode: 'VE',
@@ -1894,6 +8855,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/SaltoAngel4.jpg?width=1600',
   },
   {
+    countryCode: 'VE',
+    title: 'Guri Dam',
+    description:
+      'Hydroelectric dam on the Caroní River, Venezuela. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1978. It extends for approximately 7 kilometres.',
+    longitude: -63.00033,
+    latitude: 7.76557,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/GuriWasserkraftwerk.jpg?width=1600',
+  },
+  {
+    countryCode: 'VE',
+    title: 'General Rafael Urdaneta Bridge',
+    description:
+      'Bridge in Venezuela. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1962. The structure reaches approximately 92 metres in height. It extends for approximately 8,700 metres. A notable construction material is concrete.',
+    longitude: -71.57604,
+    latitude: 10.57427,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/General%20Rafael%20Urdaneta%20Bridge%20view%20from%20the%20lake%20to%20Cabimas%20side.jpg?width=1600',
+  },
+  {
+    countryCode: 'VE',
+    title: 'Mosque of Sheikh Ibrahim Al-Ibrahim',
+    description:
+      'Mosque of Venezuela. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1993.',
+    longitude: -66.89528,
+    latitude: 10.50167,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mezquita%20Ibrahim%20Al-Lbrahim%20en%20Caracas%20frente%20a%20la%20Iglesia%20San%20Charbel.jpg?width=1600',
+  },
+  {
+    countryCode: 'VE',
+    title: 'Botanical Garden of Mérida',
+    description:
+      'Botanical garden. Its carefully shaped landscapes provide a peaceful way to experience local plants, design and outdoor culture. Its documented history dates to approximately 1991.',
+    longitude: -71.14411,
+    latitude: 8.62369,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Entrada%20Jard%C3%ADn%20Bot%C3%A1nico%20M%C3%A9rida.JPG?width=1600',
+  },
+  {
     countryCode: 'VN',
     title: 'Son Doong Cave',
     description:
@@ -1902,6 +8903,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: 17.4572,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Son%20Doong%20Cave%205.jpg?width=1600',
+  },
+  {
+    countryCode: 'VN',
+    title: 'Thien Duong Cave',
+    description:
+      'Cave. Its underground formations and atmosphere reveal a landscape hidden from the surface world.',
+    longitude: 106.22297,
+    latitude: 17.51951,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ThienDuongCave1.jpg?width=1600',
+  },
+  {
+    countryCode: 'VN',
+    title: 'Mỹ Sơn',
+    description:
+      'Vietnamese world heritage site with over 100 Cham Hindu monument ruins. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 108.12445,
+    latitude: 15.76324,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/2024%20-%20M%E1%BB%B9%20S%C6%A1n%20Sanctuary%20Temple%20E7%20-%20img%2001.jpg?width=1600',
+  },
+  {
+    countryCode: 'VN',
+    title: 'Hoằng Phúc pagoda',
+    description:
+      'Building in Vietnam, Vietnam. Its architecture and living traditions reveal an important part of the spiritual and cultural life of the region. Its documented history dates to approximately 1300.',
+    longitude: 106.735,
+    latitude: 17.18,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/HoangPhucPagoda5.jpg?width=1600',
+  },
+  {
+    countryCode: 'VN',
+    title: 'Ho Chi Minh Mausoleum',
+    description:
+      'National mausoleum in Hanoi, Vietnam. Its form and symbolism make it a memorable expression of local history and identity. Its documented history dates to approximately 1975. The structure reaches approximately 21.6 metres in height. Its recorded width is approximately 41.2 metres. Its architecture is associated with Stripped Classicism.',
+    longitude: 105.83472,
+    latitude: 21.03667,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/L%C4%83ng%20B%C3%A1c%20-%20NKS.jpg?width=1600',
   },
   {
     countryCode: 'VU',
@@ -1914,6 +8955,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Yasur%20eruption%202006%2C%20Tanna%20Island%2C%20Vanuatu%2C%20VAN%200516.jpg?width=1600',
   },
   {
+    countryCode: 'VU',
+    title: 'Merelava',
+    description:
+      'Island. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,028 metres above sea level. It extends for approximately 4.5 kilometres.',
+    longitude: 168.03829,
+    latitude: -14.46394,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mere%20Lava%20Landsat.jpg?width=1600',
+  },
+  {
+    countryCode: 'VU',
+    title: 'Kuwae',
+    description:
+      'Submarine caldera between the Epi and Tongoa islands in Vanuatu. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately -2 metres above sea level.',
+    longitude: 168.53611,
+    latitude: -16.82917,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/ShepherdIslandsMap.png?width=1600',
+  },
+  {
+    countryCode: 'VU',
+    title: 'Mount Gharat',
+    description:
+      'Mountain in Vanuatu. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 797 metres above sea level.',
+    longitude: 167.517,
+    latitude: -14.2839,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mount%20Gharat%20and%20Lake%20Letas.jpg?width=1600',
+  },
+  {
+    countryCode: 'VU',
+    title: 'Lopevi',
+    description:
+      'Island in Vanuatu. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 1,413 metres above sea level.',
+    longitude: 168.5,
+    latitude: -16.83333,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Paamamap.png?width=1600',
+  },
+  {
     countryCode: 'WS',
     title: 'Pulemelei Mound',
     description:
@@ -1922,6 +9003,26 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -13.735,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/View%20from%20Pulemelei%20Mound%20-%20Samoa.jpg?width=1600',
+  },
+  {
+    countryCode: 'WS',
+    title: 'Falemauga Caves',
+    description:
+      'Caves of Upolu, Samoa. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region.',
+    longitude: -171.82222,
+    latitude: -13.91611,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/F%202%20067%20155%20AK%20Uni%20Falemauga%20Caves%201957%20unknown%20photographer.jpg?width=1600',
+  },
+  {
+    countryCode: 'WS',
+    title: 'Museum of Samoa',
+    description:
+      "Samoa's national museum. Its collections bring together objects and stories that make the country’s history and creativity easier to understand.",
+    longitude: -171.7629,
+    latitude: -13.8397,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Falemataaga%20-%20Museum%20of%20Samoa.jpg?width=1600',
   },
   {
     countryCode: 'YE',
@@ -1934,6 +9035,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Old%20City%2C%20Sana%27a%2C%20Yemen%20%2815335600470%29.jpg?width=1600',
   },
   {
+    countryCode: 'YE',
+    title: 'Hanish Islands',
+    description:
+      'Island group. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 78 metres above sea level.',
+    longitude: 42.75,
+    latitude: 13.75,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Hanish.jpg?width=1600',
+  },
+  {
+    countryCode: 'YE',
+    title: 'Jabal al-Tair Island',
+    description:
+      'Volcano island in Red Sea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 244 metres above sea level. It extends for approximately 4.4 kilometres.',
+    longitude: 41.83,
+    latitude: 15.54,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Jebel%20at%20Tair.jpg?width=1600',
+  },
+  {
+    countryCode: 'YE',
+    title: 'Zuqar Island',
+    description:
+      'Island in the Red Sea. Its dramatic terrain provides a close view of the geological forces that continue to shape the landscape. The site stands approximately 524 metres above sea level. It extends for approximately 18.8 kilometres.',
+    longitude: 42.74194,
+    latitude: 14.01278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Zuqar.jpg?width=1600',
+  },
+  {
+    countryCode: 'YE',
+    title: 'Marib Dam',
+    description:
+      'Dam in Yemen. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1986. The structure reaches approximately 38 metres in height. It extends for approximately 763 metres. A notable construction material is stone.',
+    longitude: 45.24374,
+    latitude: 15.39604,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Marib%20dam.jpg?width=1600',
+  },
+  {
     countryCode: 'ZA',
     title: 'Tugela Falls',
     description:
@@ -1942,6 +9083,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -28.7522,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Tugela%20Falls.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZA',
+    title: 'Augrabies Falls',
+    description:
+      'Waterfall on the Orange River in North Cape, South Africa. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 56 metres in height.',
+    longitude: 20.34083,
+    latitude: -28.59139,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Augrabies%20Falls%2C%20March%202008.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZA',
+    title: 'Sterkfontein',
+    description:
+      'Archaeological site in South Africa. Its underground formations and atmosphere reveal a landscape hidden from the surface world. The site stands approximately 1,481 metres above sea level. It holds the heritage designation “national heritage site of South Africa”.',
+    longitude: 27.73456,
+    latitude: -26.01604,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/SterkfonteinCave.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZA',
+    title: 'Blombos Cave',
+    description:
+      'Archaeological site in Western Cape, South Africa. Its underground formations and atmosphere reveal a landscape hidden from the surface world.',
+    longitude: 21.2225,
+    latitude: -34.41444,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Blombos.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZA',
+    title: 'Gariep Dam',
+    description:
+      'Dam on the Orange River in South Africa. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. The structure reaches approximately 88 metres in height. It extends for approximately 914 metres.',
+    longitude: 25.50639,
+    latitude: -30.62278,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/GariepDam.jpg?width=1600',
   },
   {
     countryCode: 'ZM',
@@ -1954,6 +9135,46 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kalambo%20Falls.jpg?width=1600',
   },
   {
+    countryCode: 'ZM',
+    title: 'Ngonye Falls',
+    description:
+      'Waterfall on the Zambezi River in Zambia. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The site stands approximately 974 metres above sea level.',
+    longitude: 23.57222,
+    latitude: -16.65417,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ngonye%20falls%20at%20Zambezi%20river%2C%20Zambia%20(aerial%20view).jpg?width=1600',
+  },
+  {
+    countryCode: 'ZM',
+    title: 'Kalambo',
+    description:
+      'Archaeological site in Zambia. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. Its documented history reaches back to approximately 476000 BCE.',
+    longitude: 31.24028,
+    latitude: -8.59639,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Shaping%20marks%20on%20the%20upper%20surfaces%20of%20object%201033%20and%20on%20the%20underlying%20treetrunk.webp?width=1600',
+  },
+  {
+    countryCode: 'ZM',
+    title: 'Chishimba Falls',
+    description:
+      'Waterfall in Northern Province, Zambia. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 20 metres in height.',
+    longitude: 30.55833,
+    latitude: -10.075,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Chisimba%20Falls.JPG?width=1600',
+  },
+  {
+    countryCode: 'ZM',
+    title: 'Itezhi-Tezhi Dam',
+    description:
+      'Dam. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1973. The site stands approximately 1,030 metres above sea level. It extends for approximately 1,400 metres.',
+    longitude: 26.02126,
+    latitude: -15.75987,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Itezhi-Tezhi%20Lake.png?width=1600',
+  },
+  {
     countryCode: 'ZW',
     title: 'Victoria Falls',
     description:
@@ -1962,5 +9183,45 @@ export const POI_CATALOG: readonly PoiCatalogEntry[] = [
     latitude: -17.92478,
     imageUrl:
       'https://commons.wikimedia.org/wiki/Special:Redirect/file/Cataratas%20Victoria%2C%20Zambia-Zimbabue%2C%202018-07-27%2C%20DD%2005.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZW',
+    title: 'Great Zimbabwe',
+    description:
+      'Ruined city in the south-eastern hills of Zimbabwe near Lake Mutirikwe and the town of Masvingo, was once the capital of the Kingdom of Zimbabwe during the cou…. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 30.933,
+    latitude: -20.27,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Great%20Zimbabwe%20-%20aerial%20view.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZW',
+    title: 'Khami',
+    description:
+      'Ruined city and capital of the Kingdom of Butua. Its surviving remains offer a tangible connection with the people, traditions and events that shaped the region. It holds the heritage designation “World Heritage Site”.',
+    longitude: 28.42344,
+    latitude: -20.14329,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Khami.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZW',
+    title: 'Kariba Dam',
+    description:
+      'A double curvature concrete arch dam in the Kariba Gorge of the Zambezi river basin between Zambia and Zimbabwe. Its design reflects the engineering, craftsmanship and ambitions of the period in which it was created. Its documented history dates to approximately 1960. Its creation is associated with André Coyne. The structure reaches approximately 128 metres in height. It extends for approximately 579 metres.',
+    longitude: 28.7614,
+    latitude: -16.5217,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/KaribaDam.jpg?width=1600',
+  },
+  {
+    countryCode: 'ZW',
+    title: 'Mutarazi Falls',
+    description:
+      'Tallest waterfall in Zimbabwe. The movement, sound and scale of the water create a powerful natural spectacle best appreciated on site. The structure reaches approximately 762 metres in height. Its recorded width is approximately 15 metres.',
+    longitude: 32.7925,
+    latitude: -18.4842,
+    imageUrl:
+      'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mutarazi%20Falls00.jpg?width=1600',
   },
 ];

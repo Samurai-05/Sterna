@@ -28,20 +28,31 @@ interface PoiRow {
 export const POI_DISCOVERY_RADIUS_METERS = 150;
 const COUNTRY_MATCH_BUFFER_METERS = 5000;
 
+// Split into two lookups rather than one OR'd WHERE clause: an OR across
+// ST_Contains (backed by idx_countries_geom) and a geography-cast
+// ST_DWithin (backed by idx_countries_geom_geography) stops Postgres from
+// using either index, forcing a sequential scan of `countries` per POI.
+// Run separately, each half uses its own index — the fallback only runs
+// for the POIs the first lookup doesn't resolve.
 const POI_COUNTRY_PROJECTION = `
-  (
-    SELECT country.a3
-    FROM countries country
-    WHERE ST_Contains(country.geom, poi.location)
-       OR ST_DWithin(
-         country.geom::geography,
-         poi.location::geography,
-         ${COUNTRY_MATCH_BUFFER_METERS}
-       )
-    ORDER BY
-      ST_Contains(country.geom, poi.location) DESC,
-      country.geom <-> poi.location
-    LIMIT 1
+  COALESCE(
+    (
+      SELECT country.a3
+      FROM countries country
+      WHERE ST_Contains(country.geom, poi.location)
+      LIMIT 1
+    ),
+    (
+      SELECT country.a3
+      FROM countries country
+      WHERE ST_DWithin(
+        country.geom::geography,
+        poi.location::geography,
+        ${COUNTRY_MATCH_BUFFER_METERS}
+      )
+      ORDER BY country.geom <-> poi.location
+      LIMIT 1
+    )
   ) AS country_code
 `;
 
