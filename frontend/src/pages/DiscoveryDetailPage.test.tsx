@@ -319,6 +319,126 @@ describe('DiscoveryDetailPage', () => {
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
   })
 
+  it('keeps a mouse photo drag active when movement and release leave the photo', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const viewer = document.querySelector('main') as HTMLElement
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'mouse',
+      clientX: 160,
+      clientY: 240,
+    })
+    fireEvent.pointerMove(viewer, {
+      pointerId: 1,
+      pointerType: 'mouse',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerUp(viewer, {
+      pointerId: 1,
+      pointerType: 'mouse',
+      clientX: 160,
+      clientY: 180,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+  })
+
+  it('returns the expanded drawer to peek after a mouse drag leaves the photo', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const viewer = document.querySelector('main') as HTMLElement
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'mouse',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerMove(viewer, {
+      pointerId: 1,
+      pointerType: 'mouse',
+      clientX: 160,
+      clientY: 240,
+    })
+    fireEvent.pointerUp(viewer, {
+      pointerId: 1,
+      pointerType: 'mouse',
+      clientX: 160,
+      clientY: 240,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+  })
+
+  it('keeps a touch photo swipe active when movement and release leave the photo', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const viewer = document.querySelector('main') as HTMLElement
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 240,
+    })
+    fireEvent.pointerMove(viewer, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerUp(viewer, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+  })
+
+  it('returns an expanded drawer to peek after a touch swipe leaves the photo', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const viewer = document.querySelector('main') as HTMLElement
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+    fireEvent.pointerDown(photo, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 180,
+    })
+    fireEvent.pointerMove(viewer, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 240,
+    })
+    fireEvent.pointerUp(viewer, {
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: 160,
+      clientY: 240,
+    })
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+  })
+
   it('returns the expanded drawer to peek after a downward photo swipe', async () => {
     renderPage()
 

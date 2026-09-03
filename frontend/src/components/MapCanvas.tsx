@@ -38,9 +38,9 @@ const countryLabelOpacityExpression: ExpressionSpecification = [
   'interpolate',
   ['linear'],
   ['zoom'],
-  3.4,
+  3.3,
   0,
-  4.4,
+  3.7,
   1,
 ]
 

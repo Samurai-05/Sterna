@@ -53,7 +53,9 @@ const UNLOADED_PHOTO_SOURCE =
 function isPhotoGestureExcludedTarget(target: EventTarget | null): boolean {
   const element = target instanceof Element ? target : null
   return Boolean(
-    element?.closest('button, a, [role="menu"], [data-slot^="drawer"]'),
+    element?.closest(
+      'button, a, [role="menu"], [data-slot^="drawer"], [data-viewer-control="true"]',
+    ),
   )
 }
 
@@ -108,6 +110,7 @@ export function DiscoveryDetailPage({
   const [deletedDiscoveryIds, setDeletedDiscoveryIds] = useState<Set<number>>(
     () => new Set(),
   )
+  const drawerStateRef = useRef(drawerState)
   const actionMenuRef = useRef<HTMLDivElement>(null)
   const actionTriggerRef = useRef<HTMLButtonElement>(null)
   const drawerControlsRef = useRef<HTMLDivElement>(null)
@@ -117,6 +120,10 @@ export function DiscoveryDetailPage({
   const backgroundLocation = routeState.backgroundLocation
   const justCreated = routeState.justCreated
   const returnTo = routeReturnTo ?? '/collection'
+
+  useEffect(() => {
+    drawerStateRef.current = drawerState
+  }, [drawerState])
 
   const handleBack = () => {
     if (routeState.backgroundLocation) {
@@ -141,12 +148,18 @@ export function DiscoveryDetailPage({
     })
 
   const handlePhotoPointerDown = (event: React.PointerEvent<HTMLElement>) => {
-    if (isPhotoGestureExcludedTarget(event.target)) return
-
     const currentGesture = photoGestureRef.current
     if (currentGesture) {
       currentGesture.activePointerIds.add(event.pointerId)
       currentGesture.multiTouch = true
+      return
+    }
+
+    const target = event.target instanceof Element ? event.target : null
+    if (
+      !target?.closest('[data-photo-gesture-surface="true"]') ||
+      isPhotoGestureExcludedTarget(event.target)
+    ) {
       return
     }
 
@@ -162,83 +175,98 @@ export function DiscoveryDetailPage({
     }
   }
 
-  const handlePhotoPointerMove = (event: React.PointerEvent<HTMLElement>) => {
-    const gesture = photoGestureRef.current
-    if (!gesture || gesture.primaryPointerId !== event.pointerId) return
+  useEffect(() => {
+    const handlePhotoPointerMove = (event: PointerEvent) => {
+      const gesture = photoGestureRef.current
+      if (!gesture || gesture.primaryPointerId !== event.pointerId) return
 
-    if (gesture.activePointerIds.size > 1 || gesture.multiTouch) return
-    if (gesture.zoomedAtStart || (zoomRef.current?.zoom ?? 1) > 1) return
-
-    const deltaX = event.clientX - gesture.startX
-    const deltaY = event.clientY - gesture.startY
-    const distance = Math.hypot(deltaX, deltaY)
-    if (distance < PHOTO_GESTURE_THRESHOLD) return
-
-    gesture.moved = true
-    if (!gesture.axis) {
-      if (Math.abs(deltaY) > Math.abs(deltaX) * 1.25) {
-        gesture.axis = 'vertical'
-      } else if (Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
-        gesture.axis = 'horizontal'
-      } else {
+      if (gesture.activePointerIds.size > 1 || gesture.multiTouch) return
+      if (gesture.zoomedAtStart || (zoomRef.current?.zoom ?? 1) > 1) {
+        gesture.moved = true
         return
       }
-    }
 
-    if (gesture.axis === 'vertical') {
-      event.stopPropagation()
-    }
-  }
-
-  const handlePhotoPointerUp = (event: React.PointerEvent<HTMLElement>) => {
-    const gesture = photoGestureRef.current
-    if (!gesture) return
-
-    gesture.activePointerIds.delete(event.pointerId)
-    if (
-      gesture.activePointerIds.size > 0 ||
-      gesture.primaryPointerId !== event.pointerId
-    ) {
-      return
-    }
-
-    photoGestureRef.current = null
-    if (gesture.multiTouch || gesture.zoomedAtStart) return
-
-    if (gesture.axis === 'vertical') {
+      const deltaX = event.clientX - gesture.startX
       const deltaY = event.clientY - gesture.startY
-      if (
-        drawerState === 'peek' &&
-        deltaY <= -DRAWER_SWIPE_DISTANCE
-      ) {
-        setDrawerState('expanded')
-      } else if (
-        drawerState === 'expanded' &&
-        deltaY >= DRAWER_SWIPE_DISTANCE
-      ) {
-        setDrawerState('peek')
+      const distance = Math.hypot(deltaX, deltaY)
+      if (distance < PHOTO_GESTURE_THRESHOLD) return
+
+      gesture.moved = true
+      if (!gesture.axis) {
+        if (Math.abs(deltaY) > Math.abs(deltaX) * 1.25) {
+          gesture.axis = 'vertical'
+        } else if (Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+          gesture.axis = 'horizontal'
+        } else {
+          return
+        }
       }
-      return
+
+      if (gesture.axis === 'vertical') {
+        event.preventDefault()
+        event.stopPropagation()
+      }
     }
 
-    if (gesture.axis === 'horizontal' || gesture.moved) return
+    const handlePhotoPointerUp = (event: PointerEvent) => {
+      const gesture = photoGestureRef.current
+      if (!gesture) return
 
-    if (drawerState === 'expanded') {
-      setDrawerState('peek')
-      return
+      const isPrimaryPointer = gesture.primaryPointerId === event.pointerId
+      gesture.activePointerIds.delete(event.pointerId)
+      if (gesture.activePointerIds.size > 0) return
+
+      photoGestureRef.current = null
+      if (!isPrimaryPointer || gesture.multiTouch || gesture.zoomedAtStart) {
+        return
+      }
+
+      if (gesture.axis === 'vertical') {
+        const deltaY = event.clientY - gesture.startY
+        if (
+          drawerStateRef.current === 'peek' &&
+          deltaY <= -DRAWER_SWIPE_DISTANCE
+        ) {
+          setDrawerState('expanded')
+        } else if (
+          drawerStateRef.current === 'expanded' &&
+          deltaY >= DRAWER_SWIPE_DISTANCE
+        ) {
+          setDrawerState('peek')
+        }
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
+
+      if (gesture.axis === 'horizontal' || gesture.moved) return
+
+      if (drawerStateRef.current === 'expanded') {
+        setDrawerState('peek')
+        return
+      }
+
+      setControlsVisible((visible) => !visible)
     }
 
-    setControlsVisible((visible) => !visible)
-  }
-
-  const handlePhotoPointerCancel = (event: React.PointerEvent<HTMLElement>) => {
-    const gesture = photoGestureRef.current
-    if (!gesture) return
-    gesture.activePointerIds.delete(event.pointerId)
-    if (gesture.activePointerIds.size === 0) {
+    const handlePhotoPointerCancel = () => {
       photoGestureRef.current = null
     }
-  }
+
+    window.addEventListener('pointermove', handlePhotoPointerMove, true)
+    window.addEventListener('pointerup', handlePhotoPointerUp, true)
+    window.addEventListener('pointercancel', handlePhotoPointerCancel, true)
+
+    return () => {
+      window.removeEventListener('pointermove', handlePhotoPointerMove, true)
+      window.removeEventListener('pointerup', handlePhotoPointerUp, true)
+      window.removeEventListener(
+        'pointercancel',
+        handlePhotoPointerCancel,
+        true,
+      )
+    }
+  }, [])
 
   useEffect(() => {
     if (!justCreated || createdFeedbackConsumedRef.current) return
@@ -537,15 +565,12 @@ export function DiscoveryDetailPage({
       className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
       data-presentation={presentation}
       data-controls-visible={controlsVisible}
+      onPointerDownCapture={handlePhotoPointerDown}
     >
       <section
         className="absolute inset-0 h-full w-full bg-[var(--sterna-viewer-background)]"
         aria-label="Discovery photo"
-        onPointerDownCapture={handlePhotoPointerDown}
-        onPointerMoveCapture={handlePhotoPointerMove}
-        onPointerUpCapture={handlePhotoPointerUp}
-        onPointerCancelCapture={handlePhotoPointerCancel}
-        onPointerLeave={handlePhotoPointerCancel}
+        data-photo-gesture-surface="true"
       >
         <DiscoveryPhotoZoom
           discoveries={galleryDiscoveries}

@@ -511,17 +511,17 @@ describe('MapCanvas', () => {
       {
         layerId: 'label_country_3',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+        value: ['interpolate', ['linear'], ['zoom'], 3.3, 0, 3.7, 1],
       },
       {
         layerId: 'label_country_2',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+        value: ['interpolate', ['linear'], ['zoom'], 3.3, 0, 3.7, 1],
       },
       {
         layerId: 'label_country_1',
         property: 'text-opacity',
-        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+        value: ['interpolate', ['linear'], ['zoom'], 3.3, 0, 3.7, 1],
       },
     ])
   })
