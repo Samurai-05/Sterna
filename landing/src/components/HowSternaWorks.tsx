@@ -4,22 +4,22 @@ const steps = [
   {
     number: '01',
     title: 'Explore',
-    description: 'Start from an interactive map with your discoveries and points of interest.',
-    image: '/assets/screenshots/current/map-exploration.png',
+    description: 'Find places worth remembering on an interactive map.',
+    image: '/assets/screenshots/current/map-exploration.webp',
     alt: 'Sterna interactive exploration map with discoveries and points of interest',
   },
   {
     number: '02',
     title: 'Revisit',
-    description: 'Open a discovery to see its photo and the place where it happened.',
-    image: '/assets/screenshots/current/discovery-detail.png',
+    description: 'Revisit a saved discovery, with its photo tied to the place where it happened.',
+    image: '/assets/screenshots/current/discovery-detail.webp',
     alt: 'Sterna discovery detail showing a photo from Paris',
   },
   {
     number: '03',
     title: 'Track',
-    description: 'Follow countries, discoveries and points of interest in your exploration profile.',
-    image: '/assets/screenshots/current/profile-statistics.png',
+    description: 'Watch countries, discoveries and points of interest add up in your exploration profile.',
+    image: '/assets/screenshots/current/profile-statistics.webp',
     alt: 'Sterna profile showing exploration statistics and countries visited',
   },
 ];

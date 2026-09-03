@@ -5,7 +5,6 @@ import GlobePolaroids from './GlobePolaroids';
 
 const githubUrl = 'https://github.com/Samurai-05/Sterna';
 const androidDownloadPath = '/download';
-const androidDownloadUrl = 'https://sterna-app.ch/download';
 
 export default function Hero() {
   return (
@@ -14,7 +13,7 @@ export default function Hero() {
 
       <div className="relative mx-auto max-w-6xl px-5 sm:px-6">
         <div className="mx-auto max-w-4xl pb-4 text-center md:pb-8">
-          <h1 className="font-display text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.065em] text-black sm:text-6xl md:text-7xl lg:text-[88px]">
+          <h1 className="font-display text-balance text-[2.7rem] font-semibold leading-[0.94] tracking-[-0.065em] text-black sm:text-6xl md:text-7xl lg:text-[88px]">
             Explore the world
             <br />
             with <span className="text-primary">Sterna.</span>

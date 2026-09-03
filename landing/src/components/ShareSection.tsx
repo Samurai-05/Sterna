@@ -7,7 +7,7 @@ export default function ShareSection() {
         <div className="relative order-2 flex justify-center md:order-1 md:justify-start">
           <div className="absolute inset-x-[18%] bottom-[8%] top-[8%] rounded-[32px] bg-primary/[0.07]" />
           <Image
-            src="/assets/screenshots/current/groups.png"
+            src="/assets/screenshots/current/groups.webp"
             alt="Sterna groups screen with shared maps"
             width={390}
             height={844}
