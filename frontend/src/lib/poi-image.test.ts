@@ -19,4 +19,9 @@ describe('getPoiImageUrl', () => {
   it('uses a sized fallback when a POI has no catalog image', () => {
     expect(getPoiImageUrl(undefined, 'fallback', 'card')).toContain('w=640')
   })
+
+  it('resolves the same-origin proxy path the API now returns', () => {
+    const url = getPoiImageUrl('/api/pois/42/image', 'fallback', 'card')
+    expect(url).toBe(`${window.location.origin}/api/pois/42/image?width=640`)
+  })
 })

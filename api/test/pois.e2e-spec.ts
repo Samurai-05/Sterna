@@ -83,15 +83,35 @@ describe('PoisController (e2e)', () => {
         }),
       ]),
     );
-    expect(
-      body.find((poi) => poi.title === 'Eiffel Tower')?.imageUrl,
-    ).toContain('commons.wikimedia.org');
-    expect(
-      body.find((poi) => poi.title === 'Eiffel Tower')?.description,
-    ).toContain('Its design is credited to Stéphen Sauvestre.');
-    expect(
-      body.find((poi) => poi.title === 'Eiffel Tower')?.description,
-    ).not.toContain('Experiencing the place');
+    const eiffelTower = body.find((poi) => poi.title === 'Eiffel Tower');
+    // Same-origin proxy path, not a direct Wikimedia URL — see
+    // PoisController.image / PoisService.getImage: a client on a
+    // locked-down campus/lab network may not be able to reach Wikimedia
+    // directly, but this server always can.
+    expect(eiffelTower?.imageUrl).toMatch(/^\/api\/pois\/\d+\/image$/);
+    expect(eiffelTower?.description).toContain(
+      'Its design is credited to Stéphen Sauvestre.',
+    );
+    expect(eiffelTower?.description).not.toContain('Experiencing the place');
+  });
+
+  it('proxies the POI photo from Wikimedia rather than redirecting to it', async () => {
+    const listResponse = await request(app.getHttpServer())
+      .get('/api/pois')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    const eiffelTower = (listResponse.body as PoiResponse[]).find(
+      (poi) => poi.title === 'Eiffel Tower',
+    );
+
+    // No Authorization header: the image route is @Public() so a plain
+    // <img src> (which cannot carry a bearer token) can load it.
+    const imageResponse = await request(app.getHttpServer())
+      .get(eiffelTower!.imageUrl!)
+      .expect(200);
+
+    expect(imageResponse.headers['content-type']).toMatch(/^image\//);
+    expect((imageResponse.body as Buffer).length).toBeGreaterThan(0);
   });
 
   it('keeps map status isolated while user status includes group discoveries', async () => {
