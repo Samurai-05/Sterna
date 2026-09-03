@@ -74,6 +74,60 @@ export function getDiscoveryMapColor(category: DiscoveryCategory): string {
   return discoveryMapColors[category]
 }
 
+const discoveryClusterCategoryOrder: DiscoveryCategory[] = [
+  'landscape',
+  'monument',
+  'food',
+  'animal',
+  'plant',
+  'culture',
+  'other',
+]
+
+function getSafeDiscoveryClusterCount(value: unknown): number {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0
+}
+
+function formatDiscoveryClusterPercentage(value: number): string {
+  return Number(value.toFixed(4)).toString()
+}
+
+export function getDiscoveryClusterGradient(
+  properties: Record<string, unknown>,
+  pointCount: number,
+): string {
+  const total = getSafeDiscoveryClusterCount(pointCount)
+  if (total <= 0) return 'none'
+
+  const counts = discoveryClusterCategoryOrder.map((category) =>
+    getSafeDiscoveryClusterCount(properties[`${category}Count`]),
+  )
+  const knownTotal = counts.reduce((sum, count) => sum + count, 0)
+  const otherIndex = discoveryClusterCategoryOrder.indexOf('other')
+
+  if (knownTotal < total) {
+    counts[otherIndex] += total - knownTotal
+  }
+
+  const segmentTotal = Math.max(total, knownTotal)
+  let cumulative = 0
+  const segments = discoveryClusterCategoryOrder.flatMap((category, index) => {
+    const count = counts[index]
+    if (count <= 0) return []
+
+    const start = (cumulative / segmentTotal) * 100
+    cumulative += count
+    const end = (cumulative / segmentTotal) * 100
+
+    return [
+      `${getDiscoveryMapColor(category)} ${formatDiscoveryClusterPercentage(start)}% ${formatDiscoveryClusterPercentage(end)}%`,
+    ]
+  })
+
+  return `conic-gradient(from -90deg, ${segments.join(', ')})`
+}
+
 export function toDiscoveryFeatureCollection(
   discoveries: DiscoveryFeatureInput[],
 ): FeatureCollection<Point, { category: DiscoveryCategory }> {

@@ -312,13 +312,14 @@ describe('App', () => {
     )
   })
 
-  it('uses a person icon for the personal map selector', async () => {
+  it('uses My map and a person icon for the personal map selector', async () => {
     renderWithProviders(<App />, { route: '/' })
 
-    const personalMapName = await screen.findByText("Explorer's map")
+    const personalMapName = await screen.findByText('My map')
     const selector = personalMapName.closest('button')!
 
     expect(selector.querySelector('.lucide-user-round')).toBeInTheDocument()
+    expect(selector).not.toHaveTextContent("Explorer's map")
     expect(within(selector).queryByText('E')).not.toBeInTheDocument()
   })
 
@@ -770,8 +771,11 @@ describe('App', () => {
     ).toHaveClass('mt-2')
     expect(screen.getByLabelText('Exploration statistics')).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Points of interest' }),
-    ).toBeInTheDocument()
+      await screen.findByLabelText('Countries: 1 of 221'),
+    ).toHaveTextContent('1/221')
+    expect(await screen.findByLabelText('POIs: 2 of 2')).toHaveTextContent(
+      '2/2',
+    )
     expect(
       screen.getByRole('heading', { level: 2, name: 'Recent discoveries' }),
     ).toBeInTheDocument()
@@ -779,8 +783,10 @@ describe('App', () => {
       (await screen.findByText('Street in Le Marais')).closest('a'),
     ).toHaveClass('w-[44vw]')
     expect(
-      screen.getByText('2 / 2 points of interest discovered'),
-    ).toBeInTheDocument()
+      screen.queryByRole('progressbar', {
+        name: 'Point of interest exploration progress',
+      }),
+    ).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', { level: 2, name: 'Countries explored' }),
     ).toBeInTheDocument()
@@ -788,6 +794,11 @@ describe('App', () => {
       within(
         screen.getByRole('region', { name: 'Countries explored' }),
       ).getByText('France'),
+    ).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('region', { name: 'POIs visited' })).getByText(
+        'Eiffel Tower',
+      ),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
@@ -807,6 +818,7 @@ describe('App', () => {
 
   it('shows explicit empty states for countries and recent discoveries', async () => {
     vi.mocked(getAuthoredDiscoveries).mockResolvedValueOnce([])
+    vi.mocked(getAuthoredPois).mockResolvedValueOnce([])
 
     renderWithProviders(<App />, { route: '/profile' })
 
@@ -816,12 +828,17 @@ describe('App', () => {
     expect(
       await screen.findByText('No recent discoveries yet.'),
     ).toBeInTheDocument()
+    expect(await screen.findByText('No POIs visited yet.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Countries: 0 of 221')).toHaveTextContent(
+      '0/221',
+    )
+    expect(screen.getByLabelText('POIs: 0 of 0')).toHaveTextContent('0/0')
     expect(
       screen.getByText('No discoveries recorded in the last 6 months.'),
     ).toBeInTheDocument()
   })
 
-  it('shows discovery counts as a standard vertical bar chart', async () => {
+  it('scales category bars relative to the most discovered category', async () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const categorySection = screen.getByRole('region', {
@@ -840,10 +857,14 @@ describe('App', () => {
     })
     expect(
       monument.querySelector('[data-testid="category-bar-monument"]'),
-    ).toHaveStyle({ width: '28.57142857142857%' })
+    ).toHaveStyle({ width: '100%' })
     expect(
       landscape.querySelector('[data-testid="category-bar-landscape"]'),
-    ).toHaveStyle({ width: '14.285714285714285%' })
+    ).toHaveStyle({ width: '50%' })
+    expect(
+      monument.querySelector('[data-testid="category-bar-monument"]')
+        ?.parentElement,
+    ).not.toHaveClass('bg-secondary')
     expect(
       within(categorySection).queryByRole('progressbar'),
     ).not.toBeInTheDocument()
@@ -898,19 +919,19 @@ describe('App', () => {
     expect(sectionTitles).toEqual([
       'Explorer',
       'Your exploration',
-      'Recent discoveries',
-      'Points of interest',
+      'Countries explored',
+      'POIs visited',
       'Discoveries by category',
       'Exploration over time',
-      'Countries explored',
+      'Recent discoveries',
     ])
     for (const title of [
       'Your exploration',
-      'Recent discoveries',
-      'Points of interest',
+      'Countries explored',
+      'POIs visited',
       'Discoveries by category',
       'Exploration over time',
-      'Countries explored',
+      'Recent discoveries',
     ]) {
       expect(
         within(profilePage).getByRole('heading', { level: 2, name: title }),

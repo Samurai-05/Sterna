@@ -12,7 +12,7 @@ export function ProfileCategoryBreakdown({
   discoveries: Discovery[]
 }) {
   const rows = profileCategoryRows(discoveries)
-  const total = rows.reduce((sum, row) => sum + row.count, 0)
+  const maximumCount = Math.max(...rows.map((row) => row.count))
 
   if (!rows.length) {
     return (
@@ -29,7 +29,7 @@ export function ProfileCategoryBreakdown({
       className="mt-4 space-y-4"
     >
       {rows.map((row) => (
-        <CategoryRow key={row.id} row={row} total={total} />
+        <CategoryRow key={row.id} row={row} maximumCount={maximumCount} />
       ))}
     </div>
   )
@@ -37,14 +37,14 @@ export function ProfileCategoryBreakdown({
 
 function CategoryRow({
   row,
-  total,
+  maximumCount,
 }: {
   row: ProfileCategoryRow
-  total: number
+  maximumCount: number
 }) {
   const appearance = categoryAppearance[row.id]
   const discoveryLabel = row.count === 1 ? 'discovery' : 'discoveries'
-  const ratio = total ? (row.count / total) * 100 : 0
+  const ratio = maximumCount ? (row.count / maximumCount) * 100 : 0
 
   return (
     <div
@@ -67,7 +67,7 @@ function CategoryRow({
           {row.count}
         </span>
       </div>
-      <div className="ml-11 mt-2 h-2 overflow-hidden rounded-full bg-secondary">
+      <div className="ml-11 mt-2 h-2 overflow-hidden rounded-full">
         <div
           data-testid={`category-bar-${row.id}`}
           className="h-full rounded-full transition-[width] duration-500"

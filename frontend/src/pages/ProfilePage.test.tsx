@@ -90,7 +90,7 @@ describe('ProfilePage', () => {
     window.localStorage.clear()
   })
 
-  it('shows unique human-readable countries from discovery country codes', async () => {
+  it('shows unique country flags with names available on interaction', async () => {
     getAuthoredDiscoveriesMock.mockResolvedValue([
       makeDiscovery(1, 'FRA', '48.8566, 2.3522'),
       makeDiscovery(2, 'FRA', '48.8606, 2.3364'),
@@ -104,9 +104,21 @@ describe('ProfilePage', () => {
       screen.getByRole('region', { name: 'Countries explored' }),
     )
 
-    await countriesSection.findByText('Switzerland')
-    expect(countriesSection.getAllByText('France')).toHaveLength(1)
-    expect(countriesSection.getByText('Switzerland')).toBeInTheDocument()
+    const switzerlandFlag = await countriesSection.findByRole('button', {
+      name: 'Switzerland',
+    })
+    expect(
+      countriesSection.getAllByRole('button', { name: 'France' }),
+    ).toHaveLength(1)
+    expect(
+      within(switzerlandFlag).getByTestId('country-flag-CHE'),
+    ).toHaveAttribute('src', '/country-flags/ch.svg')
+    expect(switzerlandFlag).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(switzerlandFlag)
+    expect(switzerlandFlag).toHaveAttribute('aria-expanded', 'true')
+    const tooltip = within(switzerlandFlag).getByRole('tooltip')
+    expect(tooltip).toHaveTextContent('Switzerland')
+    expect(tooltip).toHaveClass('opacity-100')
     expect(countriesSection.queryByText('2.3522')).not.toBeInTheDocument()
     expect(countriesSection.queryByText('8.3522')).not.toBeInTheDocument()
     expect(countriesSection.queryByText('UNK')).not.toBeInTheDocument()
@@ -134,7 +146,9 @@ describe('ProfilePage', () => {
     expect(
       screen.getByRole('group', { name: 'Discoveries: 1' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'POIs: 1' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'POIs: 1 of 1' }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('listitem', { name: 'Landscape: 1 discovery' }),
     ).toBeInTheDocument()
@@ -173,7 +187,9 @@ describe('ProfilePage', () => {
     await screen.findByRole('group', { name: 'Discoveries: 2' })
     expect(screen.getAllByText('Switzerland').length).toBeGreaterThan(0)
     expect(screen.queryByText('France')).not.toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'POIs: 0' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'POIs: 0 of 1' }),
+    ).toBeInTheDocument()
     expect(
       JSON.parse(
         window.localStorage.getItem('sterna:profile:v1:1:discoveries')!,
@@ -210,7 +226,9 @@ describe('ProfilePage', () => {
     expect(
       screen.getByRole('group', { name: 'Discoveries: 1' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'POIs: 1' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'POIs: 1 of 1' }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByText('Exploration data is temporarily unavailable.'),
     ).not.toBeInTheDocument()
@@ -402,18 +420,37 @@ describe('ProfilePage', () => {
     expect(headings).toEqual([
       'Explorer',
       'Your exploration',
-      'Recent discoveries',
-      'Points of interest',
+      'Countries explored',
+      'POIs visited',
       'Discoveries by category',
       'Exploration over time',
-      'Countries explored',
+      'Recent discoveries',
     ])
     expect(
-      within(profilePage).getByRole('group', { name: 'Countries: 1' }),
+      within(profilePage).getByRole('group', {
+        name: 'Countries: 1 of 221',
+      }),
     ).toBeInTheDocument()
     expect(
-      within(profilePage).getByRole('group', { name: 'POIs: 1' }),
+      within(profilePage).getByRole('group', { name: 'POIs: 1 of 1' }),
     ).toBeInTheDocument()
+
+    const visitedPois = within(
+      screen.getByRole('region', { name: 'POIs visited' }),
+    )
+    const poiThumbnail = visitedPois.getByRole('button', {
+      name: 'Eiffel Tower',
+    })
+    expect(poiThumbnail.querySelector('img')).toHaveAttribute(
+      'src',
+      expect.stringContaining('w=128'),
+    )
+    expect(poiThumbnail).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(poiThumbnail)
+    expect(poiThumbnail).toHaveAttribute('aria-expanded', 'true')
+    expect(within(poiThumbnail).getByRole('tooltip')).toHaveTextContent(
+      'Eiffel Tower',
+    )
   })
 
   it('keeps section-level recovery messages when profile queries fail', async () => {
@@ -429,9 +466,7 @@ describe('ProfilePage', () => {
       screen.getByText('Recent discoveries are temporarily unavailable.'),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(
-        'Point of interest progress is temporarily unavailable.',
-      ),
+      screen.getByText('Visited POIs are temporarily unavailable.'),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Exploration activity is temporarily unavailable.'),

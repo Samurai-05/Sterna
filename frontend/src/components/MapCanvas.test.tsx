@@ -37,6 +37,7 @@ const {
     container: { clientWidth: number; clientHeight: number }
     bounds: { west: number; south: number; east: number; north: number }
     getContainer: () => { clientWidth: number; clientHeight: number }
+    project: (coordinates: [number, number]) => { x: number; y: number }
     getSource: (id: string) => unknown
     cameraForBounds: (bounds: unknown, options: unknown) => { zoom: number }
     setMinZoom: (zoom: number) => unknown
@@ -59,6 +60,8 @@ const {
     opacityWhenCovered?: string | number
     removed: boolean
     coordinates?: [number, number]
+    offset: [number, number]
+    setOffsetCalls: Array<[number, number]>
   }> = []
   const resizeObserverInstances: Array<{
     callback: ResizeObserverCallback
@@ -247,6 +250,13 @@ const {
       return this.container
     }
 
+    project(coordinates: [number, number]) {
+      return {
+        x: 160 + (coordinates[0] - 6) * 100,
+        y: 320 + (coordinates[1] - 46) * 100,
+      }
+    }
+
     cameraForBounds(bounds: unknown, options: unknown) {
       this.cameraForBoundsCalls.push({ bounds, options })
       return { zoom: this.cameraZoom }
@@ -337,6 +347,8 @@ vi.mock('maplibre-gl', () => {
     opacityWhenCovered?: string | number
     removed = false
     coordinates?: [number, number]
+    offset: [number, number] = [0, 0]
+    setOffsetCalls: Array<[number, number]> = []
 
     constructor(options?: {
       element?: HTMLElement
@@ -349,6 +361,12 @@ vi.mock('maplibre-gl', () => {
 
     setLngLat(coordinates: [number, number]) {
       this.coordinates = coordinates
+      return this
+    }
+
+    setOffset(offset: [number, number]) {
+      this.offset = offset
+      this.setOffsetCalls.push(offset)
       return this
     }
 
@@ -382,11 +400,14 @@ const discoveryMarkerData = {
   coordinates: [6, 46] as [number, number],
 }
 
-const unclusteredFeature = (id: number) => ({
+const unclusteredFeature = (
+  id: number,
+  coordinates: [number, number] = [6, 46],
+) => ({
   id,
   geometry: {
     type: 'Point' as const,
-    coordinates: [6, 46] as [number, number],
+    coordinates,
   },
   properties: { category: 'landscape' },
 })
@@ -779,6 +800,379 @@ describe('MapCanvas', () => {
     ).toHaveAttribute('src', expect.stringContaining('w=192'))
   })
 
+  it('displaces a colliding POI while keeping the discovery anchored', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 12 }}
+        discoveries={[discoveryMarkerData]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Nearby POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const discoveryMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Discovery"]'),
+    )
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Nearby POI"]'),
+    )
+
+    expect(discoveryMarker?.offset).toEqual([0, 0])
+    expect(discoveryMarker?.setOffsetCalls).toEqual([])
+    expect(poiMarker?.coordinates).toEqual([6, 46])
+    expect(poiMarker?.offset).not.toEqual([0, 0])
+    const initialOffsetCalls = poiMarker?.setOffsetCalls.length
+    act(() => mapInstances[0].emit('move'))
+    await flushSpatialSync()
+    expect(poiMarker?.setOffsetCalls.length).toBe(initialOffsetCalls)
+    expect(
+      (poiMarker?.element?.querySelector('[data-poi-connector]') as HTMLElement)
+        .style.display,
+    ).toBe('')
+  })
+
+  it('leaves a sufficiently separated POI at its true screen position', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 5 }}
+        discoveries={[{ ...discoveryMarkerData, coordinates: [6.5, 46] }]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Far POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1, [6.5, 46])]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Far POI"]'),
+    )
+    expect(poiMarker?.offset).toEqual([0, 0])
+    expect(
+      (poiMarker?.element?.querySelector('[data-poi-connector]') as HTMLElement)
+        .style.display,
+    ).toBe('none')
+  })
+
+  it('resets a POI offset after the discovery moves away without recreating it', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 12 }}
+        discoveries={[discoveryMarkerData]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Moving POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Moving POI"]'),
+    )
+    expect(poiMarker?.offset).not.toEqual([0, 0])
+
+    mapInstances[0].sourceFeatures = []
+    act(() => mapInstances[0].emit('move'))
+    await flushSpatialSync()
+
+    expect(poiMarker?.offset).toEqual([0, 0])
+    expect(poiMarker?.setOffsetCalls.at(-1)).toEqual([0, 0])
+    expect(poiMarker?.removed).toBe(false)
+  })
+
+  it('uses the discovery visual size at the current zoom when resolving collisions', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 5 }}
+        discoveries={[discoveryMarkerData]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Zoomed POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Zoomed POI"]'),
+    )
+    const lowZoomOffset = Math.hypot(...(poiMarker?.offset ?? [0, 0]))
+
+    mapInstances[0].options.zoom = 12
+    act(() => mapInstances[0].emit('zoom'))
+    await flushSpatialSync()
+
+    const highZoomOffset = Math.hypot(...(poiMarker?.offset ?? [0, 0]))
+    expect(highZoomOffset).toBeGreaterThan(lowZoomOffset)
+  })
+
+  it('chooses an inward collision-free direction near the viewport edge', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [7.45, 46], zoom: 5 }}
+        discoveries={[{ ...discoveryMarkerData, coordinates: [7.4, 46] }]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Edge POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [7.45, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1, [7.4, 46])]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Edge POI"]'),
+    )
+    expect(poiMarker?.offset[0]).toBeLessThan(0)
+    expect(
+      160 + (7.45 - 6) * 100 + (poiMarker?.offset[0] ?? 0),
+    ).toBeLessThanOrEqual(320 - 4 - (44 * 0.8555555556) / 2 + 0.01)
+  })
+
+  it('resolves collisions against a visible discovery cluster', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 14 }}
+        discoveries={[discoveryMarkerData]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Cluster POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [clusterFeature(10)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const clusterMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector(
+        'button[aria-label="3 discoveries nearby"]',
+      ),
+    )
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Cluster POI"]'),
+    )
+    expect(clusterMarker?.offset).toEqual([0, 0])
+    expect(poiMarker?.offset).not.toEqual([0, 0])
+  })
+
+  it('resolves collisions against a high-zoom discovery stack', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 14 }}
+        discoveries={[discoveryMarkerData]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Stack POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].clusterExpansionZoom = 16
+    mapInstances[0].sourceFeatures = [clusterFeature(10)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const stackMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector(
+        'button[aria-label="Open 3 nearby discoveries"]',
+      ),
+    )
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View Stack POI"]'),
+    )
+    expect(stackMarker?.offset).toEqual([0, 0])
+    expect(poiMarker?.offset).not.toEqual([0, 0])
+  })
+
+  it('gives nearby POIs distinct deterministic displaced positions', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 12 }}
+        discoveries={[discoveryMarkerData]}
+        landmarks={[
+          {
+            id: 'poi-a',
+            name: 'POI A',
+            imageId: 'poi-a',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+          {
+            id: 'poi-b',
+            name: 'POI B',
+            imageId: 'poi-b',
+            discovered: true,
+            coordinates: [6, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const poiA = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View POI A"]'),
+    )
+    const poiB = markerInstances.find((marker) =>
+      marker.element?.querySelector('button[aria-label="View POI B"]'),
+    )
+    expect(poiA?.offset).not.toEqual([0, 0])
+    expect(poiB?.offset).not.toEqual(poiA?.offset)
+  })
+
+  it('hides the connector for a tiny displacement', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6.35, 46], zoom: 5 }}
+        discoveries={[discoveryMarkerData]}
+        landmarks={[
+          {
+            id: 'poi-1',
+            name: 'Tiny Offset POI',
+            imageId: 'poi',
+            discovered: true,
+            coordinates: [6.35, 46],
+          },
+        ]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const poiMarker = markerInstances.find((marker) =>
+      marker.element?.querySelector(
+        'button[aria-label="View Tiny Offset POI"]',
+      ),
+    )
+    expect(Math.hypot(...(poiMarker?.offset ?? [0, 0]))).toBeLessThan(10)
+    expect(
+      (poiMarker?.element?.querySelector('[data-poi-connector]') as HTMLElement)
+        .style.display,
+    ).toBe('none')
+  })
+
   it('adds a clustered Discovery source and the world-dot layer', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
@@ -869,6 +1263,33 @@ describe('MapCanvas', () => {
     await flushSpatialSync()
 
     expect(individualButton.parentElement?.style.display).toBe('none')
+  })
+
+  it('renders a normal cluster as an outer ring with a neutral count center', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(<MapCanvas />)
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [clusterFeature(10)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const button = markerInstances
+      .find((marker) =>
+        marker.element?.querySelector('[aria-label="3 discoveries nearby"]'),
+      )
+      ?.element?.querySelector('button') as HTMLButtonElement
+    const normalVisual = button.firstElementChild
+    const centerVisual = normalVisual?.firstElementChild
+
+    expect(normalVisual?.tagName).toBe('SPAN')
+    expect(centerVisual).toHaveClass('rounded-full', 'bg-[#F7F5F0]')
+    expect(centerVisual?.textContent).toBe('3')
   })
 
   it('deduplicates cluster features returned at tile boundaries', async () => {

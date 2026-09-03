@@ -42,6 +42,16 @@ describe('PoisService', () => {
   it.each([
     ['active map', () => service.findAll('1')],
     ['authored collection', () => service.findAllAuthoredByUser('1')],
+    ['nearby collection', () => service.findNearby('1', 2.29, 48.86, 5000)],
+  ])('excludes retired POIs from the %s response', async (_, load) => {
+    await load();
+
+    expect(query.mock.calls[0][0]).toContain('poi.is_active');
+  });
+
+  it.each([
+    ['active map', () => service.findAll('1')],
+    ['authored collection', () => service.findAllAuthoredByUser('1')],
   ])(
     'treats an explicit confirmed-POI link as discovered for the %s response',
     async (_, load) => {
@@ -229,6 +239,7 @@ describe('PoisService', () => {
       query.mockResolvedValueOnce([{ exists: true }]);
 
       await expect(service.requireExists('1')).resolves.toBeUndefined();
+      expect(query.mock.calls[0][0]).toContain('AND is_active');
     });
 
     it('throws NotFoundException when the POI does not exist', async () => {
@@ -258,6 +269,10 @@ describe('PoisService', () => {
       const result = await service.getImage('42', 640);
 
       expect(result.contentType).toBe('image/jpeg');
+      expect(findOne).toHaveBeenCalledWith({
+        where: { id: '42', isActive: true },
+        select: { imageUrl: true },
+      });
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const [calledUrl] = fetchMock.mock.calls[0] as [URL];
       expect(calledUrl.href).toContain(

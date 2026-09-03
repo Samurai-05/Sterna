@@ -1,11 +1,11 @@
 import {
-  Check,
   ChevronDown,
   Compass,
   LocateFixed,
   MapPinned,
   Search,
   UserRound,
+  UserRoundPlus,
   UsersRound,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -15,6 +15,13 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { MapCanvas, type MapCanvasHandle } from '@/components/MapCanvas'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   categories,
   discoveries,
@@ -35,14 +42,10 @@ import {
   type CategoryAppearance,
 } from '@/lib/category-appearance'
 import { getMapTarget } from '@/lib/map-target'
-import {
-  defaultGlobeViewport,
-  type MapViewport,
-} from '@/lib/map-viewport'
+import { defaultGlobeViewport, type MapViewport } from '@/lib/map-viewport'
 import { useActiveMap, useSetActiveMap } from '@/hooks/useActiveMap'
 import type { DiscoveryRouteState } from '@/lib/route-state'
 import { loadSession } from '@/lib/session'
-import { personalMapName } from '@/lib/personal-map-name'
 import {
   getCurrentDevicePosition,
   isNativeAndroid,
@@ -58,12 +61,11 @@ export function MapPage({ active }: { active: boolean }) {
       isNativeAndroid() || navigator.geolocation ? null : defaultGlobeViewport,
   )
   const mapRef = useRef<MapCanvasHandle>(null)
-  const initialLocationRequestRef = useRef<Promise<DeviceLocationPosition> | null>(
+  const initialLocationRequestRef =
+    useRef<Promise<DeviceLocationPosition> | null>(null)
+  const [deviceLocation, setDeviceLocation] = useState<[number, number] | null>(
     null,
   )
-  const [deviceLocation, setDeviceLocation] = useState<
-    [number, number] | null
-  >(null)
   const navigate = useNavigate()
   const location = useLocation()
   const mapTarget = getMapTarget(location.state)
@@ -114,7 +116,7 @@ export function MapPage({ active }: { active: boolean }) {
     navigate('/', { replace: true, state: null })
   }, [active, initialViewport, location.key, mapTarget, navigate])
   const session = loadSession()
-  const personalMapLabel = personalMapName(session?.user.userName)
+  const personalMapLabel = 'My map'
   const { data: activeMap } = useActiveMap()
   const setActiveMap = useSetActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
@@ -223,7 +225,6 @@ export function MapPage({ active }: { active: boolean }) {
           <ActiveMapSelector
             activeGroupId={activeGroupId}
             activeMapName={activeMap?.name ?? personalMapLabel}
-            personalMapName={personalMapLabel}
             groups={groups}
             isPending={setActiveMap.isPending}
             isError={setActiveMap.isError}
@@ -310,7 +311,6 @@ export function MapPage({ active }: { active: boolean }) {
 function ActiveMapSelector({
   activeGroupId,
   activeMapName,
-  personalMapName,
   groups,
   isPending,
   isError,
@@ -318,147 +318,110 @@ function ActiveMapSelector({
 }: {
   activeGroupId: string | null
   activeMapName: string
-  personalMapName: string
   groups: GroupSummary[] | undefined
   isPending: boolean
   isError: boolean
   onSelect: (groupId: string | null, onSuccess: () => void) => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
-  const selectorRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (!isOpen) return
-
-    function closeOnOutsideClick(event: PointerEvent) {
-      if (!selectorRef.current?.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') setIsOpen(false)
-    }
-
-    document.addEventListener('pointerdown', closeOnOutsideClick)
-    document.addEventListener('keydown', closeOnEscape)
-
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutsideClick)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [isOpen])
-
-  function select(groupId: string | null) {
-    if (groupId === activeGroupId) {
-      setIsOpen(false)
-      return
-    }
-
-    onSelect(groupId, () => setIsOpen(false))
-  }
+  const alternativeMaps = [
+    ...(activeGroupId === null
+      ? []
+      : [{ id: 'personal', groupId: null, name: 'My map', personal: true }]),
+    ...(groups ?? [])
+      .filter((group) => group.id !== activeGroupId)
+      .map((group) => ({
+        id: group.id,
+        groupId: group.id,
+        name: group.name,
+        personal: false,
+      })),
+  ]
 
   return (
-    <div ref={selectorRef} className="relative min-w-0 flex-1">
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-controls="active-map-menu"
-        onClick={() => setIsOpen((open) => !open)}
-        className="flex h-12 w-full items-center gap-2 rounded-xl border border-white/80 bg-card/95 px-3 text-left shadow-md backdrop-blur transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-      >
-        <MapChoiceIcon personal={!activeGroupId} active compact>
-          {activeGroupId ? (
-            <UsersRound className="size-4" />
-          ) : (
-            <UserRound className="size-4" />
-          )}
-        </MapChoiceIcon>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[11px] font-bold uppercase leading-none tracking-[0.12em] text-muted-foreground">
-            Active map
-          </span>
-          <span className="mt-0.5 block truncate text-sm font-semibold leading-4 text-foreground">
-            {activeMapName}
-          </span>
-        </span>
-        <ChevronDown
-          className={`size-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          id="active-map-menu"
-          role="menu"
-          aria-label="Choose active map"
-          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-40 max-h-[min(24rem,calc(100dvh-8rem))] overflow-y-auto rounded-2xl border border-border/80 bg-card/92 text-foreground shadow-xl backdrop-blur-md"
-        >
-          <MapMenuItem
-            active={activeGroupId === null}
-            disabled={isPending}
-            icon={<UserRound className="size-5" />}
-            name={personalMapName}
-            personal
-            onClick={() => select(null)}
-          />
-          {groups?.map((group) => (
-            <MapMenuItem
-              key={group.id}
-              active={activeGroupId === group.id}
-              disabled={isPending}
-              icon={<UsersRound className="size-5" />}
-              name={group.name}
-              onClick={() => select(group.id)}
+    <div className="min-w-0 flex-1">
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Active map: ${activeMapName}. Choose a different map`}
+            className="flex h-12 w-full items-center gap-2 rounded-xl border border-white/80 bg-card/95 px-3 text-left shadow-md backdrop-blur transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          >
+            <MapChoiceIcon personal={activeGroupId === null} active compact>
+              {activeGroupId ? (
+                <UsersRound className="size-4" />
+              ) : (
+                <UserRound className="size-4" />
+              )}
+            </MapChoiceIcon>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[11px] font-bold uppercase leading-none tracking-[0.12em] text-muted-foreground">
+                Active map
+              </span>
+              <span className="mt-0.5 block truncate text-sm font-semibold leading-4 text-foreground">
+                {activeMapName}
+              </span>
+            </span>
+            <ChevronDown
+              className={`size-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
             />
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          align="start"
+          sideOffset={8}
+          aria-label="Choose active map"
+          className="max-h-[min(24rem,calc(100dvh-8rem))] rounded-2xl border border-border/80 bg-card/95 p-1 text-foreground shadow-xl backdrop-blur-md"
+        >
+          {alternativeMaps.map((map) => (
+            <DropdownMenuItem
+              key={map.id}
+              disabled={isPending}
+              onSelect={(event) => {
+                event.preventDefault()
+                onSelect(map.groupId, () => setIsOpen(false))
+              }}
+              className="min-h-11 w-full gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold focus:bg-accent focus:text-foreground"
+            >
+              <MapChoiceIcon personal={map.personal} active={false}>
+                {map.personal ? (
+                  <UserRound className="size-4" />
+                ) : (
+                  <UsersRound className="size-4" />
+                )}
+              </MapChoiceIcon>
+              <span className="min-w-0 flex-1 truncate">{map.name}</span>
+            </DropdownMenuItem>
           ))}
+
+          {alternativeMaps.length > 0 && <DropdownMenuSeparator />}
+
+          <DropdownMenuItem
+            asChild
+            className="min-h-11 w-full gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-primary focus:bg-accent focus:text-primary"
+          >
+            <Link to="/groups">
+              <UserRoundPlus className="size-4" />
+              <span className="min-w-0 flex-1 truncate">
+                Create or join a group
+              </span>
+            </Link>
+          </DropdownMenuItem>
+
           {isError && (
             <p
               role="status"
-              className="border-t px-4 py-3 text-sm text-destructive"
+              aria-live="polite"
+              className="px-3 py-2 text-sm font-medium text-destructive"
             >
               Unable to change the active map.
             </p>
           )}
-        </div>
-      )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
-  )
-}
-
-function MapMenuItem({
-  active,
-  disabled,
-  icon,
-  name,
-  personal = false,
-  onClick,
-}: {
-  active: boolean
-  disabled: boolean
-  icon: React.ReactNode
-  name: string
-  personal?: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      role="menuitemradio"
-      aria-checked={active}
-      disabled={disabled}
-      onClick={onClick}
-      className={`flex min-h-16 w-full items-center gap-3 border-b border-border/70 px-4 text-left transition-colors last:border-b-0 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 ${active ? 'bg-accent' : 'bg-card hover:bg-muted/70'}`}
-    >
-      <MapChoiceIcon personal={personal} active={active}>
-        {icon}
-      </MapChoiceIcon>
-      <span className="min-w-0 flex-1 truncate text-base font-semibold">
-        {name}
-      </span>
-      {active && <Check className="size-5 shrink-0 text-primary" />}
-    </button>
   )
 }
 
@@ -475,7 +438,7 @@ function MapChoiceIcon({
 }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center ${compact ? 'size-7 rounded-lg' : 'size-10 rounded-xl'} ${personal ? 'bg-violet-100 text-violet-800' : active ? 'bg-primary/10 text-primary' : 'bg-terra-50 text-terra-600'}`}
+      className={`flex shrink-0 items-center justify-center ${compact ? 'size-7 rounded-lg' : 'size-10 rounded-xl'} ${personal || active ? 'bg-accent text-primary' : 'bg-terra-50 text-terra-600'}`}
     >
       {children}
     </span>

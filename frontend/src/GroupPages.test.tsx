@@ -39,6 +39,15 @@ const ownedGroup = {
   discoveryCount: 3,
 }
 
+const teamGroup = {
+  ...ownedGroup,
+  id: '34',
+  name: 'Sterna Team',
+  description: 'A shared map for the Sterna team.',
+  memberCount: 4,
+  discoveryCount: 8,
+}
+
 const detail = {
   ...ownedGroup,
   inviteCode: 'AB3K9QZ2',
@@ -168,22 +177,88 @@ describe('groups list', () => {
 })
 
 describe('map group selector', () => {
+  it('shows My map in the trigger and omits it from the personal map menu', async () => {
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    expect(selector).toHaveTextContent('My map')
+    expect(selector).not.toHaveTextContent("Emma's map")
+
+    fireEvent.pointerDown(selector)
+    const menu = await screen.findByRole('menu')
+
+    expect(
+      within(menu).queryByRole('menuitem', { name: 'My map' }),
+    ).not.toBeInTheDocument()
+    expect(within(menu).queryAllByRole('menuitemradio')).toHaveLength(0)
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Paris Weekend' }),
+    ).toBeInTheDocument()
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Create or join a group' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows only the group action when there are no alternative maps', async () => {
+    api.getGroups.mockResolvedValue([])
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    fireEvent.pointerDown(selector)
+
+    const menu = await screen.findByRole('menu')
+    expect(within(menu).getAllByRole('menuitem')).toHaveLength(1)
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Create or join a group' }),
+    ).toBeInTheDocument()
+  })
+
+  it('omits the active group while keeping My map and other groups available', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
+    api.getGroups.mockResolvedValue([
+      { ...ownedGroup, isActive: true },
+      teamGroup,
+    ])
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    await waitFor(() => expect(selector).toHaveTextContent('Paris Weekend'))
+    fireEvent.pointerDown(selector)
+
+    const menu = await screen.findByRole('menu')
+    expect(
+      within(menu).getByRole('menuitem', { name: 'My map' }),
+    ).toBeInTheDocument()
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Sterna Team' }),
+    ).toBeInTheDocument()
+    expect(
+      within(menu).queryByRole('menuitem', { name: 'Paris Weekend' }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Create or join a group' }),
+    ).toBeInTheDocument()
+  })
+
   it('switches maps directly without opening the groups tab', async () => {
     api.setActiveMap.mockResolvedValue({ groupId: '12', name: 'Paris Weekend' })
     renderAt('/')
 
     const selector = await screen.findByRole('button', { name: /Active map/ })
-    fireEvent.click(selector)
-    const menu = await screen.findByRole('menu', { name: 'Choose active map' })
+    fireEvent.pointerDown(selector)
+    const menu = await screen.findByRole('menu')
     expect(menu).toHaveClass(
-      'bg-card/92',
+      'bg-card/95',
       'backdrop-blur-md',
       'border-border/80',
       'shadow-xl',
       'text-foreground',
     )
     fireEvent.click(
-      await screen.findByRole('menuitemradio', { name: 'Paris Weekend' }),
+      await screen.findByRole('menuitem', { name: 'Paris Weekend' }),
     )
 
     await waitFor(() =>
@@ -202,6 +277,97 @@ describe('map group selector', () => {
     expect(
       screen.queryByRole('heading', { name: 'Groups' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('switches back to My map with a null group id', async () => {
+    api.getActiveMap.mockResolvedValue({
+      groupId: '12',
+      name: 'Paris Weekend',
+    })
+    api.getGroups.mockResolvedValue([{ ...ownedGroup, isActive: true }])
+    api.setActiveMap.mockResolvedValue({ groupId: null, name: null })
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    fireEvent.pointerDown(selector)
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'My map' }))
+
+    await waitFor(() =>
+      expect(api.setActiveMap).toHaveBeenCalledWith({
+        accessToken: 'test-token',
+        groupId: null,
+      }),
+    )
+    await waitFor(() => expect(selector).toHaveTextContent('My map'))
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+  })
+
+  it('navigates to Groups from the CTA without changing the active map', async () => {
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    fireEvent.pointerDown(selector)
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Create or join a group' }),
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Groups' }),
+    ).toBeInTheDocument()
+    expect(api.setActiveMap).not.toHaveBeenCalled()
+  })
+
+  it('opens from the keyboard and returns focus after Escape closes the menu', async () => {
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    selector.focus()
+    fireEvent.keyDown(selector, { key: 'Enter' })
+
+    await screen.findByRole('menu')
+    expect(selector).toHaveAttribute('aria-expanded', 'true')
+
+    fireEvent.keyDown(document.activeElement ?? selector, { key: 'Escape' })
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument(),
+    )
+    expect(selector).toHaveFocus()
+  })
+
+  it('disables map choices while a switch is pending and reports failures in the open menu', async () => {
+    let resolveSwitch:
+      ((value: { groupId: string; name: string }) => void) | undefined
+    api.setActiveMap.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSwitch = resolve
+      }),
+    )
+    renderAt('/')
+
+    const selector = await screen.findByRole('button', { name: /Active map/ })
+    fireEvent.pointerDown(selector)
+    const groupItem = await screen.findByRole('menuitem', {
+      name: 'Paris Weekend',
+    })
+    fireEvent.click(groupItem)
+    await waitFor(() => expect(groupItem).toHaveAttribute('data-disabled', ''))
+    expect(
+      screen.getByRole('menuitem', { name: 'Create or join a group' }),
+    ).toBeEnabled()
+
+    resolveSwitch?.({ groupId: '12', name: 'Paris Weekend' })
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument(),
+    )
+
+    api.setActiveMap.mockRejectedValueOnce(new Error('network'))
+    fireEvent.pointerDown(selector)
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'My map' }))
+    await waitFor(() => expect(api.setActiveMap).toHaveBeenCalledTimes(2))
+
+    expect(
+      await screen.findByText('Unable to change the active map.'),
+    ).toBeInTheDocument()
   })
 })
 
@@ -229,7 +395,9 @@ describe('group detail', () => {
 
     await screen.findByText('AB3K-9QZ2')
     expect(
-      screen.getByText('Share this code. Scanning the QR code needs the Android app.'),
+      screen.getByText(
+        'Share this code. Scanning the QR code needs the Android app.',
+      ),
     ).toBeInTheDocument()
   })
 
@@ -397,7 +565,9 @@ describe('opening a discovery from a group map', () => {
     expect(
       await screen.findByRole('link', { name: 'Edit discovery' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Delete discovery' })).toBeVisible()
+    expect(
+      screen.getByRole('button', { name: 'Delete discovery' }),
+    ).toBeVisible()
   })
 
   it('deletes a discovery once after the application dialog is confirmed', async () => {
@@ -406,7 +576,9 @@ describe('opening a discovery from a group map', () => {
     ])
     renderAt('/discoveries/22?group=12')
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete discovery' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Delete discovery' }),
+    )
     expect(
       screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
     ).toBeInTheDocument()
@@ -458,9 +630,7 @@ describe('opening a discovery from a group map', () => {
       ],
     })
 
-    fireEvent.click(
-      await screen.findByRole('link', { name: 'Edit discovery' }),
-    )
+    fireEvent.click(await screen.findByRole('link', { name: 'Edit discovery' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Save changes' }))
     await screen.findByRole('link', { name: 'Edit discovery' })
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
