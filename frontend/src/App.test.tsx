@@ -763,48 +763,46 @@ describe('App', () => {
     expect(
       screen.queryByRole('button', { name: 'Log out' }),
     ).not.toBeInTheDocument()
-    fireEvent.click(accountButton)
-    const accountSheet = screen.getByRole('dialog', { name: 'Account' })
-    expect(accountSheet).toHaveClass(
-      'max-h-[calc(100dvh-1rem)]',
-      'overflow-y-auto',
-      'touch-pan-y',
-    )
-    expect(accountSheet.parentElement).toHaveClass('z-[70]')
-    expect(
-      within(accountSheet).getByRole('button', { name: 'Log out' }),
-    ).toBeInTheDocument()
-    expect(within(accountSheet).getByText('Active')).toBeInTheDocument()
     expect(
       within(screen.getByLabelText('Profile overview')).getByText(
         'Explorer · Since 2026',
       ),
     ).toHaveClass('mt-2')
+    expect(screen.getByLabelText('Exploration statistics')).toBeInTheDocument()
     expect(
-      screen.queryByLabelText('Exploration statistics'),
-    ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'POIs' }),
+      screen.getByRole('heading', { level: 2, name: 'Points of interest' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Recent' }),
+      screen.getByRole('heading', { level: 2, name: 'Recent discoveries' }),
     ).toBeInTheDocument()
     expect(
       (await screen.findByText('Street in Le Marais')).closest('a'),
-    ).toHaveClass('w-[min(68vw,16rem)]')
+    ).toHaveClass('w-[44vw]')
     expect(
       screen.getByText('2 / 2 points of interest discovered'),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { level: 2, name: 'Countries explored' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('France')).toBeInTheDocument()
+    expect(
+      within(
+        screen.getByRole('region', { name: 'Countries explored' }),
+      ).getByText('France'),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         level: 2,
         name: 'Discoveries by category',
       }),
     ).toBeInTheDocument()
+
+    fireEvent.click(accountButton)
+    const accountSheet = screen.getByRole('dialog', { name: 'Account' })
+    expect(accountSheet).toBeInTheDocument()
+    expect(
+      within(accountSheet).getByRole('button', { name: 'Log out' }),
+    ).toBeInTheDocument()
+    expect(within(accountSheet).getByText('Active')).toBeInTheDocument()
   })
 
   it('shows explicit empty states for countries and recent discoveries', async () => {
@@ -815,9 +813,11 @@ describe('App', () => {
     expect(
       await screen.findByText('No countries explored yet.'),
     ).toBeInTheDocument()
-    expect(screen.getByText('No recent discoveries yet.')).toBeInTheDocument()
     expect(
-      screen.getByText('No discoveries created in the last 6 months.'),
+      await screen.findByText('No recent discoveries yet.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('No discoveries recorded in the last 6 months.'),
     ).toBeInTheDocument()
   })
 
@@ -839,11 +839,11 @@ describe('App', () => {
       name: 'Landscape: 1 discovery',
     })
     expect(
-      monument.querySelector('[data-category-bar="monument"]'),
-    ).toHaveStyle({ height: '100%' })
+      monument.querySelector('[data-testid="category-bar-monument"]'),
+    ).toHaveStyle({ width: '28.57142857142857%' })
     expect(
-      landscape.querySelector('[data-category-bar="landscape"]'),
-    ).toHaveStyle({ height: '50%' })
+      landscape.querySelector('[data-testid="category-bar-landscape"]'),
+    ).toHaveStyle({ width: '14.285714285714285%' })
     expect(
       within(categorySection).queryByRole('progressbar'),
     ).not.toBeInTheDocument()
@@ -873,7 +873,7 @@ describe('App', () => {
     renderWithProviders(<App />, { route: '/profile' })
 
     const chart = await screen.findByRole('img', {
-      name: /Discovery creations by month:/,
+      name: /Discoveries by month:/,
     })
     expect(chart).toHaveAttribute(
       'aria-label',
@@ -897,22 +897,24 @@ describe('App', () => {
 
     expect(sectionTitles).toEqual([
       'Explorer',
-      'POIs',
+      'Your exploration',
+      'Recent discoveries',
+      'Points of interest',
       'Discoveries by category',
-      'Discovery activity',
+      'Exploration over time',
       'Countries explored',
-      'Recent',
     ])
     for (const title of [
-      'POIs',
+      'Your exploration',
+      'Recent discoveries',
+      'Points of interest',
       'Discoveries by category',
-      'Discovery activity',
+      'Exploration over time',
       'Countries explored',
-      'Recent',
     ]) {
       expect(
         within(profilePage).getByRole('heading', { level: 2, name: title }),
-      ).toHaveClass('font-display', 'text-[22px]', 'leading-7')
+      ).toHaveClass('sterna-section-title')
     }
   })
 

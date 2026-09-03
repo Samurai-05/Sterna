@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Capacitor } from '@capacitor/core'
 import { QueryClient } from '@tanstack/react-query'
@@ -809,6 +809,83 @@ describe('AddDiscoveryPage', () => {
     rejectUpload(new Error('old upload failed'))
     await waitFor(() =>
       expect(releaseNativePhoto).toHaveBeenCalledWith(cameraPhoto.path),
+    )
+  })
+
+  it('completes photo upload and submits successfully under React StrictMode', async () => {
+    saveSession({
+      accessToken: 'test-token',
+      user: {
+        id: '1',
+        email: 'explorer@sterna.app',
+        userName: 'Explorer',
+        avatarObjectKey: null,
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    vi.mocked(getActiveMap).mockResolvedValue({ groupId: null, name: null })
+    let resolveUpload!: (value: UploadPhotoResponse) => void
+    const uploadPromise = new Promise<UploadPhotoResponse>((resolve) => {
+      resolveUpload = resolve
+    })
+    vi.mocked(uploadPhoto).mockImplementation(() => uploadPromise)
+    vi.mocked(createDiscovery).mockResolvedValue({
+      id: 42,
+      groupId: null,
+    } as never)
+
+    renderWithProviders(<AddDiscoveryPage />, {
+      route: '/add',
+      strictMode: true,
+    })
+
+    const fileInput = document.querySelector('input[type="file"]')
+    if (!fileInput) throw new Error('Photo input not found.')
+    const photo = new File(['bytes'], 'strictmode.jpg', { type: 'image/jpeg' })
+    fireEvent.change(fileInput, { target: { files: [photo] } })
+
+    await waitFor(() => expect(uploadPhoto).toHaveBeenCalledTimes(1))
+    expect(
+      screen.getByText('Looking for a location in the photo...'),
+    ).toBeInTheDocument()
+
+    await act(async () => {
+      resolveUpload({
+        objectKey: 'photos/strictmode.jpg',
+        url: '/api/photos/strictmode.jpg',
+        metadata: {
+          location: { latitude: 46.7, longitude: 6.6 },
+          takenAt: null,
+        },
+      })
+      await uploadPromise
+    })
+    const uploadResult = await uploadPromise
+    expect(uploadResult.objectKey).toBe('photos/strictmode.jpg')
+    await screen.findByText(
+      'Location detected from the photo. Tap or drag the pin to adjust it.',
+    )
+    expect(
+      screen.queryByText('Looking for a location in the photo...'),
+    ).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Title' }), {
+      target: { value: 'Strict mode discovery' },
+    })
+
+    fireEvent.submit(document.querySelector('form')!)
+
+    expect(
+      screen.queryByText('The photo is still uploading — please wait.'),
+    ).not.toBeInTheDocument()
+    await waitFor(() => expect(createDiscovery).toHaveBeenCalledTimes(1))
+    expect(createDiscovery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'test-token',
+        title: 'Strict mode discovery',
+        latitude: 46.7,
+        longitude: 6.6,
+      }),
     )
   })
 })

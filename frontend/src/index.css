@@ -283,17 +283,6 @@ input:-webkit-autofill:focus {
   padding-left: max(0.75rem, var(--sterna-safe-area-left));
 }
 
-.sterna-map-photo-popup .maplibregl-popup-tip {
-  display: none;
-}
-
-.sterna-map-photo-popup .maplibregl-popup-content {
-  background: none;
-  box-shadow: none;
-  padding: 0;
-  pointer-events: auto;
-}
-
 /* While scanning, the native camera renders behind the WebView, so every
    other element must be hidden except the scanner's own overlay. */
 body.barcode-scanner-active {

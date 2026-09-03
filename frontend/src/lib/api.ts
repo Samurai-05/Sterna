@@ -473,6 +473,7 @@ function toDiscovery(discovery: ApiDiscovery): Discovery {
     author: authorName,
     initials: initialsOf(authorName),
     relativeDate: formatRelativeDate(discovery.discoveredAt),
+    discoveredAt: discovery.discoveredAt,
     createdAt: discovery.createdAt,
     coordinates,
     // PostGIS-derived (issue #59 / ADR-005) — see DiscoveriesService for how

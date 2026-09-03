@@ -34,6 +34,7 @@ function makeDiscovery(
   id: number,
   countryCode: string,
   location: string,
+  createdAt?: string,
 ): Discovery {
   return {
     id,
@@ -47,6 +48,7 @@ function makeDiscovery(
     relativeDate: 'today',
     coordinates: [0, 0],
     countryCode,
+    ...(createdAt ? { createdAt } : {}),
   }
 }
 
@@ -181,5 +183,152 @@ describe('ProfilePage', () => {
       'href',
       '/profile/edit',
     )
+  })
+
+  it('presents the exploration story in the intended mobile-first order', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([
+      makeDiscovery(1, 'FRA', 'Paris, France', '2026-09-01T00:00:00.000Z'),
+    ])
+    getAuthoredPoisMock.mockResolvedValue([
+      {
+        id: 'eiffel-tower',
+        name: 'Eiffel Tower',
+        city: 'Paris',
+        country: 'France',
+        imageId: 'photo-eiffel',
+        description: '',
+        discovered: true,
+        coordinates: [2.2945, 48.8584],
+      },
+    ])
+
+    renderWithProviders(<ProfilePage />)
+
+    const profilePage = screen
+      .getByRole('region', { name: 'Profile overview' })
+      .closest('main')!
+    await screen.findByRole('group', { name: 'Discoveries: 1' })
+    const headings = within(profilePage)
+      .getAllByRole('heading', { level: 2 })
+      .map((heading) => heading.textContent)
+
+    expect(headings).toEqual([
+      'Explorer',
+      'Your exploration',
+      'Recent discoveries',
+      'Points of interest',
+      'Discoveries by category',
+      'Exploration over time',
+      'Countries explored',
+    ])
+    expect(
+      within(profilePage).getByRole('group', { name: 'Countries: 1' }),
+    ).toBeInTheDocument()
+    expect(
+      within(profilePage).getByRole('group', { name: 'POIs: 1' }),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps section-level recovery messages when profile queries fail', async () => {
+    getAuthoredDiscoveriesMock.mockRejectedValue(new Error('offline'))
+    getAuthoredPoisMock.mockRejectedValue(new Error('offline'))
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByText('Exploration data is temporarily unavailable.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Recent discoveries are temporarily unavailable.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Point of interest progress is temporarily unavailable.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Exploration activity is temporarily unavailable.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Country data is temporarily unavailable.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('No discoveries recorded in the last 6 months.'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('does not render false empty states while discoveries are loading', async () => {
+    getAuthoredDiscoveriesMock.mockReturnValue(new Promise(() => {}))
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      screen.getByRole('status', { name: 'Loading exploration map' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Loading explored countries…')).toBeInTheDocument()
+    expect(
+      screen.getByText('Loading exploration over time…'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Loading recent discoveries…')).toBeInTheDocument()
+
+    expect(
+      screen.queryByText('No countries explored yet.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('No discoveries recorded in the last 6 months.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('No recent discoveries yet.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('img', { name: 'World exploration map' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows appropriate empty states when discoveries are genuinely empty', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByText('No countries explored yet.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('No discoveries recorded in the last 6 months.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('No recent discoveries yet.')).toBeInTheDocument()
+  })
+
+  it('opens accessible account drawer, dismisses on Escape, and resets deletion state', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    const openButton = await screen.findByRole('button', {
+      name: 'Open account settings',
+    })
+    fireEvent.click(openButton)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByText('Account')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
+    const passwordInput = screen.getByLabelText('Password')
+    fireEvent.change(passwordInput, { target: { value: 'secret' } })
+    expect(passwordInput).toHaveValue('secret')
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    fireEvent.click(openButton)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Delete account' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByLabelText('Password')).not.toBeInTheDocument()
   })
 })
