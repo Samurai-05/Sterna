@@ -1,6 +1,6 @@
 export const siteDetails = {
   siteName: 'Sterna',
-  siteUrl: 'https://sterna-landingpage.vercel.app',
+  siteUrl: 'https://sterna-app.ch',
   metadata: {
     title: 'Sterna — Explore more. Reveal your world.',
     description:

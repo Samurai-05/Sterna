@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import styles from './ProductShowcase.module.css';
 
-type ScreenId = 'map' | 'explore' | 'add' | 'groups' | 'profile';
+type ScreenId = 'map' | 'gallery' | 'discovery' | 'groups' | 'profile';
 
 type Screen = {
   id: ScreenId;
@@ -21,32 +21,32 @@ const screens: Screen[] = [
   {
     id: 'map',
     label: 'Map',
-    description: 'Places, mapped.',
-    image: '/assets/mockups/map.webp',
+    description: 'Interactive exploration.',
+    image: '/assets/screenshots/current/map-exploration.webp',
   },
   {
-    id: 'explore',
-    label: 'Explore',
-    description: 'Saved places.',
-    image: '/assets/mockups/collection.webp',
+    id: 'gallery',
+    label: 'Gallery',
+    description: 'Discoveries and POIs.',
+    image: '/assets/screenshots/current/gallery-2.webp',
   },
   {
-    id: 'add',
-    label: 'Add',
-    description: 'Save a photo.',
-    image: '/assets/mockups/new-discovery.webp',
+    id: 'discovery',
+    label: 'Discovery',
+    description: 'Details for every place.',
+    image: '/assets/screenshots/current/discovery-detail.webp',
   },
   {
     id: 'groups',
     label: 'Groups',
-    description: 'Travel together.',
-    image: '/assets/mockups/groups.webp',
+    description: 'Shared maps.',
+    image: '/assets/screenshots/current/groups.webp',
   },
   {
     id: 'profile',
     label: 'Profile',
-    description: 'Your travel record.',
-    image: '/assets/mockups/profile.webp',
+    description: 'Your exploration.',
+    image: '/assets/screenshots/current/profile-statistics.webp',
   },
 ];
 
@@ -126,34 +126,34 @@ export default function ProductShowcase() {
             id="app-preview-panel"
             role="tabpanel"
             aria-labelledby={`${activeScreen.id}-tab`}
-            className="relative flex min-h-[450px] items-end justify-center sm:min-h-[520px] md:min-h-[585px]"
+            className="relative flex min-h-[550px] items-end justify-center sm:min-h-[590px] md:min-h-[620px]"
           >
             <div className="pointer-events-none absolute bottom-[14%] left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-primary/[0.07] blur-[52px]" />
             {previousScreen && (
               <img
                 src={previousScreen.image}
                 alt=""
-                width={1024}
-                height={1536}
+                width={390}
+                height={844}
                 decoding="async"
                 aria-hidden="true"
-                className={`phone-mockup phone-mockup--exit-${transitionDirection} absolute bottom-0 left-1/2 z-10 h-auto w-full max-w-[310px] select-none drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-w-[335px] md:max-w-[350px]`}
+                className={`phone-mockup phone-mockup--exit-${transitionDirection} absolute bottom-0 left-1/2 z-10 h-auto max-h-[520px] w-full max-w-[240px] select-none rounded-[28px] drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-h-[560px] sm:max-w-[260px] md:max-h-[600px] md:max-w-[280px]`}
               />
             )}
             <img
               key={activeScreen.id}
               src={activeScreen.image}
               alt={`Sterna ${activeScreen.label} screen`}
-              width={1024}
-              height={1536}
+              width={390}
+              height={844}
               loading="lazy"
               decoding="async"
-              className={`phone-mockup ${previousScreen ? `phone-mockup--enter-${transitionDirection}` : 'phone-mockup--static'} absolute bottom-0 left-1/2 z-20 h-auto w-full max-w-[310px] select-none drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-w-[335px] md:max-w-[350px]`}
+              className={`phone-mockup ${previousScreen ? `phone-mockup--enter-${transitionDirection}` : 'phone-mockup--static'} absolute bottom-0 left-1/2 z-20 h-auto max-h-[520px] w-full max-w-[240px] select-none rounded-[28px] drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-h-[560px] sm:max-w-[260px] md:max-h-[600px] md:max-w-[280px]`}
             />
           </div>
 
           <div
-            className="relative grid h-[320px] grid-rows-5 pl-5 sm:pl-6 md:h-[585px] md:self-stretch"
+            className="relative grid h-[320px] grid-rows-5 pl-5 sm:pl-6 md:h-[620px] md:self-stretch"
             role="tablist"
             aria-label="Sterna app screens"
             aria-orientation="vertical"
