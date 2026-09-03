@@ -5,19 +5,17 @@ export type DiscoveryDrawerOpenChangeDetails = {
 
 export type DiscoveryViewerBackRequestOptions = {
   isDeleteDialogOpen: boolean
-  isActionMenuOpen: boolean
+  isDrawerExpanded?: boolean
   closeDeleteDialog: () => void
-  closeActionMenu: () => void
-  restoreActionMenuFocus: () => void
+  closeDrawer?: () => void
   handleBack: () => void
 }
 
 export function handleViewerBackRequest({
   isDeleteDialogOpen,
-  isActionMenuOpen,
+  isDrawerExpanded,
   closeDeleteDialog,
-  closeActionMenu,
-  restoreActionMenuFocus,
+  closeDrawer,
   handleBack,
 }: DiscoveryViewerBackRequestOptions) {
   if (isDeleteDialogOpen) {
@@ -25,9 +23,8 @@ export function handleViewerBackRequest({
     return
   }
 
-  if (isActionMenuOpen) {
-    closeActionMenu()
-    restoreActionMenuFocus()
+  if (isDrawerExpanded) {
+    closeDrawer?.()
     return
   }
 

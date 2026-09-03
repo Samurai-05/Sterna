@@ -8,6 +8,8 @@ const {
   markerInstances,
   popupElements,
   MockMap,
+  ResizeObserverMock,
+  resizeObserverInstances,
 } = vi.hoisted(() => {
   const instances: Array<{
     options: { center: [number, number]; zoom: number; minZoom?: number }
@@ -19,7 +21,21 @@ const {
     resizeCalls: number
     flyToCalls: Array<{ center: [number, number]; zoom: number }>
     resetNorthPitchCalls: number
+    setMinZoomCalls: number[]
+    setZoomCalls: number[]
+    setPaintPropertyCalls: Array<{
+      layerId: string
+      property: string
+      value: unknown
+    }>
+    cameraForBoundsCalls: Array<{ bounds: unknown; options: unknown }>
+    cameraZoom: number
+    container: { clientWidth: number; clientHeight: number }
     bounds: { west: number; south: number; east: number; north: number }
+    getContainer: () => { clientWidth: number; clientHeight: number }
+    cameraForBounds: (bounds: unknown, options: unknown) => { zoom: number }
+    setMinZoom: (zoom: number) => unknown
+    setZoom: (zoom: number) => unknown
   }> = []
   const markers: Array<{
     element?: HTMLElement
@@ -27,7 +43,28 @@ const {
     removed: boolean
   }> = []
   const popupElements: HTMLElement[] = []
+  const resizeObserverInstances: Array<{
+    callback: ResizeObserverCallback
+    trigger: () => void
+  }> = []
   const getPhoto = vi.fn().mockResolvedValue(new Blob(['image']))
+
+  class ResizeObserverMock {
+    callback: ResizeObserverCallback
+
+    constructor(callback: ResizeObserverCallback) {
+      this.callback = callback
+      resizeObserverInstances.push(this)
+    }
+
+    observe() {}
+
+    disconnect() {}
+
+    trigger() {
+      this.callback([], this as unknown as ResizeObserver)
+    }
+  }
 
   class MapMock {
     options: { center: [number, number]; zoom: number; minZoom?: number }
@@ -39,6 +76,16 @@ const {
     resizeCalls = 0
     flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
     resetNorthPitchCalls = 0
+    setMinZoomCalls: number[] = []
+    setZoomCalls: number[] = []
+    setPaintPropertyCalls: Array<{
+      layerId: string
+      property: string
+      value: unknown
+    }> = []
+    cameraForBoundsCalls: Array<{ bounds: unknown; options: unknown }> = []
+    cameraZoom = 1.3
+    container = { clientWidth: 320, clientHeight: 640 }
     bounds = { west: 0, south: 40, east: 10, north: 50 }
     listeners = new Map<string, Set<() => void>>()
 
@@ -76,7 +123,35 @@ const {
         layers: [
           { id: 'base-roads', type: 'line', 'source-layer': 'transportation' },
           { id: 'boundary_3', type: 'line', 'source-layer': 'boundary' },
-          { id: 'label_city', type: 'symbol' },
+          {
+            id: 'label_city',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'label_country_3',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'label_country_2',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'label_country_1',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'country-outline',
+            type: 'line',
+            'source-layer': 'boundary',
+          },
         ],
       }
     }
@@ -100,6 +175,31 @@ const {
 
     getZoom() {
       return this.options.zoom
+    }
+
+    getContainer() {
+      return this.container
+    }
+
+    cameraForBounds(bounds: unknown, options: unknown) {
+      this.cameraForBoundsCalls.push({ bounds, options })
+      return { zoom: this.cameraZoom }
+    }
+
+    setMinZoom(zoom: number) {
+      this.setMinZoomCalls.push(zoom)
+      return this
+    }
+
+    setZoom(zoom: number) {
+      this.setZoomCalls.push(zoom)
+      this.options.zoom = zoom
+      return this
+    }
+
+    setPaintProperty(layerId: string, property: string, value: unknown) {
+      this.setPaintPropertyCalls.push({ layerId, property, value })
+      return this
     }
 
     getBounds() {
@@ -149,6 +249,8 @@ const {
     markerInstances: markers,
     popupElements,
     MockMap: MapMock,
+    ResizeObserverMock,
+    resizeObserverInstances,
   }
 })
 
@@ -281,10 +383,44 @@ describe('MapCanvas', () => {
 
     render(<MapCanvas />)
 
-    expect(mapInstances[0].options.minZoom).toBe(1.5)
+    expect(mapInstances[0].options.minZoom).toBeUndefined()
+    expect(mapInstances[0].setMinZoomCalls).toEqual([3.3])
   })
 
-  it('does not add built-in controls because the page provides its own controls', () => {
+  it('clamps an initial viewport below the responsive minimum without fitting the map', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const { unmount } = render(
+      <MapCanvas initialViewport={{ center: [0, 20], zoom: 1 }} />,
+    )
+
+    expect(mapInstances[0].setZoomCalls).toEqual([3.3])
+    expect(mapInstances[0].flyToCalls).toEqual([])
+    unmount()
+    window.sessionStorage.clear()
+  })
+
+  it('recalculates the minimum zoom when the map container is resized', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+    vi.stubGlobal('ResizeObserver', ResizeObserverMock)
+
+    render(<MapCanvas />)
+
+    mapInstances[0].container = { clientWidth: 800, clientHeight: 400 }
+    mapInstances[0].cameraZoom = 1.1
+    act(() => resizeObserverInstances[0].trigger())
+
+    expect(mapInstances[0].setMinZoomCalls).toEqual([3.3, 3.1])
+    expect(mapInstances[0].flyToCalls).toEqual([])
+  })
+
+  it('uses the responsive globe floor without adding built-in controls', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'test-browser',
@@ -295,7 +431,7 @@ describe('MapCanvas', () => {
     expect(mapInstances).toHaveLength(1)
     expect(mapInstances[0].options).toMatchObject({
       center: [0, 20],
-      zoom: 1.5,
+      zoom: 3.3,
     })
     expect(mapInstances[0].controls).toHaveLength(0)
 
@@ -363,6 +499,35 @@ describe('MapCanvas', () => {
         }
       ).paint['fill-opacity'].slice(0, 3),
     ).toEqual(['interpolate', ['linear'], ['zoom']])
+  })
+
+  it('shows only country label layers fully from zoom 2', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(<MapCanvas />)
+
+    act(() => mapInstances[0].emit('load'))
+
+    expect(mapInstances[0].setPaintPropertyCalls).toEqual([
+      {
+        layerId: 'label_country_3',
+        property: 'text-opacity',
+        value: ['step', ['zoom'], 0, 2, 1],
+      },
+      {
+        layerId: 'label_country_2',
+        property: 'text-opacity',
+        value: ['step', ['zoom'], 0, 2, 1],
+      },
+      {
+        layerId: 'label_country_1',
+        property: 'text-opacity',
+        value: ['step', ['zoom'], 0, 2, 1],
+      },
+    ])
   })
 
   it('updates fog feature-state for personal, group, and disputed countries', () => {
@@ -725,7 +890,7 @@ describe('MapCanvas', () => {
     // sit at scale(1) until the next zoom change.
     render(
       <MapCanvas
-        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 3.3 }}
         discoveries={[
           {
             id: 1,
@@ -742,7 +907,7 @@ describe('MapCanvas', () => {
     const button = marker.element?.firstElementChild as HTMLElement
     const scaledElement = button.firstElementChild as HTMLElement
 
-    expect(scaledElement.style.transform).toBe('scale(0.35)')
+    expect(scaledElement.style.transform).toBe('scale(0.61)')
   })
 
   it('applies the correct scale to a discovery that arrives after the map is already zoomed out', () => {
@@ -755,14 +920,14 @@ describe('MapCanvas', () => {
     // and the user has already zoomed out, with no further zoom event.
     const { rerender } = render(
       <MapCanvas
-        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 3.3 }}
         discoveries={[]}
       />,
     )
 
     rerender(
       <MapCanvas
-        initialViewport={{ center: [2.2945, 48.8584], zoom: 1.5 }}
+        initialViewport={{ center: [2.2945, 48.8584], zoom: 3.3 }}
         discoveries={[
           {
             id: 1,
@@ -779,7 +944,7 @@ describe('MapCanvas', () => {
     const button = marker.element?.firstElementChild as HTMLElement
     const scaledElement = button.firstElementChild as HTMLElement
 
-    expect(scaledElement.style.transform).toBe('scale(0.35)')
+    expect(scaledElement.style.transform).toBe('scale(0.61)')
   })
 
   it('applies the correct scale to a POI marker created after a viewport move, with no zoom event', () => {

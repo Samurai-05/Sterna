@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Check, Pencil, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -51,6 +51,15 @@ const EMPTY_GALLERY: Discovery[] = []
 const UNLOADED_PHOTO_SOURCE =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 
+function isPhotoGestureExcludedTarget(target: EventTarget | null): boolean {
+  const element = target instanceof Element ? target : null
+  return Boolean(
+    element?.closest(
+      'button, a, [role="menu"], [data-slot^="drawer"], [data-viewer-control="true"]',
+    ),
+  )
+}
+
 type GalleryPhotoSlide = SlideImage & {
   discoveryId: number
   state: 'idle' | 'loading' | 'success' | 'error'
@@ -61,6 +70,23 @@ type DiscoveryDetailPageProps = {
 }
 
 type DiscoveryDrawerState = 'peek' | 'expanded'
+
+type PhotoGestureAxis = 'vertical' | 'horizontal'
+
+type PhotoGesture = {
+  activePointerIds: Set<number>
+  primaryPointerId: number
+  startX: number
+  startY: number
+  axis: PhotoGestureAxis | null
+  moved: boolean
+  multiTouch: boolean
+  zoomedAtStart: boolean
+}
+
+const PHOTO_GESTURE_THRESHOLD = 12
+const DRAWER_SWIPE_DISTANCE = 44
+const PHOTO_DOUBLE_TAP_DELAY = 250
 
 export function DiscoveryDetailPage({
   presentation = 'page',
@@ -77,23 +103,29 @@ export function DiscoveryDetailPage({
   const gallerySource =
     routeState.gallerySource ?? (groupId ? 'group' : 'personal')
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false)
   const [showCreatedFeedback, setShowCreatedFeedback] = useState(
     () => getDiscoveryRouteState(location.state).justCreated === true,
   )
-  const [controlsVisible, setControlsVisible] = useState(true)
   const createdFeedbackConsumedRef = useRef(false)
   const [drawerState, setDrawerState] = useState<DiscoveryDrawerState>('peek')
+  const controlsVisible = true
   const [deletedDiscoveryIds, setDeletedDiscoveryIds] = useState<Set<number>>(
     () => new Set(),
   )
-  const actionMenuRef = useRef<HTMLDivElement>(null)
-  const actionTriggerRef = useRef<HTMLButtonElement>(null)
+  const drawerStateRef = useRef(drawerState)
   const drawerControlsRef = useRef<HTMLDivElement>(null)
+  const photoGestureRef = useRef<PhotoGesture | null>(null)
+  const pendingPhotoTapRef = useRef<number | null>(null)
+  const skipPendingPhotoTapRef = useRef(false)
+  const zoomRef = useRef<{ zoom: number } | null>(null)
   const routeReturnTo = routeState.returnTo
   const backgroundLocation = routeState.backgroundLocation
   const justCreated = routeState.justCreated
   const returnTo = routeReturnTo ?? '/collection'
+
+  useEffect(() => {
+    drawerStateRef.current = drawerState
+  }, [drawerState])
 
   const handleBack = () => {
     if (routeState.backgroundLocation) {
@@ -107,13 +139,158 @@ export function DiscoveryDetailPage({
   const handleViewerBackRequest = () =>
     handleViewerBackRequestState({
       isDeleteDialogOpen,
-      isActionMenuOpen,
       closeDeleteDialog: () => setIsDeleteDialogOpen(false),
-      closeActionMenu: () => setIsActionMenuOpen(false),
-      restoreActionMenuFocus: () =>
-        window.setTimeout(() => actionTriggerRef.current?.focus(), 0),
+      isDrawerExpanded: drawerState === 'expanded',
+      closeDrawer: () => setDrawerState('peek'),
       handleBack,
     })
+
+  const handlePhotoPointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    const currentGesture = photoGestureRef.current
+    if (currentGesture) {
+      currentGesture.activePointerIds.add(event.pointerId)
+      currentGesture.multiTouch = true
+      return
+    }
+
+    const target = event.target instanceof Element ? event.target : null
+    if (
+      !target?.closest('[data-photo-gesture-surface="true"]') ||
+      isPhotoGestureExcludedTarget(event.target)
+    ) {
+      return
+    }
+
+    if (pendingPhotoTapRef.current !== null) {
+      window.clearTimeout(pendingPhotoTapRef.current)
+      pendingPhotoTapRef.current = null
+      skipPendingPhotoTapRef.current = true
+    }
+
+    photoGestureRef.current = {
+      activePointerIds: new Set([event.pointerId]),
+      primaryPointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      axis: null,
+      moved: false,
+      multiTouch: false,
+      zoomedAtStart: (zoomRef.current?.zoom ?? 1) > 1,
+    }
+  }
+
+  useEffect(() => {
+    const handlePhotoPointerMove = (event: PointerEvent) => {
+      const gesture = photoGestureRef.current
+      if (!gesture || gesture.primaryPointerId !== event.pointerId) return
+
+      if (gesture.activePointerIds.size > 1 || gesture.multiTouch) return
+      if (gesture.zoomedAtStart || (zoomRef.current?.zoom ?? 1) > 1) {
+        gesture.moved = true
+        return
+      }
+
+      const deltaX = event.clientX - gesture.startX
+      const deltaY = event.clientY - gesture.startY
+      const distance = Math.hypot(deltaX, deltaY)
+      if (distance < PHOTO_GESTURE_THRESHOLD) return
+
+      gesture.moved = true
+      if (!gesture.axis) {
+        if (Math.abs(deltaY) > Math.abs(deltaX) * 1.25) {
+          gesture.axis = 'vertical'
+        } else if (Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+          gesture.axis = 'horizontal'
+        } else {
+          return
+        }
+      }
+
+      if (gesture.axis === 'vertical') {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+    }
+
+    const handlePhotoPointerUp = (event: PointerEvent) => {
+      const gesture = photoGestureRef.current
+      if (!gesture) return
+
+      const isPrimaryPointer = gesture.primaryPointerId === event.pointerId
+      gesture.activePointerIds.delete(event.pointerId)
+      if (gesture.activePointerIds.size > 0) return
+
+      photoGestureRef.current = null
+      if (!isPrimaryPointer || gesture.multiTouch || gesture.zoomedAtStart) {
+        return
+      }
+
+      if (gesture.axis === 'vertical') {
+        const deltaY = event.clientY - gesture.startY
+        if (
+          drawerStateRef.current === 'peek' &&
+          deltaY <= -DRAWER_SWIPE_DISTANCE
+        ) {
+          setDrawerState('expanded')
+        } else if (
+          drawerStateRef.current === 'expanded' &&
+          deltaY >= DRAWER_SWIPE_DISTANCE
+        ) {
+          setDrawerState('peek')
+        }
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
+
+      if (gesture.axis === 'horizontal' || gesture.moved) {
+        skipPendingPhotoTapRef.current = false
+        return
+      }
+
+      if (skipPendingPhotoTapRef.current) {
+        skipPendingPhotoTapRef.current = false
+        return
+      }
+
+      if (drawerStateRef.current === 'expanded') {
+        pendingPhotoTapRef.current = window.setTimeout(() => {
+          pendingPhotoTapRef.current = null
+          if (drawerStateRef.current === 'expanded') {
+            setDrawerState('peek')
+          }
+        }, PHOTO_DOUBLE_TAP_DELAY)
+        return
+      }
+    }
+
+    const handlePhotoPointerCancel = () => {
+      photoGestureRef.current = null
+    }
+
+    window.addEventListener('pointermove', handlePhotoPointerMove, true)
+    window.addEventListener('pointerup', handlePhotoPointerUp, true)
+    window.addEventListener('pointercancel', handlePhotoPointerCancel, true)
+
+    return () => {
+      window.removeEventListener('pointermove', handlePhotoPointerMove, true)
+      window.removeEventListener('pointerup', handlePhotoPointerUp, true)
+      window.removeEventListener(
+        'pointercancel',
+        handlePhotoPointerCancel,
+        true,
+      )
+    }
+  }, [])
+
+  useEffect(
+    () => () => {
+      if (pendingPhotoTapRef.current !== null) {
+        window.clearTimeout(pendingPhotoTapRef.current)
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!justCreated || createdFeedbackConsumedRef.current) return
@@ -337,31 +514,15 @@ export function DiscoveryDetailPage({
     setDrawerState('peek')
   }
 
-  useEffect(() => {
-    if (!isActionMenuOpen) return
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!actionMenuRef.current?.contains(event.target as Node)) {
-        setIsActionMenuOpen(false)
-      }
-    }
-    document.addEventListener('pointerdown', handlePointerDown)
-    actionMenuRef.current
-      ?.querySelector<HTMLElement>('[role="menuitem"]')
-      ?.focus()
-
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown)
-    }
-  }, [isActionMenuOpen])
-
   if (isLoading) {
     return (
-      <main className={pageClassName}>
+      <main
+        className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
+      >
         <div className="absolute left-[max(1rem,var(--sterna-safe-area-left))] top-[max(1rem,var(--sterna-safe-area-top))] z-[60]">
           <FloatingBackButton onClick={handleBack} />
         </div>
-        <div className="flex size-full items-center justify-center bg-white text-sm text-muted-foreground">
+        <div className="flex size-full items-center justify-center bg-[var(--sterna-viewer-background)] text-sm text-muted-foreground">
           Loading discovery…
         </div>
       </main>
@@ -370,11 +531,13 @@ export function DiscoveryDetailPage({
 
   if (!discovery) {
     return (
-      <main className={pageClassName}>
+      <main
+        className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
+      >
         <div className="absolute left-[max(1rem,var(--sterna-safe-area-left))] top-[max(1rem,var(--sterna-safe-area-top))] z-[60]">
           <FloatingBackButton onClick={handleBack} />
         </div>
-        <div className="flex size-full items-center justify-center bg-white px-5 text-center text-sm text-muted-foreground">
+        <div className="flex size-full items-center justify-center bg-[var(--sterna-viewer-background)] px-5 text-center text-sm text-muted-foreground">
           Discovery not found.
         </div>
       </main>
@@ -408,30 +571,21 @@ export function DiscoveryDetailPage({
 
   return (
     <main
-      className={`${pageClassName} ${controlsVisible ? 'bg-white' : 'bg-black'}`}
+      className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
       data-presentation={presentation}
       data-controls-visible={controlsVisible}
-      onClick={(event) => {
-        const target = event.target
-        if (
-          target instanceof Element &&
-          target.closest(
-            'button, a, [role="button"], [data-viewer-control="true"]',
-          )
-        ) {
-          return
-        }
-        setControlsVisible((visible) => !visible)
-      }}
+      onPointerDownCapture={handlePhotoPointerDown}
     >
       <section
-        className={`absolute inset-0 h-full w-full transition-colors duration-200 ${controlsVisible ? 'bg-white' : 'bg-black'}`}
+        className="absolute inset-0 h-full w-full bg-[var(--sterna-viewer-background)]"
         aria-label="Discovery photo"
+        data-photo-gesture-surface="true"
       >
         <DiscoveryPhotoZoom
           discoveries={galleryDiscoveries}
           activeIndex={activeDiscoveryIndex}
           onView={navigateToSlide}
+          zoomRef={zoomRef}
         />
         {controlsVisible && (
           <div
@@ -441,79 +595,28 @@ export function DiscoveryDetailPage({
         )}
       </section>
 
-      {controlsVisible && (
-        <div
-          data-viewer-control="true"
-          className="pointer-events-none absolute inset-x-0 top-0 z-[60] flex justify-between px-[max(1rem,var(--sterna-safe-area-left))] pr-[max(1rem,var(--sterna-safe-area-right))] pt-[max(1rem,var(--sterna-safe-area-top))]"
-        >
-          <FloatingBackButton onClick={handleBack} />
-          {isAuthor && (
-            <div ref={actionMenuRef} className="pointer-events-auto relative">
-              <Button
-                ref={actionTriggerRef}
-                type="button"
-                variant="ghost"
-                size="icon-lg"
-                className="rounded-full border border-white/80 bg-white/90 text-black shadow-lg backdrop-blur-md hover:bg-white hover:text-black"
-                aria-label="More actions"
-                aria-controls="discovery-actions-menu"
-                aria-haspopup="menu"
-                aria-expanded={isActionMenuOpen}
-                onClick={() => setIsActionMenuOpen((open) => !open)}
-              >
-                <MoreHorizontal className="size-5" />
-              </Button>
-              {isActionMenuOpen && (
-                <div
-                  id="discovery-actions-menu"
-                  role="menu"
-                  aria-label="Photo actions"
-                  className="absolute right-0 top-12 z-10 min-w-52 overflow-hidden rounded-2xl border border-border bg-white p-2 text-foreground shadow-2xl"
-                >
-                  <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Photo actions
-                  </p>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="h-11 w-full justify-start gap-3 rounded-xl px-3"
-                  >
-                    <Link
-                      role="menuitem"
-                      to={`/discoveries/${discovery.id}/edit`}
-                      state={{ returnTo }}
-                    >
-                      <Pencil className="size-4 text-primary" />
-                      Edit discovery
-                    </Link>
-                  </Button>
-                  <div className="my-1 h-px bg-border" aria-hidden="true" />
-                  <Button
-                    type="button"
-                    role="menuitem"
-                    variant="ghost"
-                    className="h-11 w-full justify-start gap-3 rounded-xl px-3 text-destructive hover:bg-destructive-subtle hover:text-destructive"
-                    onClick={() => {
-                      setIsActionMenuOpen(false)
-                      setIsDeleteDialogOpen(true)
-                    }}
-                  >
-                    <Trash2 />
-                    Delete discovery
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[60] flex justify-between px-[max(1rem,var(--sterna-safe-area-left))] pr-[max(1rem,var(--sterna-safe-area-right))] pt-[max(1rem,var(--sterna-safe-area-top))]">
+        <FloatingBackButton onClick={handleBack} />
+        {isAuthor && (
+          <div className="pointer-events-auto flex gap-2">
+            <Button asChild variant="ghost" size="icon-lg" className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white">
+              <Link to={`/discoveries/${discovery.id}/edit`} state={{ returnTo }} aria-label="Edit discovery">
+                <Pencil className="size-5" />
+              </Link>
+            </Button>
+            <Button type="button" variant="ghost" size="icon-lg" className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white" aria-label="Delete discovery" onClick={() => setIsDeleteDialogOpen(true)}>
+              <Trash2 className="size-5" />
+            </Button>
+          </div>
+        )}
+      </div>
 
       {showCreatedFeedback && (
         <div
           role="status"
           aria-label="Discovery added"
           aria-live="polite"
-          className="pointer-events-none absolute left-1/2 top-[max(5rem,var(--sterna-safe-area-top))] z-[70] flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-xl animate-in fade-in-0 slide-in-from-top-2 duration-300"
+          className="pointer-events-none absolute left-1/2 top-[max(5rem,var(--sterna-safe-area-top))] z-[70] flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/15 bg-primary/85 px-3 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-xl animate-in fade-in-0 slide-in-from-top-2 duration-300"
         >
           <Check className="size-4 text-green-200" aria-hidden="true" />
           Discovery added
@@ -521,14 +624,12 @@ export function DiscoveryDetailPage({
       )}
 
       <div
-        data-viewer-control="true"
         data-testid="discovery-detail-drawer"
         data-drawer-state={drawerState}
         data-snap-points={drawerSnapPoints.join(',')}
         data-peek-snap-point={peekSnapPoint}
         data-expanded-snap-point={EXPANDED_SNAP_POINT}
         data-snap-point={snapPoint}
-        data-controls-visible={controlsVisible}
         className="relative z-50"
       >
         <Drawer
@@ -548,9 +649,7 @@ export function DiscoveryDetailPage({
           snapToSequentialPoints
         >
           <DrawerContent
-            data-viewer-control="true"
-            aria-hidden={!controlsVisible}
-            className={`!h-[55dvh] !max-h-[55dvh] border border-border bg-white text-black shadow-[0_-12px_40px_rgba(0,0,0,0.12)] transition-[transform,background-color,color,box-shadow,opacity] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] will-change-transform data-swiping:duration-0 motion-reduce:transition-none ${controlsVisible ? 'opacity-100' : '!pointer-events-none opacity-0'}`}
+            className="!h-[55dvh] !max-h-[55dvh] border border-border/80 bg-card/92 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-md transition-[transform,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] will-change-transform data-swiping:duration-0 motion-reduce:transition-none"
           >
             <div
               ref={drawerControlsRef}
@@ -569,7 +668,7 @@ export function DiscoveryDetailPage({
                 <div className="flex min-h-9 w-full items-center justify-center">
                   <button
                     type="button"
-                    className="w-full truncate rounded-xl px-0 text-center font-sans text-lg !font-bold leading-6 text-black outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40"
+                    className="w-full truncate rounded-xl px-0 text-center font-sans text-lg !font-bold leading-6 text-foreground outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/40"
                     aria-controls="discovery-detail-expanded-content"
                     aria-expanded={isExpanded}
                     onClick={() =>
@@ -633,10 +732,12 @@ function DiscoveryPhotoZoom({
   discoveries,
   activeIndex,
   onView,
+  zoomRef,
 }: {
   discoveries: Discovery[]
   activeIndex: number
   onView: (index: number) => void
+  zoomRef: { current: { zoom: number } | null }
 }) {
   const { sources, states, onSourceError } = useDiscoveryPhotoSources({
     discoveries,
@@ -709,6 +810,9 @@ function DiscoveryPhotoZoom({
           preload: 1,
         }}
         zoom={{
+          ref: (value) => {
+            zoomRef.current = value
+          },
           maxZoomPixelRatio: 3,
           doubleTapDelay: 250,
           scrollToZoom: true,
@@ -738,7 +842,7 @@ function GalleryPhotoState({
       aria-live="polite"
       aria-busy={!unavailable}
       aria-label={unavailable ? 'Photo unavailable' : 'Loading discovery photo'}
-      className="flex size-full items-center justify-center bg-transparent px-6 text-center text-sm text-muted-foreground"
+      className="flex size-full items-center justify-center bg-[var(--sterna-viewer-background)] px-6 text-center text-sm text-muted-foreground"
     >
       {unavailable ? `Photo unavailable for ${name}.` : 'Loading photo…'}
     </div>

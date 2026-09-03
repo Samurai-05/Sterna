@@ -4,6 +4,20 @@ import { fileURLToPath, URL } from 'node:url'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
+const localApiProxyTarget = 'http://localhost:3000'
+const remoteApiProxyTarget = 'https://labo-iot1.iict-heig-vd.ch'
+
+export function getApiProxyConfig(mode: string) {
+  if (mode === 'remote') {
+    return {
+      target: remoteApiProxyTarget,
+      changeOrigin: true,
+    }
+  }
+
+  return { target: localApiProxyTarget }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   envDir: '..',
@@ -42,7 +56,7 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': getApiProxyConfig(mode),
     },
   },
   test: {

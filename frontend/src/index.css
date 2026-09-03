@@ -67,6 +67,10 @@
   );
 }
 
+.sterna-discovery-screen {
+  --sterna-viewer-background: #e8e2d8;
+}
+
 * {
   box-sizing: border-box;
 }

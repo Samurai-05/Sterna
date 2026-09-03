@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
+import type { ExpressionSpecification } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -10,6 +11,7 @@ import { categoryAppearance } from '@/lib/category-appearance'
 import {
   defaultGlobeViewport,
   getStoredMapViewport,
+  getResponsiveGlobeMinimumZoom,
   saveMapViewport,
   type MapViewport,
 } from '@/lib/map-viewport'
@@ -32,6 +34,36 @@ import { cn } from '@/lib/utils'
 setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
+const countryLabelOpacityExpression: ExpressionSpecification = [
+  'step',
+  ['zoom'],
+  0,
+  2,
+  1,
+]
+
+function applyCountryLabelOpacity(instance: Map): void {
+  for (const layer of instance.getStyle()?.layers ?? []) {
+    const isCountryLabel =
+      layer.type === 'symbol' &&
+      layer['source-layer'] === 'place' &&
+      layer.id.match(/(^|[-_])country([-_]|$)/i) &&
+      layer.layout?.['text-field']
+
+    if (!isCountryLabel) continue
+
+    try {
+      instance.setPaintProperty(
+        layer.id,
+        'text-opacity',
+        countryLabelOpacityExpression,
+      )
+    } catch {
+      // Leave style layers unchanged when text-opacity is not supported.
+    }
+  }
+}
+
 // Zoom level from which a marker is "close" enough that its photo pre-opens
 // above the pin instead of waiting for a tap. Below street level (~15) so the
 // photo shows up while still zooming in, not only once fully street-level.
@@ -40,10 +72,9 @@ const photoPreopenZoom = 13
 // (~5) so pins stay visible while browsing a country, and only disappear once
 // zoomed out to a continent/world view where they'd overlap and clutter.
 const landmarkMinZoom = 5
-// Below this, the globe would shrink to a speck with mostly empty space
-// around it rather than filling the view — it's the whole point of showing
-// a globe at all. Also the low end of the marker scale range below.
-const globeMinZoom = 1.5
+// Marker scaling stays anchored to the original globe zoom reference even
+// though MapLibre's responsive minimum can now vary with the screen size.
+const markerScaleReferenceZoom = 1.5
 // Discovery/POI pins shrink continuously between the most zoomed-out globe
 // view and country level, so a full world view isn't dominated by full-size
 // pins, reaching full size by the time browsing a single country.
@@ -51,7 +82,9 @@ const markerMinScale = 0.35
 const markerScaleMaxZoom = 6
 
 function markerScaleForZoom(zoom: number): number {
-  const t = (zoom - globeMinZoom) / (markerScaleMaxZoom - globeMinZoom)
+  const t =
+    (zoom - markerScaleReferenceZoom) /
+    (markerScaleMaxZoom - markerScaleReferenceZoom)
   return markerMinScale + Math.min(Math.max(t, 0), 1) * (1 - markerMinScale)
 }
 
@@ -180,8 +213,24 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         style: mapStyle,
         center: viewport.center,
         zoom: viewport.zoom,
-        minZoom: globeMinZoom,
       })
+
+      const updateMinimumZoom = () => {
+        const minimumZoom = getResponsiveGlobeMinimumZoom(instance)
+        if (minimumZoom === null) return
+
+        instance.setMinZoom(minimumZoom)
+        if (instance.getZoom() < minimumZoom) {
+          instance.setZoom(minimumZoom)
+        }
+      }
+
+      updateMinimumZoom()
+      const resizeObserver =
+        typeof ResizeObserver === 'function'
+          ? new ResizeObserver(updateMinimumZoom)
+          : null
+      resizeObserver?.observe(mapContainer.current)
 
       const saveCurrentViewport = () => {
         const center = instance.getCenter()
@@ -230,6 +279,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         // around zoom 12, where globe curvature would otherwise hurt
         // precision — no manual zoom threshold needed here.
         instance.setProjection({ type: 'globe' })
+        applyCountryLabelOpacity(instance)
 
         instance.addSource(fogSourceId, {
           type: 'geojson',
@@ -279,6 +329,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       return () => {
         saveCurrentViewport()
+        resizeObserver?.disconnect()
         instance.off('moveend', saveCurrentViewport)
         instance.off('zoomend', saveCurrentViewport)
         applyExploredStatesRef.current = () => {}
