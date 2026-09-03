@@ -1,6 +1,7 @@
 import { forwardRef, StrictMode, useImperativeHandle } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { useLocation } from 'react-router'
 
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { saveMapViewport } from '@/lib/map-viewport'
@@ -26,8 +27,16 @@ vi.mock('@/components/MapCanvas', () => ({
       flyTo: () => void
       resetNorth: () => void
     },
-    { initialViewport?: unknown; userLocation?: [number, number] }
-  >(function MapCanvasMock({ initialViewport, userLocation }, _ref) {
+    {
+      initialViewport?: unknown
+      userLocation?: [number, number]
+      discoveries?: Array<{ id: number }>
+      onSelectDiscovery?: (id: number) => void
+    }
+  >(function MapCanvasMock(
+    { initialViewport, userLocation, discoveries, onSelectDiscovery },
+    _ref,
+  ) {
     useImperativeHandle(_ref, () => ({
       locate: locateMock,
       resize: vi.fn(),
@@ -38,6 +47,14 @@ vi.mock('@/components/MapCanvas', () => ({
       <div data-testid="map-canvas">
         {initialViewport ? JSON.stringify(initialViewport) : 'missing viewport'}
         {userLocation ? ` user-location:${JSON.stringify(userLocation)}` : ''}
+        {discoveries?.[0] && (
+          <button
+            type="button"
+            onClick={() => onSelectDiscovery?.(discoveries[0].id)}
+          >
+            Select map discovery
+          </button>
+        )}
       </div>
     )
   }),
@@ -53,6 +70,24 @@ afterEach(() => {
 })
 
 describe('MapPage location startup', () => {
+  it('opens a map discovery without a gallery carousel context', async () => {
+    renderWithProviders(
+      <>
+        <MapPage active />
+        <MapLocationProbe />
+      </>,
+      { route: '/' },
+    )
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select map discovery' }),
+    )
+
+    expect(screen.getByTestId('map-location-probe')).toHaveTextContent(
+      '"galleryIds":[1]',
+    )
+  })
+
   it('renders the map after the Strict Mode effect replay', async () => {
     isNativeAndroidMock.mockReturnValue(true)
     let resolvePosition: ((position: {
@@ -176,3 +211,14 @@ describe('MapPage location startup', () => {
     expect(locateMock).not.toHaveBeenCalled()
   })
 })
+
+function MapLocationProbe() {
+  const location = useLocation()
+
+  return (
+    <output data-testid="map-location-probe">
+      {location.pathname}
+      {JSON.stringify(location.state)}
+    </output>
+  )
+}

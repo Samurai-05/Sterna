@@ -173,11 +173,13 @@ export function MapPage({ active }: { active: boolean }) {
         state: {
           returnTo: '/',
           backgroundLocation: locationRef.current,
-          galleryIds: visibleDiscoveries.map((discovery) => discovery.id),
+          // A discovery opened from the map is a single-photo context. Only
+          // the Gallery supplies a multi-photo carousel.
+          galleryIds: [id],
           gallerySource: activeGroupId ? 'group' : 'personal',
         } satisfies DiscoveryRouteState,
       }),
-    [navigate, activeGroupId, visibleDiscoveries],
+    [navigate, activeGroupId],
   )
   const handleSelectLandmark = useCallback(
     (id: string) => navigate(`/landmarks/${id}`, { state: { from: 'map' } }),
