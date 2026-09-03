@@ -25,6 +25,11 @@ const {
     resetNorthPitchCalls: number
     setMinZoomCalls: number[]
     setZoomCalls: number[]
+    setPaintPropertyCalls: Array<{
+      layerId: string
+      property: string
+      value: unknown
+    }>
     cameraForBoundsCalls: Array<{ bounds: unknown; options: unknown }>
     cameraZoom: number
     container: { clientWidth: number; clientHeight: number }
@@ -81,6 +86,11 @@ const {
     resetNorthPitchCalls = 0
     setMinZoomCalls: number[] = []
     setZoomCalls: number[] = []
+    setPaintPropertyCalls: Array<{
+      layerId: string
+      property: string
+      value: unknown
+    }> = []
     cameraForBoundsCalls: Array<{ bounds: unknown; options: unknown }> = []
     cameraZoom = 1.3
     container = { clientWidth: 320, clientHeight: 640 }
@@ -121,7 +131,35 @@ const {
         layers: [
           { id: 'base-roads', type: 'line', 'source-layer': 'transportation' },
           { id: 'boundary_3', type: 'line', 'source-layer': 'boundary' },
-          { id: 'label_city', type: 'symbol' },
+          {
+            id: 'label_city',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'label_country_3',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'label_country_2',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'label_country_1',
+            type: 'symbol',
+            'source-layer': 'place',
+            layout: { 'text-field': ['get', 'name'] },
+          },
+          {
+            id: 'country-outline',
+            type: 'line',
+            'source-layer': 'boundary',
+          },
         ],
       }
     }
@@ -164,6 +202,11 @@ const {
     setZoom(zoom: number) {
       this.setZoomCalls.push(zoom)
       this.options.zoom = zoom
+      return this
+    }
+
+    setPaintProperty(layerId: string, property: string, value: unknown) {
+      this.setPaintPropertyCalls.push({ layerId, property, value })
       return this
     }
 
@@ -452,6 +495,35 @@ describe('MapCanvas', () => {
         }
       ).paint['fill-opacity'].slice(0, 3),
     ).toEqual(['interpolate', ['linear'], ['zoom']])
+  })
+
+  it('fades only country label layers based on globe zoom', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(<MapCanvas />)
+
+    act(() => mapInstances[0].emit('load'))
+
+    expect(mapInstances[0].setPaintPropertyCalls).toEqual([
+      {
+        layerId: 'label_country_3',
+        property: 'text-opacity',
+        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+      },
+      {
+        layerId: 'label_country_2',
+        property: 'text-opacity',
+        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+      },
+      {
+        layerId: 'label_country_1',
+        property: 'text-opacity',
+        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
+      },
+    ])
   })
 
   it('updates fog feature-state for personal, group, and disputed countries', () => {

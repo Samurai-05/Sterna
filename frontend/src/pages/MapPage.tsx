@@ -378,7 +378,7 @@ function ActiveMapSelector({
           id="active-map-menu"
           role="menu"
           aria-label="Choose active map"
-          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-40 max-h-[min(24rem,calc(100dvh-8rem))] overflow-y-auto rounded-2xl border border-border/80 bg-card/95 shadow-xl backdrop-blur"
+          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-40 max-h-[min(24rem,calc(100dvh-8rem))] overflow-y-auto rounded-2xl border border-border/80 bg-card/92 text-foreground shadow-xl backdrop-blur-md"
         >
           <MapMenuItem
             active={activeGroupId === null}

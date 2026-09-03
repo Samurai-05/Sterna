@@ -174,6 +174,14 @@ describe('map group selector', () => {
 
     const selector = await screen.findByRole('button', { name: /Active map/ })
     fireEvent.click(selector)
+    const menu = await screen.findByRole('menu', { name: 'Choose active map' })
+    expect(menu).toHaveClass(
+      'bg-card/92',
+      'backdrop-blur-md',
+      'border-border/80',
+      'shadow-xl',
+      'text-foreground',
+    )
     fireEvent.click(
       await screen.findByRole('menuitemradio', { name: 'Paris Weekend' }),
     )

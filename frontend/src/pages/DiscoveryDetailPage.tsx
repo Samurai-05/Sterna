@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, MoreHorizontal, Trash2 } from 'lucide-react'
+import { ArrowLeft, Check, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -605,6 +605,7 @@ export function DiscoveryDetailPage({
                     to={`/discoveries/${discovery.id}/edit`}
                     state={{ returnTo }}
                   >
+                    <Pencil className="size-4" />
                     Edit discovery
                   </Link>
                 </Button>
@@ -818,6 +819,7 @@ function DiscoveryPhotoZoom({
         carousel={{
           finite: true,
           imageFit: 'contain',
+          padding: 0,
           preload: 1,
         }}
         zoom={{

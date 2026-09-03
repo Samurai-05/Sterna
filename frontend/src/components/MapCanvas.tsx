@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { GeolocateControl, Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
+import type { ExpressionSpecification } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -33,6 +34,38 @@ import { cn } from '@/lib/utils'
 setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
+const countryLabelOpacityExpression: ExpressionSpecification = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  3.4,
+  0,
+  4.4,
+  1,
+]
+
+function applyCountryLabelOpacity(instance: Map): void {
+  for (const layer of instance.getStyle()?.layers ?? []) {
+    const isCountryLabel =
+      layer.type === 'symbol' &&
+      layer['source-layer'] === 'place' &&
+      layer.id.match(/(^|[-_])country([-_]|$)/i) &&
+      layer.layout?.['text-field']
+
+    if (!isCountryLabel) continue
+
+    try {
+      instance.setPaintProperty(
+        layer.id,
+        'text-opacity',
+        countryLabelOpacityExpression,
+      )
+    } catch {
+      // Leave style layers unchanged when text-opacity is not supported.
+    }
+  }
+}
+
 // Zoom level from which a marker is "close" enough that its photo pre-opens
 // above the pin instead of waiting for a tap. Below street level (~15) so the
 // photo shows up while still zooming in, not only once fully street-level.
@@ -246,6 +279,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         // around zoom 12, where globe curvature would otherwise hurt
         // precision — no manual zoom threshold needed here.
         instance.setProjection({ type: 'globe' })
+        applyCountryLabelOpacity(instance)
 
         instance.addSource(fogSourceId, {
           type: 'geojson',

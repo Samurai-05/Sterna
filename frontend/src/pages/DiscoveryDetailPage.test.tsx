@@ -58,7 +58,7 @@ vi.mock('yet-another-react-lightbox', () => ({
     render?: {
       slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
     }
-    carousel?: { preload?: number }
+    carousel?: { preload?: number; padding?: number }
     animation?: { fade?: number; swipe?: number }
     zoom?: {
       ref?: (value: { zoom: number } | null) => void
@@ -106,7 +106,7 @@ function InlineLightboxTestDouble({
   render?: {
     slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
   }
-  carousel?: { preload?: number }
+  carousel?: { preload?: number; padding?: number }
   animation?: { fade?: number; swipe?: number }
   zoom?: {
     ref?: (value: { zoom: number } | null) => void
@@ -135,6 +135,7 @@ function InlineLightboxTestDouble({
       data-inline-width={inline?.style?.width}
       data-inline-height={inline?.style?.height}
       data-carousel-preload={carousel?.preload}
+      data-carousel-padding={carousel?.padding}
       data-animation-fade={animation?.fade}
       data-animation-swipe={animation?.swipe}
       data-zoom-max-pixel-ratio={zoom?.maxZoomPixelRatio}
@@ -784,9 +785,11 @@ describe('DiscoveryDetailPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
 
-    expect(
-      screen.getByRole('menuitem', { name: 'Edit discovery' }),
-    ).toBeInTheDocument()
+    const editMenuItem = screen.getByRole('menuitem', {
+      name: 'Edit discovery',
+    })
+    expect(editMenuItem).toBeInTheDocument()
+    expect(editMenuItem.querySelector('svg')).toHaveClass('size-4')
     expect(
       screen.getByRole('menuitem', { name: 'Delete discovery' }),
     ).toBeInTheDocument()
@@ -814,6 +817,7 @@ describe('DiscoveryDetailPage', () => {
 
     expect(viewer).toHaveAttribute('data-inline-width', '100%')
     expect(viewer).toHaveAttribute('data-inline-height', '100%')
+    expect(viewer).toHaveAttribute('data-carousel-padding', '0')
     expect(viewer).toHaveClass('absolute', 'inset-0')
   })
 
