@@ -1,21 +1,21 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 import { POI_CATALOG } from '../pois/poi.catalog';
 
-/** Replaces the four prototype rows with one predefined POI per MVP country. */
-export class ReplaceMvpPois1787734648000 implements MigrationInterface {
-  name = 'ReplaceMvpPois1787734648000';
+/**
+ * Grows the catalogue from exactly one POI per MVP country (see
+ * ReplaceMvpPois) to up to five: generate-poi-catalog.mjs now also picks, in
+ * most-Wikidata-linked order, further distinct tourist-category places per
+ * country, so a well-documented country contributes more rows than a
+ * sparsely-documented one. Each country's original (slot 0) POI is
+ * unchanged — this only adds further rows.
+ */
+export class ExpandMvpPois1787734655000 implements MigrationInterface {
+  name = 'ExpandMvpPois1787734655000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // This imports the current POI_CATALOG, not a frozen snapshot, so a
-    // fresh environment runs this against whatever the catalogue looks
-    // like today — including the larger, multi-POI-per-country catalogue
-    // that ExpandMvpPois (a later migration) expects and re-seeds from.
-    // `< 195` (rather than the original `!== 195`) keeps this guard useful
-    // for catching a broken/incomplete generation without hard-failing a
-    // fresh install on that later growth.
     if (POI_CATALOG.length < 195) {
       throw new Error(
-        `The MVP POI catalogue must contain at least 195 rows.`,
+        `Expected at least 195 rows (one per MVP country), got ${POI_CATALOG.length}.`,
       );
     }
 

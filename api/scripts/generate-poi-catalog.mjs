@@ -38,9 +38,12 @@ async function countryCodes() {
   );
 
   // Wikidata models Denmark as a constituent country instead of an instance
-  // of "sovereign state". Taiwan and Kosovo are deliberately excluded from
+  // of "sovereign state", and (as of this writing) no longer satisfies both
+  // P31/P297 for Vatican City either — a live, editable dataset, so this
+  // drifts occasionally. Taiwan and Kosovo are deliberately excluded from
   // Sterna's agreed MVP scope: 193 UN members + Palestine + Vatican City.
   codes.add('DK');
+  codes.add('VA');
   codes.delete('TW');
   codes.delete('XK');
   return [...codes].sort();
@@ -141,26 +144,73 @@ const yearOverrides = { Q54495: 1932 };
 // The Wikidata-linked Commons file is sometimes missing, low resolution, or
 // not representative of the place (e.g. a detail shot instead of a full
 // view). Override with a better Commons filename (as used in the file's own
-// "Special:Redirect/file/<name>" URL) when one is identified.
+// "Special:Redirect/file/<name>" URL) when one is identified. Keyed by the
+// place's Wikidata QID (row[columns.id]) rather than country code, since a
+// country can now contribute more than one POI.
 const imageOverrides = {
-  // Wikidata-linked image was a close-up of a wall/relief detail, not the
-  // palace itself.
-  AZ: 'Palace_of_Shirvanshahs_common.JPG',
-  // Wikidata-linked image was obscured by foliage and a parked car.
-  BB: '161115_Nidhe_Israel_Synagogue.jpg',
-  // Wikidata-linked image was a 17th-century engraving, not a photo.
-  MZ: 'Les ruines du Fort de Sofala en 2018.jpg',
-  // Wikidata-linked image was a cluttered street scene (billboards, cars).
-  GM: 'Kanifing Pipeline mosque 2025 1A.jpg',
-  // Wikidata-linked image was a historical map, not a photo of the site.
-  ER: 'Adulis (8529061940).jpg',
-  // Wikidata-linked file ("Copy of IMG 1654.jpg") no longer exists on
-  // Commons — was a dead link.
-  KE: 'Mount Longonot in Kenya 01.jpg',
-  // Wikidata-linked image was low-resolution and had tourists in frame.
-  KH: 'Angkor Wat with its reflection (cropped).jpg',
-  // Wikidata-linked image was low-resolution (480x360).
-  PH: 'Crater Lake at the Mount Pinatubo Caldera in the Philippines.jpg',
+  // Palace of the Shirvanshahs (AZ): Wikidata-linked image was a close-up
+  // of a wall/relief detail, not the palace itself.
+  Q338889: 'Palace_of_Shirvanshahs_common.JPG',
+  // Nidhe Israel Synagogue (BB): Wikidata-linked image was obscured by
+  // foliage and a parked car.
+  Q2975704: '161115_Nidhe_Israel_Synagogue.jpg',
+  // Sofala (MZ): Wikidata-linked image was a 17th-century engraving, not a
+  // photo.
+  Q1361151: 'Les ruines du Fort de Sofala en 2018.jpg',
+  // Pipeline Mosque (GM): Wikidata-linked image was a cluttered street
+  // scene (billboards, cars).
+  Q1408792: 'Kanifing Pipeline mosque 2025 1A.jpg',
+  // Adulis (ER): Wikidata-linked image was a historical map, not a photo
+  // of the site.
+  Q378940: 'Adulis (8529061940).jpg',
+  // Mount Longonot (KE): Wikidata-linked file ("Copy of IMG 1654.jpg") no
+  // longer exists on Commons — was a dead link.
+  Q1520750: 'Mount Longonot in Kenya 01.jpg',
+  // Angkor Wat (KH): Wikidata-linked image was low-resolution and had
+  // tourists in frame.
+  Q43473: 'Angkor Wat with its reflection (cropped).jpg',
+  // Pinatubo (PH): Wikidata-linked image was low-resolution (480x360).
+  Q1451: 'Crater Lake at the Mount Pinatubo Caldera in the Philippines.jpg',
+  // Found while extending coverage to up to 5 POIs/country: heuristic scan
+  // (low resolution / non-photo Commons category) flagged these, verified
+  // visually against the best alternative Commons search turned up.
+  // Red Fort (IN): tagged under a national-flag photo category, not a full
+  // view of the fort.
+  Q45957: 'Red Fort in Delhi 03-2016 img3.jpg',
+  // Katla (IS): a low-resolution 1918 archival photo.
+  Q201914: 'Katla Volcano from the South.jpg',
+  // Avukana Buddha statue (LK): low resolution.
+  Q3491563: 'Avukana Buddha Statue 15.JPG',
+  // National Museum of Qatar (QA): Wikidata-linked file no longer exists on
+  // Commons — dead link.
+  Q3084218: 'National Museum of Qatar 11.jpg',
+  // Hegra (SA): Wikidata-linked file no longer exists on Commons — dead
+  // link.
+  Q27356: "27, Hegra (Mada'in Salih), Saudi Arabia.jpg",
+  // Fakr ad-Din Mosque (SO): Wikidata-linked image was an 1882 engraving,
+  // not a photo.
+  Q186169: 'Fakr-ad-din-mosque.jpg',
+  // Laetoli (TZ): low-resolution distant landscape; the footprints are the
+  // actual notable feature.
+  Q672146: 'Laetoli Footprints Site A (2).jpg',
+  // Niagara Falls (US): extreme aspect ratio (4:1 panorama) that would
+  // still crop heavily even against the app's clamped detail-page ratio.
+  Q34221: 'Horseshoe Falls (Niagara Falls).jpg',
+  // Mauna Kea (US): low resolution.
+  Q131230: 'Mauna Kea from the sky.jpg',
+  // Botanic Gardens St. Vincent (VC): showed a parrot instead of the
+  // gardens.
+  Q4948422:
+    'St. Vincent, Karibik - Botanical Garden of Kingstown - panoramio.jpg',
+  // Ngonye Falls (ZM): low resolution; an aerial shot is available.
+  Q1650303: 'Ngonye falls at Zambezi river, Zambia (aerial view).jpg',
+  // Great Zimbabwe (ZW): low-resolution close-up of one wall section.
+  Q209217: 'Great Zimbabwe - aerial view.jpg',
+  // Dharahara (NP): a low-resolution pre-1934 archival photo.
+  Q5269090: 'DHARAHARA TOWER.jpg',
+  // Mount Elgon (UG): Wikidata-linked image was a topographic map, not a
+  // photo.
+  Q732838: 'Mount Elgon-Wagagai.jpg',
 };
 
 function historicalDate(year) {
@@ -239,6 +289,13 @@ const columns = Object.fromEntries(
   source.columns.map((column, index) => [column, index]),
 );
 const codes = await countryCodes();
+// Every country's slot 0 is chosen exactly as before (override, then most
+// linked, then any-category/country-name fallback) so the existing 195
+// primary POIs — and the image fixes tied to them — do not change. Slots
+// 1..MAX_EXTRA_POIS_PER_COUNTRY-1 add further distinct, tourist-category
+// places per country, most-linked first, so a well-documented country
+// contributes more rows than a sparsely-documented one.
+const MAX_POIS_PER_COUNTRY = 5;
 const firstByCountry = new Map();
 const countryNameFallbacks = { NL: 'Netherlands' };
 const landmarkOverrides = {
@@ -315,7 +372,27 @@ if (codes.length !== 195 || missing.length) {
   );
 }
 
-const selectedRows = codes.map((code) => firstByCountry.get(code));
+// Beyond each country's slot 0 (picked above), add up to
+// MAX_POIS_PER_COUNTRY - 1 further distinct tourist-category places, in the
+// source's existing most-linked-first order. A country with fewer
+// qualifying places simply contributes fewer rows.
+const extraByCountry = new Map(codes.map((code) => [code, []]));
+for (const row of source.rows) {
+  const iso = row[columns.iso];
+  if (!codes.includes(iso)) continue;
+  if (!pointLikeCategories.has(row[columns.cat])) continue;
+  if (row === firstByCountry.get(iso)) continue;
+  const extras = extraByCountry.get(iso);
+  if (extras.length < MAX_POIS_PER_COUNTRY - 1) extras.push(row);
+}
+const rowsByCountry = new Map(
+  codes.map((code) => [
+    code,
+    [firstByCountry.get(code), ...extraByCountry.get(code)],
+  ]),
+);
+
+const selectedRows = codes.flatMap((code) => rowsByCountry.get(code));
 const entities = await wikidataEntities(
   selectedRows.map((row) => row[columns.id]),
 );
@@ -342,22 +419,24 @@ for (const entity of Object.values(entities)) {
 }
 const labels = await wikidataEntities([...linkedIds], 'labels');
 
-const pois = codes.map((countryCode) => {
-  const row = firstByCountry.get(countryCode);
-  const name = row[columns.name];
-  const entity = entities[row[columns.id]];
-  return {
-    countryCode,
-    title: name,
-    description: descriptionFor(row, entity, labels),
-    longitude: row[columns.lon],
-    latitude: row[columns.lat],
-    // Unlike row[columns.img] (already percent-encoded by the upstream
-    // dataset), imageOverrides holds plain Commons filenames and must be
-    // encoded here.
-    imageUrl: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${imageOverrides[countryCode] ? encodeURIComponent(imageOverrides[countryCode]) : row[columns.img]}?width=1600`,
-  };
-});
+const pois = codes.flatMap((countryCode) =>
+  rowsByCountry.get(countryCode).map((row) => {
+    const name = row[columns.name];
+    const qid = row[columns.id];
+    const entity = entities[qid];
+    return {
+      countryCode,
+      title: name,
+      description: descriptionFor(row, entity, labels),
+      longitude: row[columns.lon],
+      latitude: row[columns.lat],
+      // Unlike row[columns.img] (already percent-encoded by the upstream
+      // dataset), imageOverrides holds plain Commons filenames and must be
+      // encoded here.
+      imageUrl: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${imageOverrides[qid] ? encodeURIComponent(imageOverrides[qid]) : row[columns.img]}?width=1600`,
+    };
+  }),
+);
 
 const generated = `/**
  * Generated by scripts/generate-poi-catalog.mjs from Detourmap Places.
