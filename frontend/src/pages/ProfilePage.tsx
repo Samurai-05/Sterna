@@ -32,6 +32,13 @@ import {
   recentProfileDiscoveries,
   uniqueProfileDiscoveries,
 } from '@/lib/profile-analytics'
+import {
+  clearProfileCache,
+  readCachedDiscoveries,
+  readCachedPois,
+  writeCachedDiscoveries,
+  writeCachedPois,
+} from '@/lib/profile-cache'
 import { discoveries, landmarks } from '@/lib/mock-data'
 import { clearSession, loadSession, saveSession } from '@/lib/session'
 
@@ -44,6 +51,9 @@ export function ProfilePage() {
   const [deleteError, setDeleteError] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
   const accessToken = session?.accessToken
+  const userId = session?.user.id
+  const cachedDiscoveries = userId ? readCachedDiscoveries(userId) : null
+  const cachedPois = userId ? readCachedPois(userId) : null
 
   const { data: currentUser } = useQuery({
     queryKey: ['current-user', session?.accessToken],
@@ -56,9 +66,15 @@ export function ProfilePage() {
     isError: isDiscoveriesError,
     refetch: refetchDiscoveries,
   } = useQuery({
-    queryKey: ['discoveries', session?.user.id, 'authored'],
-    queryFn: () => getAuthoredDiscoveries(accessToken!),
-    enabled: Boolean(accessToken),
+    queryKey: ['discoveries', userId, 'authored'],
+    queryFn: async () => {
+      const freshDiscoveries = await getAuthoredDiscoveries(accessToken!)
+      if (userId) writeCachedDiscoveries(userId, freshDiscoveries)
+      return freshDiscoveries
+    },
+    enabled: Boolean(accessToken && userId),
+    initialData: cachedDiscoveries ?? undefined,
+    initialDataUpdatedAt: cachedDiscoveries ? 0 : undefined,
   })
   const {
     data: backendPois,
@@ -66,9 +82,15 @@ export function ProfilePage() {
     isError: isPoisError,
     refetch: refetchPois,
   } = useQuery({
-    queryKey: ['pois', session?.user.id, 'authored'],
-    queryFn: () => getAuthoredPois(accessToken!),
-    enabled: Boolean(accessToken),
+    queryKey: ['pois', userId, 'authored'],
+    queryFn: async () => {
+      const freshPois = await getAuthoredPois(accessToken!)
+      if (userId) writeCachedPois(userId, freshPois)
+      return freshPois
+    },
+    enabled: Boolean(accessToken && userId),
+    initialData: cachedPois ?? undefined,
+    initialDataUpdatedAt: cachedPois ? 0 : undefined,
     staleTime: 5 * 60 * 1000,
   })
 
@@ -95,9 +117,11 @@ export function ProfilePage() {
   const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
   const explorationMonths = explorationOverTime(profileDiscoveries)
   const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
-  const isDiscoveriesUnavailable = Boolean(accessToken && isDiscoveriesError)
+  const isDiscoveriesUnavailable = Boolean(
+    accessToken && isDiscoveriesError && !backendDiscoveries,
+  )
   const isPoisLoading = Boolean(accessToken && isPoisPending)
-  const isPoisUnavailable = Boolean(accessToken && isPoisError)
+  const isPoisUnavailable = Boolean(accessToken && isPoisError && !backendPois)
 
   useEffect(() => {
     if (!accessToken || !currentUser) return
@@ -114,6 +138,7 @@ export function ProfilePage() {
   }
 
   function handleLogout() {
+    if (userId) clearProfileCache(userId)
     clearSession()
     setSession(null)
     navigate('/auth', { replace: true })
@@ -128,6 +153,7 @@ export function ProfilePage() {
     try {
       setIsDeleting(true)
       await deleteAccount(accessToken, deletePassword)
+      if (userId) clearProfileCache(userId)
       clearSession()
       navigate('/auth', { replace: true })
     } catch (error) {

@@ -52,6 +52,17 @@ function makeDiscovery(
   }
 }
 
+function writeProfileCache<T>(
+  userId: string,
+  resource: 'discoveries' | 'pois',
+  data: T,
+) {
+  window.localStorage.setItem(
+    `sterna:profile:v1:${userId}:${resource}`,
+    JSON.stringify({ version: 1, data }),
+  )
+}
+
 describe('ProfilePage', () => {
   beforeEach(() => {
     saveSession({
@@ -113,6 +124,162 @@ describe('ProfilePage', () => {
     expect(countriesSection.queryByText('UNK')).not.toBeInTheDocument()
   })
 
+  it('renders cached profile data while the backend refresh is pending', () => {
+    const cachedDiscovery = makeDiscovery(1, 'FRA', 'Paris, France')
+    const cachedPoi = {
+      id: 'eiffel-tower',
+      name: 'Eiffel Tower',
+      city: 'Paris',
+      country: 'France',
+      imageId: 'photo-eiffel',
+      description: '',
+      discovered: true,
+      coordinates: [2.2945, 48.8584] as [number, number],
+    }
+    writeProfileCache('1', 'discoveries', [cachedDiscovery])
+    writeProfileCache('1', 'pois', [cachedPoi])
+    getAuthoredDiscoveriesMock.mockReturnValue(new Promise(() => {}))
+    getAuthoredPoisMock.mockReturnValue(new Promise(() => {}))
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      screen.getByRole('group', { name: 'Discoveries: 1' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'POIs: 1 of 1' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('listitem', { name: 'Landscape: 1 discovery' }),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText('France').length).toBeGreaterThan(0)
+    expect(
+      screen.queryByText('Exploration data is temporarily unavailable.'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('replaces cached profile data and updates the cache after a successful refresh', async () => {
+    const cachedDiscovery = makeDiscovery(1, 'FRA', 'Paris, France')
+    const freshDiscoveries = [
+      makeDiscovery(2, 'CHE', 'Bern, Switzerland'),
+      makeDiscovery(3, 'CHE', 'Zurich, Switzerland'),
+    ]
+    const cachedPoi = {
+      id: 'eiffel-tower',
+      name: 'Eiffel Tower',
+      city: 'Paris',
+      country: 'France',
+      imageId: 'photo-eiffel',
+      description: '',
+      discovered: true,
+      coordinates: [2.2945, 48.8584] as [number, number],
+    }
+    const freshPois = [
+      { ...cachedPoi, id: 'jet-d-eau', name: 'Jet d’eau', discovered: false },
+    ]
+    writeProfileCache('1', 'discoveries', [cachedDiscovery])
+    writeProfileCache('1', 'pois', [cachedPoi])
+    getAuthoredDiscoveriesMock.mockResolvedValue(freshDiscoveries)
+    getAuthoredPoisMock.mockResolvedValue(freshPois)
+
+    renderWithProviders(<ProfilePage />)
+
+    await screen.findByRole('group', { name: 'Discoveries: 2' })
+    expect(screen.getAllByText('Switzerland').length).toBeGreaterThan(0)
+    expect(screen.queryByText('France')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'POIs: 0 of 1' }),
+    ).toBeInTheDocument()
+    expect(
+      JSON.parse(
+        window.localStorage.getItem('sterna:profile:v1:1:discoveries')!,
+      ),
+    ).toEqual({ version: 1, data: freshDiscoveries })
+    expect(
+      JSON.parse(window.localStorage.getItem('sterna:profile:v1:1:pois')!),
+    ).toEqual({ version: 1, data: freshPois })
+  })
+
+  it('keeps cached profile data visible when the background refresh fails', async () => {
+    const cachedDiscovery = makeDiscovery(1, 'FRA', 'Paris, France')
+    const cachedPoi = {
+      id: 'eiffel-tower',
+      name: 'Eiffel Tower',
+      city: 'Paris',
+      country: 'France',
+      imageId: 'photo-eiffel',
+      description: '',
+      discovered: true,
+      coordinates: [2.2945, 48.8584] as [number, number],
+    }
+    writeProfileCache('1', 'discoveries', [cachedDiscovery])
+    writeProfileCache('1', 'pois', [cachedPoi])
+    getAuthoredDiscoveriesMock.mockRejectedValue(new Error('offline'))
+    getAuthoredPoisMock.mockRejectedValue(new Error('offline'))
+
+    renderWithProviders(<ProfilePage />)
+
+    await waitFor(() => {
+      expect(getAuthoredDiscoveriesMock).toHaveBeenCalledWith('test-token')
+      expect(getAuthoredPoisMock).toHaveBeenCalledWith('test-token')
+    })
+    expect(
+      screen.getByRole('group', { name: 'Discoveries: 1' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'POIs: 1 of 1' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Exploration data is temporarily unavailable.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        'Point of interest progress is temporarily unavailable.',
+      ),
+    ).not.toBeInTheDocument()
+  })
+
+  it('ignores corrupt cached profile data and falls back to the backend', async () => {
+    window.localStorage.setItem(
+      'sterna:profile:v1:1:discoveries',
+      '{not valid json',
+    )
+    getAuthoredDiscoveriesMock.mockResolvedValue([
+      makeDiscovery(1, 'CHE', 'Bern, Switzerland'),
+    ])
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByRole('group', { name: 'Discoveries: 1' }),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText('Switzerland').length).toBeGreaterThan(0)
+  })
+
+  it('never uses profile cache data belonging to another user', () => {
+    writeProfileCache('1', 'discoveries', [
+      makeDiscovery(1, 'FRA', 'Paris, France'),
+    ])
+    saveSession({
+      accessToken: 'other-token',
+      user: {
+        id: '2',
+        email: 'other@sterna.app',
+        userName: 'Other explorer',
+        avatarObjectKey: null,
+        createdAt: '2026-08-26T08:00:00.000Z',
+      },
+    })
+    getAuthoredDiscoveriesMock.mockReturnValue(new Promise(() => {}))
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      screen.getByRole('status', { name: 'Loading exploration map' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('France')).not.toBeInTheDocument()
+  })
+
   it('deletes the account and clears the session on confirmation', async () => {
     getAuthoredDiscoveriesMock.mockResolvedValue([])
     deleteAccountMock.mockResolvedValue(undefined)
@@ -156,6 +323,32 @@ describe('ProfilePage', () => {
 
     await screen.findByText('The current password is incorrect.')
     expect(loadSession()).not.toBeNull()
+  })
+
+  it('clears only the current user profile cache when logging out', async () => {
+    writeProfileCache('1', 'discoveries', [
+      makeDiscovery(1, 'FRA', 'Paris, France'),
+    ])
+    writeProfileCache('1', 'pois', [])
+    writeProfileCache('2', 'discoveries', [
+      makeDiscovery(2, 'CHE', 'Bern, Switzerland'),
+    ])
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Open account settings' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
+
+    expect(
+      window.localStorage.getItem('sterna:profile:v1:1:discoveries'),
+    ).toBeNull()
+    expect(window.localStorage.getItem('sterna:profile:v1:1:pois')).toBeNull()
+    expect(
+      window.localStorage.getItem('sterna:profile:v1:2:discoveries'),
+    ).not.toBeNull()
   })
 
   it('shows the account photo instead of the initial once it loads', async () => {
