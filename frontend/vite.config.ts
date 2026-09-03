@@ -1,7 +1,9 @@
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
+import { normalizePath } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { defineConfig } from 'vitest/config'
 
 const localApiProxyTarget = 'http://localhost:3000'
@@ -24,12 +26,44 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: normalizePath(
+            fileURLToPath(
+              new URL(
+                './node_modules/flag-icons/flags/4x3/*.svg',
+                import.meta.url,
+              ),
+            ),
+          ),
+          dest: 'country-flags',
+          rename: { stripBase: true },
+        },
+      ],
+    }),
     ...(mode === 'android'
       ? []
       : [
           VitePWA({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.svg'],
+            workbox: {
+              globIgnores: ['**/country-flags/*.svg'],
+              runtimeCaching: [
+                {
+                  urlPattern: /\/country-flags\/[^/]+\.svg$/,
+                  handler: 'CacheFirst',
+                  options: {
+                    cacheName: 'country-flags',
+                    expiration: {
+                      maxEntries: 32,
+                      maxAgeSeconds: 60 * 60 * 24 * 365,
+                    },
+                  },
+                },
+              ],
+            },
             manifest: {
               name: 'Sterna',
               short_name: 'Sterna',

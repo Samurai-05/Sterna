@@ -224,6 +224,25 @@ const countryNamesByCode: Record<string, string> = {
 
 export const COUNTRY_COUNT = Object.keys(countryNamesByCode).length
 
+const countryFlagCodeByA3 = new Map(
+  'AFG=AF,AGO=AO,ALA=AX,ALB=AL,AND=AD,ARE=AE,ARG=AR,ARM=AM,ASM=AS,ATA=AQ,ATF=TF,ATG=AG,AUS=AU,AUT=AT,AZE=AZ,BDI=BI,BEL=BE,BEN=BJ,BES=BQ,BFA=BF,BGD=BD,BGR=BG,BHR=BH,BHS=BS,BIH=BA,BLR=BY,BLZ=BZ,BOL=BO,BRA=BR,BRB=BB,BRN=BN,BTN=BT,BWA=BW,CAF=CF,CAN=CA,CHE=CH,CHL=CL,CHN=CN,CIV=CI,CMR=CM,COD=CD,COG=CG,COL=CO,COM=KM,CPV=CV,CRI=CR,CUB=CU,CUW=CW,CXR=CX,CYP=CY,CZE=CZ,DEU=DE,DJI=DJ,DMA=DM,DNK=DK,DOM=DO,DZA=DZ,ECU=EC,EGY=EG,ERI=ER,ESH=EH,ESP=ES,EST=EE,ETH=ET,FIN=FI,FJI=FJ,FLK=FK,FRA=FR,FRO=FO,FSM=FM,GAB=GA,GBR=GB,GEO=GE,GHA=GH,GIN=GN,GLP=GP,GMB=GM,GNB=GW,GNQ=GQ,GRC=GR,GRD=GD,GRL=GL,GTM=GT,GUM=GU,GUY=GY,HKG=HK,HMD=HM,HND=HN,HRV=HR,HTI=HT,HUN=HU,IDN=ID,IMN=IM,IND=IN,IRL=IE,IRN=IR,IRQ=IQ,ISL=IS,ISR=IL,ITA=IT,JAM=JM,JOR=JO,JPN=JP,KAZ=KZ,KEN=KE,KGZ=KG,KHM=KH,KIR=KI,KOR=KR,KWT=KW,LAO=LA,LBN=LB,LBR=LR,LBY=LY,LCA=LC,LIE=LI,LKA=LK,LSO=LS,LTU=LT,LUX=LU,LVA=LV,MAF=MF,MAR=MA,MDA=MD,MDG=MG,MEX=MX,MHL=MH,MKD=MK,MLI=ML,MLT=MT,MMR=MM,MNE=ME,MNG=MN,MNP=MP,MOZ=MZ,MRT=MR,MTQ=MQ,MUS=MU,MWI=MW,MYS=MY,MYT=YT,NAM=NA,NCL=NC,NER=NE,NGA=NG,NIC=NI,NIU=NU,NLD=NL,NOR=NO,NPL=NP,NZL=NZ,OMN=OM,PAK=PK,PAN=PA,PER=PE,PHL=PH,PLW=PW,PNG=PG,POL=PL,PRI=PR,PRK=KP,PRT=PT,PRY=PY,PSE=PS,PYF=PF,QAT=QA,REU=RE,ROU=RO,RUS=RU,RWA=RW,SAU=SA,SDN=SD,SEN=SN,SGP=SG,SGS=GS,SJM=SJ,SLB=SB,SLE=SL,SLV=SV,SOM=SO,SRB=RS,SSD=SS,STP=ST,SUR=SR,SVK=SK,SVN=SI,SWE=SE,SWZ=SZ,SXM=SX,SYC=SC,SYR=SY,TCA=TC,TCD=TD,TGO=TG,THA=TH,TJK=TJ,TKM=TM,TLS=TL,TON=TO,TTO=TT,TUN=TN,TUR=TR,TWN=TW,TZA=TZ,UGA=UG,UKR=UA,URY=UY,USA=US,UZB=UZ,VCT=VC,VEN=VE,VNM=VN,VUT=VU,WSM=WS,XKX=XK,XWS=EH,YEM=YE,ZAF=ZA,ZMB=ZM,ZWE=ZW'
+    .split(',')
+    .map((entry) => entry.split('=') as [string, string]),
+)
+
+// Sterna's map contains two non-standard A3 identifiers whose matching
+// regional-indicator flags are nevertheless available. Crimea deliberately
+// keeps the neutral fallback because it has no ISO 3166 country flag.
+export function getCountryFlagCode(countryCode?: string | null): string | null {
+  const normalizedCode = countryCode?.trim().toUpperCase()
+  const alpha2 = normalizedCode
+    ? countryFlagCodeByA3.get(normalizedCode)
+    : undefined
+
+  if (!alpha2) return null
+  return alpha2.toLowerCase()
+}
+
 /**
  * Country codes come from PostGIS now (issue #59 / ADR-005 —
  * DiscoveriesService resolves them at write time), so this file is just the

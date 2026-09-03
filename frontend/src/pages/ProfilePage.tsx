@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { PasswordInput } from '@/components/auth/PasswordInput'
+import { CountryFlag } from '@/components/CountryFlag'
 import { ProfileCategoryBreakdown } from '@/components/ProfileCategoryBreakdown'
 import { ProfileDiscoveryCard } from '@/components/ProfileDiscoveryCard'
 import { ProfileExplorationOverTime } from '@/components/ProfileExplorationOverTime'
@@ -85,9 +86,11 @@ export function ProfilePage() {
   const profileDiscoveries = uniqueProfileDiscoveries(sourceDiscoveries)
   const exploredCodes = exploredCountryCodes(profileDiscoveries)
   const exploredCountries = exploredCodes
-    .map((countryCode) => getCountryName(countryCode))
-    .filter((country): country is string => Boolean(country))
-    .sort((a, b) => a.localeCompare(b))
+    .flatMap((code) => {
+      const name = getCountryName(code)
+      return name ? [{ code, name }] : []
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
   const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
   const explorationMonths = explorationOverTime(profileDiscoveries)
   const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
@@ -248,12 +251,11 @@ export function ProfilePage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 {exploredCountries.length ? (
                   exploredCountries.map((country) => (
-                    <span
-                      key={country}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium leading-4"
-                    >
-                      {country}
-                    </span>
+                    <CountryFlag
+                      key={country.code}
+                      countryCode={country.code}
+                      countryName={country.name}
+                    />
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground">
