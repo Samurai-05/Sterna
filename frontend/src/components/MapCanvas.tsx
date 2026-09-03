@@ -41,12 +41,6 @@ import {
   getVisibleLandmarks,
   isCoordinateInMapViewport,
 } from '@/lib/map-markers'
-import {
-  CONNECTOR_MIN_OFFSET_PX,
-  resolveMarkerCollision,
-  type CollisionCircle,
-  type MarkerOffset,
-} from '@/lib/map-marker-collision'
 import { type DiscoveryCategory } from '@/lib/mock-data'
 import {
   fogColor,
@@ -103,8 +97,6 @@ const markerScaleReferenceZoom = 1.5
 // pins, reaching full size by the time browsing a single country.
 const markerMinScale = 0.35
 const markerScaleMaxZoom = 6
-const poiMarkerVisualSize = 44
-const clusterStackVisualSize = 56
 
 function poiMarkerScaleForZoom(zoom: number): number {
   const t =
@@ -182,8 +174,6 @@ interface LandmarkMarkerEntry {
   marker: Marker
   root: Root
   scaledElement: { current: HTMLElement | null }
-  connectorElement: { current: HTMLSpanElement | null }
-  collisionOffset: MarkerOffset
 }
 
 interface ClusterFeature {
@@ -252,23 +242,6 @@ function clusterVisualSize(pointCount: number): number {
   if (pointCount >= 100) return 38
   if (pointCount >= 10) return 34
   return 30
-}
-
-function applyPoiConnector(
-  connector: HTMLSpanElement | null,
-  offset: MarkerOffset,
-): void {
-  if (!connector) return
-
-  const magnitude = Math.hypot(offset.x, offset.y)
-  connector.style.display = magnitude >= CONNECTOR_MIN_OFFSET_PX ? '' : 'none'
-  if (magnitude < CONNECTOR_MIN_OFFSET_PX) {
-    connector.style.width = '0px'
-    return
-  }
-
-  connector.style.width = `${magnitude}px`
-  connector.style.transform = `rotate(${(Math.atan2(-offset.y, -offset.x) * 180) / Math.PI}deg)`
 }
 
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
@@ -363,7 +336,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         if (instance.getZoom() < minimumZoom) {
           instance.setZoom(minimumZoom)
         }
-        syncSpatialRef.current?.()
       }
 
       updateMinimumZoom()
@@ -569,7 +541,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       const createLandmarkMarker = (landmark: LandmarkMarkerData) => {
         const el = document.createElement('div')
-        el.style.zIndex = '1'
         const root = createRoot(el)
         const markerImage = getPoiImageUrl(
           landmark.imageUrl,
@@ -579,14 +550,11 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const scaledElement: { current: HTMLElement | null } = {
           current: null,
         }
-        const connectorElement: { current: HTMLSpanElement | null } = {
-          current: null,
-        }
         root.render(
           <button
             type="button"
             aria-label={`View ${landmark.name}`}
-            className="relative size-11 overflow-visible"
+            className="relative size-11"
             onClick={() => onSelectLandmarkRef.current?.(landmark.id)}
           >
             <span
@@ -596,7 +564,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
                 scaledElement.current = node
                 scaledMarkerElements.add(node)
               }}
-              className={`absolute inset-0 z-10 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
+              className={`absolute inset-0 overflow-hidden rounded-full border-2 shadow-lg ${landmark.discovered ? 'border-[#EAB308]' : 'border-white bg-stone-400 grayscale'}`}
             >
               <img
                 src={markerImage}
@@ -610,15 +578,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
                 className={`relative size-full object-cover ${landmark.discovered ? '' : 'opacity-70'}`}
               />
             </span>
-            <span
-              ref={(node) => {
-                connectorElement.current = node
-              }}
-              data-poi-connector=""
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 z-0 block h-px origin-left bg-[#6F6A64]/40"
-              style={{ display: 'none' }}
-            />
             <span className="sr-only">
               {landmark.discovered ? 'Discovered' : 'Undiscovered'}
             </span>
@@ -635,8 +594,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           marker,
           root,
           scaledElement,
-          connectorElement,
-          collisionOffset: { x: 0, y: 0 },
         })
       }
 
@@ -694,13 +651,11 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             }
           }
         }
-        scheduleDiscoverySpatialSync()
       }
 
       const createDiscoveryMarker = (discovery: DiscoveryMarkerData) => {
         const markerHost = document.createElement('div')
         markerHost.style.display = 'none'
-        markerHost.style.zIndex = '2'
 
         const button = document.createElement('button')
         button.type = 'button'
@@ -820,7 +775,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             entry.photoState = 'loaded'
             entry.photoLayer.style.backgroundImage = `url("${objectUrl}")`
             applyDiscoveryMarkerVisual(entry, instance.getZoom())
-            scheduleDiscoverySpatialSync()
           })
           .catch(() => {
             if (
@@ -839,7 +793,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             entry.photoState = 'error'
             entry.photoLayer.style.backgroundImage = ''
             applyDiscoveryMarkerVisual(entry, instance.getZoom())
-            scheduleDiscoverySpatialSync()
           })
       }
 
@@ -1084,7 +1037,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         feature: ClusterFeature,
       ): ClusterMarkerEntry => {
         const markerHost = document.createElement('div')
-        markerHost.style.zIndex = '2'
         const button = document.createElement('button')
         button.type = 'button'
         button.className = 'relative size-14'
@@ -1198,7 +1150,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             ) {
               loadStackRepresentative(source, clusterId, entry, currentGen)
             }
-            scheduleDiscoverySpatialSync()
           })
           .catch(() => {})
       }
@@ -1268,80 +1219,11 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
       }
 
-      const syncPoiCollisionOffsets = () => {
-        const container = instance.getContainer()
-        const viewport = {
-          width: container.clientWidth,
-          height: container.clientHeight,
-        }
-        const zoom = instance.getZoom()
-        const occupied: CollisionCircle[] = []
-
-        for (const entry of discoveryMarkers.values()) {
-          if (entry.markerHost.style.display === 'none') continue
-          const visual = getDiscoveryMarkerVisual(
-            zoom,
-            entry.photoState === 'loaded',
-          )
-          if (visual.domOpacity <= 0) continue
-          const center = instance.project(entry.discovery.coordinates)
-          occupied.push({
-            x: center.x,
-            y: center.y,
-            radius: visual.size / 2,
-          })
-        }
-
-        for (const entry of clusterMarkers.values()) {
-          const center = instance.project(entry.coordinates)
-          const size = entry.isStack
-            ? clusterStackVisualSize
-            : clusterVisualSize(entry.pointCount)
-          occupied.push({ x: center.x, y: center.y, radius: size / 2 })
-        }
-
-        const poiScale = poiMarkerScaleForZoom(zoom)
-        for (const entry of landmarkMarkers.values()) {
-          const center = instance.project(entry.data.coordinates)
-          const offset = resolveMarkerCollision(
-            {
-              x: center.x,
-              y: center.y,
-              radius: (poiMarkerVisualSize * poiScale) / 2,
-            },
-            occupied,
-            viewport,
-          )
-
-          if (
-            Math.abs(offset.x - entry.collisionOffset.x) > 0.01 ||
-            Math.abs(offset.y - entry.collisionOffset.y) > 0.01
-          ) {
-            entry.collisionOffset = offset
-            entry.marker.setOffset([offset.x, offset.y])
-          }
-          applyPoiConnector(entry.connectorElement.current, offset)
-
-          if (Math.hypot(offset.x, offset.y) > 0.01) {
-            occupied.push({
-              x: center.x + offset.x,
-              y: center.y + offset.y,
-              radius: (poiMarkerVisualSize * poiScale) / 2,
-            })
-          }
-        }
-      }
-
-      const syncSpatialState = () => {
-        syncDiscoverySpatialState()
-        syncPoiCollisionOffsets()
-      }
-
       const scheduleDiscoverySpatialSync = () => {
         if (spatialFrame !== null) return
         spatialFrame = requestAnimationFrame(() => {
           spatialFrame = null
-          syncSpatialState()
+          syncDiscoverySpatialState()
         })
       }
 
