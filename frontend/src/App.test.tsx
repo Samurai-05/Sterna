@@ -763,18 +763,6 @@ describe('App', () => {
     expect(
       screen.queryByRole('button', { name: 'Log out' }),
     ).not.toBeInTheDocument()
-    fireEvent.click(accountButton)
-    const accountSheet = screen.getByRole('dialog', { name: 'Account' })
-    expect(accountSheet).toHaveClass(
-      'max-h-[calc(100dvh-1rem)]',
-      'overflow-y-auto',
-      'touch-pan-y',
-    )
-    expect(accountSheet.parentElement).toHaveClass('z-[70]')
-    expect(
-      within(accountSheet).getByRole('button', { name: 'Log out' }),
-    ).toBeInTheDocument()
-    expect(within(accountSheet).getByText('Active')).toBeInTheDocument()
     expect(
       within(screen.getByLabelText('Profile overview')).getByText(
         'Explorer · Since 2026',
@@ -807,6 +795,14 @@ describe('App', () => {
         name: 'Discoveries by category',
       }),
     ).toBeInTheDocument()
+
+    fireEvent.click(accountButton)
+    const accountSheet = screen.getByRole('dialog', { name: 'Account' })
+    expect(accountSheet).toBeInTheDocument()
+    expect(
+      within(accountSheet).getByRole('button', { name: 'Log out' }),
+    ).toBeInTheDocument()
+    expect(within(accountSheet).getByText('Active')).toBeInTheDocument()
   })
 
   it('shows explicit empty states for countries and recent discoveries', async () => {

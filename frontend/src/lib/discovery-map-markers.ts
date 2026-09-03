@@ -5,11 +5,13 @@ export const DISCOVERY_SOURCE_ID = 'sterna-discoveries'
 export const DISCOVERY_DOT_LAYER_ID = 'sterna-discovery-dots'
 
 export const DISCOVERY_CLUSTER_RADIUS = 40
-export const DISCOVERY_CLUSTER_MAX_ZOOM = 18
+export const DISCOVERY_SOURCE_MAX_ZOOM = 22
+export const DISCOVERY_CLUSTER_MAX_ZOOM = 21
 
 export const DISCOVERY_DOT_END_ZOOM = 4.2
 export const DISCOVERY_BADGE_FULL_ZOOM = 5.2
 export const DISCOVERY_MARKER_FULL_ZOOM = 7
+export const DISCOVERY_PHOTO_PRELOAD_ZOOM = 10.8
 export const DISCOVERY_PHOTO_MORPH_START_ZOOM = 11.5
 export const DISCOVERY_PHOTO_FULL_ZOOM = 12.8
 
@@ -113,7 +115,10 @@ export interface DiscoveryMarkerVisual {
   borderWidth: number
 }
 
-export function getDiscoveryMarkerVisual(zoom: number): DiscoveryMarkerVisual {
+export function getDiscoveryMarkerVisual(
+  zoom: number,
+  photoReady = true,
+): DiscoveryMarkerVisual {
   const badgeT = progress(
     zoom,
     DISCOVERY_DOT_END_ZOOM,
@@ -136,13 +141,15 @@ export function getDiscoveryMarkerVisual(zoom: number): DiscoveryMarkerVisual {
       : lerp(DISCOVERY_BADGE_SIZE, DISCOVERY_MARKER_SIZE, markerT)
   const size = lerp(categorySize, DISCOVERY_PHOTO_SIZE, photoT)
 
+  const effectivePhotoT = photoReady ? photoT : 0
+
   return {
     domOpacity: badgeT,
     size,
     borderRadius: lerp(DISCOVERY_MARKER_SIZE / 2, 12, photoT),
-    iconOpacity: badgeT * (1 - photoT),
-    colorOpacity: 1 - photoT,
-    photoOpacity: photoT,
+    iconOpacity: badgeT * (1 - effectivePhotoT),
+    colorOpacity: 1 - effectivePhotoT,
+    photoOpacity: effectivePhotoT,
     borderWidth: lerp(1.5, 2, photoT),
   }
 }

@@ -33,6 +33,21 @@ describe('ProfileDiscoveryCard', () => {
     expect(container.querySelector('img')).toHaveAttribute('alt', '')
   })
 
+  it('displays discoveredAt when present instead of createdAt', () => {
+    renderWithProviders(
+      <ProfileDiscoveryCard
+        discovery={{
+          ...discovery,
+          createdAt: '2026-09-03T00:00:00.000Z',
+          discoveredAt: '2026-07-10T00:00:00.000Z',
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Jul 10, 2026')).toBeInTheDocument()
+    expect(screen.queryByText('Sep 3, 2026')).not.toBeInTheDocument()
+  })
+
   it('omits the date when the current API timestamp is unavailable', () => {
     renderWithProviders(
       <ProfileDiscoveryCard

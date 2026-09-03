@@ -1,18 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { mapExploredCountryCodes } from '@/lib/profile-analytics'
-
-const MAP_WIDTH = 1000
-const MAP_HEIGHT = 500
-const MAP_PADDING = 12
-
-type Coordinate = [number, number]
+import {
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  projectCountryGeometry,
+  type CountryGeometry,
+} from '@/lib/profile-world-map'
 
 type CountryFeature = {
   properties?: { A3?: string }
-  geometry?:
-    | { type: 'Polygon'; coordinates: Coordinate[][] }
-    | { type: 'MultiPolygon'; coordinates: Coordinate[][][] }
+  geometry?: CountryGeometry
 }
 
 type CountryCollection = { features?: CountryFeature[] }
@@ -111,6 +109,7 @@ export function ProfileWorldMap({
             data-testid={`profile-country-${country.code}`}
             d={country.path}
             fill={explored.has(country.code) ? '#2D5A3D' : '#E8E3D9'}
+            fillRule="evenodd"
             stroke="#D4CEC4"
             strokeWidth="1.2"
             strokeLinejoin="round"
@@ -133,33 +132,9 @@ function prepareCountries(features: CountryFeature[]): PreparedCountry[] {
     return [
       {
         code,
-        path: geometryPath(country.geometry),
+        path: projectCountryGeometry(country.geometry),
         key: `${code}-${index}`,
       },
     ]
   })
-}
-
-function geometryPath(
-  geometry: Exclude<CountryFeature['geometry'], undefined>,
-): string {
-  const rings =
-    geometry.type === 'Polygon'
-      ? geometry.coordinates
-      : geometry.coordinates.flat()
-
-  return rings.map(ringPath).join(' ')
-}
-
-function ringPath(ring: Coordinate[]): string {
-  return ring
-    .map(([longitude, latitude], index) => {
-      const x =
-        MAP_PADDING + ((longitude + 180) / 360) * (MAP_WIDTH - MAP_PADDING * 2)
-      const y =
-        MAP_PADDING + ((90 - latitude) / 180) * (MAP_HEIGHT - MAP_PADDING * 2)
-      return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`
-    })
-    .concat('Z')
-    .join(' ')
 }

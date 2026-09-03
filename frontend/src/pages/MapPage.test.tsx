@@ -90,10 +90,12 @@ describe('MapPage location startup', () => {
 
   it('renders the map after the Strict Mode effect replay', async () => {
     isNativeAndroidMock.mockReturnValue(true)
-    let resolvePosition: ((position: {
-      timestamp: number
-      coords: { latitude: number; longitude: number }
-    }) => void) | undefined
+    let resolvePosition:
+      | ((position: {
+          timestamp: number
+          coords: { latitude: number; longitude: number }
+        }) => void)
+      | undefined
     getCurrentDevicePositionMock.mockReturnValue(
       new Promise((resolve) => {
         resolvePosition = resolve

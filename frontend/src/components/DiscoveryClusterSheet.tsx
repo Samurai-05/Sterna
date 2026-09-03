@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
 import {
@@ -28,12 +28,37 @@ function ClusterSheetPhoto({
   photoAccessToken?: string
 }) {
   const [source, setSource] = useState<string | null>(null)
+  const [isNearViewport, setIsNearViewport] = useState(
+    () => typeof IntersectionObserver === 'undefined',
+  )
+  const containerRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    if (isNearViewport) return
+    if (typeof IntersectionObserver === 'undefined') return
+    const element = containerRef.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setIsNearViewport(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '200px' },
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [isNearViewport])
 
   useEffect(() => {
     let active = true
     let objectUrl: string | undefined
 
-    if (!photoAccessToken || !discovery.imageObjectKey) return
+    if (!isNearViewport || !photoAccessToken || !discovery.imageObjectKey)
+      return
 
     void getPhoto(photoAccessToken, discovery.imageObjectKey, 'card')
       .then(async (blob) => {
@@ -62,28 +87,28 @@ function ClusterSheetPhoto({
       active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [discovery.imageObjectKey, photoAccessToken])
-
-  if (source) {
-    return (
-      <img
-        src={source}
-        alt=""
-        className="aspect-square w-full rounded-xl object-cover"
-      />
-    )
-  }
+  }, [discovery.imageObjectKey, isNearViewport, photoAccessToken])
 
   return (
-    <span
-      aria-hidden="true"
-      className="flex aspect-square w-full items-center justify-center rounded-xl"
-      style={{ backgroundColor: getDiscoveryMapColor(discovery.category) }}
-    >
-      <CategoryIcon
-        category={discovery.category}
-        className="size-8 text-white"
-      />
+    <span ref={containerRef} className="block aspect-square w-full">
+      {source ? (
+        <img
+          src={source}
+          alt=""
+          className="size-full rounded-xl object-cover"
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className="flex size-full items-center justify-center rounded-xl"
+          style={{ backgroundColor: getDiscoveryMapColor(discovery.category) }}
+        >
+          <CategoryIcon
+            category={discovery.category}
+            className="size-8 text-white"
+          />
+        </span>
+      )}
     </span>
   )
 }

@@ -15,6 +15,7 @@ function makeDiscovery(
   countryCode: string,
   createdAt?: string,
   category: Discovery['category'] = 'landscape',
+  discoveredAt?: string,
 ): Discovery {
   return {
     id,
@@ -29,6 +30,7 @@ function makeDiscovery(
     coordinates: [0, 0],
     countryCode,
     ...(createdAt ? { createdAt } : {}),
+    ...(discoveredAt ? { discoveredAt } : {}),
   }
 }
 
@@ -56,15 +58,62 @@ describe('profile analytics', () => {
     expect(mapExploredCountryCodes(['UKR'])).toEqual(['UKR', 'XCR'])
   })
 
-  it('orders recent discoveries and the timeline by the current createdAt field', () => {
-    const old = makeDiscovery(1, 'FRA', '2026-07-01T00:00:00.000Z')
-    const recent = makeDiscovery(2, 'CHE', '2026-09-01T00:00:00.000Z')
+  it('A: counts July when createdAt = September and discoveredAt = July in explorationOverTime', () => {
+    const discovery = makeDiscovery(
+      1,
+      'FRA',
+      '2026-09-03T10:00:00.000Z',
+      'landscape',
+      '2026-07-10T14:30:00.000Z',
+    )
+
+    const timeline = explorationOverTime(
+      [discovery],
+      new Date('2026-09-15T12:00:00.000Z'),
+    )
+
+    expect(timeline.find((m) => m.key === '2026-07')?.count).toBe(1)
+    expect(timeline.find((m) => m.key === '2026-09')?.count).toBe(0)
+  })
+
+  it('B: sorts Recent discoveries by discoveredAt even when most recently created has oldest discoveredAt', () => {
+    const olderCreationNewerDiscovery = makeDiscovery(
+      1,
+      'FRA',
+      '2026-08-01T00:00:00.000Z',
+      'landscape',
+      '2026-08-15T00:00:00.000Z',
+    )
+    const newerCreationOlderDiscovery = makeDiscovery(
+      2,
+      'CHE',
+      '2026-09-03T00:00:00.000Z',
+      'landscape',
+      '2026-07-10T00:00:00.000Z',
+    )
+
+    const recent = recentProfileDiscoveries([
+      olderCreationNewerDiscovery,
+      newerCreationOlderDiscovery,
+    ])
+
+    expect(recent.map((d) => d.id)).toEqual([1, 2])
+  })
+
+  it('C: safely falls back to createdAt for legacy Discovery without discoveredAt', () => {
+    const legacyOld = makeDiscovery(1, 'FRA', '2026-07-01T00:00:00.000Z')
+    const legacyRecent = makeDiscovery(2, 'CHE', '2026-09-01T00:00:00.000Z')
 
     expect(
-      recentProfileDiscoveries([old, recent]).map((item) => item.id),
+      recentProfileDiscoveries([legacyOld, legacyRecent]).map(
+        (item) => item.id,
+      ),
     ).toEqual([2, 1])
     expect(
-      explorationOverTime([old, recent], new Date('2026-09-15T12:00:00.000Z')),
+      explorationOverTime(
+        [legacyOld, legacyRecent],
+        new Date('2026-09-15T12:00:00.000Z'),
+      ),
     ).toEqual([
       { key: '2026-04', label: 'Apr', count: 0 },
       { key: '2026-05', label: 'May', count: 0 },

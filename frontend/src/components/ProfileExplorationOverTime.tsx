@@ -5,18 +5,20 @@ const CHART = { left: 28, right: 304, top: 16, bottom: 118 }
 export function ProfileExplorationOverTime({
   months,
 }: {
-  months: ProfileExplorationMonth[]
+  months: ProfileExplorationMonth[] | null
 }) {
-  const maximum = Math.max(...months.map((month) => month.count), 1)
-  const points = months.map((month, index) => ({
+  const isLoading = months === null
+  const safeMonths = months ?? []
+  const maximum = Math.max(...safeMonths.map((month) => month.count), 1)
+  const points = safeMonths.map((month, index) => ({
     ...month,
     x:
       CHART.left +
-      (index * (CHART.right - CHART.left)) / Math.max(months.length - 1, 1),
+      (index * (CHART.right - CHART.left)) / Math.max(safeMonths.length - 1, 1),
     y: CHART.bottom - (month.count / maximum) * (CHART.bottom - CHART.top),
   }))
   const pointString = points.map((point) => `${point.x},${point.y}`).join(' ')
-  const hasActivity = months.some((month) => month.count > 0)
+  const hasActivity = safeMonths.some((month) => month.count > 0)
 
   return (
     <section aria-labelledby="exploration-over-time-heading">
@@ -24,7 +26,11 @@ export function ProfileExplorationOverTime({
         Exploration over time
       </h2>
       <div className="mt-4 rounded-2xl border border-border bg-card p-4">
-        {hasActivity ? (
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground" role="status">
+            Loading exploration over time…
+          </p>
+        ) : hasActivity ? (
           <svg
             viewBox="0 0 320 156"
             role="img"

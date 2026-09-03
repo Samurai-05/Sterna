@@ -250,4 +250,79 @@ describe('ProfilePage', () => {
       screen.getByText('Country data is temporarily unavailable.'),
     ).toBeInTheDocument()
   })
+
+  it('does not render false empty states while discoveries are loading', async () => {
+    getAuthoredDiscoveriesMock.mockReturnValue(new Promise(() => {}))
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      screen.getByRole('status', { name: 'Loading exploration map' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Loading explored countries…')).toBeInTheDocument()
+    expect(
+      screen.getByText('Loading exploration over time…'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Loading recent discoveries…')).toBeInTheDocument()
+
+    expect(
+      screen.queryByText('No countries explored yet.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('No discoveries recorded in the last 6 months.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('No recent discoveries yet.'),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('img', { name: 'World exploration map' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows appropriate empty states when discoveries are genuinely empty', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      await screen.findByText('No countries explored yet.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('No discoveries recorded in the last 6 months.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('No recent discoveries yet.')).toBeInTheDocument()
+  })
+
+  it('opens accessible account drawer, dismisses on Escape, and resets deletion state', async () => {
+    getAuthoredDiscoveriesMock.mockResolvedValue([])
+
+    renderWithProviders(<ProfilePage />)
+
+    const openButton = await screen.findByRole('button', {
+      name: 'Open account settings',
+    })
+    fireEvent.click(openButton)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByText('Account')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
+    const passwordInput = screen.getByLabelText('Password')
+    fireEvent.change(passwordInput, { target: { value: 'secret' } })
+    expect(passwordInput).toHaveValue('secret')
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    fireEvent.click(openButton)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Delete account' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByLabelText('Password')).not.toBeInTheDocument()
+  })
 })

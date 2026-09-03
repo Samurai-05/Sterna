@@ -21,8 +21,9 @@ import {
   DISCOVERY_DOT_END_ZOOM,
   DISCOVERY_DOT_LAYER_ID,
   DISCOVERY_MAP_COLOR_EXPRESSION,
-  DISCOVERY_PHOTO_MORPH_START_ZOOM,
+  DISCOVERY_PHOTO_PRELOAD_ZOOM,
   DISCOVERY_SOURCE_ID,
+  DISCOVERY_SOURCE_MAX_ZOOM,
   DISCOVERY_STACK_EXPANSION_ZOOM,
   DISCOVERY_STACK_MIN_ZOOM,
   getDiscoveryMapColor,
@@ -55,10 +56,12 @@ setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
 const countryLabelOpacityExpression: ExpressionSpecification = [
-  'step',
+  'interpolate',
+  ['linear'],
   ['zoom'],
+  3.4,
   0,
-  2,
+  4.4,
   1,
 ]
 
@@ -156,6 +159,7 @@ type PhotoLoadState = 'idle' | 'loading' | 'loaded' | 'error'
 interface DiscoveryMarkerEntry {
   marker: Marker
   markerHost: HTMLDivElement
+  button: HTMLButtonElement
   visual: HTMLSpanElement
   colorLayer: HTMLSpanElement
   iconLayer: HTMLSpanElement
@@ -184,7 +188,9 @@ interface ClusterMarkerEntry {
   stackCount: HTMLSpanElement
   coordinates: [number, number]
   pointCount: number
+  feature: ClusterFeature
   isStack: boolean
+  stackEligibility: 'unknown' | 'normal' | 'stack'
   representativePhotoState: PhotoLoadState
   representativeObjectUrl?: string
 }
@@ -214,11 +220,7 @@ function applyDiscoveryMarkerVisual(
   entry: DiscoveryMarkerEntry,
   zoom: number,
 ): void {
-  const visual = getDiscoveryMarkerVisual(
-    entry.photoState === 'loaded'
-      ? zoom
-      : Math.min(zoom, DISCOVERY_PHOTO_MORPH_START_ZOOM),
-  )
+  const visual = getDiscoveryMarkerVisual(zoom, entry.photoState === 'loaded')
 
   entry.visual.style.width = `${visual.size}px`
   entry.visual.style.height = `${visual.size}px`
@@ -252,8 +254,24 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
   ) {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<Map | null>(null)
+    const initialViewportRef = useRef(initialViewport)
     const discoveriesRef = useRef(discoveries)
     discoveriesRef.current = discoveries
+    const landmarksRef = useRef(landmarks)
+    landmarksRef.current = landmarks
+    const onSelectDiscoveryRef = useRef(onSelectDiscovery)
+    onSelectDiscoveryRef.current = onSelectDiscovery
+    const onSelectLandmarkRef = useRef(onSelectLandmark)
+    onSelectLandmarkRef.current = onSelectLandmark
+    const photoAccessTokenRef = useRef(photoAccessToken)
+    photoAccessTokenRef.current = photoAccessToken
+
+    const reconcileDiscoveriesRef = useRef<
+      ((next: DiscoveryMarkerData[]) => void) | null
+    >(null)
+    const updateLandmarksRef = useRef<(() => void) | null>(null)
+    const syncSpatialRef = useRef<(() => void) | null>(null)
+
     const [clusterSheetDiscoveries, setClusterSheetDiscoveries] = useState<
       DiscoveryMarkerData[]
     >([])
@@ -294,7 +312,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       }
 
       const viewport =
-        initialViewport ?? getStoredMapViewport() ?? defaultGlobeViewport
+        initialViewportRef.current ??
+        getStoredMapViewport() ??
+        defaultGlobeViewport
       const instance = new Map({
         container: mapContainer.current,
         style: mapStyle,
@@ -371,6 +391,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         instance.addSource(DISCOVERY_SOURCE_ID, {
           type: 'geojson',
           data: toDiscoveryFeatureCollection(discoveriesRef.current),
+          maxzoom: DISCOVERY_SOURCE_MAX_ZOOM,
           cluster: true,
           clusterRadius: DISCOVERY_CLUSTER_RADIUS,
           clusterMaxZoom: DISCOVERY_CLUSTER_MAX_ZOOM,
@@ -476,50 +497,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         pendingTarget.current = null
       }
 
-      return () => {
-        saveCurrentViewport()
-        resizeObserver?.disconnect()
-        instance.off('moveend', saveCurrentViewport)
-        instance.off('zoomend', saveCurrentViewport)
-        applyExploredStatesRef.current = () => {}
-        map.current = null
-        instance.remove()
-      }
-    }, [initialViewport])
-
-    useEffect(() => {
-      const instance = map.current
-      const source = instance?.getSource(DISCOVERY_SOURCE_ID) as
-        GeoJSONSource | undefined
-      source?.setData(toDiscoveryFeatureCollection(discoveries))
-    }, [discoveries])
-
-    useEffect(() => {
-      const instance = map.current
-      if (!instance || !userLocation) return
-
-      const element = document.createElement('div')
-      element.className = 'maplibregl-user-location-dot'
-      element.setAttribute('role', 'img')
-      element.setAttribute('aria-label', 'Your current location')
-      const marker = new Marker({ element }).setLngLat(userLocation).addTo(instance)
-
-      return () => {
-        marker.remove()
-      }
-    }, [userLocation])
-
-    useEffect(() => {
-      exploredCodes.current = exploredCountryCodes
-      applyExploredStatesRef.current()
-    }, [exploredCountryCodes])
-
-    useEffect(() => {
-      const instance = map.current
-      if (!instance) {
-        return
-      }
-
       const markers = new Set<Marker>()
       const roots = new Set<Root>()
       const discoveryMarkers = new globalThis.Map<
@@ -540,9 +517,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           scaledElement: { current: HTMLElement | null }
         }
       >()
-      // Only POI pins use the legacy zoom scale. Discovery markers have their
-      // own semantic-zoom presentation below.
       const scaledMarkerElements = new Set<HTMLElement>()
+      let discoveryGeneration = 0
       let active = true
       let spatialFrame: number | null = null
 
@@ -572,11 +548,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           landmark.imageId,
           'map',
         )
-        // A box rather than a plain variable: the ref below may attach
-        // synchronously or not, but this entry is only ever read back much
-        // later (on the next moveend/zoomend), by which point React has
-        // certainly committed — see the discovery marker ref for why we
-        // can't rely on timing any more directly than that.
         const scaledElement: { current: HTMLElement | null } = {
           current: null,
         }
@@ -585,7 +556,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             type="button"
             aria-label={`View ${landmark.name}`}
             className="relative size-11"
-            onClick={() => onSelectLandmark?.(landmark.id)}
+            onClick={() => onSelectLandmarkRef.current?.(landmark.id)}
           >
             <span
               ref={(node) => {
@@ -641,7 +612,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
 
         const visibleLandmarks = getVisibleLandmarks(
-          landmarks,
+          landmarksRef.current,
           instance.getBounds(),
         )
         const visibleIds = new Set(
@@ -668,7 +639,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         button.setAttribute('aria-label', `View ${discovery.name}`)
         button.className = 'relative size-11'
         button.addEventListener('click', () =>
-          onSelectDiscovery?.(discovery.id),
+          onSelectDiscoveryRef.current?.(discovery.id),
         )
 
         const visual = document.createElement('span')
@@ -714,6 +685,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const entry: DiscoveryMarkerEntry = {
           marker,
           markerHost,
+          button,
           visual,
           colorLayer,
           iconLayer,
@@ -730,16 +702,17 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       const loadDiscoveryPhoto = (entry: DiscoveryMarkerEntry) => {
         const { discovery } = entry
+        const token = photoAccessTokenRef.current
         if (
           entry.photoState !== 'idle' ||
-          !photoAccessToken ||
+          !token ||
           !discovery.imageObjectKey
         ) {
           return
         }
 
         entry.photoState = 'loading'
-        void getPhoto(photoAccessToken, discovery.imageObjectKey, 'map')
+        void getPhoto(token, discovery.imageObjectKey, 'map')
           .then(async (blob) => {
             if (!active || discoveryMarkers.get(discovery.id) !== entry) {
               return
@@ -781,10 +754,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           })
       }
 
-      const updateNormalClusterPresentation = (
-        entry: ClusterMarkerEntry,
-        feature: ClusterFeature,
-      ) => {
+      const updateNormalClusterPresentation = (entry: ClusterMarkerEntry) => {
         const size = clusterVisualSize(entry.pointCount)
         entry.button.setAttribute(
           'aria-label',
@@ -794,7 +764,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         entry.normalVisual.style.width = `${size}px`
         entry.normalVisual.style.height = `${size}px`
         entry.normalVisual.style.backgroundColor = getClusterColor(
-          feature,
+          entry.feature,
           entry.pointCount,
         )
         entry.countLabel.textContent = String(entry.pointCount)
@@ -813,10 +783,28 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         entry.isStack = true
       }
 
+      const renderClusterPresentation = (
+        entry: ClusterMarkerEntry,
+        zoom: number,
+      ) => {
+        const isStack =
+          entry.stackEligibility === 'stack' && zoom >= DISCOVERY_STACK_MIN_ZOOM
+
+        if (isStack) {
+          updateStackPresentation(entry)
+        } else {
+          updateNormalClusterPresentation(entry)
+        }
+      }
+
       const getClusterExpansionZoom = (
         source: GeoJSONSource,
         clusterId: number,
+        generation: number,
       ): Promise<number> => {
+        if (generation !== discoveryGeneration) {
+          return Promise.reject(new Error('Stale cluster expansion lookup.'))
+        }
         const cached = clusterExpansionZooms.get(clusterId)
         if (cached !== undefined) return Promise.resolve(cached)
 
@@ -826,12 +814,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         const request = source
           .getClusterExpansionZoom(clusterId)
           .then((zoom) => {
-            clusterExpansionZooms.set(clusterId, zoom)
-            pendingClusterExpansionZooms.delete(clusterId)
+            if (generation === discoveryGeneration) {
+              clusterExpansionZooms.set(clusterId, zoom)
+              pendingClusterExpansionZooms.delete(clusterId)
+            }
             return zoom
           })
           .catch((error: unknown) => {
-            pendingClusterExpansionZooms.delete(clusterId)
+            if (generation === discoveryGeneration) {
+              pendingClusterExpansionZooms.delete(clusterId)
+            }
             throw error
           })
         pendingClusterExpansionZooms.set(clusterId, request)
@@ -842,6 +834,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         source: GeoJSONSource,
         clusterId: number,
         entry: ClusterMarkerEntry,
+        generation: number,
       ) => {
         if (entry.representativePhotoState !== 'idle') return
         entry.representativePhotoState = 'loading'
@@ -849,7 +842,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         void source
           .getClusterLeaves(clusterId, 1, 0)
           .then(async (leaves) => {
-            if (!active || clusterMarkers.get(clusterId) !== entry) return
+            if (
+              !active ||
+              discoveryGeneration !== generation ||
+              clusterMarkers.get(clusterId) !== entry
+            ) {
+              return
+            }
 
             const discoveryId = Number(leaves[0]?.id)
             const discovery = discoveriesRef.current.find(
@@ -861,17 +860,20 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             entry.stackFront.style.backgroundColor = getDiscoveryMapColor(
               discovery.category,
             )
-            if (!photoAccessToken || !discovery.imageObjectKey) {
+            const token = photoAccessTokenRef.current
+            if (!token || !discovery.imageObjectKey) {
               entry.representativePhotoState = 'error'
               return
             }
 
-            const blob = await getPhoto(
-              photoAccessToken,
-              discovery.imageObjectKey,
-              'map',
-            )
-            if (!active || clusterMarkers.get(clusterId) !== entry) return
+            const blob = await getPhoto(token, discovery.imageObjectKey, 'map')
+            if (
+              !active ||
+              discoveryGeneration !== generation ||
+              clusterMarkers.get(clusterId) !== entry
+            ) {
+              return
+            }
 
             const objectUrl = URL.createObjectURL(blob)
             entry.representativeObjectUrl = objectUrl
@@ -881,6 +883,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
             if (
               !active ||
+              discoveryGeneration !== generation ||
               clusterMarkers.get(clusterId) !== entry ||
               entry.representativeObjectUrl !== objectUrl
             ) {
@@ -895,7 +898,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             entry.stackFront.style.backgroundImage = `url("${objectUrl}")`
           })
           .catch(() => {
-            if (!active || clusterMarkers.get(clusterId) !== entry) return
+            if (
+              !active ||
+              discoveryGeneration !== generation ||
+              clusterMarkers.get(clusterId) !== entry
+            ) {
+              return
+            }
             if (entry.representativeObjectUrl) {
               URL.revokeObjectURL(entry.representativeObjectUrl)
               entry.representativeObjectUrl = undefined
@@ -908,17 +917,28 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         clusterId: number,
         entry: ClusterMarkerEntry,
       ) => {
+        const currentGen = discoveryGeneration
         const source = instance.getSource(DISCOVERY_SOURCE_ID) as
           GeoJSONSource | undefined
         if (!source) return
 
         let expansionZoom: number
         try {
-          expansionZoom = await getClusterExpansionZoom(source, clusterId)
+          expansionZoom = await getClusterExpansionZoom(
+            source,
+            clusterId,
+            currentGen,
+          )
         } catch {
           return
         }
-        if (!active || clusterMarkers.get(clusterId) !== entry) return
+        if (
+          !active ||
+          discoveryGeneration !== currentGen ||
+          clusterMarkers.get(clusterId) !== entry
+        ) {
+          return
+        }
 
         const currentZoom = instance.getZoom()
         if (currentZoom < DISCOVERY_STACK_MIN_ZOOM) {
@@ -941,15 +961,17 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
         let leaves
         try {
-          leaves = await source.getClusterLeaves(
-            clusterId,
-            entry.pointCount,
-            0,
-          )
+          leaves = await source.getClusterLeaves(clusterId, entry.pointCount, 0)
         } catch {
           return
         }
-        if (!active || clusterMarkers.get(clusterId) !== entry) return
+        if (
+          !active ||
+          discoveryGeneration !== currentGen ||
+          clusterMarkers.get(clusterId) !== entry
+        ) {
+          return
+        }
 
         const discoveryById = new globalThis.Map(
           discoveriesRef.current.map((discovery) => [discovery.id, discovery]),
@@ -962,7 +984,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           )
 
         if (stackDiscoveries.length === 1) {
-          onSelectDiscovery?.(stackDiscoveries[0].id)
+          onSelectDiscoveryRef.current?.(stackDiscoveries[0].id)
         } else if (stackDiscoveries.length > 1) {
           setClusterSheetDiscoveries(stackDiscoveries)
         }
@@ -1022,14 +1044,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           stackCount,
           coordinates,
           pointCount: Number(feature.properties.point_count),
+          feature,
           isStack: false,
+          stackEligibility: 'unknown',
           representativePhotoState: 'idle',
         }
         button.addEventListener(
           'click',
           () => void openOrExpandCluster(clusterId, entry),
         )
-        updateNormalClusterPresentation(entry, feature)
+        renderClusterPresentation(entry, instance.getZoom())
         return entry
       }
 
@@ -1048,17 +1072,41 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         clusterId: number,
         entry: ClusterMarkerEntry,
       ) => {
+        const currentGen = discoveryGeneration
+        if (entry.stackEligibility !== 'unknown') {
+          if (
+            entry.stackEligibility === 'stack' &&
+            instance.getZoom() >= DISCOVERY_STACK_MIN_ZOOM &&
+            entry.representativePhotoState === 'idle'
+          ) {
+            loadStackRepresentative(source, clusterId, entry, currentGen)
+          }
+          return
+        }
+
         if (instance.getZoom() < DISCOVERY_STACK_MIN_ZOOM) return
 
-        void getClusterExpansionZoom(source, clusterId)
+        void getClusterExpansionZoom(source, clusterId, currentGen)
           .then((expansionZoom) => {
-            if (!active || clusterMarkers.get(clusterId) !== entry) return
             if (
-              instance.getZoom() >= DISCOVERY_STACK_MIN_ZOOM &&
-              expansionZoom >= DISCOVERY_STACK_EXPANSION_ZOOM
+              !active ||
+              discoveryGeneration !== currentGen ||
+              clusterMarkers.get(clusterId) !== entry
             ) {
-              updateStackPresentation(entry)
-              loadStackRepresentative(source, clusterId, entry)
+              return
+            }
+            if (expansionZoom >= DISCOVERY_STACK_EXPANSION_ZOOM) {
+              entry.stackEligibility = 'stack'
+            } else {
+              entry.stackEligibility = 'normal'
+            }
+            const zoom = instance.getZoom()
+            renderClusterPresentation(entry, zoom)
+            if (
+              entry.stackEligibility === 'stack' &&
+              zoom >= DISCOVERY_STACK_MIN_ZOOM
+            ) {
+              loadStackRepresentative(source, clusterId, entry, currentGen)
             }
           })
           .catch(() => {})
@@ -1099,7 +1147,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           applyDiscoveryMarkerVisual(entry, zoom)
           if (
             visible &&
-            zoom >= DISCOVERY_PHOTO_MORPH_START_ZOOM &&
+            zoom >= DISCOVERY_PHOTO_PRELOAD_ZOOM &&
             isCoordinateInMapViewport(
               entry.discovery.coordinates,
               instance.getBounds(),
@@ -1117,8 +1165,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           } else {
             entry.coordinates = feature.geometry.coordinates
             entry.pointCount = Number(feature.properties.point_count)
+            entry.feature = feature
             entry.marker.setLngLat(entry.coordinates)
-            updateNormalClusterPresentation(entry, feature)
+            renderClusterPresentation(entry, zoom)
           }
           qualifyClusterAsStack(source, clusterId, entry)
         }
@@ -1141,6 +1190,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         for (const entry of discoveryMarkers.values()) {
           applyDiscoveryMarkerVisual(entry, zoom)
         }
+        for (const entry of clusterMarkers.values()) {
+          renderClusterPresentation(entry, zoom)
+        }
         scheduleDiscoverySpatialSync()
       }
 
@@ -1151,11 +1203,93 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
       }
 
-      for (const discovery of discoveries) createDiscoveryMarker(discovery)
+      const reconcileDiscoveries = (nextDiscoveries: DiscoveryMarkerData[]) => {
+        const source = instance.getSource(DISCOVERY_SOURCE_ID) as
+          GeoJSONSource | undefined
+        source?.setData(toDiscoveryFeatureCollection(nextDiscoveries))
+
+        discoveryGeneration++
+        clusterExpansionZooms.clear()
+        pendingClusterExpansionZooms.clear()
+
+        const nextIds = new Set(nextDiscoveries.map((d) => d.id))
+
+        for (const [id, entry] of [...discoveryMarkers.entries()]) {
+          if (!nextIds.has(id)) {
+            entry.marker.remove()
+            markers.delete(entry.marker)
+            disposeRoot(entry.iconRoot)
+            if (entry.objectUrl) {
+              URL.revokeObjectURL(entry.objectUrl)
+              entry.objectUrl = undefined
+            }
+            discoveryMarkers.delete(id)
+          }
+        }
+
+        const currentZoom = instance.getZoom()
+        for (const discovery of nextDiscoveries) {
+          const existing = discoveryMarkers.get(discovery.id)
+          if (!existing) {
+            createDiscoveryMarker(discovery)
+          } else {
+            const prev = existing.discovery
+            existing.discovery = discovery
+
+            if (prev.name !== discovery.name) {
+              existing.button.setAttribute(
+                'aria-label',
+                `View ${discovery.name}`,
+              )
+            }
+
+            if (
+              prev.coordinates[0] !== discovery.coordinates[0] ||
+              prev.coordinates[1] !== discovery.coordinates[1]
+            ) {
+              existing.marker.setLngLat(discovery.coordinates)
+            }
+
+            if (prev.category !== discovery.category) {
+              existing.colorLayer.style.backgroundColor = getDiscoveryMapColor(
+                discovery.category,
+              )
+              existing.iconRoot.render(
+                <CategoryIcon
+                  category={discovery.category}
+                  className="size-full text-white"
+                />,
+              )
+            }
+
+            if (prev.imageObjectKey !== discovery.imageObjectKey) {
+              if (existing.objectUrl) {
+                URL.revokeObjectURL(existing.objectUrl)
+                existing.objectUrl = undefined
+              }
+              existing.photoState = 'idle'
+              existing.photoLayer.style.backgroundImage = ''
+            }
+
+            applyDiscoveryMarkerVisual(existing, currentZoom)
+          }
+        }
+
+        scheduleDiscoverySpatialSync()
+      }
+
+      reconcileDiscoveriesRef.current = reconcileDiscoveries
+      updateLandmarksRef.current = updateLandmarkMarkers
+      syncSpatialRef.current = scheduleDiscoverySpatialSync
+
+      for (const discovery of discoveriesRef.current) {
+        createDiscoveryMarker(discovery)
+      }
 
       updateLandmarkMarkers()
       updatePoiMarkerScale()
       scheduleDiscoverySpatialSync()
+
       instance.on('move', scheduleDiscoverySpatialSync)
       instance.on('moveend', scheduleDiscoverySpatialSync)
       instance.on('sourcedata', onDiscoverySourceData)
@@ -1167,7 +1301,14 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       return () => {
         active = false
+        reconcileDiscoveriesRef.current = null
+        updateLandmarksRef.current = null
+        syncSpatialRef.current = null
         if (spatialFrame !== null) cancelAnimationFrame(spatialFrame)
+        saveCurrentViewport()
+        resizeObserver?.disconnect()
+        instance.off('moveend', saveCurrentViewport)
+        instance.off('zoomend', saveCurrentViewport)
         instance.off('move', scheduleDiscoverySpatialSync)
         instance.off('moveend', scheduleDiscoverySpatialSync)
         instance.off('sourcedata', onDiscoverySourceData)
@@ -1184,14 +1325,55 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
         for (const marker of markers) marker.remove()
         for (const root of roots) disposeRoot(root)
+        applyExploredStatesRef.current = () => {}
+        map.current = null
+        instance.remove()
       }
-    }, [
-      discoveries,
-      landmarks,
-      onSelectDiscovery,
-      onSelectLandmark,
-      photoAccessToken,
-    ])
+    }, [])
+
+    const isFirstDiscoveryRender = useRef(true)
+    useEffect(() => {
+      if (isFirstDiscoveryRender.current) {
+        isFirstDiscoveryRender.current = false
+        return
+      }
+      reconcileDiscoveriesRef.current?.(discoveries)
+    }, [discoveries])
+
+    const isFirstLandmarksRender = useRef(true)
+    useEffect(() => {
+      if (isFirstLandmarksRender.current) {
+        isFirstLandmarksRender.current = false
+        return
+      }
+      updateLandmarksRef.current?.()
+    }, [landmarks])
+
+    useEffect(() => {
+      syncSpatialRef.current?.()
+    }, [photoAccessToken])
+
+    useEffect(() => {
+      const instance = map.current
+      if (!instance || !userLocation) return
+
+      const element = document.createElement('div')
+      element.className = 'maplibregl-user-location-dot'
+      element.setAttribute('role', 'img')
+      element.setAttribute('aria-label', 'Your current location')
+      const marker = new Marker({ element })
+        .setLngLat(userLocation)
+        .addTo(instance)
+
+      return () => {
+        marker.remove()
+      }
+    }, [userLocation])
+
+    useEffect(() => {
+      exploredCodes.current = exploredCountryCodes
+      applyExploredStatesRef.current()
+    }, [exploredCountryCodes])
 
     return (
       <div className="absolute inset-0">
@@ -1207,7 +1389,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           onOpenChange={(open) => {
             if (!open) setClusterSheetDiscoveries([])
           }}
-          onSelectDiscovery={(id) => onSelectDiscovery?.(id)}
+          onSelectDiscovery={(id) => onSelectDiscoveryRef.current?.(id)}
         />
       </div>
     )

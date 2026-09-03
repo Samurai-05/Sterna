@@ -63,6 +63,10 @@ describe('ProfileWorldMap', () => {
       'fill',
       '#2D5A3D',
     )
+    expect(screen.getByTestId('profile-country-FRA')).toHaveAttribute(
+      'fill-rule',
+      'evenodd',
+    )
     expect(screen.getByTestId('profile-country-XCR')).toHaveAttribute(
       'fill',
       '#E8E3D9',

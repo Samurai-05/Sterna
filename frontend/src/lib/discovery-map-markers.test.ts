@@ -63,6 +63,29 @@ describe('getDiscoveryMarkerVisual', () => {
     expect(visual.photoOpacity).toBeCloseTo(0.5)
     expect(visual.borderRadius).toBeCloseTo(14.5)
   })
+
+  it('keeps category fallback geometry at 56px when photo is not ready at high zoom', () => {
+    const notReady = getDiscoveryMarkerVisual(DISCOVERY_PHOTO_FULL_ZOOM, false)
+    const ready = getDiscoveryMarkerVisual(DISCOVERY_PHOTO_FULL_ZOOM, true)
+
+    // Geometry is identical
+    expect(notReady.size).toBeCloseTo(56)
+    expect(notReady.borderRadius).toBeCloseTo(12)
+    expect(notReady.borderWidth).toBeCloseTo(2)
+    expect(ready.size).toBeCloseTo(56)
+    expect(ready.borderRadius).toBeCloseTo(12)
+    expect(ready.borderWidth).toBeCloseTo(2)
+
+    // Visual state differs: not ready keeps icon and color visible with 0 photoOpacity
+    expect(notReady.photoOpacity).toBe(0)
+    expect(notReady.colorOpacity).toBe(1)
+    expect(notReady.iconOpacity).toBe(1)
+
+    // Ready displays photo
+    expect(ready.photoOpacity).toBe(1)
+    expect(ready.colorOpacity).toBe(0)
+    expect(ready.iconOpacity).toBe(0)
+  })
 })
 
 describe('Discovery map colors', () => {

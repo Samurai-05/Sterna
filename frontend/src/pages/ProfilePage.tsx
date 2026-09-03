@@ -10,6 +10,13 @@ import { ProfileExplorationOverTime } from '@/components/ProfileExplorationOverT
 import { ProfileExplorationStats } from '@/components/ProfileExplorationStats'
 import { ProfileWorldMap } from '@/components/ProfileWorldMap'
 import { UserAvatarImage } from '@/components/UserAvatarImage'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerSwipeHandle,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { Progress } from '@/components/ui/progress'
 import {
   deleteAccount,
@@ -81,6 +88,7 @@ export function ProfilePage() {
   const exploredCountries = exploredCodes
     .map((countryCode) => getCountryName(countryCode))
     .filter((country): country is string => Boolean(country))
+    .sort((a, b) => a.localeCompare(b))
   const recentDiscoveries = recentProfileDiscoveries(profileDiscoveries)
   const explorationMonths = explorationOverTime(profileDiscoveries)
   const isDiscoveriesLoading = Boolean(accessToken && isDiscoveriesPending)
@@ -97,22 +105,6 @@ export function ProfilePage() {
     const nextSession = { accessToken, user: currentUser }
     saveSession(nextSession)
   }, [accessToken, currentUser])
-
-  useEffect(() => {
-    if (!isAccountSheetOpen) return
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    function closeAccountSheetWithKeyboard(event: KeyboardEvent) {
-      if (event.key === 'Escape') closeAccountSheet()
-    }
-
-    document.addEventListener('keydown', closeAccountSheetWithKeyboard)
-    return () => {
-      document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', closeAccountSheetWithKeyboard)
-    }
-  }, [isAccountSheetOpen])
 
   function closeAccountSheet() {
     setIsAccountSheetOpen(false)
@@ -211,7 +203,11 @@ export function ProfilePage() {
             </div>
             <div className="mt-6">
               {isDiscoveriesLoading ? (
-                <ProfileWorldMap exploredCountryCodes={[]} />
+                <div
+                  className="h-44 rounded-2xl border border-border bg-secondary"
+                  role="status"
+                  aria-label="Loading exploration map"
+                />
               ) : isDiscoveriesUnavailable ? (
                 <div className="rounded-2xl border border-border bg-secondary px-4 py-6 text-center">
                   <p className="text-sm text-muted-foreground" role="status">
@@ -339,7 +335,13 @@ export function ProfilePage() {
           </section>
 
           <ProfileExplorationOverTime
-            months={isDiscoveriesUnavailable ? [] : explorationMonths}
+            months={
+              isDiscoveriesLoading
+                ? null
+                : isDiscoveriesUnavailable
+                  ? []
+                  : explorationMonths
+            }
           />
 
           <section aria-labelledby="countries-explored-heading">
@@ -349,7 +351,11 @@ export function ProfilePage() {
             >
               Countries explored
             </h2>
-            {isDiscoveriesUnavailable ? (
+            {isDiscoveriesLoading ? (
+              <p className="mt-3 text-sm text-muted-foreground" role="status">
+                Loading explored countries…
+              </p>
+            ) : isDiscoveriesUnavailable ? (
               <p className="mt-3 text-sm text-muted-foreground" role="status">
                 Country data is temporarily unavailable.
               </p>
@@ -374,33 +380,22 @@ export function ProfilePage() {
           </section>
         </div>
       </div>
-      {isAccountSheetOpen && (
-        <div
-          className="fixed inset-0 z-[70] flex items-end bg-black/35"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              closeAccountSheet()
-            }
-          }}
-        >
-          <section
-            id="profile-account-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="profile-account-sheet-title"
-            className="mx-auto max-h-[calc(100dvh-1rem)] w-full max-w-lg touch-pan-y overflow-y-auto overscroll-contain rounded-t-[28px] bg-card px-5 pb-[max(2rem,var(--sterna-safe-area-bottom))] pt-3 text-foreground shadow-2xl"
-          >
-            <div
-              className="mx-auto h-1 w-14 rounded-full bg-border"
-              aria-hidden="true"
-            />
-            <h2
-              id="profile-account-sheet-title"
-              className="mt-7 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground"
-            >
-              Account
-            </h2>
+      <Drawer
+        open={isAccountSheetOpen}
+        onOpenChange={(open) => {
+          if (!open) closeAccountSheet()
+          else setIsAccountSheetOpen(true)
+        }}
+        swipeDirection="down"
+      >
+        <DrawerContent className="mx-auto !h-auto !max-h-[calc(100dvh-1rem)] w-full max-w-lg rounded-t-[28px] border border-border/80 bg-card text-foreground shadow-2xl motion-reduce:transition-none">
+          <DrawerSwipeHandle />
+          <div className="overflow-y-auto overscroll-contain px-5 pb-[max(2rem,var(--sterna-safe-area-bottom))] pt-3">
+            <DrawerHeader className="p-0 text-left">
+              <DrawerTitle className="mt-4 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                Account
+              </DrawerTitle>
+            </DrawerHeader>
             <div className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-primary bg-green-50 p-4">
               <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#C4622D] font-display text-xl font-semibold text-white">
                 <UserAvatarImage
@@ -489,9 +484,9 @@ export function ProfilePage() {
                 </form>
               )}
             </div>
-          </section>
-        </div>
-      )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </main>
   )
 }

@@ -54,6 +54,10 @@ export function mapExploredCountryCodes(codes: string[]): string[] {
   return [...expandedCodes]
 }
 
+export function discoveryTimestamp(discovery: Discovery): number {
+  return timestampValue(discovery.discoveredAt ?? discovery.createdAt)
+}
+
 export function recentProfileDiscoveries(
   sourceDiscoveries: Discovery[],
   limit = PROFILE_RECENT_DISCOVERY_COUNT,
@@ -62,7 +66,7 @@ export function recentProfileDiscoveries(
     .map((discovery, index) => ({
       discovery,
       index,
-      timestamp: timestampValue(discovery.createdAt),
+      timestamp: discoveryTimestamp(discovery),
     }))
     .sort(
       (left, right) =>
@@ -100,7 +104,7 @@ export function explorationOverTime(
   const monthByKey = new Map(months.map((month) => [month.key, month]))
 
   uniqueProfileDiscoveries(sourceDiscoveries).forEach((discovery) => {
-    const timestamp = timestampValue(discovery.createdAt)
+    const timestamp = discoveryTimestamp(discovery)
     if (!Number.isFinite(timestamp)) return
 
     const month = monthByKey.get(new Date(timestamp).toISOString().slice(0, 7))

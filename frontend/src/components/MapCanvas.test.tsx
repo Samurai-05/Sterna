@@ -601,7 +601,7 @@ describe('MapCanvas', () => {
     ).toEqual(['interpolate', ['linear'], ['zoom']])
   })
 
-  it('shows only country label layers fully from zoom 2', () => {
+  it('fades in country label layers between zoom 3.4 and 4.4', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'test-browser',
@@ -615,17 +615,17 @@ describe('MapCanvas', () => {
       {
         layerId: 'label_country_3',
         property: 'text-opacity',
-        value: ['step', ['zoom'], 0, 2, 1],
+        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
       },
       {
         layerId: 'label_country_2',
         property: 'text-opacity',
-        value: ['step', ['zoom'], 0, 2, 1],
+        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
       },
       {
         layerId: 'label_country_1',
         property: 'text-opacity',
-        value: ['step', ['zoom'], 0, 2, 1],
+        value: ['interpolate', ['linear'], ['zoom'], 3.4, 0, 4.4, 1],
       },
     ])
   })
@@ -799,7 +799,8 @@ describe('MapCanvas', () => {
     expect(source).toMatchObject({
       cluster: true,
       clusterRadius: 40,
-      clusterMaxZoom: 18,
+      clusterMaxZoom: 21,
+      maxzoom: 22,
     })
     expect(Object.keys(source.clusterProperties)).toEqual([
       'landscapeCount',
@@ -1048,9 +1049,7 @@ describe('MapCanvas', () => {
       expect(
         markerInstances
           .at(-1)
-          ?.element?.querySelector(
-            '[aria-label="Open 2 nearby discoveries"]',
-          ),
+          ?.element?.querySelector('[aria-label="Open 2 nearby discoveries"]'),
       ).not.toBeNull(),
     )
 
@@ -1404,5 +1403,217 @@ describe('MapCanvas', () => {
     // exact without duplicating (and risking transcribing wrong) its output.
     const expectedScale = 0.35 + ((5 - 1.5) / (6 - 1.5)) * (1 - 0.35)
     expect(scaledElement.style.transform).toBe(`scale(${expectedScale})`)
+  })
+
+  it('preloads a map thumbnail at zoom 10.8 before the visual morph begins', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+    getPhotoMock.mockReturnValue(new Promise(() => undefined))
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 10.8 }}
+        discoveries={[discoveryMarkerData]}
+        photoAccessToken="token"
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].sourceFeatures = [unclusteredFeature(1)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    expect(getPhotoMock).toHaveBeenCalledWith(
+      'token',
+      'photos/example.jpg',
+      'map',
+    )
+  })
+
+  it('keeps 3 identical-location discoveries clustered at max zoom 20', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const identicalDiscoveries = [
+      {
+        id: 1,
+        name: 'D1',
+        category: 'plant' as const,
+        imageId: '1',
+        coordinates: [6, 46] as [number, number],
+      },
+      {
+        id: 2,
+        name: 'D2',
+        category: 'plant' as const,
+        imageId: '2',
+        coordinates: [6, 46] as [number, number],
+      },
+      {
+        id: 3,
+        name: 'D3',
+        category: 'plant' as const,
+        imageId: '3',
+        coordinates: [6, 46] as [number, number],
+      },
+    ]
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 20 }}
+        discoveries={identicalDiscoveries}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].clusterExpansionZoom = 21
+    mapInstances[0].sourceFeatures = [clusterFeature(10)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const clusters = markerInstances.filter((marker) =>
+      marker.element?.querySelector('[aria-label="Open 3 nearby discoveries"]'),
+    )
+    expect(clusters).toHaveLength(1)
+
+    // All 3 individual markers remain hidden
+    for (const marker of markerInstances) {
+      if (marker !== clusters[0]) {
+        expect(marker.element?.style.display).toBe('none')
+      }
+    }
+  })
+
+  it('prevents flicker from stack back to normal cluster on subsequent move/sync', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 14 }}
+        discoveries={[discoveryMarkerData]}
+      />,
+    )
+    act(() => mapInstances[0].emit('load'))
+    mapInstances[0].clusterExpansionZoom = 16
+    mapInstances[0].sourceFeatures = [clusterFeature(10)]
+    act(() =>
+      mapInstances[0].emit('sourcedata', { sourceId: 'sterna-discoveries' }),
+    )
+    await flushSpatialSync()
+
+    const clusterMarker = markerInstances.find((m) =>
+      m.element?.querySelector('[aria-label="Open 3 nearby discoveries"]'),
+    )
+    expect(clusterMarker).toBeDefined()
+
+    const stackVisual = clusterMarker?.element?.querySelector(
+      'span[class*="transition-[opacity,transform]"]',
+    ) as HTMLElement
+    const normalVisual = clusterMarker?.element?.querySelector(
+      'span[class*="rounded-full"]',
+    ) as HTMLElement
+
+    expect(stackVisual.style.display).toBe('')
+    expect(normalVisual.style.display).toBe('none')
+
+    // Trigger another move at same zoom
+    act(() => mapInstances[0].emit('move'))
+    await flushSpatialSync()
+
+    // Must remain stack continuously without resetting to normal cluster
+    expect(stackVisual.style.display).toBe('')
+    expect(normalVisual.style.display).toBe('none')
+  })
+
+  it('preserves marker identity for unchanged discoveries and does not recreate POI markers', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const initialDiscoveries = [
+      {
+        id: 1,
+        name: 'D1',
+        category: 'plant' as const,
+        imageId: '1',
+        coordinates: [6, 46] as [number, number],
+      },
+      {
+        id: 2,
+        name: 'D2',
+        category: 'plant' as const,
+        imageId: '2',
+        coordinates: [6.1, 46.1] as [number, number],
+      },
+    ]
+    const initialLandmarks = [
+      {
+        id: 'poi-1',
+        name: 'POI 1',
+        imageId: 'poi',
+        discovered: true,
+        coordinates: [6, 46] as [number, number],
+      },
+    ]
+
+    const { rerender } = render(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 5 }}
+        discoveries={initialDiscoveries}
+        landmarks={initialLandmarks}
+      />,
+    )
+
+    // Initially: 2 discovery markers + 1 POI marker
+    expect(markerInstances).toHaveLength(3)
+    const discoveryMarker1 = markerInstances[0]
+    const discoveryMarker2 = markerInstances[1]
+    const poiMarker = markerInstances[2]
+
+    // Update discoveries: remove D2, keep D1 unchanged, add D3
+    const updatedDiscoveries = [
+      {
+        id: 1,
+        name: 'D1',
+        category: 'plant' as const,
+        imageId: '1',
+        coordinates: [6, 46] as [number, number],
+      },
+      {
+        id: 3,
+        name: 'D3',
+        category: 'plant' as const,
+        imageId: '3',
+        coordinates: [6.2, 46.2] as [number, number],
+      },
+    ]
+
+    rerender(
+      <MapCanvas
+        initialViewport={{ center: [6, 46], zoom: 5 }}
+        discoveries={updatedDiscoveries}
+        landmarks={initialLandmarks}
+      />,
+    )
+
+    // D1 marker was preserved
+    expect(discoveryMarker1.removed).toBe(false)
+    // D2 marker was removed
+    expect(discoveryMarker2.removed).toBe(true)
+    // POI marker was NOT removed or recreated
+    expect(poiMarker.removed).toBe(false)
+    // Exactly one new marker was created for D3
+    expect(markerInstances).toHaveLength(4)
+    expect(markerInstances[3].removed).toBe(false)
   })
 })

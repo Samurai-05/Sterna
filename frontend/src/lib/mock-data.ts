@@ -21,6 +21,8 @@ export interface Discovery {
   author: string
   initials: string
   relativeDate: string
+  /** The timestamp when the photo/discovery was actually taken or discovered. */
+  discoveredAt?: string
   /** Creation timestamp returned by the API; absent from local demo fixtures. */
   createdAt?: string
   coordinates: [number, number]

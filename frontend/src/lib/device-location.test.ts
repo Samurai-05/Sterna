@@ -66,9 +66,9 @@ describe('getCurrentDevicePosition', () => {
       enableLocationFallback: true,
     })
     expect(checkPermissionsMock).toHaveBeenCalledTimes(1)
-    expect(nativeGetCurrentPositionMock.mock.invocationCallOrder[0]).toBeLessThan(
-      checkPermissionsMock.mock.invocationCallOrder[0],
-    )
+    expect(
+      nativeGetCurrentPositionMock.mock.invocationCallOrder[0],
+    ).toBeLessThan(checkPermissionsMock.mock.invocationCallOrder[0])
   })
 
   it('rejects a native fallback position when Android location services are disabled', async () => {

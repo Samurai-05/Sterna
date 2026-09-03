@@ -516,9 +516,7 @@ export function DiscoveryDetailPage({
 
   if (isLoading) {
     return (
-      <main
-        className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
-      >
+      <main className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}>
         <div className="absolute left-[max(1rem,var(--sterna-safe-area-left))] top-[max(1rem,var(--sterna-safe-area-top))] z-[60]">
           <FloatingBackButton onClick={handleBack} />
         </div>
@@ -531,9 +529,7 @@ export function DiscoveryDetailPage({
 
   if (!discovery) {
     return (
-      <main
-        className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}
-      >
+      <main className={`${pageClassName} bg-[var(--sterna-viewer-background)]`}>
         <div className="absolute left-[max(1rem,var(--sterna-safe-area-left))] top-[max(1rem,var(--sterna-safe-area-top))] z-[60]">
           <FloatingBackButton onClick={handleBack} />
         </div>
@@ -599,12 +595,28 @@ export function DiscoveryDetailPage({
         <FloatingBackButton onClick={handleBack} />
         {isAuthor && (
           <div className="pointer-events-auto flex gap-2">
-            <Button asChild variant="ghost" size="icon-lg" className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white">
-              <Link to={`/discoveries/${discovery.id}/edit`} state={{ returnTo }} aria-label="Edit discovery">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon-lg"
+              className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white"
+            >
+              <Link
+                to={`/discoveries/${discovery.id}/edit`}
+                state={{ returnTo }}
+                aria-label="Edit discovery"
+              >
                 <Pencil className="size-5" />
               </Link>
             </Button>
-            <Button type="button" variant="ghost" size="icon-lg" className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white" aria-label="Delete discovery" onClick={() => setIsDeleteDialogOpen(true)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              className="rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-sm hover:bg-black/55 hover:text-white"
+              aria-label="Delete discovery"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
               <Trash2 className="size-5" />
             </Button>
           </div>
@@ -648,9 +660,7 @@ export function DiscoveryDetailPage({
           onSnapPointChange={handleSnapPointChange}
           snapToSequentialPoints
         >
-          <DrawerContent
-            className="!h-[55dvh] !max-h-[55dvh] border border-border/80 bg-card/92 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-md transition-[transform,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] will-change-transform data-swiping:duration-0 motion-reduce:transition-none"
-          >
+          <DrawerContent className="!h-[55dvh] !max-h-[55dvh] border border-border/80 bg-card/92 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.28)] backdrop-blur-md transition-[transform,box-shadow] duration-[450ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] will-change-transform data-swiping:duration-0 motion-reduce:transition-none">
             <div
               ref={drawerControlsRef}
               className="relative z-10 rounded-t-[inherit] border-t border-border/70"

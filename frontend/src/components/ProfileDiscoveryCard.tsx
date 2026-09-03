@@ -9,7 +9,8 @@ import type { Discovery } from '@/lib/mock-data'
 export function ProfileDiscoveryCard({ discovery }: { discovery: Discovery }) {
   const location = useLocation()
   const locationLabel = getUsefulLocation(discovery)
-  const dateLabel = formatDiscoveryDate(discovery.createdAt)
+  const displayDate = discovery.discoveredAt ?? discovery.createdAt
+  const dateLabel = formatDiscoveryDate(displayDate)
 
   return (
     <Link
@@ -41,7 +42,7 @@ export function ProfileDiscoveryCard({ discovery }: { discovery: Discovery }) {
         )}
         {dateLabel && (
           <time
-            dateTime={discovery.createdAt}
+            dateTime={displayDate}
             className="block text-xs leading-4 text-muted-foreground"
           >
             {dateLabel}
