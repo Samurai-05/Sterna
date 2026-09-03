@@ -43,6 +43,11 @@ import { personalMapName } from '@/lib/personal-map-name'
 import { getCurrentDevicePosition } from '@/lib/device-location'
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024
+// Wider than the API's 5km default: a mountain POI is typically pinned near
+// its summit, which can be several km from where it's actually photographed
+// (e.g. the Matterhorn from Zermatt village, ~8.5km away). This matches the
+// API's own POI_NEARBY_MAX_RADIUS_METERS ceiling (api/src/pois/pois.service.ts).
+const POI_LINK_SEARCH_RADIUS_METERS = 20_000
 const SUPPORTED_PHOTO_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -497,6 +502,7 @@ export function AddDiscoveryPage() {
         session.accessToken,
         discovery.coordinates[0],
         discovery.coordinates[1],
+        POI_LINK_SEARCH_RADIUS_METERS,
       )
         .then((nearby) => {
           const candidates = nearby.filter((poi) => !poi.discovered)
