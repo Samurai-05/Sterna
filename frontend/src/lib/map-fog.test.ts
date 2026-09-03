@@ -1,32 +1,40 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  fogColor,
-  fogMaxZoom,
-  fogOpacityExpression,
+  countryStateColorExpression,
+  countryStateMaxZoom,
+  countryStateOpacityExpression,
   fogSourceId,
   getFogInsertionBeforeLayerId,
 } from './map-fog'
 
-describe('map fog configuration', () => {
-  it('uses a continuous zoom expression while keeping explored countries clear', () => {
+describe('country state map styling', () => {
+  it('gives explored and unexplored countries distinct intentional colors', () => {
     expect(fogSourceId).toBe('countries-fog')
-    expect(fogColor).toBe('#2f4439')
-    expect(fogMaxZoom).toBe(9)
-    expect(fogOpacityExpression).toEqual([
+    expect(countryStateColorExpression).toEqual([
+      'case',
+      ['boolean', ['feature-state', 'explored'], false],
+      '#7EA678',
+      '#5F6F66',
+    ])
+  })
+
+  it('keeps states distinct at world view and progressively fades both before detail zoom', () => {
+    expect(countryStateMaxZoom).toBe(9)
+    expect(countryStateOpacityExpression).toEqual([
       'interpolate',
       ['linear'],
       ['zoom'],
       1.5,
-      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.52],
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0.48, 0.5],
       5,
-      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.52],
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0.48, 0.5],
       6,
-      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.44],
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0.4, 0.42],
       7,
-      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.25],
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0.22, 0.24],
       8,
-      ['case', ['boolean', ['feature-state', 'explored'], false], 0, 0.08],
+      ['case', ['boolean', ['feature-state', 'explored'], false], 0.06, 0.07],
       8.5,
       0,
     ])

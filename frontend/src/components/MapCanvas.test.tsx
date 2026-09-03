@@ -21,6 +21,11 @@ const {
       duration: number
     }>
     featureStateCalls: Array<{ target: unknown; state: unknown }>
+    setSkyCalls: unknown[]
+    globeConfigurationCalls: Array<{
+      method: 'projection' | 'sky'
+      value: unknown
+    }>
     emit: (event: string, data?: unknown) => void
     resizeCalls: number
     flyToCalls: Array<{ center: [number, number]; zoom: number }>
@@ -124,6 +129,11 @@ const {
       duration: number
     }> = []
     featureStateCalls: Array<{ target: unknown; state: unknown }> = []
+    setSkyCalls: unknown[] = []
+    globeConfigurationCalls: Array<{
+      method: 'projection' | 'sky'
+      value: unknown
+    }> = []
     sources = new Map<string, unknown>()
     resizeCalls = 0
     flyToCalls: Array<{ center: [number, number]; zoom: number }> = []
@@ -234,7 +244,17 @@ const {
       return this
     }
 
-    setProjection() {
+    setProjection(projection: unknown) {
+      this.globeConfigurationCalls.push({
+        method: 'projection',
+        value: projection,
+      })
+      return this
+    }
+
+    setSky(sky: unknown) {
+      this.setSkyCalls.push(sky)
+      this.globeConfigurationCalls.push({ method: 'sky', value: sky })
       return this
     }
 
@@ -576,7 +596,7 @@ describe('MapCanvas', () => {
     expect(markerInstances[0].removed).toBe(true)
   })
 
-  it('adds the frontend fog source and layer below native boundaries', () => {
+  it('adds country-state styling below native boundaries and configures a fading globe atmosphere', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'test-browser',
@@ -609,7 +629,12 @@ describe('MapCanvas', () => {
         source: 'countries-fog',
         maxzoom: 9,
         paint: {
-          'fill-color': '#2f4439',
+          'fill-color': [
+            'case',
+            ['boolean', ['feature-state', 'explored'], false],
+            '#7EA678',
+            '#5F6F66',
+          ],
         },
       },
     })
@@ -620,6 +645,31 @@ describe('MapCanvas', () => {
         }
       ).paint['fill-opacity'].slice(0, 3),
     ).toEqual(['interpolate', ['linear'], ['zoom']])
+    expect(mapInstances[0].setSkyCalls).toEqual([
+      {
+        'sky-color': '#E8E3D9',
+        'horizon-color': '#EDF5F4',
+        'sky-horizon-blend': 0.85,
+        'atmosphere-blend': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          1.5,
+          0.32,
+          5,
+          0.28,
+          7,
+          0.16,
+          8.5,
+          0.04,
+          9,
+          0,
+        ],
+      },
+    ])
+    expect(
+      mapInstances[0].globeConfigurationCalls.map(({ method }) => method),
+    ).toEqual(['projection', 'sky'])
   })
 
   it('shows only country label layers fully from zoom 2', () => {
@@ -1045,6 +1095,7 @@ describe('MapCanvas', () => {
     )
     expect(clusterMarker?.offset).toEqual([0, 0])
     expect(poiMarker?.offset).not.toEqual([0, 0])
+    expect(Math.hypot(...(poiMarker?.offset ?? [0, 0]))).toBeCloseTo(43, 3)
   })
 
   it('resolves collisions against a high-zoom discovery stack', async () => {
@@ -1288,7 +1339,11 @@ describe('MapCanvas', () => {
     const centerVisual = normalVisual?.firstElementChild
 
     expect(normalVisual?.tagName).toBe('SPAN')
+    expect(button).toHaveClass('size-14')
     expect(centerVisual).toHaveClass('rounded-full', 'bg-[#F7F5F0]')
+    expect(normalVisual).toHaveClass('border', 'p-[2px]')
+    expect(normalVisual).toHaveStyle({ width: '28px', height: '28px' })
+    expect(centerVisual).toHaveClass('text-[13px]', 'font-semibold')
     expect(centerVisual?.textContent).toBe('3')
   })
 

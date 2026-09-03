@@ -7,7 +7,11 @@ import {
 } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { Map, Marker, setWorkerUrl } from 'maplibre-gl'
-import type { ExpressionSpecification, GeoJSONSource } from 'maplibre-gl'
+import type {
+  ExpressionSpecification,
+  GeoJSONSource,
+  SkySpecification,
+} from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -50,10 +54,10 @@ import {
 } from '@/lib/map-marker-collision'
 import { type DiscoveryCategory } from '@/lib/mock-data'
 import {
-  fogColor,
+  countryStateColorExpression,
+  countryStateMaxZoom,
+  countryStateOpacityExpression,
   fogLayerId,
-  fogMaxZoom,
-  fogOpacityExpression,
   fogSourceId,
   getFogInsertionBeforeLayerId,
 } from '@/lib/map-fog'
@@ -62,6 +66,26 @@ import { getPoiImageUrl } from '@/lib/poi-image'
 setWorkerUrl(maplibreWorkerUrl)
 
 const mapStyle = 'https://tiles.openfreemap.org/styles/bright'
+const globeAtmosphere: SkySpecification = {
+  'sky-color': '#E8E3D9',
+  'horizon-color': '#EDF5F4',
+  'sky-horizon-blend': 0.85,
+  'atmosphere-blend': [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    1.5,
+    0.32,
+    5,
+    0.28,
+    7,
+    0.16,
+    8.5,
+    0.04,
+    9,
+    0,
+  ],
+}
 const countryLabelOpacityExpression: ExpressionSpecification = [
   'step',
   ['zoom'],
@@ -250,6 +274,14 @@ function applyDiscoveryMarkerVisual(
 }
 
 function clusterVisualSize(pointCount: number): number {
+  if (pointCount >= 100) return 36
+  if (pointCount >= 10) return 32
+  return 28
+}
+
+// Keep collision geometry independent from the smaller visual circle so POI
+// displacement and tap-adjacent spacing remain unchanged.
+function clusterCollisionSize(pointCount: number): number {
   if (pointCount >= 100) return 38
   if (pointCount >= 10) return 34
   return 30
@@ -421,6 +453,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         // around zoom 12, where globe curvature would otherwise hurt
         // precision — no manual zoom threshold needed here.
         instance.setProjection({ type: 'globe' })
+        instance.setSky(globeAtmosphere)
         applyCountryLabelOpacity(instance)
 
         instance.addSource(DISCOVERY_SOURCE_ID, {
@@ -504,10 +537,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
             id: fogLayerId,
             type: 'fill',
             source: fogSourceId,
-            maxzoom: fogMaxZoom,
+            maxzoom: countryStateMaxZoom,
             paint: {
-              'fill-color': fogColor,
-              'fill-opacity': fogOpacityExpression,
+              'fill-color': countryStateColorExpression,
+              'fill-opacity': countryStateOpacityExpression,
             },
           },
           fogBeforeLayerId,
@@ -1096,10 +1129,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
         const normalVisual = document.createElement('span')
         normalVisual.className =
-          'absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[#F7F5F0] p-[3px] shadow-[0_2px_7px_rgba(28,25,23,0.2)]'
+          'absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#F7F5F0] p-[2px] shadow-[0_1px_5px_rgba(28,25,23,0.14)]'
         const centerVisual = document.createElement('span')
         centerVisual.className =
-          'flex size-full items-center justify-center rounded-full bg-[#F7F5F0] text-sm font-bold text-[#292524]'
+          'flex size-full items-center justify-center rounded-full bg-[#F7F5F0] text-[13px] font-semibold text-[#292524]'
         const countLabel = document.createElement('span')
         centerVisual.appendChild(countLabel)
         normalVisual.appendChild(centerVisual)
@@ -1305,7 +1338,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           const center = instance.project(entry.coordinates)
           const size = entry.isStack
             ? clusterStackVisualSize
-            : clusterVisualSize(entry.pointCount)
+            : clusterCollisionSize(entry.pointCount)
           occupied.push({ x: center.x, y: center.y, radius: size / 2 })
         }
 
