@@ -3,8 +3,9 @@ import { clearSession, loadSession } from '@/lib/session'
 import type { Discovery, DiscoveryCategory, Landmark } from '@/lib/mock-data'
 import type { PersistedLocationSource } from './discovery-location'
 import { getCountryName } from '@/lib/countries'
+import { resolveApiUrl } from './api-url'
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
+export { resolveApiUrl } from './api-url'
 
 interface ApiErrorBody {
   message?: string | string[]
@@ -17,11 +18,6 @@ export class ApiError extends Error {
     super(message)
     this.status = status
   }
-}
-
-/** Resolves API paths for both same-origin web builds and Capacitor builds. */
-export function resolveApiUrl(path: string, baseUrl = apiBaseUrl): string {
-  return `${baseUrl.replace(/\/+$/, '')}${path}`
 }
 
 async function request<TResponse>(

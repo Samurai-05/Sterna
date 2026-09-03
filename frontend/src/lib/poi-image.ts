@@ -1,4 +1,5 @@
 import { imageUrl } from './mock-data'
+import { resolveApiUrl } from './api-url'
 
 export type PoiImageVariant = 'map' | 'card' | 'detail'
 
@@ -17,11 +18,10 @@ export function getPoiImageUrl(
   if (!source) return imageUrl(fallbackImageId, width)
 
   try {
-    // A base is required for the same-origin `/api/pois/:id/image` path the
-    // backend now returns (proxied through this server rather than linking
-    // to Wikimedia directly — see PoisService.getImage). Harmless for an
-    // already-absolute URL, since `new URL` then ignores the base.
-    const url = new URL(source, window.location.origin)
+    const resolvedSource = source.startsWith('/api/')
+      ? resolveApiUrl(source)
+      : source
+    const url = new URL(resolvedSource, window.location.origin)
     url.searchParams.set('width', String(width))
     return url.toString()
   } catch {
