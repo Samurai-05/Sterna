@@ -491,8 +491,10 @@ export function AddDiscoveryPage() {
 
       // Offers to link this discovery to a nearby undiscovered POI it might
       // actually be a photo of, taken from outside the auto-unlock radius
-      // (e.g. the Eiffel Tower photographed from Trocadéro). Never blocks —
-      // any failure just falls through to the normal navigation.
+      // (e.g. the Eiffel Tower photographed from Trocadéro). How far "nearby"
+      // reaches is decided server-side, per POI (see
+      // poiConfirmSearchRadiusMeters on the API) — never blocks; any failure
+      // just falls through to the normal navigation.
       getNearbyPois(
         session.accessToken,
         discovery.coordinates[0],

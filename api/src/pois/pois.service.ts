@@ -9,6 +9,7 @@ import { Readable } from 'node:stream';
 import type { ReadableStream as NodeWebReadableStream } from 'node:stream/web';
 import { Repository } from 'typeorm';
 import { Poi } from './poi.entity';
+import { poiConfirmSearchRadiusMeters } from './poi-search-radius';
 
 export interface PoiResponse {
   id: string;
@@ -32,6 +33,10 @@ interface PoiRow {
   discovered: boolean;
 }
 
+interface PoiNearbyRow extends PoiRow {
+  distance_meters: string;
+}
+
 export const POI_DISCOVERY_RADIUS_METERS = 150;
 const COUNTRY_MATCH_BUFFER_METERS = 5000;
 
@@ -42,7 +47,11 @@ const COUNTRY_MATCH_BUFFER_METERS = 5000;
 // automatic radius, a candidate here is never unlocked on its own; the user
 // still has to explicitly confirm which one (if any) they mean, which is
 // what makes a wide radius safe here where it wasn't for the automatic check.
-export const POI_NEARBY_DEFAULT_RADIUS_METERS = 5000;
+// The real precision comes from poiConfirmSearchRadiusMeters (category-based,
+// applied in findNearby) — these two just bound how far the SQL scan looks,
+// so the default matches the max rather than artificially excluding distant
+// mountain-tier candidates the category filter would otherwise allow.
+export const POI_NEARBY_DEFAULT_RADIUS_METERS = 20000;
 export const POI_NEARBY_MAX_RADIUS_METERS = 20000;
 
 export interface PoiImage {
@@ -222,9 +231,13 @@ export class PoisService {
   }
 
   /**
-   * Every POI within `radiusMeters` of the given point, closest first — the
-   * candidate list for the confirm-to-unlock flow (a discovery is often
-   * saved, or a POI page visited, well outside POI_DISCOVERY_RADIUS_METERS).
+   * Candidates for the confirm-to-unlock flow (a discovery is often saved,
+   * or a POI page visited, well outside POI_DISCOVERY_RADIUS_METERS),
+   * closest first. `radiusMeters` bounds the SQL scan (and lets a caller ask
+   * for something tighter), but the real cutoff per POI is narrower and
+   * category-dependent — see poiConfirmSearchRadiusMeters — so a photo taken
+   * in the middle of a city doesn't match every monument in it, while a
+   * mountain summit still matches from several kilometres away.
    * `discovered` is computed exactly as in findAll, so an already-confirmed
    * candidate can be filtered out client-side rather than re-offered.
    */
@@ -234,7 +247,7 @@ export class PoisService {
     latitude: number,
     radiusMeters: number,
   ): Promise<PoiResponse[]> {
-    const rows = await this.pois.query<PoiRow[]>(
+    const rows = await this.pois.query<PoiNearbyRow[]>(
       `
         SELECT
           poi.id,
@@ -244,6 +257,10 @@ export class PoisService {
           ST_Y(poi.location) AS latitude,
           ${POI_COUNTRY_PROJECTION},
           poi.image_url,
+          ST_Distance(
+            poi.location::geography,
+            ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography
+          ) AS distance_meters,
           EXISTS (
             SELECT 1
             FROM discoveries discovery
@@ -268,16 +285,22 @@ export class PoisService {
       [userId, longitude, latitude, radiusMeters, POI_DISCOVERY_RADIUS_METERS],
     );
 
-    return rows.map((row) => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      longitude: Number(row.longitude),
-      latitude: Number(row.latitude),
-      countryCode: row.country_code,
-      imageUrl: row.image_url ? poiImageProxyPath(row.id) : null,
-      discovered: row.discovered,
-    }));
+    return rows
+      .filter(
+        (row) =>
+          Number(row.distance_meters) <=
+          Math.min(poiConfirmSearchRadiusMeters(row.description), radiusMeters),
+      )
+      .map((row) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        longitude: Number(row.longitude),
+        latitude: Number(row.latitude),
+        countryCode: row.country_code,
+        imageUrl: row.image_url ? poiImageProxyPath(row.id) : null,
+        discovered: row.discovered,
+      }));
   }
 
   /** Throws NotFoundException rather than letting a bogus id surface as a

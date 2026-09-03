@@ -126,6 +126,7 @@ describe('PoisService', () => {
 
       const [statement, params] = query.mock.calls[0];
       expect(statement).toContain('ST_DWithin(');
+      expect(statement).toContain('ST_Distance(');
       expect(statement).toContain('ST_SetSRID(ST_MakePoint($2, $3), 4326)');
       expect(statement).toContain(
         'ORDER BY poi.location <-> ST_SetSRID(ST_MakePoint($2, $3), 4326)',
@@ -143,6 +144,7 @@ describe('PoisService', () => {
           latitude: '48.86',
           country_code: 'FRA',
           image_url: null,
+          distance_meters: '500',
           discovered: false,
         },
       ]);
@@ -155,6 +157,70 @@ describe('PoisService', () => {
         countryCode: 'FRA',
         discovered: false,
       });
+    });
+
+    it('excludes a close-range POI (e.g. a museum) once it is beyond its own category radius', async () => {
+      query.mockResolvedValueOnce([
+        {
+          id: '1',
+          title: 'A Museum',
+          description:
+            'Its collections bring together objects and stories that make the country’s history and creativity easier to understand.',
+          longitude: '2.29',
+          latitude: '48.86',
+          country_code: 'FRA',
+          image_url: null,
+          distance_meters: '1500', // beyond the museum category's 1km radius
+          discovered: false,
+        },
+      ]);
+
+      const results = await service.findNearby('1', 2.29, 48.86, 20000);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('keeps a far-range POI (e.g. a mountain) within its wider category radius', async () => {
+      query.mockResolvedValueOnce([
+        {
+          id: '2',
+          title: 'A Mountain',
+          description:
+            'Its scenery and ecosystems showcase a distinctive part of the country’s natural heritage.',
+          longitude: '7.6586',
+          latitude: '45.9764',
+          country_code: 'CHE',
+          image_url: null,
+          distance_meters: '8500', // within the natural-feature category's 20km radius
+          discovered: false,
+        },
+      ]);
+
+      const results = await service.findNearby('1', 7.7491, 46.0207, 20000);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].id).toBe('2');
+    });
+
+    it('never returns a candidate beyond the caller-supplied radius even when its category radius is wider', async () => {
+      query.mockResolvedValueOnce([
+        {
+          id: '2',
+          title: 'A Mountain',
+          description:
+            'Its scenery and ecosystems showcase a distinctive part of the country’s natural heritage.',
+          longitude: '7.6586',
+          latitude: '45.9764',
+          country_code: 'CHE',
+          image_url: null,
+          distance_meters: '8500',
+          discovered: false,
+        },
+      ]);
+
+      const results = await service.findNearby('1', 7.7491, 46.0207, 5000);
+
+      expect(results).toHaveLength(0);
     });
   });
 

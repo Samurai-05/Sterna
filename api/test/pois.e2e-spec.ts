@@ -224,5 +224,46 @@ describe('PoisController (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(400);
     });
+
+    it('excludes a close-range POI outside its own category radius even within a wide requested radius', async () => {
+      // Notre-Dame (a cathedral, "sacred" category -> 1km radius) is
+      // ~1.37km from the Louvre — outside its own radius even though this
+      // asks for a much wider 20km search. Musée d'Orsay ("museum" -> 1km)
+      // is only ~0.69km away, so it stays included.
+      const response = await request(app.getHttpServer())
+        .get('/api/pois/nearby')
+        .query({ longitude: 2.33583, latitude: 48.86111, radius: 20000 })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const titles = (response.body as PoiResponse[]).map((poi) => poi.title);
+      expect(titles).not.toContain('Notre-Dame de Paris');
+      expect(titles).toContain("Musée d'Orsay");
+    });
+
+    it('keeps a natural feature within its wider category radius (a mountain seen from the town below it)', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/pois/nearby')
+        // Zermatt village — the Matterhorn POI is ~8.5km away.
+        .query({ longitude: 7.7491, latitude: 46.0207, radius: 20000 })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(
+        (response.body as PoiResponse[]).map((poi) => poi.title),
+      ).toContain('Matterhorn');
+    });
+
+    it('still respects a caller-supplied radius smaller than the category radius', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/pois/nearby')
+        .query({ longitude: 7.7491, latitude: 46.0207, radius: 5000 })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(
+        (response.body as PoiResponse[]).map((poi) => poi.title),
+      ).not.toContain('Matterhorn');
+    });
   });
 });
