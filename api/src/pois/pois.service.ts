@@ -1,5 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Readable } from 'node:stream';
+import type { ReadableStream as NodeWebReadableStream } from 'node:stream/web';
 import { Repository } from 'typeorm';
 import { Poi } from './poi.entity';
 
@@ -27,6 +34,45 @@ interface PoiRow {
 
 export const POI_DISCOVERY_RADIUS_METERS = 150;
 const COUNTRY_MATCH_BUFFER_METERS = 5000;
+
+export interface PoiImage {
+  stream: Readable;
+  contentType: string;
+}
+
+// The client's own network may not be able to reach Wikimedia directly (the
+// app is often used over a locked-down campus/lab network that only allows
+// this server's own domain) — this server always can, so POI photos are
+// fetched here and re-served same-origin rather than linked to directly.
+// poi.catalog.ts only ever populates image_url with one of these two hosts;
+// this is checked again regardless, so a proxy request can never be turned
+// into a fetch of an arbitrary URL even if that ever stopped being true.
+const ALLOWED_POI_IMAGE_HOSTS = new Set([
+  'commons.wikimedia.org',
+  'upload.wikimedia.org',
+]);
+const POI_IMAGE_USER_AGENT =
+  'Sterna/1.0 (+https://github.com/Samurai-05/Sterna)';
+const POI_IMAGE_FETCH_TIMEOUT_MS = 8000;
+const POI_IMAGE_DEFAULT_WIDTH = 800;
+const POI_IMAGE_MIN_WIDTH = 64;
+const POI_IMAGE_MAX_WIDTH = 2000;
+
+/** Same-origin path PoiResponse.imageUrl points to instead of the raw
+ * Wikimedia URL — see the comment on ALLOWED_POI_IMAGE_HOSTS above. */
+export function poiImageProxyPath(id: string): string {
+  return `/api/pois/${id}/image`;
+}
+
+function clampImageWidth(requested: number | undefined): number {
+  if (!requested || !Number.isFinite(requested)) {
+    return POI_IMAGE_DEFAULT_WIDTH;
+  }
+  return Math.min(
+    POI_IMAGE_MAX_WIDTH,
+    Math.max(POI_IMAGE_MIN_WIDTH, Math.round(requested)),
+  );
+}
 
 // Split into two lookups rather than one OR'd WHERE clause: an OR across
 // ST_Contains (backed by idx_countries_geom) and a geography-cast
@@ -115,7 +161,7 @@ export class PoisService {
       longitude: Number(row.longitude),
       latitude: Number(row.latitude),
       countryCode: row.country_code,
-      imageUrl: row.image_url,
+      imageUrl: row.image_url ? poiImageProxyPath(row.id) : null,
       discovered: row.discovered,
     }));
   }
@@ -154,8 +200,55 @@ export class PoisService {
       longitude: Number(row.longitude),
       latitude: Number(row.latitude),
       countryCode: row.country_code,
-      imageUrl: row.image_url,
+      imageUrl: row.image_url ? poiImageProxyPath(row.id) : null,
       discovered: row.discovered,
     }));
+  }
+
+  /**
+   * Fetches the POI's photo from Wikimedia and hands back a stream for the
+   * controller to pipe out — see the comment on ALLOWED_POI_IMAGE_HOSTS
+   * above for why this exists instead of the client loading it directly.
+   */
+  async getImage(id: string, requestedWidth?: number): Promise<PoiImage> {
+    const poi = await this.pois.findOne({
+      where: { id },
+      select: { imageUrl: true },
+    });
+    if (!poi?.imageUrl) {
+      throw new NotFoundException(`No image for POI "${id}".`);
+    }
+
+    const target = new URL(poi.imageUrl);
+    if (!ALLOWED_POI_IMAGE_HOSTS.has(target.hostname)) {
+      throw new BadGatewayException('POI image source is not an allowed host.');
+    }
+    target.searchParams.set('width', String(clampImageWidth(requestedWidth)));
+
+    let response: Response;
+    try {
+      response = await fetch(target, {
+        headers: { 'User-Agent': POI_IMAGE_USER_AGENT },
+        signal: AbortSignal.timeout(POI_IMAGE_FETCH_TIMEOUT_MS),
+      });
+    } catch (error) {
+      throw new ServiceUnavailableException(
+        'POI image is temporarily unavailable.',
+        { cause: error },
+      );
+    }
+
+    if (!response.ok || !response.body) {
+      throw new ServiceUnavailableException(
+        'POI image is temporarily unavailable.',
+      );
+    }
+
+    return {
+      stream: Readable.fromWeb(
+        response.body as unknown as NodeWebReadableStream,
+      ),
+      contentType: response.headers.get('content-type') ?? 'image/jpeg',
+    };
   }
 }
