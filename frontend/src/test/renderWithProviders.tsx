@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
@@ -8,10 +9,12 @@ export function renderWithProviders(
     route = '/',
     initialEntries,
     initialIndex,
+    strictMode = false,
   }: {
     route?: string
     initialEntries?: React.ComponentProps<typeof MemoryRouter>['initialEntries']
     initialIndex?: number
+    strictMode?: boolean
   } = {},
 ) {
   const queryClient = new QueryClient({
@@ -22,7 +25,7 @@ export function renderWithProviders(
     },
   })
 
-  return render(
+  const content = (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter
         initialEntries={initialEntries ?? [route]}
@@ -30,6 +33,8 @@ export function renderWithProviders(
       >
         {ui}
       </MemoryRouter>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   )
+
+  return render(strictMode ? <StrictMode>{content}</StrictMode> : content)
 }

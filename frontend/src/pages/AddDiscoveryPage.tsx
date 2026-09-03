@@ -241,6 +241,7 @@ export function AddDiscoveryPage() {
   }, [nativePhoto])
 
   useEffect(() => {
+    isMountedRef.current = true
     const pendingNativePhotoPaths = pendingNativePhotoPathsRef.current
     return () => {
       isMountedRef.current = false
