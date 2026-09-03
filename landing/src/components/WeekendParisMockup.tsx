@@ -18,7 +18,7 @@ export default function WeekendParisMockup() {
 
         <div className="relative flex min-h-[470px] items-center justify-center md:min-h-[540px] md:justify-end lg:min-h-[620px]">
           <Image
-            src="/assets/screenshots/current/discovery-detail.png"
+            src="/assets/screenshots/current/discovery-detail.webp"
             alt="Sterna discovery detail for Paris from the river"
             width={390}
             height={844}

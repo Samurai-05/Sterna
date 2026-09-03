@@ -22,31 +22,31 @@ const screens: Screen[] = [
     id: 'map',
     label: 'Map',
     description: 'Interactive exploration.',
-    image: '/assets/screenshots/current/map-exploration.png',
+    image: '/assets/screenshots/current/map-exploration.webp',
   },
   {
     id: 'gallery',
     label: 'Gallery',
     description: 'Discoveries and POIs.',
-    image: '/assets/screenshots/current/gallery-2.png',
+    image: '/assets/screenshots/current/gallery-2.webp',
   },
   {
     id: 'discovery',
     label: 'Discovery',
     description: 'Details for every place.',
-    image: '/assets/screenshots/current/discovery-detail.png',
+    image: '/assets/screenshots/current/discovery-detail.webp',
   },
   {
     id: 'groups',
     label: 'Groups',
     description: 'Shared maps.',
-    image: '/assets/screenshots/current/groups.png',
+    image: '/assets/screenshots/current/groups.webp',
   },
   {
     id: 'profile',
     label: 'Profile',
     description: 'Your exploration.',
-    image: '/assets/screenshots/current/profile-statistics.png',
+    image: '/assets/screenshots/current/profile-statistics.webp',
   },
 ];
 
@@ -133,8 +133,8 @@ export default function ProductShowcase() {
               <img
                 src={previousScreen.image}
                 alt=""
-                width={1024}
-                height={1536}
+                width={390}
+                height={844}
                 decoding="async"
                 aria-hidden="true"
                 className={`phone-mockup phone-mockup--exit-${transitionDirection} absolute bottom-0 left-1/2 z-10 h-auto max-h-[520px] w-full max-w-[240px] select-none rounded-[28px] drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-h-[560px] sm:max-w-[260px] md:max-h-[600px] md:max-w-[280px]`}
@@ -144,8 +144,8 @@ export default function ProductShowcase() {
               key={activeScreen.id}
               src={activeScreen.image}
               alt={`Sterna ${activeScreen.label} screen`}
-              width={1024}
-              height={1536}
+              width={390}
+              height={844}
               loading="lazy"
               decoding="async"
               className={`phone-mockup ${previousScreen ? `phone-mockup--enter-${transitionDirection}` : 'phone-mockup--static'} absolute bottom-0 left-1/2 z-20 h-auto max-h-[520px] w-full max-w-[240px] select-none rounded-[28px] drop-shadow-[0_20px_38px_rgba(0,0,0,0.13)] sm:max-h-[560px] sm:max-w-[260px] md:max-h-[600px] md:max-w-[280px]`}
