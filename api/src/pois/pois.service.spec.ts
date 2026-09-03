@@ -39,6 +39,24 @@ describe('PoisService', () => {
     expect(statement).toContain('ST_Contains(country.geom, poi.location)');
   });
 
+  it.each([
+    ['active map', () => service.findAll('1')],
+    ['authored collection', () => service.findAllAuthoredByUser('1')],
+  ])(
+    'treats an explicit confirmed-POI link as discovered for the %s response',
+    async (_, load) => {
+      await load();
+
+      const statement = query.mock.calls[0][0];
+      // The confirmed-link check must be parenthesized alongside the
+      // proximity check, not OR'd onto the end of the whole WHERE clause —
+      // otherwise it would bypass the ownership/active-map scoping entirely.
+      expect(statement).toMatch(
+        /\(\s*ST_DWithin\([\s\S]*?\)\s*OR\s+discovery\.confirmed_poi_id\s*=\s*poi\.id\s*\)/,
+      );
+    },
+  );
+
   it('maps the resolved country code', async () => {
     query.mockResolvedValueOnce([
       {
@@ -100,6 +118,60 @@ describe('PoisService', () => {
     const [poi] = await service.findAll('1');
 
     expect(poi.imageUrl).toBeNull();
+  });
+
+  describe('findNearby', () => {
+    it('filters by distance from the given point and orders nearest first', async () => {
+      await service.findNearby('1', 2.2865, 48.862, 2000);
+
+      const [statement, params] = query.mock.calls[0];
+      expect(statement).toContain('ST_DWithin(');
+      expect(statement).toContain('ST_SetSRID(ST_MakePoint($2, $3), 4326)');
+      expect(statement).toContain(
+        'ORDER BY poi.location <-> ST_SetSRID(ST_MakePoint($2, $3), 4326)',
+      );
+      expect(params).toEqual(['1', 2.2865, 48.862, 2000, 150]);
+    });
+
+    it('maps results the same way as findAll', async () => {
+      query.mockResolvedValueOnce([
+        {
+          id: '42',
+          title: 'Somewhere',
+          description: null,
+          longitude: '2.29',
+          latitude: '48.86',
+          country_code: 'FRA',
+          image_url: null,
+          discovered: false,
+        },
+      ]);
+
+      const [poi] = await service.findNearby('1', 2.29, 48.86, 5000);
+
+      expect(poi).toMatchObject({
+        id: '42',
+        title: 'Somewhere',
+        countryCode: 'FRA',
+        discovered: false,
+      });
+    });
+  });
+
+  describe('requireExists', () => {
+    it('resolves when the POI exists', async () => {
+      query.mockResolvedValueOnce([{ exists: true }]);
+
+      await expect(service.requireExists('1')).resolves.toBeUndefined();
+    });
+
+    it('throws NotFoundException when the POI does not exist', async () => {
+      query.mockResolvedValueOnce([{ exists: false }]);
+
+      await expect(service.requireExists('999999')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
   describe('getImage', () => {

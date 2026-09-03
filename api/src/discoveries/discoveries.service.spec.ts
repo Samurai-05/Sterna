@@ -5,6 +5,7 @@ import { DiscoveriesService } from './discoveries.service';
 import { Discovery } from './discovery.entity';
 import { GroupsService } from '../groups/groups.service';
 import { PhotosService } from '../photos/photos.service';
+import { PoisService } from '../pois/pois.service';
 
 /**
  * DiscoveriesService issues raw SQL through Repository<Discovery>.query, so
@@ -20,6 +21,7 @@ describe('DiscoveriesService', () => {
   const removeOwnedPhoto = jest.fn();
   const isCanonicalPhotoKey = jest.fn();
   const photoExists = jest.fn();
+  const requirePoiExists = jest.fn();
 
   let service: DiscoveriesService;
 
@@ -40,6 +42,7 @@ describe('DiscoveriesService', () => {
     longitude: '9.4669802',
     latitude: '41.1418826',
     image_object_key: 'photos/550e8400-e29b-41d4-a716-446655440000.jpg',
+    confirmed_poi_id: null,
     author_user_name: 'Ada',
     country_code: 'ITA',
     location_source: null,
@@ -56,6 +59,7 @@ describe('DiscoveriesService', () => {
     ownsPhoto.mockResolvedValue(true);
     isCanonicalPhotoKey.mockReturnValue(true);
     photoExists.mockResolvedValue(true);
+    requirePoiExists.mockResolvedValue(undefined);
 
     const module = await Test.createTestingModule({
       providers: [
@@ -70,6 +74,10 @@ describe('DiscoveriesService', () => {
             isCanonicalObjectKey: isCanonicalPhotoKey,
             exists: photoExists,
           },
+        },
+        {
+          provide: PoisService,
+          useValue: { requireExists: requirePoiExists },
         },
       ],
     }).compile();
@@ -372,6 +380,8 @@ describe('DiscoveriesService', () => {
         false,
         false,
         true,
+        false,
+        null,
       ]);
     });
 
@@ -394,6 +404,8 @@ describe('DiscoveriesService', () => {
         false,
         false,
         false,
+        false,
+        null,
       ]);
     });
 
@@ -424,7 +436,10 @@ describe('DiscoveriesService', () => {
 
       const discovery = await service.update('9', '1', { personal: false });
 
-      expect(query.mock.calls[1][1]?.slice(-3, -1)).toEqual([true, false]);
+      // Absolute indices, not slice(-3, -1): that was relative to the end
+      // of the params array, which shifted once confirmedPoiId's two params
+      // were appended after it.
+      expect(query.mock.calls[1][1]?.slice(10, 12)).toEqual([true, false]);
       expect(discovery.personal).toBe(false);
     });
 
@@ -436,6 +451,53 @@ describe('DiscoveriesService', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
 
       expect(query).toHaveBeenCalledTimes(1);
+    });
+
+    describe('confirmedPoiId (confirm-to-unlock)', () => {
+      it('verifies the POI exists before confirming a link', async () => {
+        query.mockResolvedValueOnce([row({ confirmed_poi_id: '42' })]);
+
+        const discovery = await service.update('9', '1', {
+          confirmedPoiId: '42',
+        });
+
+        expect(requirePoiExists).toHaveBeenCalledWith('42');
+        expect(params()?.slice(-2)).toEqual([true, '42']);
+        expect(discovery.confirmedPoiId).toBe('42');
+      });
+
+      it('propagates a not-found POI without ever running the UPDATE', async () => {
+        requirePoiExists.mockRejectedValueOnce(
+          new NotFoundException('No such point of interest "999999".'),
+        );
+
+        await expect(
+          service.update('9', '1', { confirmedPoiId: '999999' }),
+        ).rejects.toBeInstanceOf(NotFoundException);
+
+        expect(query).not.toHaveBeenCalled();
+      });
+
+      it('unlinks on an explicit null without checking POI existence', async () => {
+        query.mockResolvedValueOnce([row({ confirmed_poi_id: null })]);
+
+        const discovery = await service.update('9', '1', {
+          confirmedPoiId: null,
+        });
+
+        expect(requirePoiExists).not.toHaveBeenCalled();
+        expect(params()?.slice(-2)).toEqual([true, null]);
+        expect(discovery.confirmedPoiId).toBeNull();
+      });
+
+      it('leaves an existing link untouched when the field is omitted', async () => {
+        query.mockResolvedValueOnce([row({ confirmed_poi_id: '42' })]);
+
+        await service.update('9', '1', { title: 'Renamed' });
+
+        expect(requirePoiExists).not.toHaveBeenCalled();
+        expect(params()?.slice(-2)).toEqual([false, null]);
+      });
     });
   });
 

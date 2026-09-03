@@ -24,6 +24,9 @@ export class Discovery {
   @Column({ name: 'group_id', type: 'bigint', nullable: true })
   groupId: string | null;
 
+  @Column({ name: 'confirmed_poi_id', type: 'bigint', nullable: true })
+  confirmedPoiId: string | null;
+
   @Column({ name: 'is_personal', type: 'boolean', default: false })
   isPersonal: boolean;
 

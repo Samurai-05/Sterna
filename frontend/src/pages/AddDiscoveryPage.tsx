@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { CategoryIcon } from '@/components/CategoryIcon'
+import { ConfirmPoiLinkDrawer } from '@/components/ConfirmPoiLinkDrawer'
 import { DiscoveryGroupSelector } from '@/components/DiscoveryGroupSelector'
 import {
   LocationPickerMap,
@@ -13,8 +14,10 @@ import {
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import {
+  confirmDiscoveryPoi,
   createDiscovery,
   getGroups,
+  getNearbyPois,
   searchLocations,
   uploadPhoto,
   type UploadPhotoResponse,
@@ -28,7 +31,12 @@ import {
 import { categoryAppearance } from '@/lib/category-appearance'
 import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap } from '@/hooks/useActiveMap'
-import { categories, type DiscoveryCategory } from '@/lib/mock-data'
+import {
+  categories,
+  type DiscoveryCategory,
+  type Landmark,
+} from '@/lib/mock-data'
+import { getPoiImageUrl } from '@/lib/poi-image'
 import { releaseNativePhoto, type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
@@ -168,6 +176,11 @@ export function AddDiscoveryPage() {
   const [formMessage, setFormMessage] = useState('')
   const [sharedGroupIds, setSharedGroupIds] = useState<string[]>([])
   const [includePersonal, setIncludePersonal] = useState(false)
+  const [poiConfirmPrompt, setPoiConfirmPrompt] = useState<{
+    discoveryId: string
+    groupId: string | null
+    candidates: Landmark[]
+  } | null>(null)
 
   const { data: activeMap, isPending: isLoadingActiveMap } = useActiveMap()
   const activeGroupId = activeMap?.groupId ?? null
@@ -467,10 +480,37 @@ export function AddDiscoveryPage() {
         queryKey: ['pois', session?.user.id],
       })
       queryClient.invalidateQueries({ queryKey: ['groups', session?.user.id] })
-      navigate(discoveryPath(discovery.id, discovery.groupId), {
-        state: { returnTo: '/', justCreated: true },
-        replace: true,
-      })
+
+      const discoveryId = String(discovery.id)
+      const groupId = discovery.groupId ?? null
+
+      if (!session) {
+        goToSavedDiscovery(discoveryId, groupId)
+        return
+      }
+
+      // Offers to link this discovery to a nearby undiscovered POI it might
+      // actually be a photo of, taken from outside the auto-unlock radius
+      // (e.g. the Eiffel Tower photographed from Trocadéro). Never blocks —
+      // any failure just falls through to the normal navigation.
+      getNearbyPois(
+        session.accessToken,
+        discovery.coordinates[0],
+        discovery.coordinates[1],
+      )
+        .then((nearby) => {
+          const candidates = nearby.filter((poi) => !poi.discovered)
+          if (candidates.length === 0) {
+            goToSavedDiscovery(discoveryId, groupId)
+            return
+          }
+          setPoiConfirmPrompt({
+            discoveryId,
+            groupId,
+            candidates,
+          })
+        })
+        .catch(() => goToSavedDiscovery(discoveryId, groupId))
     },
     onError: (error) => {
       setFormMessage(
@@ -478,6 +518,34 @@ export function AddDiscoveryPage() {
       )
     },
   })
+
+  function goToSavedDiscovery(discoveryId: string, groupId: string | null) {
+    navigate(discoveryPath(discoveryId, groupId), {
+      state: { returnTo: '/', justCreated: true },
+      replace: true,
+    })
+  }
+
+  function handlePoiConfirmPick(poiId: string) {
+    if (!session || !poiConfirmPrompt) return
+    const { discoveryId, groupId } = poiConfirmPrompt
+    setPoiConfirmPrompt(null)
+    confirmDiscoveryPoi(session.accessToken, discoveryId, poiId)
+      .then(() =>
+        queryClient.invalidateQueries({
+          queryKey: ['pois', session.user.id],
+        }),
+      )
+      .catch(() => undefined)
+      .finally(() => goToSavedDiscovery(discoveryId, groupId))
+  }
+
+  function handlePoiConfirmDismiss() {
+    if (!poiConfirmPrompt) return
+    const { discoveryId, groupId } = poiConfirmPrompt
+    setPoiConfirmPrompt(null)
+    goToSavedDiscovery(discoveryId, groupId)
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -811,6 +879,24 @@ export function AddDiscoveryPage() {
           </p>
         )}
       </form>
+      <ConfirmPoiLinkDrawer
+        open={poiConfirmPrompt !== null}
+        title="Unlock a point of interest?"
+        description="This discovery is near a point of interest you haven't unlocked yet. Is it a photo of one of these?"
+        items={(poiConfirmPrompt?.candidates ?? []).map((poi) => ({
+          id: poi.id,
+          title: poi.name,
+          subtitle: poi.country || undefined,
+          thumbnail: (
+            <img
+              src={getPoiImageUrl(poi.imageUrl, poi.imageId, 'card')}
+              alt=""
+            />
+          ),
+        }))}
+        onPick={handlePoiConfirmPick}
+        onDismiss={handlePoiConfirmDismiss}
+      />
     </main>
   )
 }

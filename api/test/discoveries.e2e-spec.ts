@@ -18,6 +18,7 @@ interface DiscoveryResponse {
   longitude: number;
   latitude: number;
   imageObjectKey: string;
+  confirmedPoiId: string | null;
   countryCode: string | null;
   discoveredAt: string;
 }
@@ -381,6 +382,72 @@ describe('DiscoveriesController (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(discoveryBody('discoveries/hand-written.jpg'))
         .expect(400);
+    });
+  });
+
+  describe('confirmedPoiId (confirm-to-unlock)', () => {
+    let discoveryId: string;
+    let eiffelTowerId: string;
+
+    beforeAll(async () => {
+      const createResponse = await request(app.getHttpServer())
+        .post('/api/discoveries')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          groupId: null,
+          title: 'Eiffel Tower from Trocadéro',
+          description: null,
+          category: 'Monument',
+          // Trocadéro — well outside the 150m auto-unlock radius.
+          longitude: 2.2892,
+          latitude: 48.8616,
+          imageObjectKey: await uploadTestPhoto(app, accessToken),
+          locationSource: 'manual',
+          discoveredAt: '2026-08-25T16:00:00.000Z',
+        })
+        .expect(201);
+      discoveryId = (createResponse.body as DiscoveryResponse).id;
+
+      const [row] = await dataSource.query<{ id: string }[]>(
+        `SELECT id FROM pois WHERE title = 'Eiffel Tower'`,
+      );
+      eiffelTowerId = row.id;
+    });
+
+    it('links to a real POI and reflects it in the response', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/discoveries/${discoveryId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ confirmedPoiId: eiffelTowerId })
+        .expect(200);
+
+      expect((response.body as DiscoveryResponse).confirmedPoiId).toBe(
+        eiffelTowerId,
+      );
+    });
+
+    it('404s on an unknown POI id rather than a raw constraint-violation 500', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/discoveries/${discoveryId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ confirmedPoiId: '999999999' })
+        .expect(404);
+    });
+
+    it('clears the link on an explicit null after a prior confirmation', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/discoveries/${discoveryId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ confirmedPoiId: eiffelTowerId })
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/discoveries/${discoveryId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ confirmedPoiId: null })
+        .expect(200);
+
+      expect((response.body as DiscoveryResponse).confirmedPoiId).toBeNull();
     });
   });
 });

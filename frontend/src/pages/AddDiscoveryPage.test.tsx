@@ -8,6 +8,7 @@ import { renderWithProviders } from '@/test/renderWithProviders'
 import {
   createDiscovery,
   getActiveMap,
+  getNearbyPois,
   searchLocations,
   uploadPhoto,
   type UploadPhotoResponse,
@@ -28,6 +29,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     ...actual,
     createDiscovery: vi.fn(),
     getActiveMap: vi.fn(),
+    getNearbyPois: vi.fn(),
     searchLocations: vi.fn(),
     uploadPhoto: vi.fn(),
   }
@@ -92,7 +94,9 @@ describe('AddDiscoveryPage', () => {
     vi.mocked(createDiscovery).mockResolvedValue({
       id: 42,
       groupId: null,
+      coordinates: [6.6, 46.7],
     } as never)
+    vi.mocked(getNearbyPois).mockResolvedValue([])
     const invalidateQueries = vi.spyOn(
       QueryClient.prototype,
       'invalidateQueries',

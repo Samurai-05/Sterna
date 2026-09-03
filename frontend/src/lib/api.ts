@@ -409,6 +409,42 @@ export async function getAuthoredPois(
   return pois.map(toLandmark)
 }
 
+export async function getNearbyPois(
+  accessToken: string,
+  longitude: number,
+  latitude: number,
+  radius?: number,
+): Promise<Landmark[]> {
+  const query = new URLSearchParams({
+    longitude: String(longitude),
+    latitude: String(latitude),
+  })
+  if (radius !== undefined) query.set('radius', String(radius))
+
+  const pois = await request<ApiPoi[]>(`/api/pois/nearby?${query}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  return pois.map(toLandmark)
+}
+
+/**
+ * Links (or, with `poiId: null`, unlinks) a discovery to a POI regardless of
+ * distance — the confirm-to-unlock flow. A minimal PATCH, unlike
+ * `updateDiscovery`, which always sends the full editable field set.
+ */
+export function confirmDiscoveryPoi(
+  accessToken: string,
+  discoveryId: string,
+  poiId: string | null,
+): Promise<void> {
+  return request<void>(`/api/discoveries/${discoveryId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ confirmedPoiId: poiId }),
+  })
+}
+
 export async function createDiscovery(input: {
   accessToken: string
   groupId: string | null

@@ -19,6 +19,17 @@ export class UpdateDiscoveryDto {
   @Matches(/^\d+$/, { each: true })
   groupIds?: string[];
 
+  /**
+   * Explicitly links this discovery to a POI regardless of distance — the
+   * confirm-to-unlock flow, for a landmark photographed from outside
+   * POI_DISCOVERY_RADIUS_METERS. `null` unlinks; omitted leaves the existing
+   * link (if any) untouched — see DiscoveriesService.update's
+   * hasOwnProperty check, the same pattern `description` already uses.
+   */
+  @IsOptional()
+  @Matches(/^\d+$/)
+  confirmedPoiId?: string | null;
+
   @IsOptional()
   @IsBoolean()
   personal?: boolean;

@@ -1,12 +1,16 @@
-import { MapPin, Trophy } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Camera, MapPin, Trophy } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type SyntheticEvent } from 'react'
 import { useLocation, useParams } from 'react-router'
 
+import { ConfirmPoiLinkDrawer } from '@/components/ConfirmPoiLinkDrawer'
+import { DiscoveryPhoto } from '@/components/DiscoveryPhoto'
 import { PageHeader } from '@/components/PageHeader'
-import { getPois } from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { confirmDiscoveryPoi, getAuthoredDiscoveries, getPois } from '@/lib/api'
+import { distanceInKilometres, formatDistance } from '@/lib/distance'
 import { getPoiImageUrl } from '@/lib/poi-image'
-import { landmarks } from '@/lib/mock-data'
+import { landmarks, type Discovery } from '@/lib/mock-data'
 import { landmarkLocationLabel } from '@/lib/location-label'
 import { loadSession } from '@/lib/session'
 
@@ -81,6 +85,11 @@ export function LandmarkDetailPage() {
   const { landmarkId } = useParams()
   const location = useLocation()
   const session = loadSession()
+  const queryClient = useQueryClient()
+  const [linkableDiscoveries, setLinkableDiscoveries] = useState<
+    Discovery[] | null
+  >(null)
+  const [isLoadingLinkables, setIsLoadingLinkables] = useState(false)
   const { data: backendPois } = useQuery({
     queryKey: ['pois', session?.user.id],
     queryFn: () => getPois(session!.accessToken),
@@ -92,7 +101,37 @@ export function LandmarkDetailPage() {
     sourceLandmarks.find((item) => item.id === landmarkId) ?? sourceLandmarks[0]
   const returnTo =
     typeof location.state?.returnTo === 'string' ? location.state.returnTo : '/'
+
+  const confirmPoiLink = useMutation({
+    mutationFn: (discoveryId: string) =>
+      confirmDiscoveryPoi(session!.accessToken, discoveryId, landmark!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pois', session?.user.id] })
+      setLinkableDiscoveries(null)
+    },
+  })
+
   if (!landmark) return null
+
+  async function handleFindExistingPhoto() {
+    if (!session) return
+    setIsLoadingLinkables(true)
+    try {
+      const discoveries = await getAuthoredDiscoveries(session.accessToken)
+      setLinkableDiscoveries(
+        [...discoveries].sort(
+          (left, right) =>
+            distanceInKilometres(landmark!.coordinates, left.coordinates) -
+            distanceInKilometres(landmark!.coordinates, right.coordinates),
+        ),
+      )
+    } catch {
+      // Leave the button available so the user can retry.
+    } finally {
+      setIsLoadingLinkables(false)
+    }
+  }
+
   const landmarkImage = getPoiImageUrl(
     landmark.imageUrl,
     landmark.imageId,
@@ -114,6 +153,20 @@ export function LandmarkDetailPage() {
           <Trophy className="size-4" />
           {landmark.discovered ? 'Discovered' : 'Undiscovered'}
         </div>
+        {!landmark.discovered && session && (
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 h-10 w-full"
+            disabled={isLoadingLinkables}
+            onClick={handleFindExistingPhoto}
+          >
+            <Camera className="size-4" />
+            {isLoadingLinkables
+              ? 'Looking for photos...'
+              : 'I already have a photo of this'}
+          </Button>
+        )}
         <h1 className="mt-2 font-display text-[30px] font-semibold leading-9">
           {landmark.name}
         </h1>
@@ -123,6 +176,29 @@ export function LandmarkDetailPage() {
         </p>
         <p className="mt-6 text-[16px] leading-6">{landmark.description}</p>
       </article>
+      <ConfirmPoiLinkDrawer
+        open={linkableDiscoveries !== null}
+        title={`Is this ${landmark.name}?`}
+        description="Pick the discovery that's a photo of this point of interest."
+        emptyMessage="You don't have any discoveries yet."
+        items={(linkableDiscoveries ?? []).map((discovery) => ({
+          id: String(discovery.id),
+          title: discovery.name,
+          subtitle: formatDistance(
+            distanceInKilometres(landmark.coordinates, discovery.coordinates),
+          ),
+          thumbnail: (
+            <DiscoveryPhoto
+              discovery={discovery}
+              alt=""
+              variant="card"
+              className="size-full object-cover"
+            />
+          ),
+        }))}
+        onPick={(discoveryId) => confirmPoiLink.mutate(discoveryId)}
+        onDismiss={() => setLinkableDiscoveries(null)}
+      />
     </main>
   )
 }
