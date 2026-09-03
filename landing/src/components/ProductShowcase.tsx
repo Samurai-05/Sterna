@@ -28,7 +28,7 @@ const screens: Screen[] = [
     id: 'gallery',
     label: 'Gallery',
     description: 'Discoveries and POIs.',
-    image: '/assets/screenshots/current/gallery.png',
+    image: '/assets/screenshots/current/gallery-2.png',
   },
   {
     id: 'discovery',
