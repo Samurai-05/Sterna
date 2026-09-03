@@ -166,7 +166,7 @@ The first version may notably display the following statistics in the user's pro
 
 * overall exploration progress.
 
-For the MVP, the catalogue contains one well-known point of interest for each of the 193 UN member states, plus Palestine and Vatican City: 195 points of interest in total.
+For the MVP, the catalogue covers each of the 193 UN member states, plus Palestine and Vatican City, with at least one well-known point of interest per country and up to five for the most-documented ones.
 
 Challenges, badges, recommendations, advanced rankings, or region-specific collections are considered possible future extensions.
 

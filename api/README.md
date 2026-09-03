@@ -129,13 +129,14 @@ hand-written SQL, moved over from the `infra/postgres/init/` scripts that never 
 because Postgres only executes those on a brand new data volume. After them come
 `1787734646000-RepairDiscoveryCategoryCheck.ts` and `1787734647000-AddGroupInviteCode.ts`,
 which gives every group its invitation code, then `1787734648000-ReplaceMvpPois.ts` (the
-195-row POI catalogue), `1787734649000-AddCountryDetection.ts` (the country-boundary
-dataset), `1787734650000-AddDiscoveryGroupSharing.ts` and
+initial one-row-per-country POI catalogue), `1787734649000-AddCountryDetection.ts` (the
+country-boundary dataset), `1787734650000-AddDiscoveryGroupSharing.ts` and
 `1787734651000-AddDiscoveryPersonalSharing.ts` (letting one discovery be shared into several
 groups while staying on its author's personal map), `1787734652000-AddDiscoveryLocationSource.ts`
-and `1787734652000-AddUserAvatar.ts`, and `1787734653000-AddPhotoOwnership.ts` /
+and `1787734652000-AddUserAvatar.ts`, `1787734653000-AddPhotoOwnership.ts` /
 `1787734654000-AddPasswordChangedAt.ts` (the `photos` table and `password_changed_at`, both
-described under Authentication and Photos below).
+described under Authentication and Photos below), and `1787734655000-ExpandMvpPois.ts` (grows
+the catalogue to up to five POIs for the most-documented countries).
 
 Every entity — `auth/user.entity.ts`, `discoveries/discovery.entity.ts`, `pois/poi.entity.ts`
 and the two in `groups/` — is written against that schema. An entity here *describes* an
@@ -307,7 +308,7 @@ the baseline schema; `AddGroupInviteCode1787734647000` added the one column the 
 | `DELETE /api/groups/{id}/members/me` | Leave (FR-33). 204 |
 | `GET /api/groups/{id}/discoveries` | The group's shared map (FR-29), each discovery carrying its author (FR-31) |
 | `GET /api/active-map` | The map new discoveries go to (FR-27) |
-| `GET /api/pois` | The 195 predefined POIs with a discovery status calculated for the caller's active map |
+| `GET /api/pois` | The predefined POIs (at least one per MVP country) with a discovery status calculated for the caller's active map |
 | `PUT /api/active-map` | Change it with `{ groupId }`, or `{ groupId: null }` for the personal map (FR-28) |
 
 **A personal map is not a group.** It is a logical view of discoveries with

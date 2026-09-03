@@ -3,6 +3,13 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
+.sterna-discovery-photo-viewer .yarl__slide_image {
+  width: 100%;
+  height: auto;
+  max-width: none;
+  max-height: none;
+}
+
 :root {
   --font-ui: 'Outfit', sans-serif;
   --font-editorial: 'Fraunces', serif;

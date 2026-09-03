@@ -25,10 +25,10 @@ import {
   type PersistedLocationSource,
   type SelectedLocation,
 } from '@/lib/discovery-location'
+import { categoryAppearance } from '@/lib/category-appearance'
 import { discoveryPath } from '@/lib/discovery-path'
 import { useActiveMap } from '@/hooks/useActiveMap'
 import { categories, type DiscoveryCategory } from '@/lib/mock-data'
-import { getStoredMapViewport } from '@/lib/map-viewport'
 import { releaseNativePhoto, type SelectedPhoto } from '@/lib/photo-capture'
 import { loadSession } from '@/lib/session'
 import { personalMapName } from '@/lib/personal-map-name'
@@ -44,8 +44,6 @@ const SUPPORTED_PHOTO_MIME_TYPES = new Set([
 type AddDiscoveryLocationState = {
   selectedPhoto?: SelectedPhoto
 }
-
-const defaultCoordinates: [number, number] = [2.3522, 48.8566]
 
 /** Resolves whichever photo the user selected (native or browser) into bytes. */
 export async function readSelectedPhoto(
@@ -149,9 +147,6 @@ export function AddDiscoveryPage() {
   const [category, setCategory] = useState<DiscoveryCategory>('other')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [mapCenter] = useState<[number, number]>(
-    () => getStoredMapViewport()?.center ?? defaultCoordinates,
-  )
   const [selectedLocation, setSelectedLocation] =
     useState<SelectedLocation | null>(null)
   const [locationUiSource, setLocationUiSource] =
@@ -283,8 +278,9 @@ export function AddDiscoveryPage() {
   useEffect(() => {
     void getCurrentDevicePosition({
       enableHighAccuracy: true,
-      maximumAge: 60_000,
+      maximumAge: 0,
       timeout: 8_000,
+      maximumAcceptedAccuracy: 1000,
     }).then(
       ({ coords }) => {
         const currentCoordinates: [number, number] = [
@@ -683,8 +679,17 @@ export function AddDiscoveryPage() {
               <button
                 key={item.id}
                 type="button"
+                aria-pressed={category === item.id}
                 onClick={() => setCategory(item.id)}
-                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${category === item.id ? 'border-primary bg-accent text-primary' : 'border-border bg-card'}`}
+                className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-colors ${category === item.id ? categoryAppearance[item.id].background : 'border-border bg-card text-foreground'}`}
+                style={
+                  category === item.id
+                    ? {
+                        borderColor: categoryAppearance[item.id].color,
+                        color: categoryAppearance[item.id].color,
+                      }
+                    : undefined
+                }
               >
                 <CategoryIcon category={item.id} className="size-4" />
                 {item.label}
@@ -781,14 +786,15 @@ export function AddDiscoveryPage() {
           <div className="mt-3 h-56 w-full overflow-hidden rounded-xl border border-border">
             <LocationPickerMap
               ref={locationPickerRef}
-              coordinates={selectedLocation?.coordinates ?? mapCenter}
+              coordinates={selectedLocation?.coordinates}
               onChange={handleLocationChange}
               className="h-full w-full"
             />
           </div>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            {(selectedLocation?.coordinates ?? mapCenter)[1].toFixed(5)},{' '}
-            {(selectedLocation?.coordinates ?? mapCenter)[0].toFixed(5)}
+            {selectedLocation
+              ? `${selectedLocation.coordinates[1].toFixed(5)}, ${selectedLocation.coordinates[0].toFixed(5)}`
+              : 'Choose a location on the map.'}
           </p>
         </section>
         <Button
@@ -799,10 +805,7 @@ export function AddDiscoveryPage() {
           {mutation.isPending ? 'Saving discovery...' : 'Save discovery'}
         </Button>
         {formMessage && (
-          <p
-            role="alert"
-            className="text-center text-sm text-destructive"
-          >
+          <p role="alert" className="text-center text-sm text-destructive">
             {formMessage}
           </p>
         )}

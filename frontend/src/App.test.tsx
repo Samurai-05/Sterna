@@ -365,10 +365,13 @@ describe('App', () => {
     expect(
       screen.getByRole('textbox', { name: 'Search gallery' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('textbox', { name: 'Search gallery' }).closest('label')
-        ?.parentElement,
-    ).toHaveClass('sterna-gallery-content')
+    const searchRow = screen
+      .getByRole('textbox', { name: 'Search gallery' })
+      .closest('label')?.parentElement
+    expect(searchRow?.parentElement).toHaveClass('sterna-gallery-content')
+    expect(searchRow).toContainElement(
+      screen.getByRole('button', { name: 'Switch to photo grid' }),
+    )
     expect(screen.getByRole('button', { name: 'Food' })).toHaveClass('bg-card')
     expect(
       screen.getByRole('group', { name: 'Filter gallery by source' }),

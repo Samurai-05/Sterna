@@ -7,9 +7,7 @@ const {
   mapInstances,
   markerInstances,
   popupElements,
-  MockGeolocateControl,
   MockMap,
-  MockNavigationControl,
   ResizeObserverMock,
   resizeObserverInstances,
 } = vi.hoisted(() => {
@@ -51,8 +49,6 @@ const {
   }> = []
   const getPhoto = vi.fn().mockResolvedValue(new Blob(['image']))
 
-  class NavigationControl {}
-
   class ResizeObserverMock {
     callback: ResizeObserverCallback
 
@@ -68,10 +64,6 @@ const {
     trigger() {
       this.callback([], this as unknown as ResizeObserver)
     }
-  }
-
-  class GeolocateControl {
-    trigger() {}
   }
 
   class MapMock {
@@ -256,9 +248,7 @@ const {
     mapInstances: instances,
     markerInstances: markers,
     popupElements,
-    MockGeolocateControl: GeolocateControl,
     MockMap: MapMock,
-    MockNavigationControl: NavigationControl,
     ResizeObserverMock,
     resizeObserverInstances,
   }
@@ -318,10 +308,8 @@ vi.mock('maplibre-gl', () => {
   }
 
   return {
-    GeolocateControl: MockGeolocateControl,
     Map: MockMap,
     Marker: MarkerMock,
-    NavigationControl: MockNavigationControl,
     Popup: PopupMock,
     setWorkerUrl: vi.fn(),
   }
@@ -432,7 +420,7 @@ describe('MapCanvas', () => {
     expect(mapInstances[0].flyToCalls).toEqual([])
   })
 
-  it('does not add MapLibre zoom controls while keeping geolocation controls', () => {
+  it('uses the responsive globe floor without adding built-in controls', () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'test-browser',
@@ -442,16 +430,32 @@ describe('MapCanvas', () => {
 
     expect(mapInstances).toHaveLength(1)
     expect(mapInstances[0].options).toMatchObject({
-      center: [2.3522, 48.8566],
-      zoom: 12,
+      center: [0, 20],
+      zoom: 3.3,
     })
-    expect(mapInstances[0].controls).toHaveLength(1)
-    expect(mapInstances[0].controls[0]).toBeInstanceOf(MockGeolocateControl)
-    expect(mapInstances[0].controls[0]).not.toBeInstanceOf(
-      MockNavigationControl,
-    )
+    expect(mapInstances[0].controls).toHaveLength(0)
 
     unmount()
+  })
+
+  it('only displays a location dot for a verified device position', () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'test-browser',
+    })
+
+    const { rerender } = render(<MapCanvas />)
+    expect(markerInstances).toHaveLength(0)
+
+    rerender(<MapCanvas userLocation={[7.4474, 46.948]} />)
+    expect(markerInstances).toHaveLength(1)
+    expect(markerInstances[0].element).toHaveAttribute(
+      'aria-label',
+      'Your current location',
+    )
+
+    rerender(<MapCanvas />)
+    expect(markerInstances[0].removed).toBe(true)
   })
 
   it('adds the frontend fog source and layer below native boundaries', () => {

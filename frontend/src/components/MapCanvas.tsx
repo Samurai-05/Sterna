@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { GeolocateControl, Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
+import { Map, Marker, Popup, setWorkerUrl } from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -9,7 +9,7 @@ import { CategoryIcon } from '@/components/CategoryIcon'
 import { getPhoto } from '@/lib/api'
 import { categoryAppearance } from '@/lib/category-appearance'
 import {
-  defaultMapViewport,
+  defaultGlobeViewport,
   getStoredMapViewport,
   getResponsiveGlobeMinimumZoom,
   saveMapViewport,
@@ -100,7 +100,7 @@ const disputedZoneClaims: Record<string, string[]> = {
 }
 
 export interface MapCanvasHandle {
-  locate: () => void
+  locate: (coordinates: [number, number]) => void
   resize: () => void
   flyTo: (coordinates: [number, number], zoom?: number) => void
   resetNorth: () => void
@@ -148,6 +148,7 @@ interface MapCanvasProps {
   discoveries?: DiscoveryMarkerData[]
   landmarks?: LandmarkMarkerData[]
   exploredCountryCodes?: string[]
+  userLocation?: [number, number]
   onSelectDiscovery?: (id: number) => void
   onSelectLandmark?: (id: string) => void
   photoAccessToken?: string
@@ -159,6 +160,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       discoveries = [],
       landmarks = [],
       exploredCountryCodes = [],
+      userLocation,
       onSelectDiscovery,
       onSelectLandmark,
       photoAccessToken,
@@ -172,13 +174,20 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       coordinates: [number, number]
       zoom: number
     } | null>(null)
-    const geolocateControl = useRef<GeolocateControl | null>(null)
     const exploredCodes = useRef<string[]>(exploredCountryCodes)
     const appliedCodes = useRef<Set<string>>(new Set())
     const applyExploredStatesRef = useRef<() => void>(() => {})
 
     useImperativeHandle(ref, () => ({
-      locate: () => geolocateControl.current?.trigger(),
+      locate: (coordinates) => {
+        const instance = map.current
+        const zoom = Math.max(instance?.getZoom() ?? 13, 13)
+        if (instance) {
+          instance.flyTo({ center: coordinates, zoom })
+        } else {
+          pendingTarget.current = { coordinates, zoom }
+        }
+      },
       resize: () => map.current?.resize(),
       flyTo: (coordinates, zoom = 15) => {
         if (map.current) {
@@ -198,7 +207,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       }
 
       const viewport =
-        initialViewport ?? getStoredMapViewport() ?? defaultMapViewport
+        initialViewport ?? getStoredMapViewport() ?? defaultGlobeViewport
       const instance = new Map({
         container: mapContainer.current,
         style: mapStyle,
@@ -233,13 +242,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       instance.on('moveend', saveCurrentViewport)
       instance.on('zoomend', saveCurrentViewport)
-
-      const geolocate = new GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
-      })
-      instance.addControl(geolocate, 'top-left')
-      geolocateControl.current = geolocate
 
       const applyExploredStates = () => {
         if (!instance.getSource(fogSourceId)) {
@@ -331,11 +333,25 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         instance.off('moveend', saveCurrentViewport)
         instance.off('zoomend', saveCurrentViewport)
         applyExploredStatesRef.current = () => {}
-        geolocateControl.current = null
         map.current = null
         instance.remove()
       }
     }, [initialViewport])
+
+    useEffect(() => {
+      const instance = map.current
+      if (!instance || !userLocation) return
+
+      const element = document.createElement('div')
+      element.className = 'maplibregl-user-location-dot'
+      element.setAttribute('role', 'img')
+      element.setAttribute('aria-label', 'Your current location')
+      const marker = new Marker({ element }).setLngLat(userLocation).addTo(instance)
+
+      return () => {
+        marker.remove()
+      }
+    }, [userLocation])
 
     useEffect(() => {
       exploredCodes.current = exploredCountryCodes

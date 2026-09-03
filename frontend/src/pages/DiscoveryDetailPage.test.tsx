@@ -16,6 +16,7 @@ import {
   getDiscoveries,
   getGroups,
   getPhoto,
+  setActiveMap,
 } from '@/lib/api'
 import { saveSession } from '@/lib/session'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -32,6 +33,7 @@ vi.mock('@/lib/api', async (importOriginal) => {
     getGroups: vi.fn(),
     getPhoto: vi.fn(),
     deleteDiscovery: vi.fn(),
+    setActiveMap: vi.fn(),
   }
 })
 
@@ -58,7 +60,7 @@ vi.mock('yet-another-react-lightbox', () => ({
     render?: {
       slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
     }
-    carousel?: { preload?: number; padding?: number }
+    carousel?: { preload?: number; imageFit?: string; padding?: number }
     animation?: { fade?: number; swipe?: number }
     zoom?: {
       ref?: (value: { zoom: number } | null) => void
@@ -106,7 +108,7 @@ function InlineLightboxTestDouble({
   render?: {
     slide?: (props: { slide: { src: string; alt?: string } }) => ReactNode
   }
-  carousel?: { preload?: number; padding?: number }
+  carousel?: { preload?: number; imageFit?: string; padding?: number }
   animation?: { fade?: number; swipe?: number }
   zoom?: {
     ref?: (value: { zoom: number } | null) => void
@@ -135,6 +137,7 @@ function InlineLightboxTestDouble({
       data-inline-width={inline?.style?.width}
       data-inline-height={inline?.style?.height}
       data-carousel-preload={carousel?.preload}
+      data-carousel-image-fit={carousel?.imageFit}
       data-carousel-padding={carousel?.padding}
       data-animation-fade={animation?.fade}
       data-animation-swipe={animation?.swipe}
@@ -174,6 +177,7 @@ const getGroupsMock = vi.mocked(getGroups)
 const getPhotoMock = vi.mocked(getPhoto)
 const deleteDiscoveryMock = vi.mocked(deleteDiscovery)
 let lightboxZoomLevel = 1
+const setActiveMapMock = vi.mocked(setActiveMap)
 
 const discovery = {
   id: 7,
@@ -212,6 +216,7 @@ beforeEach(() => {
   getGroupsMock.mockResolvedValue([])
   getPhotoMock.mockResolvedValue(new Blob(['photo']))
   deleteDiscoveryMock.mockResolvedValue(undefined)
+  setActiveMapMock.mockResolvedValue({ groupId: null, name: null })
 })
 
 afterEach(() => {
@@ -262,6 +267,7 @@ function LocationProbe() {
       <output data-testid="location-probe">
         {location.pathname}
         {location.search}
+        {JSON.stringify(location.state)}
       </output>
       <button type="button" onClick={() => navigate(-1)}>
         Browser back
@@ -285,7 +291,7 @@ describe('DiscoveryDetailPage', () => {
     )
 
     const drawer = document.querySelector('[data-slot="drawer-popup"]')
-    expect(drawer).toHaveClass('bg-card', 'text-foreground')
+    expect(drawer).toHaveClass('bg-card/92', 'backdrop-blur-md', 'text-foreground')
     expect(screen.getByRole('button', { name: 'Alpine meadow' })).toHaveClass(
       'text-foreground',
     )
@@ -479,6 +485,7 @@ describe('DiscoveryDetailPage', () => {
     expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
     expect(main).toHaveAttribute('data-controls-visible', 'true')
 
+    vi.useFakeTimers()
     fireEvent.pointerDown(photo, {
       pointerId: 1,
       pointerType: 'touch',
@@ -492,8 +499,39 @@ describe('DiscoveryDetailPage', () => {
       clientY: 180,
     })
 
+    act(() => vi.advanceTimersByTime(260))
     expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
     expect(main).toHaveAttribute('data-controls-visible', 'true')
+    vi.useRealTimers()
+  })
+
+  it('does not treat the first tap of a YARL double tap as a viewer tap', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('region', { name: 'Discovery photo' })
+    const drawer = screen.getByTestId('discovery-detail-drawer')
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+
+    vi.useFakeTimers()
+    for (const pointerId of [1, 2]) {
+      fireEvent.pointerDown(photo, {
+        pointerId,
+        pointerType: 'touch',
+        clientX: 160,
+        clientY: 180,
+      })
+      fireEvent.pointerUp(photo, {
+        pointerId,
+        pointerType: 'touch',
+        clientX: 160,
+        clientY: 180,
+      })
+    }
+    act(() => vi.advanceTimersByTime(260))
+
+    expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
+    vi.useRealTimers()
   })
 
   it('keeps the top controls visible after a simple photo tap', async () => {
@@ -769,25 +807,25 @@ describe('DiscoveryDetailPage', () => {
     )
   })
 
-  it('closes the action menu on the first Escape and navigates on the second', async () => {
+  it('collapses the expanded drawer on the first Escape and navigates on the second', async () => {
     renderPage(undefined, { withPreviousContext: true })
 
-    const trigger = await screen.findByRole('button', { name: 'More actions' })
-    fireEvent.click(trigger)
-    expect(
-      screen.getByRole('menuitem', { name: 'Delete discovery' }),
-    ).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Alpine meadow' }))
+    expect(screen.getByTestId('discovery-detail-drawer')).toHaveAttribute(
+      'data-drawer-state',
+      'expanded',
+    )
 
     fireEvent.keyDown(document, { key: 'Escape' })
     await waitFor(() =>
-      expect(
-        screen.queryByRole('menuitem', { name: 'Delete discovery' }),
-      ).not.toBeInTheDocument(),
+      expect(screen.getByTestId('discovery-detail-drawer')).toHaveAttribute(
+        'data-drawer-state',
+        'peek',
+      ),
     )
     expect(screen.getByTestId('location-probe')).toHaveTextContent(
       '/discoveries/7',
     )
-    await waitFor(() => expect(trigger).toHaveFocus())
 
     fireEvent.keyDown(document, { key: 'Escape' })
     await waitFor(() =>
@@ -800,8 +838,7 @@ describe('DiscoveryDetailPage', () => {
   it('closes the delete dialog on the first Escape and navigates on the second', async () => {
     renderPage(undefined, { withPreviousContext: true })
 
-    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete discovery' }))
     expect(
       screen.getByRole('alertdialog', { name: 'Delete discovery?' }),
     ).toBeInTheDocument()
@@ -881,46 +918,53 @@ describe('DiscoveryDetailPage', () => {
       const metadata = await screen.findByRole('group', {
         name: 'Discovery metadata',
       })
-      expect(metadata).toHaveTextContent('Landscape')
-      expect(metadata).toHaveTextContent('Added by Explorer · today')
+      expect(metadata.firstElementChild).toHaveTextContent('Landscape')
+      expect(metadata.firstElementChild).toHaveClass(
+        'rounded-full',
+        'bg-[#DBEAFE]',
+      )
+      expect(metadata.firstElementChild).toHaveStyle({
+        borderColor: '#2563EB',
+      })
+      expect(metadata).toHaveTextContent('Added byExplorer')
+      expect(metadata).toHaveTextContent('Datetoday')
       expect(metadata).toHaveTextContent('Personal map')
-      expect(metadata).not.toHaveClass('rounded-xl', 'bg-secondary/45')
+      expect(metadata.querySelectorAll('.rounded-xl')).toHaveLength(4)
       expect(metadata).not.toHaveTextContent('A quiet meadow above the lake.')
       expect(screen.getByText('A quiet meadow above the lake.')).toBeVisible()
+      expect(screen.getByRole('heading', { name: 'Description' })).toBeVisible()
     } finally {
       scrollHeight.mockRestore()
       bounds.mockRestore()
     }
   })
 
-  it('keeps author actions accessible from the compact drawer', async () => {
+  it('keeps direct edit and delete actions accessible from the compact viewer', async () => {
     renderPage()
 
     expect(
       await screen.findByRole('heading', { name: 'Alpine meadow' }),
     ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('menuitem', { name: 'Edit discovery' }),
-    ).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
-
-    const editMenuItem = screen.getByRole('menuitem', {
-      name: 'Edit discovery',
-    })
-    expect(editMenuItem).toBeInTheDocument()
-    expect(editMenuItem.querySelector('svg')).toHaveClass('size-4')
-    expect(
-      screen.getByRole('menuitem', { name: 'Delete discovery' }),
-    ).toBeInTheDocument()
+    const edit = screen.getByRole('link', { name: 'Edit discovery' })
+    expect(edit).toHaveAttribute('href', '/discoveries/7/edit')
+    expect(edit.querySelector('svg')).toHaveClass('size-5')
+    expect(screen.getByRole('button', { name: 'Delete discovery' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
   })
 
   it('keeps the photo in the unified inline viewer without opening a dialog', async () => {
     renderPage()
 
     const photo = await screen.findByRole('img', { name: 'Alpine meadow' })
+    const photoRegion = screen.getByRole('region', {
+      name: 'Discovery photo',
+    })
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
     expect(screen.getByTestId('inline-photo-viewer')).toBeInTheDocument()
+    expect(photoRegion).toHaveClass('bg-[var(--sterna-viewer-background)]')
+    expect(photoRegion.closest('main')).toHaveClass(
+      'bg-[var(--sterna-viewer-background)]',
+    )
 
     fireEvent.click(photo)
 
@@ -928,6 +972,24 @@ describe('DiscoveryDetailPage', () => {
       screen.queryByRole('dialog', { name: 'Photo viewer' }),
     ).not.toBeInTheDocument()
     expect(getPhotoMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the viewer controls visible when the photo background is pressed', async () => {
+    renderPage()
+
+    const photo = await screen.findByRole('img', { name: 'Alpine meadow' })
+    const screenRoot = photo.closest('main')
+    expect(screenRoot).toHaveAttribute('data-controls-visible', 'true')
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Edit discovery' })).toBeVisible()
+    expect(screen.getByTestId('discovery-detail-drawer')).toBeInTheDocument()
+
+    fireEvent.click(photo)
+
+    expect(screenRoot).toHaveAttribute('data-controls-visible', 'true')
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Edit discovery' })).toBeVisible()
+    expect(screen.getByTestId('discovery-detail-drawer')).toBeInTheDocument()
   })
 
   it('gives Inline a measurable full-size container', async () => {
@@ -947,6 +1009,8 @@ describe('DiscoveryDetailPage', () => {
     const viewer = await screen.findByTestId('inline-photo-viewer')
 
     expect(viewer).toHaveAttribute('data-carousel-preload', '1')
+    expect(viewer).toHaveAttribute('data-carousel-image-fit', 'contain')
+    expect(viewer).toHaveAttribute('data-carousel-padding', '0')
     expect(viewer).not.toHaveAttribute('data-animation-fade')
     expect(viewer).not.toHaveAttribute('data-animation-swipe')
     expect(viewer).toHaveAttribute('data-zoom-max-pixel-ratio', '3')
@@ -959,7 +1023,7 @@ describe('DiscoveryDetailPage', () => {
     expect(viewer).toHaveAttribute('data-controller-close-on-escape', 'false')
   })
 
-  it('shows the current photo position in the fullscreen controls', async () => {
+  it('keeps gallery navigation without showing a photo counter', async () => {
     const secondDiscovery = {
       ...discovery,
       id: 8,
@@ -974,11 +1038,19 @@ describe('DiscoveryDetailPage', () => {
       gallerySource: 'personal',
     })
 
-    expect(await screen.findByLabelText('Photo 1 of 2')).toBeVisible()
+    await screen.findByTestId('inline-photo-viewer')
+    expect(screen.queryByLabelText('Photo 1 of 2')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Go back' })).toHaveClass(
+      'bg-white',
+      'text-black',
+    )
 
     fireEvent.click(screen.getByTestId('lightbox-next'))
 
-    expect(await screen.findByLabelText('Photo 2 of 2')).toBeVisible()
+    expect(
+      await screen.findByRole('button', { name: 'Lac de Bretaye' }),
+    ).toBeVisible()
+    expect(screen.queryByLabelText('Photo 2 of 2')).not.toBeInTheDocument()
   })
 
   it('keeps the carousel mounted and shows a local unavailable slide when one photo fails', async () => {
@@ -1112,13 +1184,14 @@ describe('DiscoveryDetailPage', () => {
     expect(new Set(getPhotoMock.mock.calls.map((call) => call[1])).size).toBe(2)
     expect(screen.getByText('A lake framed by alpine meadows.')).toBeVisible()
     expect(screen.getByText('Plant')).toBeVisible()
-    expect(screen.getByText(/Added by Friend/)).toBeVisible()
+    expect(screen.getByText('Added by')).toBeVisible()
+    expect(screen.getByText('Friend')).toBeVisible()
     expect(
       screen.queryByRole('button', { name: 'More actions' }),
     ).not.toBeInTheDocument()
   })
 
-  it('exposes minimized, peek, and expanded drawer states sequentially', async () => {
+  it('keeps the title visible while toggling between compact and expanded states', async () => {
     const scrollHeight = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
       .mockReturnValue(320)
@@ -1131,43 +1204,28 @@ describe('DiscoveryDetailPage', () => {
 
       const drawer = await screen.findByTestId('discovery-detail-drawer')
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-      expect(drawer).toHaveAttribute('data-snap-points', '36,96,0.55')
+      expect(drawer).toHaveAttribute('data-snap-points', '72,0.55')
       await waitFor(() =>
-        expect(drawer).toHaveAttribute('data-snap-points', '36,56,0.55'),
+        expect(drawer).toHaveAttribute('data-snap-points', '56,0.55'),
       )
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toBeVisible()
+      const title = screen.getByRole('button', { name: 'Alpine meadow' })
+      expect(title).toBeVisible()
+      expect(title).toHaveProperty('tabIndex', 0)
 
-      const handle = screen.getByRole('button', { name: 'Collapse details' })
+      const handle = screen.getByRole('button', { name: 'Expand details' })
       expect(handle).toHaveAttribute('data-testid', 'drawer-handle')
+      expect(handle).toHaveClass('h-6', 'py-0', 'items-center')
       fireEvent.click(handle)
-      expect(drawer).toHaveAttribute('data-drawer-state', 'minimized')
-      expect(handle).toHaveClass('h-9', 'py-0', 'items-center')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toHaveAttribute('tabindex', '-1')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toBeInTheDocument()
-
-      fireEvent.click(screen.getByRole('button', { name: 'Expand details' }))
-      expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toHaveProperty('tabIndex', 0)
-
-      fireEvent.click(screen.getByRole('button', { name: 'Alpine meadow' }))
+      expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
       expect(
         await screen.findByText('A quiet meadow above the lake.'),
       ).toBeVisible()
-      expect(drawer).toHaveAttribute('data-drawer-state', 'expanded')
-      expect(
-        screen.getByRole('button', { name: 'Alpine meadow' }),
-      ).toHaveProperty('tabIndex', 0)
+      expect(title).toBeVisible()
+      expect(title).toHaveProperty('tabIndex', 0)
 
       fireEvent.click(screen.getByRole('button', { name: 'Collapse details' }))
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
+      expect(title).toBeVisible()
     } finally {
       scrollHeight.mockRestore()
       bounds.mockRestore()
@@ -1187,7 +1245,7 @@ describe('DiscoveryDetailPage', () => {
         expect(drawer).toHaveAttribute('data-peek-snap-point', '112'),
       )
       expect(drawer).toHaveAttribute('data-drawer-state', 'peek')
-      expect(drawer).toHaveAttribute('data-snap-points', '36,112,0.55')
+      expect(drawer).toHaveAttribute('data-snap-points', '112,0.55')
       expect(drawer).toHaveAttribute('data-snap-point', '112')
 
       const popup = document.querySelector('[data-slot="drawer-popup"]')
@@ -1206,7 +1264,7 @@ describe('DiscoveryDetailPage', () => {
       )
 
       const title = screen.getByRole('button', { name: 'Alpine meadow' })
-      expect(title).toHaveClass('text-center')
+      expect(title).toHaveClass('text-center', 'font-sans', '!font-bold')
       expect(title).not.toHaveClass('text-left')
 
       const details = screen.getByTestId('discovery-detail-expanded-content')
@@ -1283,8 +1341,7 @@ describe('DiscoveryDetailPage', () => {
       },
     )
 
-    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete discovery' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete discovery' }))
     fireEvent.click(screen.getByRole('button', { name: 'Delete discovery' }))
 
     await waitFor(() =>
@@ -1299,9 +1356,7 @@ describe('DiscoveryDetailPage', () => {
     expect(
       screen.queryByRole('button', { name: 'Lac de Bretaye' }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'More actions' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete discovery' })).toBeInTheDocument()
   })
 
   it('uses the target discovery group when All Groups carousel navigation changes slides', async () => {
@@ -1442,6 +1497,25 @@ describe('DiscoveryDetailPage', () => {
       await screen.findByText('A quiet meadow above the lake.'),
     ).toBeVisible()
     expect(screen.getByText('Personal map')).toBeVisible()
+  })
+
+  it('opens the discovery on its map from the expanded details', async () => {
+    renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Alpine meadow' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Show on map' }))
+
+    await waitFor(() =>
+      expect(setActiveMapMock).toHaveBeenCalledWith({
+        accessToken: 'test-token',
+        groupId: null,
+      }),
+    )
+    expect(screen.getByTestId('location-probe')).toHaveTextContent(
+      '"coordinates":[6.6,46.7],"zoom":16,"label":"Alpine meadow"',
+    )
   })
 
   it('shows and automatically hides the post-creation confirmation', async () => {

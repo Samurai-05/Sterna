@@ -33,32 +33,6 @@ describe('handleDiscoveryDrawerOpenChange', () => {
     expect(handleBack).not.toHaveBeenCalled()
   })
 
-  it('closes the action menu before navigation for close-watcher requests', () => {
-    const cancel = vi.fn()
-    const closeActionMenu = vi.fn()
-    const restoreFocus = vi.fn()
-    const handleBack = vi.fn()
-
-    handleDiscoveryDrawerOpenChange(
-      false,
-      { reason: 'close-watcher', cancel },
-      () =>
-        handleViewerBackRequest({
-          isDeleteDialogOpen: false,
-          isActionMenuOpen: true,
-          closeDeleteDialog: vi.fn(),
-          closeActionMenu,
-          restoreActionMenuFocus: restoreFocus,
-          handleBack,
-        }),
-    )
-
-    expect(cancel).toHaveBeenCalledOnce()
-    expect(closeActionMenu).toHaveBeenCalledOnce()
-    expect(restoreFocus).toHaveBeenCalledOnce()
-    expect(handleBack).not.toHaveBeenCalled()
-  })
-
   it('closes the delete dialog before navigation for close-watcher requests', () => {
     const cancel = vi.fn()
     const closeDeleteDialog = vi.fn()
@@ -70,10 +44,7 @@ describe('handleDiscoveryDrawerOpenChange', () => {
       () =>
         handleViewerBackRequest({
           isDeleteDialogOpen: true,
-          isActionMenuOpen: true,
           closeDeleteDialog,
-          closeActionMenu: vi.fn(),
-          restoreActionMenuFocus: vi.fn(),
           handleBack,
         }),
     )
@@ -88,10 +59,7 @@ describe('handleDiscoveryDrawerOpenChange', () => {
 
     handleViewerBackRequest({
       isDeleteDialogOpen: false,
-      isActionMenuOpen: false,
       closeDeleteDialog: vi.fn(),
-      closeActionMenu: vi.fn(),
-      restoreActionMenuFocus: vi.fn(),
       handleBack,
     })
 
@@ -104,11 +72,8 @@ describe('handleDiscoveryDrawerOpenChange', () => {
 
     handleViewerBackRequest({
       isDeleteDialogOpen: false,
-      isActionMenuOpen: false,
       isDrawerExpanded: true,
       closeDeleteDialog: vi.fn(),
-      closeActionMenu: vi.fn(),
-      restoreActionMenuFocus: vi.fn(),
       closeDrawer,
       handleBack,
     })

@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  defaultGlobeViewport,
   getGlobeFitPadding,
   getResponsiveGlobeMinimumZoom,
 } from './map-viewport'
 
 describe('responsive globe minimum zoom', () => {
+  it('keeps the world-facing globe as the default viewport', () => {
+    expect(defaultGlobeViewport).toEqual({ center: [0, 20], zoom: 1.5 })
+  })
+
   it('calculates six percent of the smallest dimension with an eight pixel minimum', () => {
     expect(getGlobeFitPadding({ width: 320, height: 640 })).toBe(19)
     expect(getGlobeFitPadding({ width: 800, height: 400 })).toBe(24)

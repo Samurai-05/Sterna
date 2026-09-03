@@ -93,6 +93,11 @@ describe('EditDiscoveryPage', () => {
     const animal = screen.getByRole('button', { name: 'Animal' })
     fireEvent.click(animal)
     expect(animal).toHaveAttribute('aria-pressed', 'true')
+    expect(animal).toHaveClass('bg-[#CFFAFE]')
+    expect(animal).toHaveStyle({
+      borderColor: '#0891B2',
+      color: '#0891B2',
+    })
 
     fireEvent.change(
       screen.getByRole('textbox', { name: 'Search for a location' }),
