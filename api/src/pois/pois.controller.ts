@@ -18,7 +18,12 @@ import type { AuthenticatedUser } from '../common/authenticated-user';
 import { ApiAuthenticated } from '../common/decorators/api-authenticated.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
-import { PoiResponse, PoisService } from './pois.service';
+import { NearbyPoisDto } from './dto/nearby-pois.dto';
+import {
+  POI_NEARBY_DEFAULT_RADIUS_METERS,
+  PoiResponse,
+  PoisService,
+} from './pois.service';
 
 const poisExample = [
   {
@@ -69,6 +74,32 @@ export class PoisController {
     @CurrentUser() caller: AuthenticatedUser,
   ): Promise<PoiResponse[]> {
     return this.pois.findAllAuthoredByUser(caller.id);
+  }
+
+  @Get('nearby')
+  @ApiAuthenticated()
+  @ApiOperation({
+    summary: 'List points of interest near a coordinate',
+    description:
+      'Candidates for the confirm-to-unlock flow: a photo of a landmark is ' +
+      'often taken well outside the automatic discovery radius (a mountain ' +
+      'shot from its valley town, a tower shot from across a square). ' +
+      'Sorted by distance, nearest first.',
+  })
+  @ApiOkResponse({
+    description: 'Points of interest within range, nearest first.',
+    schema: { example: poisExample },
+  })
+  findNearby(
+    @CurrentUser() caller: AuthenticatedUser,
+    @Query() query: NearbyPoisDto,
+  ): Promise<PoiResponse[]> {
+    return this.pois.findNearby(
+      caller.id,
+      query.longitude,
+      query.latitude,
+      query.radius ?? POI_NEARBY_DEFAULT_RADIUS_METERS,
+    );
   }
 
   @Get(':id/image')

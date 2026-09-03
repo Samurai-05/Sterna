@@ -167,4 +167,62 @@ describe('PoisController (e2e)', () => {
       true,
     );
   });
+
+  it('unlocks a POI from a confirmed link even when the discovery is well outside the auto-unlock radius', async () => {
+    // Trocadéro — roughly 700m from the Eiffel Tower, well outside
+    // POI_DISCOVERY_RADIUS_METERS (150m).
+    await dataSource.query(
+      `INSERT INTO discoveries (
+        user_id, title, location, image_object_key, discovered_at, is_personal, confirmed_poi_id
+      )
+      SELECT $1, 'Eiffel Tower from Trocadéro',
+        ST_SetSRID(ST_MakePoint(2.2892, 48.8616), 4326), 'photos/trocadero.jpg',
+        NOW(), TRUE, pois.id
+      FROM pois WHERE pois.title = 'Eiffel Tower'`,
+      [userId],
+    );
+
+    const response = await request(app.getHttpServer())
+      .get('/api/pois/authored')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+
+    expect(
+      (response.body as PoiResponse[]).find(
+        (poi) => poi.title === 'Eiffel Tower',
+      )?.discovered,
+    ).toBe(true);
+  });
+
+  describe('GET /api/pois/nearby', () => {
+    it('returns POIs within range, ordered by distance', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/pois/nearby')
+        .query({ longitude: 2.2892, latitude: 48.8616, radius: 2000 })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const body = response.body as PoiResponse[];
+      expect(body.map((poi) => poi.title)).toContain('Eiffel Tower');
+    });
+
+    it('excludes POIs outside the requested radius', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/pois/nearby')
+        .query({ longitude: 2.2892, latitude: 48.8616, radius: 100 })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      const body = response.body as PoiResponse[];
+      expect(body.map((poi) => poi.title)).not.toContain('Eiffel Tower');
+    });
+
+    it('requires valid coordinates', async () => {
+      await request(app.getHttpServer())
+        .get('/api/pois/nearby')
+        .query({ longitude: 'nope', latitude: 48.8616 })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(400);
+    });
+  });
 });

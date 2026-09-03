@@ -35,6 +35,16 @@ interface PoiRow {
 export const POI_DISCOVERY_RADIUS_METERS = 150;
 const COUNTRY_MATCH_BUFFER_METERS = 5000;
 
+// "Nearby" candidates for the confirm-to-unlock flow (PoisController.nearby):
+// far more generous than POI_DISCOVERY_RADIUS_METERS on purpose. A landmark
+// is often photographed from well outside auto-unlock range — the Matterhorn
+// from Zermatt town, the Eiffel Tower from Trocadéro — but unlike the
+// automatic radius, a candidate here is never unlocked on its own; the user
+// still has to explicitly confirm which one (if any) they mean, which is
+// what makes a wide radius safe here where it wasn't for the automatic check.
+export const POI_NEARBY_DEFAULT_RADIUS_METERS = 5000;
+export const POI_NEARBY_MAX_RADIUS_METERS = 20000;
+
 export interface PoiImage {
   stream: Readable;
   contentType: string;
@@ -123,10 +133,13 @@ export class PoisService {
           EXISTS (
             SELECT 1
             FROM discoveries discovery
-            WHERE ST_DWithin(
-              poi.location::geography,
-              discovery.location::geography,
-              $2
+            WHERE (
+              ST_DWithin(
+                poi.location::geography,
+                discovery.location::geography,
+                $2
+              )
+              OR discovery.confirmed_poi_id = poi.id
             )
             AND (
               (
@@ -181,10 +194,13 @@ export class PoisService {
             SELECT 1
             FROM discoveries discovery
             WHERE discovery.user_id = $1
-              AND ST_DWithin(
-                poi.location::geography,
-                discovery.location::geography,
-                $2
+              AND (
+                ST_DWithin(
+                  poi.location::geography,
+                  discovery.location::geography,
+                  $2
+                )
+                OR discovery.confirmed_poi_id = poi.id
               )
           ) AS discovered
         FROM pois poi
@@ -203,6 +219,78 @@ export class PoisService {
       imageUrl: row.image_url ? poiImageProxyPath(row.id) : null,
       discovered: row.discovered,
     }));
+  }
+
+  /**
+   * Every POI within `radiusMeters` of the given point, closest first — the
+   * candidate list for the confirm-to-unlock flow (a discovery is often
+   * saved, or a POI page visited, well outside POI_DISCOVERY_RADIUS_METERS).
+   * `discovered` is computed exactly as in findAll, so an already-confirmed
+   * candidate can be filtered out client-side rather than re-offered.
+   */
+  async findNearby(
+    userId: string,
+    longitude: number,
+    latitude: number,
+    radiusMeters: number,
+  ): Promise<PoiResponse[]> {
+    const rows = await this.pois.query<PoiRow[]>(
+      `
+        SELECT
+          poi.id,
+          poi.title,
+          poi.description,
+          ST_X(poi.location) AS longitude,
+          ST_Y(poi.location) AS latitude,
+          ${POI_COUNTRY_PROJECTION},
+          poi.image_url,
+          EXISTS (
+            SELECT 1
+            FROM discoveries discovery
+            WHERE discovery.user_id = $1
+              AND (
+                ST_DWithin(
+                  poi.location::geography,
+                  discovery.location::geography,
+                  $5
+                )
+                OR discovery.confirmed_poi_id = poi.id
+              )
+          ) AS discovered
+        FROM pois poi
+        WHERE ST_DWithin(
+          poi.location::geography,
+          ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
+          $4
+        )
+        ORDER BY poi.location <-> ST_SetSRID(ST_MakePoint($2, $3), 4326)
+      `,
+      [userId, longitude, latitude, radiusMeters, POI_DISCOVERY_RADIUS_METERS],
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      longitude: Number(row.longitude),
+      latitude: Number(row.latitude),
+      countryCode: row.country_code,
+      imageUrl: row.image_url ? poiImageProxyPath(row.id) : null,
+      discovered: row.discovered,
+    }));
+  }
+
+  /** Throws NotFoundException rather than letting a bogus id surface as a
+   * raw FK-violation 500 from wherever it's ultimately written (e.g.
+   * DiscoveriesService.update confirming a discovery against it). */
+  async requireExists(id: string): Promise<void> {
+    const [row] = await this.pois.query<{ exists: boolean }[]>(
+      `SELECT EXISTS (SELECT 1 FROM pois WHERE id = $1)`,
+      [id],
+    );
+    if (!row?.exists) {
+      throw new NotFoundException(`No such point of interest "${id}".`);
+    }
   }
 
   /**

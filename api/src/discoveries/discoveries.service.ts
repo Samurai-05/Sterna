@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GroupsService } from '../groups/groups.service';
 import { PhotosService } from '../photos/photos.service';
+import { PoisService } from '../pois/pois.service';
 import { CreateDiscoveryDto } from './create-discovery.dto';
 import { Discovery } from './discovery.entity';
 import { UpdateDiscoveryDto } from './update-discovery.dto';
@@ -25,6 +26,12 @@ export interface DiscoveryResponse {
   longitude: number;
   latitude: number;
   imageObjectKey: string;
+  /**
+   * The POI this discovery was explicitly confirmed against (confirm-to-
+   * unlock flow), independent of POI_DISCOVERY_RADIUS_METERS proximity. Null
+   * until the user confirms a match — see UpdateDiscoveryDto.confirmedPoiId.
+   */
+  confirmedPoiId: string | null;
   /** Display name of the author (FR-31), so a group map can label its markers. */
   authorUserName: string;
   /**
@@ -51,6 +58,7 @@ interface DiscoveryRow {
   longitude: string;
   latitude: string;
   image_object_key: string;
+  confirmed_poi_id: string | null;
   author_user_name: string;
   country_code: string | null;
   location_source: DiscoveryLocationSource | null;
@@ -122,6 +130,7 @@ const DISCOVERY_PROJECTION = `
     ST_X(d.location) AS longitude,
     ST_Y(d.location) AS latitude,
     d.image_object_key,
+    d.confirmed_poi_id,
     u.user_name AS author_user_name,
     d.country_code,
     d.location_source,
@@ -141,6 +150,7 @@ export class DiscoveriesService {
     private readonly discoveries: Repository<Discovery>,
     private readonly groups: GroupsService,
     private readonly photos: PhotosService,
+    private readonly pois: PoisService,
   ) {}
 
   /**
@@ -301,6 +311,7 @@ export class DiscoveriesService {
           ST_X(inserted.location) AS longitude,
           ST_Y(inserted.location) AS latitude,
           inserted.image_object_key,
+          inserted.confirmed_poi_id,
           inserted.location_source,
           users.user_name AS author_user_name,
           inserted.country_code,
@@ -394,6 +405,17 @@ export class DiscoveriesService {
       }
     }
 
+    const setsConfirmedPoi = Object.prototype.hasOwnProperty.call(
+      dto,
+      'confirmedPoiId',
+    );
+    if (setsConfirmedPoi && dto.confirmedPoiId != null) {
+      // Same reasoning as requireMembership above: without this, confirming
+      // against a bogus id would surface as a raw FK-violation 500 instead
+      // of the 404 every other "that doesn't exist" case in this API gives.
+      await this.pois.requireExists(dto.confirmedPoiId);
+    }
+
     const [row] = await this.discoveries.query<DiscoveryRow[]>(
       `
         WITH point_geom AS (
@@ -423,6 +445,10 @@ export class DiscoveriesService {
             is_personal = CASE
               WHEN $11::boolean THEN $12
               ELSE d.is_personal
+            END,
+            confirmed_poi_id = CASE
+              WHEN $14::boolean THEN $15
+              ELSE d.confirmed_poi_id
             END
           FROM point_geom
           WHERE d.id = $1 AND d.user_id = $2
@@ -468,6 +494,7 @@ export class DiscoveriesService {
           ST_X(location) AS longitude,
           ST_Y(location) AS latitude,
           image_object_key,
+          confirmed_poi_id,
           (SELECT user_name FROM users WHERE users.id = updated.user_id)
             AS author_user_name,
           country_code,
@@ -491,6 +518,8 @@ export class DiscoveriesService {
         dto.personal !== undefined,
         dto.personal ?? false,
         dto.longitude !== undefined || dto.latitude !== undefined,
+        setsConfirmedPoi,
+        dto.confirmedPoiId ?? null,
       ],
     );
 
@@ -570,6 +599,7 @@ export class DiscoveriesService {
       longitude: Number(row.longitude),
       latitude: Number(row.latitude),
       imageObjectKey: row.image_object_key,
+      confirmedPoiId: row.confirmed_poi_id,
       authorUserName: row.author_user_name,
       countryCode: row.country_code,
       locationSource: row.location_source ?? null,
